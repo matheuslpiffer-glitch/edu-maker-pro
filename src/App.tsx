@@ -84,6 +84,7 @@ function AppRoutes() {
         <Route path="/vestibulares" element={<Vestibulares />} />
         <Route path="/tecnicos" element={<Tecnicos />} />
         <Route path="/jogos" element={<GameFactory />} />
+        <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
         <Route path="/pisa" element={<PisaSimulators />} />
         <Route path="/biblioteca" element={<BibliotecaAvaliacoes />} />
         {/* Removed: /resultados, /evolucao, /agenda — focusing on core engines */}
