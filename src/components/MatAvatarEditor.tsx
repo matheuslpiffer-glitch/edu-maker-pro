@@ -166,8 +166,8 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
             <Slider
               value={[offsetX]}
               onValueChange={([v]) => setOffsetX(v)}
-              min={0}
-              max={100}
+              min={-50}
+              max={150}
               step={1}
               className="flex-1"
             />
