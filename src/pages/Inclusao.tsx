@@ -168,9 +168,16 @@ export default function Inclusao() {
     const el = document.getElementById('aee-result-preview');
     if (!el) return;
     try {
+      // Inject a temporary header for PDF
+      const header = document.createElement('div');
+      header.id = 'aee-pdf-header';
+      header.style.cssText = 'text-align:center;padding:10px 0 16px;border-bottom:2px solid #0891b2;margin-bottom:16px;font-family:Inter,Arial,sans-serif;';
+      header.innerHTML = `<strong style="font-size:16px;color:#0F172A;">EduCreator Pro</strong><br/><span style="font-size:11px;color:#64748b;">Por Matheus Lima Piffer</span>`;
+      el.prepend(header);
+
       const html2pdf = (await import('html2pdf.js')).default;
       const opts: any = {
-        margin: [15, 10, 15, 10],
+        margin: [15, 15, 15, 15],
         filename: `AEE_${topic || 'atividade'}.pdf`,
         pagebreak: { mode: ['css', 'legacy'] },
         image: { type: 'png', quality: 0.98 },
@@ -178,22 +185,25 @@ export default function Inclusao() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       };
       await html2pdf().set(opts).from(el).save();
+      header.remove();
       toast({ title: 'PDF gerado com sucesso!' });
     } catch (e: any) {
+      document.getElementById('aee-pdf-header')?.remove();
       toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
     }
   };
 
   const handleWhatsApp = () => {
     if (!result) return;
-    const lines = result.map((q: any, i: number) => {
+    const profileLabel = AEE_PROFILES.find(p => p.value === selectedProfile)?.label || selectedProfile;
+    const activityLines = result.map((q: any, i: number) => {
       let text = `*${i + 1})* ${q.content?.replace(/<[^>]*>/g, '') || ''}`;
       if (q.options?.length) {
         text += '\n' + q.options.map((o: any) => `  ${o.letter}) ${o.text}`).join('\n');
       }
       return text;
     });
-    const msg = `📋 *Atividade AEE — ${topic}*\n\n${lines.join('\n\n')}`;
+    const msg = `🏫 *EduCreator Pro - Atividade Adaptada*\n\n👤 Professor: Matheus Lima Piffer\n\n📚 Disciplina: ${subject}\n\n🎯 Público-Alvo: ${profileLabel}\n\n${activityLines.join('\n\n')}\n\n✅ Gerado via EduCreator Pro`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
