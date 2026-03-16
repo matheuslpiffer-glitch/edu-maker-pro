@@ -635,14 +635,16 @@ Responda em JSON:
 
     const questionFormatInstruction = isDiscursiva
       ? `As questões devem ser ABERTAS/DISCURSIVAS (2ª Fase). NÃO inclua alternativas (A-E). Cada questão deve ter espaço para o aluno desenvolver a resolução por escrito. Inclua um "Espelho de Correção" com resolução passo a passo e critérios de pontuação para cada questão.`
-      : `Cada questão deve ter EXATAMENTE 5 alternativas (A a E), com apenas 1 correta. Use linguagem precisa, contextos significativos e distratores plausíveis que reflitam erros conceituais comuns.`;
+      : `Cada questão deve ter EXATAMENTE 5 alternativas (A a E), com apenas 1 correta. Use distratores plausíveis.`;
 
-    const systemPrompt = `Você é um Doutor Especialista em Avaliações e Concursos, capaz de mimetizar o estilo de escrita, o rigor e a estrutura de grandes instituições como Vunesp, Comvest e Fuvest. Gere questões no formato de avaliações oficiais como ${examLabel}, seguindo rigorosamente os descritores de competência da SEDUC-SP e o Currículo Paulista.
+    // For large counts, instruct the AI to be more concise
+    const compactInstruction = effectiveCount > 10
+      ? `\nOTIMIZAÇÃO: São ${effectiveCount} questões. Seja DIRETO nos enunciados (máx 3 linhas cada). Evite contextos longos. Priorize clareza e objetividade.\n`
+      : "";
 
-${modelInstruction ? `MODELO DE ELITE SELECIONADO:\n${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}
-
+    const systemPrompt = `Você é um Especialista em Avaliações oficiais brasileiras como ${examLabel}, seguindo descritores da SEDUC-SP e Currículo Paulista.
+${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${compactInstruction}
 ${questionFormatInstruction}
-
 Responda APENAS com JSON válido, sem markdown.`;
 
     // Cap concurso público to max 10 questions for timeout prevention
