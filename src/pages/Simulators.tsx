@@ -603,7 +603,21 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
           },
         });
-        if (error) throw error;
+        // Handle non-2xx: supabase.functions.invoke returns data with error message
+        if (error) {
+          // Try to extract the actual error from the response context
+          const ctx = (error as any)?.context;
+          if (ctx) {
+            try {
+              const body = await ctx.json();
+              if (body?.error) throw new Error(body.error);
+            } catch (parseErr) {
+              // If parsing fails, check if data has the error
+            }
+          }
+          if (data?.error) throw new Error(data.error);
+          throw error;
+        }
         if (data?.error) throw new Error(data.error);
         if (data?.questions) allQuestions.push(...data.questions);
       }
@@ -622,7 +636,18 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       toast({ title: `${allQuestions.length} questões geradas com sucesso!` });
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Erro ao gerar questões', description: e.message, variant: 'destructive' });
+      const msg = e?.message || 'Erro ao gerar questões';
+      const isCredits = msg.includes('Créditos') || msg.includes('credits') || msg.includes('402') || msg.includes('insuficientes');
+      const isRate = msg.includes('Limite') || msg.includes('429') || msg.includes('rate');
+      toast({
+        title: isCredits ? '💳 Créditos de IA Insuficientes' : isRate ? '⏳ Limite de Requisições' : 'Erro ao gerar questões',
+        description: isCredits
+          ? 'Os créditos de IA foram esgotados. Acesse Configurações → Workspace → Usage para recarregar.'
+          : isRate
+          ? 'Muitas requisições em pouco tempo. Aguarde alguns segundos e tente novamente.'
+          : msg,
+        variant: 'destructive',
+      });
     } finally { setGenerating(false); }
   };
 
