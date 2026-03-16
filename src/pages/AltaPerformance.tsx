@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Trophy, Wand2, Copy, FileDown, Loader2 } from 'lucide-react';
+import matAvatar from '@/assets/mat-avatar.png';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
