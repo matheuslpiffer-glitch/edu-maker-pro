@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import defaultAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
 import MatAvatarEditor from '@/components/MatAvatarEditor';
+import MatAvatarArtwork from '@/components/MatAvatarArtwork';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -218,7 +219,7 @@ export default function MatChatbot() {
               {/* Gradient ring container */}
               <div className="w-[80px] h-[80px] rounded-full p-[3px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 transition-all duration-300">
                 <div className="w-full h-full rounded-full overflow-hidden bg-white">
-                  <img src={avatarSrc} alt="Mat" style={{ width: `${zoom}%`, height: `${zoom}%`, transform: `translate(${-(zoom - 100) * (offsetX / 100)}%, ${-(zoom - 100) * (offsetY / 100)}%)` }} className="object-cover" />
+                  <MatAvatarArtwork src={avatarSrc} alt="Mat" zoom={zoom} offsetX={offsetX} offsetY={offsetY} />
                 </div>
               </div>
               {/* Edit button */}

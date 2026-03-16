@@ -4,6 +4,7 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import defaultAvatar from '@/assets/mat-avatar-closeup.png';
+import MatAvatarArtwork from '@/components/MatAvatarArtwork';
 
 interface Props {
   open: boolean;
@@ -49,7 +50,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
     const dx = e.clientX - dragStart.current.x;
     const dy = e.clientY - dragStart.current.y;
     const sensitivity = 0.5;
-    const newX = Math.max(0, Math.min(100, dragStart.current.ox - dx * sensitivity));
+    const newX = Math.max(-50, Math.min(150, dragStart.current.ox - dx * sensitivity));
     const newY = Math.max(-50, Math.min(100, dragStart.current.oy - dy * sensitivity));
     setOffsetX(newX);
     setOffsetY(newY);
@@ -111,16 +112,13 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
             onPointerUp={handlePointerUp}
           >
             <div className="w-full h-full rounded-full overflow-hidden bg-background pointer-events-none">
-              <img
+              <MatAvatarArtwork
                 src={previewUrl}
                 alt="Preview"
-                className="object-cover pointer-events-none"
-                draggable={false}
-                style={{
-                  width: `${zoom}%`,
-                  height: `${zoom}%`,
-                  transform: `translate(${-(zoom - 100) * (offsetX / 100)}%, ${-(zoom - 100) * (offsetY / 100)}%)`,
-                }}
+                zoom={zoom}
+                offsetX={offsetX}
+                offsetY={offsetY}
+                className="pointer-events-none"
               />
             </div>
           </div>
@@ -168,8 +166,8 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
             <Slider
               value={[offsetX]}
               onValueChange={([v]) => setOffsetX(v)}
-              min={0}
-              max={100}
+              min={-50}
+              max={150}
               step={1}
               className="flex-1"
             />
