@@ -144,6 +144,19 @@ export default function AltaPerformance() {
               </Select>
             </div>
 
+            {/* Formato da Questão */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Formato da Questão</Label>
+              <ToggleGroup type="single" value={formato} onValueChange={v => { if (v) setFormato(v); }} className="w-full border border-border/50 rounded-lg p-1 bg-muted/30">
+                <ToggleGroupItem value="objetiva" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  Objetiva (Múltipla Escolha)
+                </ToggleGroupItem>
+                <ToggleGroupItem value="discursiva" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  Discursiva (Aberta)
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+
             {/* Série e Disciplina */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
