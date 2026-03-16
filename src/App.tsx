@@ -89,7 +89,7 @@ function AppRoutes() {
         <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
         <Route path="/pisa" element={<PisaSimulators />} />
         <Route path="/biblioteca" element={<BibliotecaAvaliacoes />} />
-        {/* Removed: /resultados, /evolucao, /agenda — focusing on core engines */}
+        <Route path="/resultados-alunos" element={<ResultadosAlunos />} />
         <Route path="/banco-ia" element={<QuestionBankAI />} />
         <Route path="/guia" element={<SystemGuide />} />
         <Route path="/manual" element={<TeacherManual />} />
