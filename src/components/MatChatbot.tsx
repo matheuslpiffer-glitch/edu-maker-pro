@@ -247,6 +247,8 @@ export default function MatChatbot() {
         onClose={() => setShowAvatarEditor(false)}
         currentAvatar={customAvatar}
         currentZoom={zoom}
+        currentOffsetX={offsetX}
+        currentOffsetY={offsetY}
         onSave={saveAvatar}
         onReset={clearAvatar}
       />
