@@ -49,6 +49,12 @@ const references = [
     source: 'SECADI / MEC',
     url: 'https://www.gov.br/mec/pt-br/assuntos/educacao-especial',
   },
+  {
+    title: 'Diretrizes de Acessibilidade e Design Universal para a Aprendizagem (DUA)',
+    description: 'Conjunto de princípios e diretrizes que orientam o planejamento curricular flexível, promovendo múltiplas formas de engajamento, representação e ação/expressão para atender à diversidade dos estudantes.',
+    source: 'CAST — Center for Applied Special Technology / MEC',
+    url: 'https://www.cast.org/impact/universal-design-for-learning-udl',
+  },
 ];
 
 export default function ReferenciasBibliograficas() {

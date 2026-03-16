@@ -11,7 +11,7 @@ import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
 import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
-  Users, Hand, Ear,
+  Users, Hand, Ear, Wand2, ImageIcon,
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -84,16 +84,77 @@ async function fetchAeeWithRetry(payload: Record<string, unknown>, retries = 2, 
   }
 }
 
+/* ── Per-question image generator component ── */
+function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionIndex: number; onImageGenerated: (url: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [prompt, setPrompt] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleGenerate = () => {
+    if (!prompt.trim()) return;
+    setLoading(true);
+    const encoded = encodeURIComponent(prompt.trim());
+    const url = `https://image.pollinations.ai/prompt/${encoded}?width=600&height=400&nologo=true&model=flux`;
+    setImageUrl(url);
+    onImageGenerated(url);
+    setLoading(false);
+  };
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 text-purple-600 text-xs font-bold hover:from-purple-500/20 hover:to-pink-500/20 transition-all no-print"
+      >
+        <Wand2 className="h-3.5 w-3.5" />
+        Gerar Imagem de Apoio
+      </button>
+    );
+  }
+
+  return (
+    <div className="space-y-3 p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 no-print">
+      <div className="flex items-center gap-2 text-xs font-bold text-purple-700">
+        <ImageIcon className="h-4 w-4" />
+        Imagem de Apoio — Questão {questionIndex + 1}
+      </div>
+      <div className="flex gap-2">
+        <Input
+          value={prompt}
+          onChange={e => setPrompt(e.target.value)}
+          placeholder="Ex: Desenho simples de uma pizza dividida em 4 partes, estilo cartoon limpo"
+          className="rounded-xl text-sm flex-1"
+          onKeyDown={e => e.key === 'Enter' && handleGenerate()}
+        />
+        <Button
+          onClick={handleGenerate}
+          disabled={loading || !prompt.trim()}
+          size="sm"
+          className="rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+        </Button>
+      </div>
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt="Imagem de apoio gerada"
+          className="w-full max-w-sm h-auto rounded-2xl shadow-md my-4"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function Inclusao() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { addQuestions } = useSavedQuestionsBank();
 
-  /* Step 1 */
   const [subject, setSubject] = useState('');
-  /* Step 2 */
   const [selectedProfile, setSelectedProfile] = useState('');
-  /* Step 3 — generation */
   const [aeeMode, setAeeMode] = useState<'gerar_novas' | 'adaptar_antigas' | 'texto_resumo'>('gerar_novas');
   const [topic, setTopic] = useState('');
   const [content, setContent] = useState('');
@@ -102,12 +163,18 @@ export default function Inclusao() {
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<any[] | null>(null);
   const [saving, setSaving] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
 
   const canGenerate = !!subject && !!selectedProfile && !!topic;
+
+  const handleImageGenerated = (index: number, url: string) => {
+    setGeneratedImages(prev => ({ ...prev, [index]: url }));
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
     setResult(null);
+    setGeneratedImages({});
     try {
       const data = await fetchAeeWithRetry({
         isInclusao: true,
@@ -141,11 +208,15 @@ export default function Inclusao() {
     }
   };
 
-  /* ── Output actions ── */
   const handleSave = async () => {
     if (!user || !result) return;
     setSaving(true);
     try {
+      // Merge generated images into questions
+      const questionsWithImages = result.map((q: any, i: number) => ({
+        ...q,
+        generatedImageUrl: generatedImages[i] || q.imageUrl || null,
+      }));
       const { error } = await supabase.from('aee_activities').insert({
         user_id: user.id,
         profile: selectedProfile,
@@ -153,7 +224,7 @@ export default function Inclusao() {
         topic,
         mode: aeeMode,
         question_type: questionType,
-        questions: result as any,
+        questions: questionsWithImages as any,
       });
       if (error) throw error;
       toast({ title: '✅ Atividade salva no seu perfil!' });
@@ -168,12 +239,15 @@ export default function Inclusao() {
     const el = document.getElementById('aee-result-preview');
     if (!el) return;
     try {
-      // Inject a temporary header for PDF
       const header = document.createElement('div');
       header.id = 'aee-pdf-header';
       header.style.cssText = 'text-align:center;padding:10px 0 16px;border-bottom:2px solid #0891b2;margin-bottom:16px;font-family:Inter,Arial,sans-serif;';
       header.innerHTML = `<strong style="font-size:16px;color:#0F172A;">EduCreator Pro</strong><br/><span style="font-size:11px;color:#64748b;">Por Matheus Lima Piffer</span>`;
       el.prepend(header);
+
+      // Hide no-print elements for PDF capture
+      const noPrintEls = el.querySelectorAll('.no-print');
+      noPrintEls.forEach(e => (e as HTMLElement).style.display = 'none');
 
       const html2pdf = (await import('html2pdf.js')).default;
       const opts: any = {
@@ -181,11 +255,12 @@ export default function Inclusao() {
         filename: `AEE_${topic || 'atividade'}.pdf`,
         pagebreak: { mode: ['css', 'legacy'] },
         image: { type: 'png', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
+        html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       };
       await html2pdf().set(opts).from(el).save();
       header.remove();
+      noPrintEls.forEach(e => (e as HTMLElement).style.display = '');
       toast({ title: 'PDF gerado com sucesso!' });
     } catch (e: any) {
       document.getElementById('aee-pdf-header')?.remove();
@@ -200,6 +275,11 @@ export default function Inclusao() {
       let text = `*${i + 1})* ${q.content?.replace(/<[^>]*>/g, '') || ''}`;
       if (q.options?.length) {
         text += '\n' + q.options.map((o: any) => `  ${o.letter}) ${o.text}`).join('\n');
+      }
+      // Include image URL if generated
+      const imgUrl = generatedImages[i] || q.imageUrl;
+      if (imgUrl) {
+        text += `\n🖼️ Imagem: ${imgUrl}`;
       }
       return text;
     });
@@ -354,7 +434,7 @@ export default function Inclusao() {
           )}
         </div>
 
-        {/* Right: Mode selector (always visible) */}
+        {/* Right: Mode selector */}
         <div className="lg:col-span-2 space-y-6">
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Modo de Trabalho</h3>
@@ -383,7 +463,6 @@ export default function Inclusao() {
             </div>
           </div>
 
-          {/* Flow guidance */}
           {!subject && (
             <div className="bg-muted/50 rounded-2xl p-5 text-center space-y-2">
               <p className="text-sm font-semibold text-muted-foreground">Comece selecionando a Disciplina</p>
@@ -415,18 +494,36 @@ export default function Inclusao() {
                     ))}
                   </div>
                 )}
+
+                {/* Existing AI-generated image */}
                 {q.imageUrl && (
                   <img
                     src={q.imageUrl}
                     onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                    className="rounded-3xl w-full h-auto bg-muted"
+                    className="w-full max-w-sm h-auto rounded-2xl shadow-md my-4"
                   />
                 )}
+
+                {/* Generated Pollinations image (persisted in preview for PDF) */}
+                {generatedImages[i] && !q.imageUrl && (
+                  <img
+                    src={generatedImages[i]}
+                    alt="Imagem de apoio gerada"
+                    className="w-full max-w-sm h-auto rounded-2xl shadow-md my-4"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                  />
+                )}
+
+                {/* Per-question image generator button */}
+                <QuestionImageGenerator
+                  questionIndex={i}
+                  onImageGenerated={(url) => handleImageGenerated(i, url)}
+                />
               </div>
             ))}
           </div>
 
-          {/* ── Output action bar ── */}
+          {/* Output action bar */}
           <div className="flex flex-wrap items-center gap-3 pt-4 border-t no-print">
             <Button onClick={handleSave} disabled={saving} variant="outline" className="rounded-2xl gap-2">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
