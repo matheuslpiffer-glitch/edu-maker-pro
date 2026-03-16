@@ -75,9 +75,9 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
                 style={{
                   width: `${zoom}%`,
                   height: `${zoom}%`,
-                  marginLeft: `${-(zoom - 100) / 2}%`,
+                  marginLeft: `${-(zoom - 100) * (offsetX / 100)}%`,
                   marginTop: `${-((zoom - 100) / 2) + offsetY * (zoom / 200)}%`,
-                  objectPosition: `center ${offsetY}%`,
+                  objectPosition: `${offsetX}% ${offsetY}%`,
                 }}
               />
             </div>
