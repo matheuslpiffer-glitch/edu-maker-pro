@@ -175,7 +175,7 @@ export default function MatChatbot() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                placeholder="Pergunte ao Mat..."
+                placeholder="Fale com o Mat..."
                 className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-700 placeholder:text-slate-400 px-3 py-2"
               />
               <button
