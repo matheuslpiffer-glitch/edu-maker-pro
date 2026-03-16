@@ -10,13 +10,13 @@ import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit
 import { toast } from '@/hooks/use-toast';
 import matAvatar from '@/assets/mat-avatar-closeup.png';
 
-const RIASEC_LABELS: Record<string, { label: string; color: string; desc: string }> = {
-  R: { label: 'Realista', color: 'hsl(var(--chart-1, 220 70% 50%))', desc: 'Prático, técnico, manual' },
-  I: { label: 'Investigativo', color: 'hsl(var(--chart-2, 160 60% 45%))', desc: 'Analítico, curioso, científico' },
-  A: { label: 'Artístico', color: 'hsl(var(--chart-3, 30 80% 55%))', desc: 'Criativo, expressivo, original' },
-  S: { label: 'Social', color: 'hsl(var(--chart-4, 280 65% 60%))', desc: 'Cooperativo, empático, comunicador' },
-  E: { label: 'Empreendedor', color: 'hsl(var(--chart-5, 340 75% 55%))', desc: 'Líder, persuasivo, ambicioso' },
-  C: { label: 'Convencional', color: 'hsl(var(--primary))', desc: 'Organizado, metódico, detalhista' },
+const RIASEC_LABELS: Record<string, { label: string; color: string; desc: string; env: string }> = {
+  R: { label: 'Realista', color: 'hsl(var(--chart-1, 220 70% 50%))', desc: 'Prático, técnico, manual', env: 'práticos, com uso de ferramentas e resolução de problemas concretos' },
+  I: { label: 'Investigativo', color: 'hsl(var(--chart-2, 160 60% 45%))', desc: 'Analítico, curioso, científico', env: 'analíticos, com pesquisa, dados e resolução de problemas complexos' },
+  A: { label: 'Artístico', color: 'hsl(var(--chart-3, 30 80% 55%))', desc: 'Criativo, expressivo, original', env: 'criativos, com liberdade de expressão e inovação constante' },
+  S: { label: 'Social', color: 'hsl(var(--chart-4, 280 65% 60%))', desc: 'Cooperativo, empático, comunicador', env: 'colaborativos, com foco no desenvolvimento humano e impacto social' },
+  E: { label: 'Empreendedor', color: 'hsl(var(--chart-5, 340 75% 55%))', desc: 'Líder, persuasivo, ambicioso', env: 'competitivos, com liderança, negociação e tomada de decisão estratégica' },
+  C: { label: 'Convencional', color: 'hsl(var(--primary))', desc: 'Organizado, metódico, detalhista', env: 'estruturados, com processos claros, controle de qualidade e gestão de dados' },
 };
 
 const LIKERT_LABELS = [
