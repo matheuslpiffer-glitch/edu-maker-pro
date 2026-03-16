@@ -42,6 +42,7 @@ import BussolaVocacional from "@/pages/BussolaVocacional";
 import Inclusao from "@/pages/Inclusao";
 import ReferenciasBibliograficas from "@/pages/ReferenciasBibliograficas";
 import StudentActivityResponse from "@/pages/StudentActivityResponse";
+import ResultadosAlunos from "@/pages/ResultadosAlunos";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 import SignAttendance from "@/pages/SignAttendance";
@@ -88,7 +89,7 @@ function AppRoutes() {
         <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
         <Route path="/pisa" element={<PisaSimulators />} />
         <Route path="/biblioteca" element={<BibliotecaAvaliacoes />} />
-        {/* Removed: /resultados, /evolucao, /agenda — focusing on core engines */}
+        <Route path="/resultados-alunos" element={<ResultadosAlunos />} />
         <Route path="/banco-ia" element={<QuestionBankAI />} />
         <Route path="/guia" element={<SystemGuide />} />
         <Route path="/manual" element={<TeacherManual />} />

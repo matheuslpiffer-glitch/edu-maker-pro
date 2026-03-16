@@ -21,6 +21,7 @@ const teacherLinks = [
   { to: '/redacao', icon: PenLine, label: 'Redação Elite', section: 'Estúdios de Criação' },
   { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', section: 'Estúdios de Criação' },
   // FERRAMENTAS DE GESTÃO
+  { to: '/resultados-alunos', icon: BarChart3, label: 'Resultados e Desempenho', section: 'Ferramentas de Gestão' },
   { to: '/redacao/corretor', icon: Camera, label: 'Corretor IA Redação', section: 'Ferramentas de Gestão' },
   { to: '/corretor-visao', icon: ScanEye, label: 'Corretor de Visão', section: 'Ferramentas de Gestão' },
   { to: '/simuladores', icon: ClipboardList, label: 'Simuladores Elite', section: 'Ferramentas de Gestão' },
