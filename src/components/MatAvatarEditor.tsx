@@ -18,6 +18,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
   const [previewUrl, setPreviewUrl] = useState<string>(currentAvatar || defaultAvatar);
   const [zoom, setZoom] = useState(currentZoom);
   const [offsetY, setOffsetY] = useState(15);
+  const [offsetX, setOffsetX] = useState(50);
   const fileRef = useRef<HTMLInputElement>(null);
   const [hasNewImage, setHasNewImage] = useState(false);
 
