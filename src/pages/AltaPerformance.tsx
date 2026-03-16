@@ -37,6 +37,7 @@ export default function AltaPerformance() {
   const [niveis, setNiveis] = useState({ abaixo: 20, basico: 40, proficiente: 40 });
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
+  const [formato, setFormato] = useState('objetiva');
 
   const updateNivel = (key: keyof typeof niveis, value: number) => {
     const remaining = 100 - value;
