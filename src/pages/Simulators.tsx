@@ -1626,51 +1626,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         ))}
                       </div>
 
-                      {/* Árvore Vestibulares Públicos */}
-                      {examModel === 'vest_publicos' && (
-                        <div className="space-y-3 mt-2 p-4 rounded-2xl bg-indigo-50 border border-indigo-200 animate-in fade-in duration-300">
-                          <Label className="text-xs font-bold text-indigo-700">🏛️ Vestibulares Públicos — Escolha a Banca</Label>
-                          <div className="flex flex-wrap gap-2.5">
-                            {ARVORE_PUBLICOS.map(esp => (
-                              <button
-                                key={esp.id}
-                                onClick={() => { setActiveEspecialidade(esp.id); setTechnicalDiscipline(esp.label); }}
-                                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
-                                  activeEspecialidade === esp.id
-                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                    : 'bg-white border-indigo-200 text-indigo-700 hover:border-indigo-400'
-                                }`}
-                              >
-                                {esp.label}
-                              </button>
-                            ))}
-                          </div>
-                          <p className="text-[10px] text-indigo-600">Perfil: alto rigor acadêmico no estilo das maiores universidades públicas do Brasil</p>
-                        </div>
-                      )}
-
-                      {/* Árvore Vestibulares Particulares */}
-                      {examModel === 'vest_privados' && (
-                        <div className="space-y-3 mt-2 p-4 rounded-2xl bg-amber-50 border border-amber-200 animate-in fade-in duration-300">
-                          <Label className="text-xs font-bold text-amber-700">🏆 Vestibulares Particulares — Escolha a Instituição</Label>
-                          <div className="flex flex-wrap gap-2.5">
-                            {ARVORE_PRIVADOS.map(esp => (
-                              <button
-                                key={esp.id}
-                                onClick={() => { setActiveEspecialidade(esp.id); setTechnicalDiscipline(esp.label); }}
-                                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
-                                  activeEspecialidade === esp.id
-                                    ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                                    : 'bg-white border-amber-200 text-amber-700 hover:border-amber-400'
-                                }`}
-                              >
-                                {esp.label}
-                              </button>
-                            ))}
-                          </div>
-                          <p className="text-[10px] text-amber-600">Perfil: provas de elite com foco em raciocínio crítico, atualidades e repertório cultural</p>
-                        </div>
-                      )}
+                      {/* Árvore Vestibulares — handled by tabs+dropdown in Step 1 for vestibulares mode */}
 
                       {/* Árvore Vestibulinhos (Ingresso) */}
                       {examModel === 'vestibulinhos' && (
