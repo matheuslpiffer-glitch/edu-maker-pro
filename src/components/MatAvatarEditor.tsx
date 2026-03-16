@@ -31,6 +31,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
       setHasNewImage(true);
       setZoom(130);
       setOffsetY(15);
+      setOffsetX(50);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
