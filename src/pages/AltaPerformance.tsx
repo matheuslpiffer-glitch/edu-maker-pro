@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Trophy, Wand2, Copy, FileDown, Loader2 } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -36,6 +37,7 @@ export default function AltaPerformance() {
   const [niveis, setNiveis] = useState({ abaixo: 20, basico: 40, proficiente: 40 });
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
+  const [formato, setFormato] = useState('objetiva');
 
   const updateNivel = (key: keyof typeof niveis, value: number) => {
     const remaining = 100 - value;
@@ -142,6 +144,19 @@ export default function AltaPerformance() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Formato da Questão */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">Formato da Questão</Label>
+              <ToggleGroup type="single" value={formato} onValueChange={v => { if (v) setFormato(v); }} className="w-full border border-border/50 rounded-lg p-1 bg-muted/30">
+                <ToggleGroupItem value="objetiva" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  Objetiva (Múltipla Escolha)
+                </ToggleGroupItem>
+                <ToggleGroupItem value="discursiva" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  Discursiva (Aberta)
+                </ToggleGroupItem>
+              </ToggleGroup>
             </div>
 
             {/* Série e Disciplina */}
