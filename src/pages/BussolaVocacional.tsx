@@ -294,7 +294,7 @@ export default function BussolaVocacional() {
               <img src={matAvatar} alt="Mat - Coordenador Pedagógico Digital" className="w-full h-full object-cover object-top" />
             </div>
           </div>
-          <span className="absolute top-0 right-0 w-3 h-3 rounded-full bg-yellow-400 border-2 border-background" />
+          <span className="absolute top-0 right-0 w-3 h-3 rounded-full bg-accent border-2 border-background" style={{ backgroundColor: 'hsl(48, 96%, 53%)' }} />
         </div>
         <div className="space-y-1">
           <p className="text-xs font-bold tracking-wide text-primary uppercase">Mat</p>
