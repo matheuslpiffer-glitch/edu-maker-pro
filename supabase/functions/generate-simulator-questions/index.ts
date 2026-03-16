@@ -538,7 +538,7 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
     const bloomInstruction = bloomLevel ? `\nNÍVEL DE DIFICULDADE BLOOM: ${bloomLabels[bloomLevel] || bloomLabels[2]}\nTodas as questões devem obedecer RIGOROSAMENTE a este nível cognitivo da Taxonomia de Bloom.\n` : "";
 
     const ragInstruction = customMaterial && customMaterial.trim()
-      ? `\nMATERIAL DE REFERÊNCIA (RAG): O professor forneceu o seguinte conteúdo da sua própria apostila. Gere questões EXCLUSIVAMENTE baseadas neste material:\n---\n${customMaterial.trim().slice(0, 8000)}\n---\nNÃO invente conteúdo fora deste material. Use-o como base única para os enunciados, contextos e alternativas.\n`
+      ? `\nMATERIAL DE REFERÊNCIA (RAG): O professor forneceu o seguinte conteúdo da sua própria apostila. Gere questões EXCLUSIVAMENTE baseadas neste material:\n---\n${customMaterial.trim().slice(0, 4000)}\n---\nNÃO invente conteúdo fora deste material. Use-o como base única para os enunciados, contextos e alternativas.\n`
       : "";
 
     const multiSubjectInstruction = isMultiSubject
