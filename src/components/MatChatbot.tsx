@@ -210,8 +210,8 @@ export default function MatChatbot() {
             </div>
           ) : (
             <div className="relative">
-              <div className="w-[60px] h-[60px] rounded-full overflow-hidden shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 hover:scale-105 transition-all duration-300 ring-2 ring-purple-500/40 bg-white flex items-center justify-center p-1">
-                <img src={matAvatar} alt="Mat" className="w-full h-full object-contain rounded-full" />
+              <div className="w-[60px] h-[60px] rounded-full overflow-hidden shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 hover:scale-105 transition-all duration-300 ring-2 ring-purple-500/40">
+                <img src={matAvatar} alt="Mat" className="w-full h-full object-cover" />
               </div>
               {/* Online indicator */}
               <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
