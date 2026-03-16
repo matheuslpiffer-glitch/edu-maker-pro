@@ -26,6 +26,7 @@ const teacherLinks = [
   { to: '/simuladores', icon: ClipboardList, label: 'Simuladores Elite', section: 'Ferramentas de Gestão' },
   { to: '/literatura', icon: BookText, label: 'Dossiê Literário', section: 'Ferramentas de Gestão' },
   { to: '/jogos', icon: Puzzle, label: 'Fábrica de Jogos', section: 'Ferramentas de Gestão' },
+  { to: '/bussola-vocacional', icon: Compass, label: 'Bússola Vocacional', section: 'Ferramentas de Gestão' },
   { to: '/pisa', icon: Globe, label: 'Simulados PISA', section: 'Ferramentas de Gestão' },
   { to: '/questoes', icon: BookOpen, label: 'Banco de Questões', section: 'Ferramentas de Gestão' },
   { to: '/banco-ia', icon: BookOpen, label: 'Banco de Questões IA', section: 'Ferramentas de Gestão' },
