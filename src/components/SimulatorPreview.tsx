@@ -36,8 +36,8 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
   return (
     <div
       ref={ref}
-      className="bg-white text-black p-8 max-w-[210mm] mx-auto"
-      style={{ fontFamily: 'Arial, sans-serif', fontSize: '11pt', lineHeight: '1.6', wordBreak: 'break-word' }}
+      className="bg-white text-black p-8 max-w-[210mm] w-full mx-auto box-border"
+      style={{ fontFamily: 'Arial, sans-serif', fontSize: '11pt', lineHeight: '1.6', wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '100%', boxSizing: 'border-box' }}
       data-pdf-section="questions"
     >
       {/* Header */}

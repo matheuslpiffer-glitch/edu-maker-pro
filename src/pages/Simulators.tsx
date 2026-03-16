@@ -21,6 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
+import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError } from '@/lib/ai-utils';
 
 interface SimOption { letter: string; text: string; isCorrect: boolean; }
 interface SimQuestion { content: string; options: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; }
