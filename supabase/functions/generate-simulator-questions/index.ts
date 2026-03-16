@@ -63,6 +63,33 @@ function stripImgTags(obj: unknown): unknown {
   return obj;
 }
 
+function normalizeSupportMaterial(material?: string): string {
+  const trimmed = material?.trim();
+  if (!trimmed) return "";
+
+  const blocks = trimmed
+    .split(/\n\s*\n/)
+    .map((block) => block.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  const selected: string[] = [];
+  let totalLength = 0;
+
+  for (const block of blocks) {
+    const nextBlock = block.slice(0, 1200);
+    if (selected.length > 0 && totalLength + nextBlock.length > 3600) break;
+    selected.push(`[BLOCO ${selected.length + 1}] ${nextBlock}`);
+    totalLength += nextBlock.length;
+    if (selected.length >= 4) break;
+  }
+
+  if (selected.length === 0) {
+    return trimmed.slice(0, 3600);
+  }
+
+  return selected.join("\n");
+}
+
 // Retry-enabled AI fetch with exponential backoff + timeout fallback
 async function fetchAIWithRetry(
   apiKey: string,
