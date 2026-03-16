@@ -305,7 +305,7 @@ export default function BussolaVocacional() {
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px] shrink-0">
               <div className="w-full h-full rounded-full overflow-hidden bg-background">
-                <img src={matAvatar} alt="Dr. Mat" className="object-cover" style={avatarStyle} />
+                <MatAvatarArtwork src={matAvatar} alt="Dr. Mat" zoom={zoom} offsetX={offsetX} offsetY={offsetY} />
               </div>
             </div>
             <div className="space-y-1">
