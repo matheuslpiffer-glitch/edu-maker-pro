@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { X, ZoomIn, ZoomOut, Upload, RotateCcw, Check } from 'lucide-react';
+import { X, ZoomIn, ZoomOut, Upload, RotateCcw, Check, Move } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
