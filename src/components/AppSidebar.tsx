@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
@@ -26,6 +26,7 @@ const teacherLinks = [
   { to: '/simuladores', icon: ClipboardList, label: 'Simuladores Elite', section: 'Ferramentas de Gestão' },
   { to: '/literatura', icon: BookText, label: 'Dossiê Literário', section: 'Ferramentas de Gestão' },
   { to: '/jogos', icon: Puzzle, label: 'Fábrica de Jogos', section: 'Ferramentas de Gestão' },
+  { to: '/bussola-vocacional', icon: Compass, label: 'Bússola Vocacional', section: 'Ferramentas de Gestão' },
   { to: '/pisa', icon: Globe, label: 'Simulados PISA', section: 'Ferramentas de Gestão' },
   { to: '/questoes', icon: BookOpen, label: 'Banco de Questões', section: 'Ferramentas de Gestão' },
   { to: '/banco-ia', icon: BookOpen, label: 'Banco de Questões IA', section: 'Ferramentas de Gestão' },
