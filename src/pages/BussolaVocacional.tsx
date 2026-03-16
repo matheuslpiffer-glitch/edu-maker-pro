@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal, Share2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import matAvatar from '@/assets/mat-avatar-closeup.png';
 
@@ -236,6 +236,36 @@ export default function BussolaVocacional() {
     </div>
   );
 
+  const LAUDOS_BIBLIOTECA: Record<string, string> = {
+    I: 'Sua arquitetura cognitiva demonstra uma alta dominância no vetor Investigativo. Isso indica uma predisposição para o pensamento analítico e a resolução de problemas complexos. Cientificamente, você possui uma "Abertura à Experiência" elevada, o que favorece carreiras que exigem diagnóstico crítico e pesquisa acadêmica ou tecnológica.',
+    S: 'Detectamos uma congruência significativa com o ambiente Social. Sua inteligência interpessoal é o seu maior ativo estatístico. O laudo aponta aptidão para liderança humanística e mediação de conflitos. Suas âncoras de carreira estão ligadas ao desenvolvimento de potencial humano e impacto social direto.',
+    E: 'A análise psicométrica revela um perfil Empreendedor robusto. Você possui alta tolerância ao risco e uma capacidade persuasiva acima do desvio padrão. Seus dados indicam uma propensão para ambientes competitivos, gestão estratégica e tomada de decisão sob pressão.',
+    A: 'O vetor Artístico é predominante, sugerindo uma necessidade de autonomia e expressão original. Sua estrutura mental foge do convencionalismo, buscando soluções disruptivas. Carreiras em design, comunicação e inovação apresentam a maior probabilidade de satisfação profissional a longo prazo.',
+    C: 'Sua pontuação máxima no vetor Convencional indica um alto nível de Conscienciosidade. Você se destaca no processamento minucioso de dados e na manutenção de sistemas estruturados. O rigor técnico e a eficiência operacional são suas marcas registradas de alta performance.',
+    R: 'O diagnóstico aponta para o perfil Realista. Você possui uma inclinação natural para o pensamento pragmático e a operação de sistemas tecnológicos ou físicos. Sua satisfação profissional está correlacionada a resultados tangíveis e à aplicação prática do conhecimento técnico.',
+  };
+
+  const computeBigFive = () => {
+    if (!scores) return [];
+    return [
+      { name: 'Abertura à Experiência', value: Math.round(((scores.I || 0) + (scores.A || 0)) / 2) },
+      { name: 'Conscienciosidade', value: Math.round(((scores.C || 0) + (scores.R || 0)) / 2) },
+      { name: 'Extroversão', value: Math.round(((scores.E || 0) + (scores.S || 0)) / 2) },
+      { name: 'Amabilidade', value: Math.round(((scores.S || 0) * 0.7 + (scores.A || 0) * 0.3)) },
+      { name: 'Estabilidade Emocional', value: Math.round(((scores.C || 0) * 0.5 + (scores.R || 0) * 0.3 + (scores.I || 0) * 0.2)) },
+    ];
+  };
+
+  const handleShare = () => {
+    const text = `Meu perfil vocacional RIASEC (Dr. Mat PhD - EduCreator): ${barData.map(d => `${d.name}: ${d.value}%`).join(' | ')}`;
+    if (navigator.share) {
+      navigator.share({ title: 'Laudo Vocacional - Dr. Mat PhD', text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text);
+      toast({ title: 'Link copiado!', description: 'Texto do laudo copiado para a área de transferência.' });
+    }
+  };
+
   const generateParecer = () => {
     if (!scores) return '';
     const sorted = Object.entries(scores).sort(([, a], [, b]) => b - a);
@@ -411,7 +441,7 @@ export default function BussolaVocacional() {
             <div><span className="font-semibold text-foreground">Confiabilidade:</span> α ≥ 0.82</div>
           </div>
 
-          {/* Academic body */}
+          {/* Academic body — Laudo do Dr. Mat */}
           <div className="space-y-3 text-sm text-foreground leading-relaxed">
             <p>
               <strong>1. SÍNTESE DO PERFIL VOCACIONAL</strong>
@@ -426,7 +456,14 @@ export default function BussolaVocacional() {
             </p>
 
             <p>
-              <strong>2. ANÁLISE ESTATÍSTICA</strong>
+              <strong>2. LAUDO DETALHADO — PERFIL {parecer.topLabel.toUpperCase()}</strong>
+            </p>
+            <p className="pl-4 border-l-2 border-primary/40 italic">
+              "{LAUDOS_BIBLIOTECA[parecer.top[0]]}"
+            </p>
+
+            <p>
+              <strong>3. ANÁLISE ESTATÍSTICA</strong>
             </p>
             <p className="pl-4 border-l-2 border-primary/40">
               A dispersão entre as dimensões indica um perfil {
@@ -438,7 +475,7 @@ export default function BussolaVocacional() {
             </p>
 
             <p>
-              <strong>3. RECOMENDAÇÕES</strong>
+              <strong>4. RECOMENDAÇÕES</strong>
             </p>
             <p className="pl-4 border-l-2 border-primary/40">
               Recomenda-se que o respondente explore carreiras e formações alinhadas ao eixo 
@@ -451,15 +488,40 @@ export default function BussolaVocacional() {
 
           <Separator />
 
+          {/* ── Estatísticas Complementares — Big Five ── */}
+          <div className="space-y-3">
+            <p className="text-sm font-bold text-foreground">5. ESTATÍSTICAS COMPLEMENTARES — Big Five (OCEAN)</p>
+            <p className="text-xs text-muted-foreground">Dimensões da personalidade derivadas do perfil RIASEC</p>
+            {computeBigFive().map(dim => (
+              <div key={dim.name} className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-foreground">{dim.name}</span>
+                  <span className="text-xs font-bold text-primary tabular-nums">{dim.value}%</span>
+                </div>
+                <Progress value={dim.value} className="h-2.5" />
+              </div>
+            ))}
+          </div>
+
+          <Separator />
+
           {/* Footer / Signature */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <FileCheck2 className="w-4 h-4 text-primary" />
-              <span>Documento gerado automaticamente pelo sistema Mat PhD — EduCreator Pro</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Award className="w-4 h-4 text-primary" />
-              <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Certificado</span>
+          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-center space-y-1">
+            <p className="text-xs font-semibold text-foreground">
+              Análise gerada por Inteligência Artificial Parametrizada — Dr. MAT PhD
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              Coordenador Pedagógico Digital • EduCreator Pro • Protocolo {parecer.code}
+            </p>
+            <div className="flex items-center justify-center gap-3 pt-1">
+              <div className="flex items-center gap-1">
+                <FileCheck2 className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[10px] text-muted-foreground">Documento oficial</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Award className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Certificado</span>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -468,6 +530,9 @@ export default function BussolaVocacional() {
       <div className="flex flex-col sm:flex-row justify-center gap-3">
         <Button onClick={handleExportPDF} className="gap-2">
           <Download className="w-4 h-4" /> Gerar Laudo PDF
+        </Button>
+        <Button onClick={handleShare} variant="secondary" className="gap-2">
+          <Share2 className="w-4 h-4" /> Compartilhar com meu Coordenador
         </Button>
         <Button variant="outline" onClick={() => { setStep(0); setScores(null); setSliderValues({}); }}>
           Refazer Avaliação
