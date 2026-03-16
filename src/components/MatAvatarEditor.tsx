@@ -50,7 +50,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
     const dy = e.clientY - dragStart.current.y;
     const sensitivity = 0.5;
     const newX = Math.max(0, Math.min(100, dragStart.current.ox - dx * sensitivity));
-    const newY = Math.max(0, Math.min(50, dragStart.current.oy - dy * sensitivity));
+    const newY = Math.max(-50, Math.min(100, dragStart.current.oy - dy * sensitivity));
     setOffsetX(newX);
     setOffsetY(newY);
   }, []);
