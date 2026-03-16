@@ -43,6 +43,7 @@ import Inclusao from "@/pages/Inclusao";
 import ReferenciasBibliograficas from "@/pages/ReferenciasBibliograficas";
 import StudentActivityResponse from "@/pages/StudentActivityResponse";
 import ResultadosAlunos from "@/pages/ResultadosAlunos";
+import MinhaBiblioteca from "@/pages/MinhaBiblioteca";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 import SignAttendance from "@/pages/SignAttendance";
