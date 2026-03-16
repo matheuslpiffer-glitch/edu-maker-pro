@@ -1714,7 +1714,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     </div>
                   )}
 
-                  {!isFastTrackVestibulinho && !isObmep && !showSerieStep && (
+                  {!isFastTrackVestibulinho && !isObmep && !showSerieStep && !isVestibularesMode && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-slate-500">Série</Label>
