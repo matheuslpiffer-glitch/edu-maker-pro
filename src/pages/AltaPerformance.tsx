@@ -212,14 +212,15 @@ export default function AltaPerformance() {
     container.innerHTML += `<p style="text-align:center;font-size:10px;color:#999;margin-top:32px;">EduCreator Pro — Por Matheus Lima Piffer</p>`;
 
     document.body.appendChild(container);
-    await html2pdf().set({
-      margin: [15, 15, 15, 15],
+    const opt = {
+      margin: [15, 15, 15, 15] as [number, number, number, number],
       filename: `simulado-alta-performance-${rede}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'jpeg' as const, quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
       pagebreak: { mode: ['avoid-all', 'css'] },
-    }).from(container).save();
+    };
+    await html2pdf().set(opt).from(container).save();
     document.body.removeChild(container);
   };
 
