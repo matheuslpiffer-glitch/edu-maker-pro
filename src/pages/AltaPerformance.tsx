@@ -42,6 +42,7 @@ export default function AltaPerformance() {
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [formato, setFormato] = useState('objetiva');
   const previewRef = useRef<HTMLDivElement>(null);
+  const [savedBankId, setSavedBankId] = useState<string | null>(null);
 
   const isDiscursiva = formato === 'discursiva';
 
