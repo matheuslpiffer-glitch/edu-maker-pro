@@ -204,11 +204,11 @@ export default function MatChatbot() {
         )}
       >
         <div className={cn('transition-transform duration-300', open ? 'rotate-90' : 'rotate-0')}>
-          {open ? <X className="h-5 w-5 text-white" /> : <Bot className="h-5 w-5 text-white" />}
+          {open ? <X className="h-5 w-5 text-white" /> : <img src={matAvatar} alt="Mat" className="h-7 w-7 rounded-full object-cover" />}
         </div>
         {!open && (
           <>
-            <span className="text-sm font-bold text-white hidden sm:inline">Mat AI</span>
+            <span className="text-sm font-bold text-white hidden sm:inline">Mat</span>
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400" />
