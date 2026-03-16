@@ -67,7 +67,11 @@ export default function MinhaBiblioteca() {
   };
 
   const handleCopyLink = (id: string) => {
-    const url = `${window.location.origin}/atividade/${id}`;
+    // Use published domain for student links to avoid Lovable editor/preview redirects
+    const origin = window.location.hostname.includes('lovableproject.com')
+      ? 'https://edu-maker-pro.lovable.app'
+      : window.location.origin;
+    const url = `${origin}/atividade/${id}`;
     navigator.clipboard.writeText(url);
     toast({ title: 'Link do Aluno copiado!', description: url });
   };

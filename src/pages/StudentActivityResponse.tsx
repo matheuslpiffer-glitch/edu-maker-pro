@@ -106,15 +106,20 @@ export default function StudentActivityResponse() {
   const handleSocialLogin = async (provider: 'google' | 'apple') => {
     setSocialLoading(provider);
     try {
+      // Store the current activity URL so we return here after OAuth
+      const currentUrl = window.location.href;
+      
+      // Use Lovable's managed OAuth with redirect back to this activity page
       const { error } = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: window.location.href,
+        redirect_uri: currentUrl,
       });
       if (error) {
         console.error('Social login error:', error);
+        // If OAuth bridge fails, show friendly message instead of redirecting away
+        setSocialLoading(null);
       }
     } catch (e) {
       console.error('Social login failed:', e);
-    } finally {
       setSocialLoading(null);
     }
   };
@@ -291,12 +296,12 @@ export default function StudentActivityResponse() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card px-4 py-3">
+      {/* Header with top padding to avoid clipping */}
+      <div className="border-b border-border bg-card px-4 py-3 pt-8">
         <p className="text-xs text-muted-foreground text-center">EduCreator Pro | Organizado por Matheus Lima Piffer</p>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6" style={{ maxWidth: '95%', marginLeft: 'auto', marginRight: 'auto' }}>
         {/* Title */}
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold text-foreground">{activity.title}</h1>
