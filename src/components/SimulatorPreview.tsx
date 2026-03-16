@@ -41,7 +41,7 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
       data-pdf-section="questions"
     >
       {/* Header */}
-      <div className="text-center mb-6 border-b-2 border-black pb-4">
+      <div className="text-center mb-6 border-b-2 border-black pb-4" style={{ paddingTop: '40px' }}>
         {/* 3D CSS Logo */}
         <div className="flex items-center justify-center gap-3 mb-3">
           <div
