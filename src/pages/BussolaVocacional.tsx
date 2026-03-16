@@ -422,7 +422,7 @@ export default function BussolaVocacional() {
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px] shrink-0">
               <div className="w-full h-full rounded-full overflow-hidden bg-background">
-                <img src={matAvatar} alt="Dr. Mat" className="w-full h-full object-cover object-top" />
+                <img src={matAvatar} alt="Dr. Mat" className="w-[130%] h-[130%] object-cover object-[center_15%] -ml-[15%] -mt-[5%]" />
               </div>
             </div>
             <div>
