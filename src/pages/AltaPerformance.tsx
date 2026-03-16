@@ -118,7 +118,7 @@ export default function AltaPerformance() {
         skillCode: q.skillCode,
         descriptor: q.descriptor,
       }));
-      await supabase.from('question_banks').insert({
+      const { data: inserted, error: insertErr } = await supabase.from('question_banks').insert({
         user_id: user.id,
         subject: disciplina,
         topic: topicos,
@@ -127,7 +127,9 @@ export default function AltaPerformance() {
         question_type: isDiscursiva ? 'discursiva' : 'objetiva',
         questions: questionsOnly as any,
         institution_name: redeInfo?.label || rede,
-      });
+      }).select('id').single();
+      if (insertErr) throw insertErr;
+      if (inserted?.id) setSavedBankId(inserted.id);
       toast({ title: 'Questões salvas com sucesso!' });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
