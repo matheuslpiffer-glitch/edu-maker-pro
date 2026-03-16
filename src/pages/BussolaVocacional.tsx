@@ -256,7 +256,35 @@ export default function BussolaVocacional() {
     if (!parecer) return null;
 
     return (
-    <div className="space-y-6">
+    <div ref={resultsRef} className="space-y-6">
+      {/* ── Certificação Psicométrica ── */}
+      <div className="flex justify-center">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 bg-card/90 shadow-md" style={{ borderColor: 'hsl(43, 74%, 49%)' }}>
+          <Medal className="w-5 h-5" style={{ color: 'hsl(43, 74%, 49%)' }} />
+          <span className="text-sm font-bold tracking-wide" style={{ color: 'hsl(43, 74%, 49%)' }}>Certificação Psicométrica EduCreator</span>
+        </div>
+      </div>
+
+      {/* ── Mat Analysis Text ── */}
+      <Card className="border-primary/20 bg-card/90 backdrop-blur-sm">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px] shrink-0">
+              <div className="w-full h-full rounded-full overflow-hidden bg-background">
+                <img src={matAvatar} alt="Dr. Mat" className="w-full h-full object-cover object-top" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-primary uppercase tracking-wide">Dr. Mat — Análise Concluída</p>
+              <p className="text-sm text-foreground leading-relaxed">
+                Análise concluída. Com base no seu perfil estatístico, você possui uma dominância no vetor <strong>{parecer.topLabel}</strong> ({parecer.top[1]}%). 
+                Isso indica uma forte propensão para ambientes que exigem competências {RIASEC_LABELS[parecer.top[0]].env}. 
+                Abaixo, apresento seu plano de carreira detalhado.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       <div className="text-center space-y-1">
         <h2 className="text-xl font-bold text-foreground">Seu Perfil RIASEC</h2>
         <p className="text-sm text-muted-foreground">Resultado baseado no modelo Holland (RIASEC) — Questionário Científico Mat PhD</p>
