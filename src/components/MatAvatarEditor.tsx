@@ -38,7 +38,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
   }, []);
 
   const handleConfirm = () => {
-    onSave(previewUrl, zoom);
+    onSave(previewUrl, zoom, offsetX, offsetY);
     onClose();
   };
 
