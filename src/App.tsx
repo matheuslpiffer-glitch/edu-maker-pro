@@ -120,8 +120,8 @@ const App = () => (
                 <Route path="/install" element={<Install />} />
                 <Route path="/assinar/:id" element={<SignAttendance />} />
                 <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
+                <Route path="/aluno/:id" element={<StudentActivityResponse />} />
                 <Route path="/atividade/:id" element={<StudentActivityResponse />} />
-                <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
                 <Route path="/*" element={<AppRoutes />} />
               </Routes>
             </BrowserRouter>

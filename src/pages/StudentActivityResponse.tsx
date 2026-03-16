@@ -287,7 +287,7 @@ export default function StudentActivityResponse() {
                 ))}
               </div>
               <p className="text-center text-sm text-muted-foreground">
-                Parabéns, <strong>{result.studentName}</strong>! Sua atividade foi enviada com sucesso ao Professor Matheus Lima Piffer.
+                Atividade enviada com sucesso ao Professor Matheus Lima Piffer!
               </p>
             </div>
           )}
@@ -296,7 +296,7 @@ export default function StudentActivityResponse() {
             <div className="text-center space-y-3 py-4">
               <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto" />
               <p className="text-base font-semibold text-foreground">
-                Parabéns, {result.studentName}! Sua atividade foi enviada com sucesso ao Professor Matheus Lima Piffer.
+                Atividade enviada com sucesso ao Professor Matheus Lima Piffer!
               </p>
               <p className="text-sm text-muted-foreground">Suas {result.totalQuestions} respostas foram registradas.</p>
             </div>
