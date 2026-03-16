@@ -124,12 +124,10 @@ export default function MatChatbot() {
         <div className="fixed bottom-24 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[420px] max-h-[70vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200/60 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-bottom-4 duration-300 overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200/50 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-[2.5rem]">
-            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <Bot className="h-5 w-5 text-white" />
-            </div>
+            <img src={matAvatar} alt="Mat" className="h-10 w-10 rounded-xl object-cover ring-2 ring-white/30" />
             <div className="flex-1">
-              <h3 className="text-sm font-black text-white">Mat AI</h3>
-              <p className="text-[10px] text-white/60">Assistente Inteligente</p>
+              <h3 className="text-sm font-black text-white">Mat</h3>
+              <p className="text-[10px] text-white/60">Coordenador Pedagógico Digital</p>
             </div>
             <button
               onClick={() => setOpen(false)}
