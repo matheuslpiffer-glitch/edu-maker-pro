@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,7 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
 import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError } from '@/lib/ai-utils';
+import { buildBatchPlan, createSimulatorGenerationJob, updateSimulatorGenerationJob } from '@/lib/simulator-generation';
 
 interface SimOption { letter: string; text: string; isCorrect: boolean; }
 interface SimQuestion { content: string; options: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; }
@@ -430,6 +432,11 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [bloomLevel, setBloomLevel] = useState(2);
   const [columns, setColumns] = useState<1 | 2>(1);
   const [activeSerie, setActiveSerie] = useState('ano_9');
+  const [generationJobId, setGenerationJobId] = useState<string | null>(null);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationStep, setGenerationStep] = useState(0);
+  const [generationTotalSteps, setGenerationTotalSteps] = useState(0);
+  const [generationMessage, setGenerationMessage] = useState('');
 
   // AEE states
   const [aeeMode, setAeeMode] = useState<'gerar_novas' | 'adaptar_antigas' | 'texto_resumo'>('gerar_novas');
@@ -554,11 +561,16 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       toast({ title: 'Selecione ao menos uma área para o simulado.', variant: 'destructive' });
       return;
     }
-    // OBMEP: auto-set discursiva for Fase 2
+
     const effectiveDiscursiva = isObmepFase2 ? true : discursiva;
     setIsDiscursiva(effectiveDiscursiva);
     setGenerating(true);
     setQuestions([]);
+    setGenerationMessage('Preparando geração assíncrona...');
+    setGenerationStep(0);
+    setGenerationProgress(0);
+    setGenerationTotalSteps(0);
+
     const allQuestions: SimQuestion[] = [];
 
     const tecnicoCount = isFastTrackVestibulinho ? 50 : isTecnicosPorArea ? tecnicoQuestionCount : 0;
@@ -582,18 +594,55 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             { difficulty: 'medium', count: mediumCount },
             { difficulty: 'hard', count: hardCount },
           ].filter(b => b.count > 0);
-    try {
-      const requestedQuestionCount = batches.reduce((sum, batch) => sum + (batch.count || 0), 0);
 
-      for (const batch of batches) {
+    const requestedQuestionCount = batches.reduce((sum, batch) => sum + (batch.count || 0), 0);
+    const batchPlan = buildBatchPlan(batches, effectiveDiscursiva ? 2 : 3);
+    setGenerationTotalSteps(batchPlan.length);
+
+    let jobId: string | null = null;
+
+    try {
+      const createdJob = await createSimulatorGenerationJob({
+        totalSteps: batchPlan.length,
+        requestedQuestionCount,
+        examType,
+        examModel,
+        isDiscursiva: effectiveDiscursiva,
+      });
+      jobId = createdJob.jobId;
+      setGenerationJobId(jobId);
+
+      for (let index = 0; index < batchPlan.length; index += 1) {
+        const batch = batchPlan[index];
+        const nextStep = index + 1;
+        const progressValue = Math.round((index / batchPlan.length) * 100);
+
+        setGenerationStep(nextStep);
+        setGenerationProgress(progressValue);
+        setGenerationMessage(`Gerando bloco ${nextStep} de ${batchPlan.length}...`);
+
+        if (jobId) {
+          await updateSimulatorGenerationJob({
+            jobId,
+            status: 'processing',
+            progress: progressValue,
+            partialResult: allQuestions,
+          });
+        }
+
         const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
           body: {
-            examType, examModel: examModel !== 'padrao' ? (isObmep ? selectedFormat : examModel) : undefined,
+            examType,
+            examModel: examModel !== 'padrao' ? (isObmep ? selectedFormat : examModel) : undefined,
             subjects: isTecnicosAny ? tecnicoSubs : isConcurso ? ['Legislação Educacional', 'Conhecimentos Pedagógicos', 'BNCC', 'LDB', 'ECA'] : effectiveSubjects,
             subjectArea: isTecnicosAny ? 'Multidisciplinar' : isConcurso ? 'Conhecimentos Pedagógicos' : effectiveSubjects[0],
             grade: isTecnicosAny ? '9º Ano EF' : isConcurso ? 'Concurso Público' : effectiveGrade,
-            difficulty: batch.difficulty, count: isObmep ? obmepCount : isTecnicosAny ? tecnicoCount : isConcurso ? Math.min(batch.count || 10, 10) : (isAula ? 1 : batch.count),
-            isDiscursiva: effectiveDiscursiva, isRedacao: false, isAula, isQuestoes,
+            difficulty: batch.difficulty,
+            count: batch.count,
+            isDiscursiva: effectiveDiscursiva,
+            isRedacao: false,
+            isAula,
+            isQuestoes,
             isFastTrackVestibulinho: isTecnicosAny || undefined,
             tecnicoInstitution: isTecnicosAny ? tecnicoInstLabel : undefined,
             tecnicoMode: isTecnicosAny ? tecnicoMode : undefined,
@@ -606,19 +655,34 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
           },
         });
+
         if (error) throw error;
         if (data?.error) throw new Error(data.error);
         if (data?.questions) allQuestions.push(...data.questions);
+
+        const completedProgress = Math.round((nextStep / batchPlan.length) * 100);
+        setGenerationProgress(completedProgress);
+
+        if (jobId) {
+          await updateSimulatorGenerationJob({
+            jobId,
+            status: nextStep === batchPlan.length ? 'completed' : 'processing',
+            progress: completedProgress,
+            partialResult: allQuestions,
+            result: nextStep === batchPlan.length ? { questions: allQuestions } : undefined,
+          });
+        }
       }
 
       setQuestions(allQuestions);
       setSavedId(null);
+      setActiveTab('preview');
       addToBank(allQuestions.map((q: any, i: number) => ({
         id: `sim-${Date.now()}-${i}`,
         banca: 'Simulado',
         tema: specificTopic || selectedSubjects.join(', ') || 'Geral',
         conteudo: q.content,
-        tipo: isDiscursiva ? 'Dissertativa' : 'Múltipla Escolha',
+        tipo: effectiveDiscursiva ? 'Dissertativa' : 'Múltipla Escolha',
         options: q.options,
         dataCriacao: new Date().toISOString(),
       })));
@@ -626,6 +690,16 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     } catch (e: any) {
       console.error(e);
       const { message, status } = await getFunctionErrorDetails(e, 'Erro ao gerar questões');
+
+      if (jobId) {
+        await updateSimulatorGenerationJob({
+          jobId,
+          status: 'failed',
+          progress: generationProgress,
+          partialResult: allQuestions,
+          errorMessage: message,
+        }).catch(() => undefined);
+      }
 
       if (allQuestions.length > 0) {
         setQuestions(allQuestions);
@@ -636,7 +710,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
           banca: 'Simulado',
           tema: specificTopic || selectedSubjects.join(', ') || 'Geral',
           conteudo: q.content,
-          tipo: isDiscursiva ? 'Dissertativa' : 'Múltipla Escolha',
+          tipo: effectiveDiscursiva ? 'Dissertativa' : 'Múltipla Escolha',
           options: q.options,
           dataCriacao: new Date().toISOString(),
         })));
@@ -653,13 +727,16 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       toast({
         title: isCredits ? '💳 Créditos de IA Insuficientes' : isRate ? '⏳ Limite de Requisições' : 'Erro ao gerar questões',
         description: isCredits
-          ? 'Os créditos de IA foram esgotados. Acesse Configurações → Workspace → Usage para recarregar.'
+          ? 'Os créditos de IA foram esgotados. Recarregue o workspace para voltar a gerar simulados.'
           : isRate
           ? 'Muitas requisições em pouco tempo. Aguarde alguns segundos e tente novamente.'
           : message,
         variant: 'destructive',
       });
-    } finally { setGenerating(false); }
+    } finally {
+      setGenerating(false);
+      setGenerationMessage('');
+    }
   };
 
   const handleSave = async () => {
@@ -857,7 +934,12 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
 
   return (
     <div className="relative max-w-[1600px] mx-auto overflow-x-hidden bg-slate-50 min-h-screen -m-4 md:-m-6 lg:-m-8 p-4 md:p-6 lg:p-8">
-      <GeneratingOverlay isVisible={generating} message={isAula ? 'Preparando material didático...' : `Gerando ${totalQuestions || ''} questões com IA...`} />
+      <GeneratingOverlay
+        isVisible={generating}
+        totalSteps={100}
+        currentStep={generationProgress}
+        message={generationMessage || (isAula ? 'Preparando material didático...' : `Gerando ${totalQuestions || ''} questões com IA...`)}
+      />
       <div className="flex items-center gap-3 mb-8 no-print">
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${modeConfig.gradient} flex items-center justify-center shadow-lg ${modeConfig.shadow}`}>
           <FileText className="h-5 w-5 text-white" />
