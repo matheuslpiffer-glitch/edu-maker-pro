@@ -218,9 +218,16 @@ export default function MatChatbot() {
               {/* Gradient ring container */}
               <div className="w-[80px] h-[80px] rounded-full p-[3px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 transition-all duration-300">
                 <div className="w-full h-full rounded-full overflow-hidden bg-white">
-                  <img src={matAvatar} alt="Mat" className="w-[130%] h-[130%] object-cover object-[center_15%] -ml-[15%] -mt-[5%]" />
+                  <img src={avatarSrc} alt="Mat" style={{ width: `${zoom}%`, height: `${zoom}%`, marginLeft: `${-(zoom - 100) / 2}%`, marginTop: `${-((zoom - 100) / 2) + 15 * (zoom / 200)}%` }} className="object-cover" />
                 </div>
               </div>
+              {/* Edit button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowAvatarEditor(true); }}
+                className="absolute -bottom-1 -left-1 h-6 w-6 rounded-full bg-card border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors z-10"
+              >
+                <Settings className="h-3 w-3 text-muted-foreground" />
+              </button>
               {/* Online indicator */}
               <span className="absolute top-0 right-0 flex h-4 w-4">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
