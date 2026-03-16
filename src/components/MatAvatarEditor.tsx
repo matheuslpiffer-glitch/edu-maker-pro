@@ -10,15 +10,17 @@ interface Props {
   onClose: () => void;
   currentAvatar: string | null;
   currentZoom: number;
+  currentOffsetX: number;
+  currentOffsetY: number;
   onSave: (dataUrl: string, zoom: number, offsetX?: number, offsetY?: number) => void;
   onReset: () => void;
 }
 
-export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZoom, onSave, onReset }: Props) {
+export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZoom, currentOffsetX, currentOffsetY, onSave, onReset }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string>(currentAvatar || defaultAvatar);
   const [zoom, setZoom] = useState(currentZoom);
-  const [offsetY, setOffsetY] = useState(15);
-  const [offsetX, setOffsetX] = useState(50);
+  const [offsetY, setOffsetY] = useState(currentOffsetY);
+  const [offsetX, setOffsetX] = useState(currentOffsetX);
   const fileRef = useRef<HTMLInputElement>(null);
   const [hasNewImage, setHasNewImage] = useState(false);
   const isDragging = useRef(false);
