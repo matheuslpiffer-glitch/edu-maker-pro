@@ -6,7 +6,8 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import matAvatar from '@/assets/mat-avatar-closeup.png';
 
 const RIASEC_LABELS: Record<string, { label: string; color: string; desc: string }> = {
