@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
@@ -17,6 +17,7 @@ const teacherLinks = [
   { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & ENEM', section: 'Estúdios de Criação' },
   { to: '/tecnicos', icon: Cpu, label: 'Técnicos & IFs', section: 'Estúdios de Criação' },
   { to: '/inclusao', icon: Accessibility, label: 'Inclusão (AEE)', section: 'Estúdios de Criação' },
+  { to: '/alta-performance', icon: Trophy, label: 'Módulo Alta Performance', section: 'Estúdios de Criação' },
   { to: '/redacao', icon: PenLine, label: 'Redação Elite', section: 'Estúdios de Criação' },
   { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', section: 'Estúdios de Criação' },
   // FERRAMENTAS DE GESTÃO
