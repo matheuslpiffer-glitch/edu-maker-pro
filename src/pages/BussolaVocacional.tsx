@@ -236,6 +236,36 @@ export default function BussolaVocacional() {
     </div>
   );
 
+  const LAUDOS_BIBLIOTECA: Record<string, string> = {
+    I: 'Sua arquitetura cognitiva demonstra uma alta dominância no vetor Investigativo. Isso indica uma predisposição para o pensamento analítico e a resolução de problemas complexos. Cientificamente, você possui uma "Abertura à Experiência" elevada, o que favorece carreiras que exigem diagnóstico crítico e pesquisa acadêmica ou tecnológica.',
+    S: 'Detectamos uma congruência significativa com o ambiente Social. Sua inteligência interpessoal é o seu maior ativo estatístico. O laudo aponta aptidão para liderança humanística e mediação de conflitos. Suas âncoras de carreira estão ligadas ao desenvolvimento de potencial humano e impacto social direto.',
+    E: 'A análise psicométrica revela um perfil Empreendedor robusto. Você possui alta tolerância ao risco e uma capacidade persuasiva acima do desvio padrão. Seus dados indicam uma propensão para ambientes competitivos, gestão estratégica e tomada de decisão sob pressão.',
+    A: 'O vetor Artístico é predominante, sugerindo uma necessidade de autonomia e expressão original. Sua estrutura mental foge do convencionalismo, buscando soluções disruptivas. Carreiras em design, comunicação e inovação apresentam a maior probabilidade de satisfação profissional a longo prazo.',
+    C: 'Sua pontuação máxima no vetor Convencional indica um alto nível de Conscienciosidade. Você se destaca no processamento minucioso de dados e na manutenção de sistemas estruturados. O rigor técnico e a eficiência operacional são suas marcas registradas de alta performance.',
+    R: 'O diagnóstico aponta para o perfil Realista. Você possui uma inclinação natural para o pensamento pragmático e a operação de sistemas tecnológicos ou físicos. Sua satisfação profissional está correlacionada a resultados tangíveis e à aplicação prática do conhecimento técnico.',
+  };
+
+  const computeBigFive = () => {
+    if (!scores) return [];
+    return [
+      { name: 'Abertura à Experiência', value: Math.round(((scores.I || 0) + (scores.A || 0)) / 2) },
+      { name: 'Conscienciosidade', value: Math.round(((scores.C || 0) + (scores.R || 0)) / 2) },
+      { name: 'Extroversão', value: Math.round(((scores.E || 0) + (scores.S || 0)) / 2) },
+      { name: 'Amabilidade', value: Math.round(((scores.S || 0) * 0.7 + (scores.A || 0) * 0.3)) },
+      { name: 'Estabilidade Emocional', value: Math.round(((scores.C || 0) * 0.5 + (scores.R || 0) * 0.3 + (scores.I || 0) * 0.2)) },
+    ];
+  };
+
+  const handleShare = () => {
+    const text = `Meu perfil vocacional RIASEC (Dr. Mat PhD - EduCreator): ${barData.map(d => `${d.name}: ${d.value}%`).join(' | ')}`;
+    if (navigator.share) {
+      navigator.share({ title: 'Laudo Vocacional - Dr. Mat PhD', text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text);
+      toast({ title: 'Link copiado!', description: 'Texto do laudo copiado para a área de transferência.' });
+    }
+  };
+
   const generateParecer = () => {
     if (!scores) return '';
     const sorted = Object.entries(scores).sort(([, a], [, b]) => b - a);
