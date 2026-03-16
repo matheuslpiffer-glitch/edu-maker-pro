@@ -1449,7 +1449,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                                 options: q.options,
                                 dataCriacao: new Date().toISOString(),
                               })));
-                              toast({ title: '🏆 MISSÃO CONCLUÍDA! Material AEE gerado com sucesso! +500 XP' });
+                              toast({ title: '✅ Material AEE gerado com sucesso!' });
                             }
                           } catch (e: any) {
                             console.error(e);
