@@ -440,6 +440,12 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [activeEspecialidade, setActiveEspecialidade] = useState('');
   const [activeFormat, setActiveFormat] = useState('completa');
 
+  // Vestibulares-specific states
+  const [vestTab, setVestTab] = useState<'publicas' | 'particulares'>('publicas');
+  const [vestInstitution, setVestInstitution] = useState('');
+  const [vestFormatType, setVestFormatType] = useState<'geral' | 'disciplina'>('geral');
+  const [vestDiscipline, setVestDiscipline] = useState('');
+
   // Técnicos-specific states
   const [tecnicoInstitution, setTecnicoInstitution] = useState('');
   const [tecnicoMode, setTecnicoMode] = useState<'' | 'completo' | 'por_area'>('');
