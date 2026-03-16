@@ -603,7 +603,21 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
           },
         });
-        if (error) throw error;
+        // Handle non-2xx: supabase.functions.invoke returns data with error message
+        if (error) {
+          // Try to extract the actual error from the response context
+          const ctx = (error as any)?.context;
+          if (ctx) {
+            try {
+              const body = await ctx.json();
+              if (body?.error) throw new Error(body.error);
+            } catch (parseErr) {
+              // If parsing fails, check if data has the error
+            }
+          }
+          if (data?.error) throw new Error(data.error);
+          throw error;
+        }
         if (data?.error) throw new Error(data.error);
         if (data?.questions) allQuestions.push(...data.questions);
       }
