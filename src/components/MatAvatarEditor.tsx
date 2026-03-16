@@ -4,6 +4,7 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import defaultAvatar from '@/assets/mat-avatar-closeup.png';
+import MatAvatarArtwork from '@/components/MatAvatarArtwork';
 
 interface Props {
   open: boolean;

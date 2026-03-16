@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import defaultAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
 import MatAvatarEditor from '@/components/MatAvatarEditor';
+import MatAvatarArtwork from '@/components/MatAvatarArtwork';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 

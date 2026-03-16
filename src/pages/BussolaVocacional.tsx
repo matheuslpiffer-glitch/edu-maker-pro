@@ -10,6 +10,7 @@ import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit
 import { toast } from '@/hooks/use-toast';
 import defaultMatAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
+import MatAvatarArtwork from '@/components/MatAvatarArtwork';
 
 const RIASEC_LABELS: Record<string, { label: string; color: string; desc: string; env: string }> = {
   R: { label: 'Realista', color: 'hsl(var(--chart-1, 220 70% 50%))', desc: 'Prático, técnico, manual', env: 'práticos, com uso de ferramentas e resolução de problemas concretos' },
