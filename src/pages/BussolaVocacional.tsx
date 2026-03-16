@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,16 +6,17 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import matAvatar from '@/assets/mat-avatar-closeup.png';
 
-const RIASEC_LABELS: Record<string, { label: string; color: string; desc: string }> = {
-  R: { label: 'Realista', color: 'hsl(var(--chart-1, 220 70% 50%))', desc: 'Prático, técnico, manual' },
-  I: { label: 'Investigativo', color: 'hsl(var(--chart-2, 160 60% 45%))', desc: 'Analítico, curioso, científico' },
-  A: { label: 'Artístico', color: 'hsl(var(--chart-3, 30 80% 55%))', desc: 'Criativo, expressivo, original' },
-  S: { label: 'Social', color: 'hsl(var(--chart-4, 280 65% 60%))', desc: 'Cooperativo, empático, comunicador' },
-  E: { label: 'Empreendedor', color: 'hsl(var(--chart-5, 340 75% 55%))', desc: 'Líder, persuasivo, ambicioso' },
-  C: { label: 'Convencional', color: 'hsl(var(--primary))', desc: 'Organizado, metódico, detalhista' },
+const RIASEC_LABELS: Record<string, { label: string; color: string; desc: string; env: string }> = {
+  R: { label: 'Realista', color: 'hsl(var(--chart-1, 220 70% 50%))', desc: 'Prático, técnico, manual', env: 'práticos, com uso de ferramentas e resolução de problemas concretos' },
+  I: { label: 'Investigativo', color: 'hsl(var(--chart-2, 160 60% 45%))', desc: 'Analítico, curioso, científico', env: 'analíticos, com pesquisa, dados e resolução de problemas complexos' },
+  A: { label: 'Artístico', color: 'hsl(var(--chart-3, 30 80% 55%))', desc: 'Criativo, expressivo, original', env: 'criativos, com liberdade de expressão e inovação constante' },
+  S: { label: 'Social', color: 'hsl(var(--chart-4, 280 65% 60%))', desc: 'Cooperativo, empático, comunicador', env: 'colaborativos, com foco no desenvolvimento humano e impacto social' },
+  E: { label: 'Empreendedor', color: 'hsl(var(--chart-5, 340 75% 55%))', desc: 'Líder, persuasivo, ambicioso', env: 'competitivos, com liderança, negociação e tomada de decisão estratégica' },
+  C: { label: 'Convencional', color: 'hsl(var(--primary))', desc: 'Organizado, metódico, detalhista', env: 'estruturados, com processos claros, controle de qualidade e gestão de dados' },
 };
 
 const LIKERT_LABELS = [
@@ -118,6 +119,32 @@ export default function BussolaVocacional() {
   const [step, setStep] = useState(0); // 0-2 = form steps, 3 = results
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({});
   const [scores, setScores] = useState<Scores | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = async () => {
+    if (!resultsRef.current) return;
+    try {
+      toast({ title: 'Gerando PDF...', description: 'Aguarde enquanto preparamos seu laudo.' });
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+      const canvas = await html2canvas(resultsRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfH = (canvas.height * pdfW) / canvas.width;
+      let position = 0;
+      const pageH = pdf.internal.pageSize.getHeight();
+      while (position < pdfH) {
+        if (position > 0) pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, -position, pdfW, pdfH);
+        position += pageH;
+      }
+      pdf.save(`laudo-vocacional-mat-${Date.now()}.pdf`);
+      toast({ title: 'PDF gerado!', description: 'O laudo foi salvo com sucesso.' });
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível gerar o PDF.', variant: 'destructive' });
+    }
+  };
 
   const handleSlider = (id: string, val: number[]) => {
     setSliderValues(prev => ({ ...prev, [id]: val[0] }));
@@ -229,7 +256,35 @@ export default function BussolaVocacional() {
     if (!parecer) return null;
 
     return (
-    <div className="space-y-6">
+    <div ref={resultsRef} className="space-y-6">
+      {/* ── Certificação Psicométrica ── */}
+      <div className="flex justify-center">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 bg-card/90 shadow-md" style={{ borderColor: 'hsl(43, 74%, 49%)' }}>
+          <Medal className="w-5 h-5" style={{ color: 'hsl(43, 74%, 49%)' }} />
+          <span className="text-sm font-bold tracking-wide" style={{ color: 'hsl(43, 74%, 49%)' }}>Certificação Psicométrica EduCreator</span>
+        </div>
+      </div>
+
+      {/* ── Mat Analysis Text ── */}
+      <Card className="border-primary/20 bg-card/90 backdrop-blur-sm">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px] shrink-0">
+              <div className="w-full h-full rounded-full overflow-hidden bg-background">
+                <img src={matAvatar} alt="Dr. Mat" className="w-full h-full object-cover object-top" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-bold text-primary uppercase tracking-wide">Dr. Mat — Análise Concluída</p>
+              <p className="text-sm text-foreground leading-relaxed">
+                Análise concluída. Com base no seu perfil estatístico, você possui uma dominância no vetor <strong>{parecer.topLabel}</strong> ({parecer.top[1]}%). 
+                Isso indica uma forte propensão para ambientes que exigem competências {RIASEC_LABELS[parecer.top[0]].env}. 
+                Abaixo, apresento seu plano de carreira detalhado.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
       <div className="text-center space-y-1">
         <h2 className="text-xl font-bold text-foreground">Seu Perfil RIASEC</h2>
         <p className="text-sm text-muted-foreground">Resultado baseado no modelo Holland (RIASEC) — Questionário Científico Mat PhD</p>
@@ -410,7 +465,10 @@ export default function BussolaVocacional() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-center">
+      <div className="flex flex-col sm:flex-row justify-center gap-3">
+        <Button onClick={handleExportPDF} className="gap-2">
+          <Download className="w-4 h-4" /> Gerar Laudo PDF
+        </Button>
         <Button variant="outline" onClick={() => { setStep(0); setScores(null); setSliderValues({}); }}>
           Refazer Avaliação
         </Button>
