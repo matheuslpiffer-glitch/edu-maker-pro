@@ -245,7 +245,7 @@ export default function AltaPerformance() {
       toast({ title: 'Salve as questões primeiro para gerar o link do aluno.', variant: 'destructive' });
       return;
     }
-    const url = `${window.location.origin}/aluno/${savedBankId}`;
+    const url = `${window.location.origin}/atividade/${savedBankId}`;
     navigator.clipboard.writeText(url);
     toast({ title: 'Link do Aluno copiado!', description: url });
   };
