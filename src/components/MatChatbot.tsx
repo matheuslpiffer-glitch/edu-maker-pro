@@ -193,29 +193,39 @@ export default function MatChatbot() {
         </div>
       )}
 
-      {/* FAB Button */}
-      <button
-        onClick={() => setOpen(prev => !prev)}
-        className={cn(
-          'fixed bottom-6 right-4 sm:right-6 z-[60] flex items-center gap-2 px-4 h-14 rounded-full transition-all duration-300 no-print',
-          open
-            ? 'bg-slate-800 hover:bg-slate-700 shadow-lg shadow-slate-900/20 scale-90'
-            : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-105 shadow-md shadow-indigo-500/20'
-        )}
-      >
-        <div className={cn('transition-transform duration-300', open ? 'rotate-90' : 'rotate-0')}>
-          {open ? <X className="h-5 w-5 text-white" /> : <img src={matAvatar} alt="Mat" className="h-7 w-7 rounded-full object-cover" />}
+      {/* FAB — circular avatar + name + tooltip */}
+      <div className="fixed bottom-6 right-4 sm:right-6 z-[60] flex flex-col items-center gap-1 no-print group">
+        {/* Tooltip balloon */}
+        <div className="pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 absolute -top-16 right-0 z-[9999] w-64 bg-purple-700 text-white text-xs rounded-xl px-4 py-3 shadow-xl shadow-purple-900/30 after:content-[''] after:absolute after:-bottom-2 after:right-6 after:w-4 after:h-4 after:bg-purple-700 after:rotate-45 after:rounded-sm">
+          Olá! Sou o Mat, seu assistente EduCreator. Como posso ajudar você hoje? 👋
         </div>
+
+        <button
+          onClick={() => setOpen(prev => !prev)}
+          className="relative flex items-center justify-center transition-all duration-300 focus:outline-none"
+        >
+          {open ? (
+            <div className="w-[60px] h-[60px] rounded-full bg-slate-800 hover:bg-slate-700 shadow-lg flex items-center justify-center transition-all">
+              <X className="h-6 w-6 text-white" />
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="w-[60px] h-[60px] rounded-full overflow-hidden shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 hover:scale-105 transition-all duration-300 ring-2 ring-purple-500/40">
+                <img src={matAvatar} alt="Mat" className="w-full h-full object-cover" />
+              </div>
+              {/* Online indicator */}
+              <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-400 ring-2 ring-white" />
+              </span>
+            </div>
+          )}
+        </button>
+
         {!open && (
-          <>
-            <span className="text-sm font-bold text-white hidden sm:inline">Mat</span>
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400" />
-            </span>
-          </>
+          <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 select-none">Mat</span>
         )}
-      </button>
+      </div>
     </>
   );
 }
