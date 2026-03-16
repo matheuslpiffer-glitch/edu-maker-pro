@@ -63,6 +63,33 @@ function stripImgTags(obj: unknown): unknown {
   return obj;
 }
 
+function normalizeSupportMaterial(material?: string): string {
+  const trimmed = material?.trim();
+  if (!trimmed) return "";
+
+  const blocks = trimmed
+    .split(/\n\s*\n/)
+    .map((block) => block.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  const selected: string[] = [];
+  let totalLength = 0;
+
+  for (const block of blocks) {
+    const nextBlock = block.slice(0, 1200);
+    if (selected.length > 0 && totalLength + nextBlock.length > 3600) break;
+    selected.push(`[BLOCO ${selected.length + 1}] ${nextBlock}`);
+    totalLength += nextBlock.length;
+    if (selected.length >= 4) break;
+  }
+
+  if (selected.length === 0) {
+    return trimmed.slice(0, 3600);
+  }
+
+  return selected.join("\n");
+}
+
 // Retry-enabled AI fetch with exponential backoff + timeout fallback
 async function fetchAIWithRetry(
   apiKey: string,
@@ -537,8 +564,9 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
 
     const bloomInstruction = bloomLevel ? `\nNÍVEL DE DIFICULDADE BLOOM: ${bloomLabels[bloomLevel] || bloomLabels[2]}\nTodas as questões devem obedecer RIGOROSAMENTE a este nível cognitivo da Taxonomia de Bloom.\n` : "";
 
-    const ragInstruction = customMaterial && customMaterial.trim()
-      ? `\nMATERIAL DE REFERÊNCIA (RAG): O professor forneceu o seguinte conteúdo da sua própria apostila. Gere questões EXCLUSIVAMENTE baseadas neste material:\n---\n${customMaterial.trim().slice(0, 4000)}\n---\nNÃO invente conteúdo fora deste material. Use-o como base única para os enunciados, contextos e alternativas.\n`
+    const normalizedSupportMaterial = normalizeSupportMaterial(customMaterial);
+    const ragInstruction = normalizedSupportMaterial
+      ? `\nMATERIAL DE REFERÊNCIA (RAG): use apenas os blocos abaixo como base factual. Se algum detalhe não estiver presente, não invente.\n---\n${normalizedSupportMaterial}\n---\n`
       : "";
 
     const multiSubjectInstruction = isMultiSubject
@@ -641,12 +669,14 @@ Responda em JSON:
     const effectiveCount = examModel === 'concurso_publico' ? Math.min(count || 10, 10) : count;
 
     // For large counts, instruct the AI to be more concise
-    const compactInstruction = effectiveCount > 10
-      ? `\nOTIMIZAÇÃO: São ${effectiveCount} questões. Seja DIRETO nos enunciados (máx 3 linhas cada). Evite contextos longos. Priorize clareza e objetividade.\n`
+    const compactInstruction = effectiveCount > 5
+      ? `\nOTIMIZAÇÃO: são ${effectiveCount} questões. Seja direto, com enunciados curtos, contexto mínimo necessário e sem floreios visuais.`
       : "";
 
-    const systemPrompt = `Você é um Especialista em Avaliações oficiais brasileiras como ${examLabel}, seguindo descritores da SEDUC-SP e Currículo Paulista.
-${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${compactInstruction}
+    const leanFormattingInstruction = `\nFORMATAÇÃO ENXUTA: priorize conteúdo pedagógico e estrutura simples. Use apenas HTML básico necessário (parágrafos, listas, tabelas simples). Não adicione estilos inline longos, introduções extensas nem blocos decorativos.`;
+
+    const systemPrompt = `Você cria avaliações brasileiras alinhadas ao formato ${examLabel}.
+${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${compactInstruction}${leanFormattingInstruction}
 ${questionFormatInstruction}
 Responda APENAS com JSON válido, sem markdown.`;
 

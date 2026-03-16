@@ -36,8 +36,8 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
   return (
     <div
       ref={ref}
-      className="bg-white text-black p-8 max-w-[210mm] mx-auto"
-      style={{ fontFamily: 'Arial, sans-serif', fontSize: '11pt', lineHeight: '1.6', wordBreak: 'break-word' }}
+      className="bg-white text-black p-8 max-w-[210mm] w-full mx-auto box-border"
+      style={{ fontFamily: 'Arial, sans-serif', fontSize: '11pt', lineHeight: '1.6', wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '100%', boxSizing: 'border-box' }}
       data-pdf-section="questions"
     >
       {/* Header */}
@@ -92,24 +92,27 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
         style={columns === 2 ? { columnCount: 2, columnGap: '2.5em' } : undefined}
       >
         {questions.map((q, i) => (
-          <div key={i} className="mb-6" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', maxWidth: '95%', marginRight: 'auto' }}>
+          <div key={i} className="mb-6" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', maxWidth: '100%', marginRight: 'auto', boxSizing: 'border-box', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
             <div className="flex gap-2">
               <span className="font-bold whitespace-nowrap" style={{ fontSize: '11pt' }}>
                 {String(i + 1).padStart(2, '0')}.
               </span>
-              <div className="flex-1">
+              <div className="flex-1" style={{ maxWidth: '100%', boxSizing: 'border-box', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                 {q.skillCode && (
                   <span className="text-[8pt] italic text-gray-400 block mb-0.5">[{q.skillCode}]</span>
                 )}
-                <div dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                <div
+                  style={{ maxWidth: '100%', boxSizing: 'border-box', overflowWrap: 'break-word', wordBreak: 'break-word' }}
+                  dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }}
+                />
               </div>
             </div>
             {q.options && q.options.length > 0 ? (
-              <div className="ml-6 mt-2 space-y-1">
+              <div className="ml-6 mt-2 space-y-1" style={{ maxWidth: '100%', boxSizing: 'border-box', overflowWrap: 'break-word' }}>
                 {q.options.map((opt) => (
-                  <div key={opt.letter} className="flex gap-2" style={{ fontSize: '11pt' }}>
+                  <div key={opt.letter} className="flex gap-2" style={{ fontSize: '11pt', maxWidth: '100%', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     <span className="font-medium">({opt.letter})</span>
-                    <span>{opt.text}</span>
+                    <span style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>{opt.text}</span>
                   </div>
                 ))}
               </div>

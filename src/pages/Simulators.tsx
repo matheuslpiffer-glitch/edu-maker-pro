@@ -21,6 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
+import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError } from '@/lib/ai-utils';
 
 interface SimOption { letter: string; text: string; isCorrect: boolean; }
 interface SimQuestion { content: string; options: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; }
@@ -582,6 +583,8 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             { difficulty: 'hard', count: hardCount },
           ].filter(b => b.count > 0);
     try {
+      const requestedQuestionCount = batches.reduce((sum, batch) => sum + (batch.count || 0), 0);
+
       for (const batch of batches) {
         const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
           body: {
@@ -598,32 +601,18 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             bloomLevel,
             specificTopic: specificTopic.trim() || undefined,
             serie: showSerieStep ? activeSerie : undefined,
-            includeImages,
+            includeImages: includeImages && requestedQuestionCount <= 5,
             technicalDiscipline: technicalDiscipline || undefined,
             provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
           },
         });
-        // Handle non-2xx: supabase.functions.invoke returns data with error message
-        if (error) {
-          // Try to extract the actual error from the response context
-          const ctx = (error as any)?.context;
-          if (ctx) {
-            try {
-              const body = await ctx.json();
-              if (body?.error) throw new Error(body.error);
-            } catch (parseErr) {
-              // If parsing fails, check if data has the error
-            }
-          }
-          if (data?.error) throw new Error(data.error);
-          throw error;
-        }
+        if (error) throw error;
         if (data?.error) throw new Error(data.error);
         if (data?.questions) allQuestions.push(...data.questions);
       }
+
       setQuestions(allQuestions);
       setSavedId(null);
-      // Auto-save to bank
       addToBank(allQuestions.map((q: any, i: number) => ({
         id: `sim-${Date.now()}-${i}`,
         banca: 'Simulado',
@@ -636,16 +625,38 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       toast({ title: `${allQuestions.length} questões geradas com sucesso!` });
     } catch (e: any) {
       console.error(e);
-      const msg = e?.message || 'Erro ao gerar questões';
-      const isCredits = msg.includes('Créditos') || msg.includes('credits') || msg.includes('402') || msg.includes('insuficientes');
-      const isRate = msg.includes('Limite') || msg.includes('429') || msg.includes('rate');
+      const { message, status } = await getFunctionErrorDetails(e, 'Erro ao gerar questões');
+
+      if (allQuestions.length > 0) {
+        setQuestions(allQuestions);
+        setSavedId(null);
+        setActiveTab('preview');
+        addToBank(allQuestions.map((q: any, i: number) => ({
+          id: `sim-partial-${Date.now()}-${i}`,
+          banca: 'Simulado',
+          tema: specificTopic || selectedSubjects.join(', ') || 'Geral',
+          conteudo: q.content,
+          tipo: isDiscursiva ? 'Dissertativa' : 'Múltipla Escolha',
+          options: q.options,
+          dataCriacao: new Date().toISOString(),
+        })));
+        toast({
+          title: 'Geração parcial preservada',
+          description: `${allQuestions.length} questão(ões) já geradas foram mantidas. ${message}`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const isCredits = isAiCreditsError(message, status);
+      const isRate = isAiRateLimitError(message, status);
       toast({
         title: isCredits ? '💳 Créditos de IA Insuficientes' : isRate ? '⏳ Limite de Requisições' : 'Erro ao gerar questões',
         description: isCredits
           ? 'Os créditos de IA foram esgotados. Acesse Configurações → Workspace → Usage para recarregar.'
           : isRate
           ? 'Muitas requisições em pouco tempo. Aguarde alguns segundos e tente novamente.'
-          : msg,
+          : message,
         variant: 'destructive',
       });
     } finally { setGenerating(false); }
