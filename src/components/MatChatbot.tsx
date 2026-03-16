@@ -158,7 +158,7 @@ export default function MatChatbot() {
             {isLoading && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex justify-start">
                 <div className="bg-slate-100/80 rounded-[1.25rem] rounded-bl-lg px-5 py-3 shadow-sm flex items-center gap-1.5">
-                  <span className="text-xs text-slate-500 font-medium mr-1">Mat está digitando</span>
+                  <span className="text-xs text-slate-500 font-medium mr-1">Mat está preparando...</span>
                   <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0ms]" />
                   <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:150ms]" />
                   <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:300ms]" />
