@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, CheckCircle2, XCircle, Send, Trophy } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Send, Trophy, User, School } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -47,6 +47,8 @@ export default function StudentActivityResponse() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [studentName, setStudentName] = useState('');
+  const [studentClass, setStudentClass] = useState('');
+  const [identified, setIdentified] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
@@ -81,7 +83,7 @@ export default function StudentActivityResponse() {
     setSubmitting(true);
     try {
       const { data, error: err } = await supabase.functions.invoke('student-activity', {
-        body: { action: 'submit', bankId: id, studentName: studentName.trim(), answers },
+        body: { action: 'submit', bankId: id, studentName: studentName.trim(), studentClass: studentClass.trim(), answers },
       });
       if (err) throw err;
       if (data?.error) throw new Error(data.error);
@@ -112,6 +114,65 @@ export default function StudentActivityResponse() {
     );
   }
 
+  // Identification gate
+  if (!identified) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="border-b border-border bg-card px-4 py-3">
+          <p className="text-xs text-muted-foreground text-center">EduCreator Pro | Organizado por Matheus Lima Piffer</p>
+        </div>
+        <div className="max-w-md mx-auto px-4 py-12 space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+              <School className="h-8 w-8 text-primary" />
+            </div>
+            <h1 className="text-xl font-bold text-foreground">{activity.title}</h1>
+            <p className="text-sm text-muted-foreground">{activity.institution} • {activity.grade}</p>
+            <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+              {isDiscursiva ? 'Discursiva' : 'Múltipla Escolha'} • {activity.questions.length} questões
+            </span>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
+            <h2 className="text-base font-bold text-foreground text-center">Identificação do Aluno</h2>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <User size={14} /> Nome Completo
+              </label>
+              <Input
+                placeholder="Ex: Maria Oliveira"
+                value={studentName}
+                onChange={e => setStudentName(e.target.value)}
+                className="text-base h-12"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <School size={14} /> Série / Turma
+              </label>
+              <Input
+                placeholder="Ex: 9º Ano A"
+                value={studentClass}
+                onChange={e => setStudentClass(e.target.value)}
+                className="text-base h-12"
+              />
+            </div>
+            <Button
+              onClick={() => setIdentified(true)}
+              disabled={!studentName.trim() || !studentClass.trim()}
+              size="lg"
+              className="w-full text-base font-bold h-14"
+            >
+              Iniciar Atividade
+            </Button>
+          </div>
+
+          <p className="text-center text-[10px] text-muted-foreground">EduCreator Pro — Por Matheus Lima Piffer</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -124,21 +185,7 @@ export default function StudentActivityResponse() {
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold text-foreground">{activity.title}</h1>
           <p className="text-sm text-muted-foreground">{activity.institution} • {activity.grade}</p>
-          <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-            {isDiscursiva ? 'Discursiva' : 'Múltipla Escolha'} • {activity.questions.length} questões
-          </span>
-        </div>
-
-        {/* Student Name */}
-        <div className="space-y-2">
-          <label className="text-sm font-semibold text-foreground">Nome do Aluno</label>
-          <Input
-            placeholder="Digite seu nome completo"
-            value={studentName}
-            onChange={e => setStudentName(e.target.value)}
-            className="text-base"
-            disabled={!!result}
-          />
+          <p className="text-xs text-muted-foreground">Aluno: <strong className="text-foreground">{studentName}</strong> • Turma: <strong className="text-foreground">{studentClass}</strong></p>
         </div>
 
         {/* Questions */}
@@ -193,7 +240,7 @@ export default function StudentActivityResponse() {
         {!result && (
           <Button
             onClick={handleSubmit}
-            disabled={submitting || !studentName.trim() || !allAnswered}
+            disabled={submitting || !allAnswered}
             size="lg"
             className="w-full text-base font-bold gap-2 h-14"
           >
@@ -235,7 +282,7 @@ export default function StudentActivityResponse() {
                 {result.corrections?.map((c, i) => (
                   <div key={i} className={`flex items-center gap-2 text-sm px-3 py-2 rounded-lg ${c.isCorrect ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' : 'bg-red-500/10 text-red-700 dark:text-red-400'}`}>
                     {c.isCorrect ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                    <span>Q{i + 1}: sua resposta <strong>{c.studentAnswer || '—'}</strong> {c.isCorrect ? '✓' : `(correta: ${c.correctAnswer})`}</span>
+                    <span>Q{i + 1}: {c.studentAnswer || '—'} {c.isCorrect ? '✓' : `(correta: ${c.correctAnswer})`}</span>
                   </div>
                 ))}
               </div>

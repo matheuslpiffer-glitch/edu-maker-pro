@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -14,7 +14,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { action, bankId, studentName, answers } = await req.json();
+    const { action, bankId, studentName, studentClass, answers } = await req.json();
 
     if (!bankId) {
       return new Response(JSON.stringify({ error: "ID da atividade é obrigatório." }), {
@@ -61,7 +61,7 @@ serve(async (req) => {
       });
     }
 
-    // ACTION: submit — compare answers server-side
+    // ACTION: submit — compare answers server-side and save results
     if (action === "submit") {
       if (!studentName || !answers) {
         return new Response(JSON.stringify({ error: "Nome e respostas são obrigatórios." }), {
@@ -72,7 +72,20 @@ serve(async (req) => {
       const isDiscursiva = bank.question_type === "discursiva" || bank.question_type === "gabarito_discursivo";
 
       if (isDiscursiva) {
-        // For discursive, just acknowledge
+        // Save discursive submission with status 'aguardando_revisao'
+        await supabase.from("student_activity_results").insert({
+          bank_id: bankId,
+          teacher_user_id: bank.user_id,
+          student_name: studentName,
+          student_class: studentClass || '',
+          score: 0,
+          total_questions: questions.length,
+          percentage: 0,
+          status: 'aguardando_revisao',
+          answers: answers,
+          corrections: [],
+        });
+
         return new Response(JSON.stringify({
           type: "discursiva",
           message: "Respostas enviadas com sucesso ao Professor Matheus!",
@@ -102,12 +115,28 @@ serve(async (req) => {
         });
       });
 
+      const pct = questions.length > 0 ? Math.round((correct / questions.length) * 100) : 0;
+
+      // Save objective result with status 'corrigido'
+      await supabase.from("student_activity_results").insert({
+        bank_id: bankId,
+        teacher_user_id: bank.user_id,
+        student_name: studentName,
+        student_class: studentClass || '',
+        score: correct,
+        total_questions: questions.length,
+        percentage: pct,
+        status: 'corrigido',
+        answers: answers,
+        corrections: corrections,
+      });
+
       return new Response(JSON.stringify({
         type: "objetiva",
         studentName,
         score: correct,
         total: questions.length,
-        percentage: Math.round((correct / questions.length) * 100),
+        percentage: pct,
         corrections,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
