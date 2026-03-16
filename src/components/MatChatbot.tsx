@@ -241,6 +241,15 @@ export default function MatChatbot() {
           <span className="text-xs font-extrabold tracking-wide text-slate-700 dark:text-slate-300 select-none uppercase">Mat</span>
         )}
       </div>
+
+      <MatAvatarEditor
+        open={showAvatarEditor}
+        onClose={() => setShowAvatarEditor(false)}
+        currentAvatar={customAvatar}
+        currentZoom={zoom}
+        onSave={saveAvatar}
+        onReset={clearAvatar}
+      />
     </>
   );
 }
