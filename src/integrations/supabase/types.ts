@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      aee_activities: {
+        Row: {
+          created_at: string
+          id: string
+          mode: string
+          profile: string
+          question_type: string
+          questions: Json
+          subject: string
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mode?: string
+          profile?: string
+          question_type?: string
+          questions?: Json
+          subject?: string
+          topic?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mode?: string
+          profile?: string
+          question_type?: string
+          questions?: Json
+          subject?: string
+          topic?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       assessments: {
         Row: {
           assessment_date: string
