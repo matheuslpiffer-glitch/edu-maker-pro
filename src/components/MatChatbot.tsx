@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send } from 'lucide-react';
+import { X, Send, Settings } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
-import matAvatar from '@/assets/mat-avatar-closeup.png';
+import defaultAvatar from '@/assets/mat-avatar-closeup.png';
+import { useMatAvatar } from '@/hooks/useMatAvatar';
+import MatAvatarEditor from '@/components/MatAvatarEditor';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
