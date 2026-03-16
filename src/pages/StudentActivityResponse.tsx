@@ -38,6 +38,7 @@ interface SubmitResult {
   percentage?: number;
   corrections?: CorrectionItem[];
   message?: string;
+  totalQuestions?: number;
 }
 
 export default function StudentActivityResponse() {
