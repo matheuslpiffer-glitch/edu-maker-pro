@@ -465,7 +465,10 @@ export default function BussolaVocacional() {
         </CardContent>
       </Card>
 
-      <div className="flex justify-center">
+      <div className="flex flex-col sm:flex-row justify-center gap-3">
+        <Button onClick={handleExportPDF} className="gap-2">
+          <Download className="w-4 h-4" /> Gerar Laudo PDF
+        </Button>
         <Button variant="outline" onClick={() => { setStep(0); setScores(null); setSliderValues({}); }}>
           Refazer Avaliação
         </Button>
