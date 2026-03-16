@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle } from 'lucide-react';
+import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2 } from 'lucide-react';
 import matAvatar from '@/assets/mat-avatar.png';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,7 @@ export default function AltaPerformance() {
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [formato, setFormato] = useState('objetiva');
   const previewRef = useRef<HTMLDivElement>(null);
+  const [savedBankId, setSavedBankId] = useState<string | null>(null);
 
   const isDiscursiva = formato === 'discursiva';
 
@@ -117,7 +118,7 @@ export default function AltaPerformance() {
         skillCode: q.skillCode,
         descriptor: q.descriptor,
       }));
-      await supabase.from('question_banks').insert({
+      const { data: inserted, error: insertErr } = await supabase.from('question_banks').insert({
         user_id: user.id,
         subject: disciplina,
         topic: topicos,
@@ -126,7 +127,9 @@ export default function AltaPerformance() {
         question_type: isDiscursiva ? 'discursiva' : 'objetiva',
         questions: questionsOnly as any,
         institution_name: redeInfo?.label || rede,
-      });
+      }).select('id').single();
+      if (insertErr) throw insertErr;
+      if (inserted?.id) setSavedBankId(inserted.id);
       toast({ title: 'Questões salvas com sucesso!' });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
@@ -235,6 +238,16 @@ export default function AltaPerformance() {
 
     const msg = `🏫 *EduCreator Pro — Simulado Alta Performance*\n\n👤 Professor: Matheus Lima Piffer\n📚 Disciplina: ${disciplina}\n🎯 Rede: ${redeInfo?.label || rede}\n📝 Formato: ${isDiscursiva ? 'Discursivo' : 'Objetiva'}\n\n${text}\n\n✅ Gerado via EduCreator Pro`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const handleCopyStudentLink = () => {
+    if (!savedBankId) {
+      toast({ title: 'Salve as questões primeiro para gerar o link do aluno.', variant: 'destructive' });
+      return;
+    }
+    const url = `${window.location.origin}/atividade/${savedBankId}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: 'Link do Aluno copiado!', description: url });
   };
 
   return (
@@ -381,6 +394,9 @@ export default function AltaPerformance() {
                   </Button>
                   <Button variant="outline" size="sm" onClick={copyToClipboard} className="gap-1.5">
                     <Copy size={14} /> Copiar
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5">
+                    <Link2 size={14} /> Link do Aluno
                   </Button>
                 </div>
 
