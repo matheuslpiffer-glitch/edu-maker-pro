@@ -92,7 +92,7 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
         style={columns === 2 ? { columnCount: 2, columnGap: '2.5em' } : undefined}
       >
         {questions.map((q, i) => (
-          <div key={i} className="mb-6" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+          <div key={i} className="mb-6" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', maxWidth: '95%', marginRight: 'auto' }}>
             <div className="flex gap-2">
               <span className="font-bold whitespace-nowrap" style={{ fontSize: '11pt' }}>
                 {String(i + 1).padStart(2, '0')}.
