@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
 import { useAuth } from '@/hooks/useAuth';
@@ -1449,7 +1449,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                                 options: q.options,
                                 dataCriacao: new Date().toISOString(),
                               })));
-                              toast({ title: '🏆 MISSÃO CONCLUÍDA! Material AEE gerado com sucesso! +500 XP' });
+                              toast({ title: '✅ Material AEE gerado com sucesso!' });
                             }
                           } catch (e: any) {
                             console.error(e);
@@ -1521,74 +1521,47 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   );
                 })()}
 
-                {/* ══════ PASSO: Seletor de Disciplinas (quando não auto-populado) ══════ */}
-                {!isInclusao && !isTecnicosMode && !isConcurso && !isObmep && selectedSubjects.length === 0 && (() => {
+                {/* ══════ PASSO: Seletor de Disciplina (dropdown elegante) ══════ */}
+                {!isInclusao && !isTecnicosMode && !isConcurso && !isObmep && (() => {
                   const stepDisc = modelConfig ? (showSerieStep ? 4 : 3) : (showSerieStep ? 3 : 2);
+                  const hasAutoSubjects = modelConfig && selectedSubjects.length > 0;
                   return (
                   <>
                     <div className="border-t border-slate-100" />
                     <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
                       <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">{stepDisc}</div>
-                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Selecione a(s) Disciplina(s)</h3>
+                        <div className="h-7 w-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">{hasAutoSubjects ? '✓' : stepDisc}</div>
+                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Disciplina</h3>
                       </div>
-                      <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5">
-                        ⚠️ Selecione ao menos uma disciplina para continuar.
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {SUBJECT_AREAS.map(s => {
-                          const isSelected = selectedSubjects.includes(s.name);
-                          return (
-                            <button
-                              key={s.name}
-                              onClick={() => toggleSubject(s.name)}
-                              className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
-                                isSelected
-                                  ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
-                                  : 'bg-white border-slate-200 text-slate-600 hover:border-violet-300 hover:shadow-sm'
-                              }`}
-                            >
-                              {s.icon} {s.name}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {hasAutoSubjects ? (
+                        <p className="text-xs text-indigo-500 font-medium">✅ {selectedSubjects.length} disciplina(s) selecionada(s) automaticamente</p>
+                      ) : (
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold text-slate-500">Selecione a Disciplina</Label>
+                          <Select
+                            value={selectedSubjects[0] || ''}
+                            onValueChange={(val) => setSelectedSubjects([val])}
+                          >
+                            <SelectTrigger className="bg-slate-50 border-slate-200 rounded-xl h-12 text-sm focus:ring-4 focus:ring-violet-500/20">
+                              <SelectValue placeholder="Selecione a disciplina..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {SUBJECT_AREAS.map(s => (
+                                <SelectItem key={s.name} value={s.name}>{s.icon} {s.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {selectedSubjects.length === 0 && (
+                            <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5">
+                              ⚠️ Selecione uma disciplina para continuar.
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </>
                   );
                 })()}
-
-                {/* Discipline chips when subjects ARE selected but not from modelConfig (manual selection) */}
-                {!isInclusao && !isTecnicosMode && !isConcurso && !isObmep && selectedSubjects.length > 0 && !modelConfig && (
-                  <>
-                    <div className="border-t border-slate-100" />
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">✓</div>
-                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Disciplina(s) Selecionada(s)</h3>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {SUBJECT_AREAS.map(s => {
-                          const isSelected = selectedSubjects.includes(s.name);
-                          return (
-                            <button
-                              key={s.name}
-                              onClick={() => toggleSubject(s.name)}
-                              className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
-                                isSelected
-                                  ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
-                                  : 'bg-white border-slate-200 text-slate-600 hover:border-violet-300 hover:shadow-sm'
-                              }`}
-                            >
-                              {s.icon} {s.name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <p className="text-xs text-violet-500 font-medium">✅ {selectedSubjects.length} disciplina(s) selecionada(s)</p>
-                    </div>
-                  </>
-                )}
 
                 {/* ══════ PASSO: Série Escolar (condicional — simulado && !obmep) ══════ */}
                 {showSerieStep && !isTecnicosAny && (() => {
@@ -1601,30 +1574,26 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         <div className="h-7 w-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">{stepSerie}</div>
                         <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Série / Ano Escolar</h3>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                        {SERIES_CATEGORIAS.map(cat => (
-                          <div key={cat.label}>
-                            <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500 mb-2">{cat.label}</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {cat.series.map(s => {
-                                const isSelected = activeSerie === s.id;
-                                return (
-                                  <button
-                                    key={s.id}
-                                    onClick={() => { setActiveSerie(s.id); setGrade(SERIE_GRADE_MAP[s.id] || ''); }}
-                                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
-                                      isSelected
-                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                        : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300'
-                                    }`}
-                                  >
-                                    {s.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-slate-500">Selecione a Série / Ano</Label>
+                        <Select value={activeSerie} onValueChange={(val) => { setActiveSerie(val); setGrade(SERIE_GRADE_MAP[val] || ''); }}>
+                          <SelectTrigger className="bg-slate-50 border-slate-200 rounded-xl h-12 text-sm focus:ring-4 focus:ring-indigo-500/20">
+                            <SelectValue placeholder="Selecione a série..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SERIES_CATEGORIAS.map(cat => (
+                              <React.Fragment key={cat.label}>
+                                <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">{cat.label}</div>
+                                {cat.series.map(s => (
+                                  <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                                ))}
+                              </React.Fragment>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {activeSerie && (
+                          <p className="text-xs text-indigo-600 font-medium">📚 Série selecionada: {SERIE_GRADE_MAP[activeSerie] || activeSerie}</p>
+                        )}
                       </div>
 
                       {/* Árvore Vestibulares — handled by tabs+dropdown in Step 1 for vestibulares mode */}
