@@ -187,7 +187,7 @@ export default function MatChatbot() {
               </button>
             </div>
             <p className="text-center text-[9px] text-slate-400 mt-2">
-              Powered by Matheus Lima Piffer AI Engine
+              Mat · Seu parceiro pedagógico no EduCreator
             </p>
           </div>
         </div>
