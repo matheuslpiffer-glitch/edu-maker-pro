@@ -441,7 +441,7 @@ export default function BussolaVocacional() {
             <div><span className="font-semibold text-foreground">Confiabilidade:</span> α ≥ 0.82</div>
           </div>
 
-          {/* Academic body */}
+          {/* Academic body — Laudo do Dr. Mat */}
           <div className="space-y-3 text-sm text-foreground leading-relaxed">
             <p>
               <strong>1. SÍNTESE DO PERFIL VOCACIONAL</strong>
@@ -456,7 +456,14 @@ export default function BussolaVocacional() {
             </p>
 
             <p>
-              <strong>2. ANÁLISE ESTATÍSTICA</strong>
+              <strong>2. LAUDO DETALHADO — PERFIL {parecer.topLabel.toUpperCase()}</strong>
+            </p>
+            <p className="pl-4 border-l-2 border-primary/40 italic">
+              "{LAUDOS_BIBLIOTECA[parecer.top[0]]}"
+            </p>
+
+            <p>
+              <strong>3. ANÁLISE ESTATÍSTICA</strong>
             </p>
             <p className="pl-4 border-l-2 border-primary/40">
               A dispersão entre as dimensões indica um perfil {
@@ -468,7 +475,7 @@ export default function BussolaVocacional() {
             </p>
 
             <p>
-              <strong>3. RECOMENDAÇÕES</strong>
+              <strong>4. RECOMENDAÇÕES</strong>
             </p>
             <p className="pl-4 border-l-2 border-primary/40">
               Recomenda-se que o respondente explore carreiras e formações alinhadas ao eixo 
@@ -481,15 +488,40 @@ export default function BussolaVocacional() {
 
           <Separator />
 
+          {/* ── Estatísticas Complementares — Big Five ── */}
+          <div className="space-y-3">
+            <p className="text-sm font-bold text-foreground">5. ESTATÍSTICAS COMPLEMENTARES — Big Five (OCEAN)</p>
+            <p className="text-xs text-muted-foreground">Dimensões da personalidade derivadas do perfil RIASEC</p>
+            {computeBigFive().map(dim => (
+              <div key={dim.name} className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-foreground">{dim.name}</span>
+                  <span className="text-xs font-bold text-primary tabular-nums">{dim.value}%</span>
+                </div>
+                <Progress value={dim.value} className="h-2.5" />
+              </div>
+            ))}
+          </div>
+
+          <Separator />
+
           {/* Footer / Signature */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <FileCheck2 className="w-4 h-4 text-primary" />
-              <span>Documento gerado automaticamente pelo sistema Mat PhD — EduCreator Pro</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Award className="w-4 h-4 text-primary" />
-              <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Certificado</span>
+          <div className="rounded-lg border border-border/50 bg-muted/20 p-3 text-center space-y-1">
+            <p className="text-xs font-semibold text-foreground">
+              Análise gerada por Inteligência Artificial Parametrizada — Dr. MAT PhD
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              Coordenador Pedagógico Digital • EduCreator Pro • Protocolo {parecer.code}
+            </p>
+            <div className="flex items-center justify-center gap-3 pt-1">
+              <div className="flex items-center gap-1">
+                <FileCheck2 className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[10px] text-muted-foreground">Documento oficial</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Award className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">Certificado</span>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -498,6 +530,9 @@ export default function BussolaVocacional() {
       <div className="flex flex-col sm:flex-row justify-center gap-3">
         <Button onClick={handleExportPDF} className="gap-2">
           <Download className="w-4 h-4" /> Gerar Laudo PDF
+        </Button>
+        <Button onClick={handleShare} variant="secondary" className="gap-2">
+          <Share2 className="w-4 h-4" /> Compartilhar com meu Coordenador
         </Button>
         <Button variant="outline" onClick={() => { setStep(0); setScores(null); setSliderValues({}); }}>
           Refazer Avaliação
