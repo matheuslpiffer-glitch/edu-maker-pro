@@ -11,7 +11,7 @@ type Msg = { role: 'user' | 'assistant'; content: string };
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 
 export default function MatChatbot() {
-  const { customAvatar, zoom, saveAvatar, saveZoom, clearAvatar } = useMatAvatar();
+  const { customAvatar, zoom, offsetX, offsetY, saveAvatar, clearAvatar } = useMatAvatar();
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const avatarSrc = customAvatar || defaultAvatar;
   const [open, setOpen] = useState(false);
