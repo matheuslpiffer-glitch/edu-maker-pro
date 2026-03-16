@@ -32,6 +32,7 @@ const teacherLinks = [
   { to: '/questoes', icon: BookOpen, label: 'Banco de Questões', section: 'Ferramentas de Gestão' },
   { to: '/banco-ia', icon: BookOpen, label: 'Banco de Questões IA', section: 'Ferramentas de Gestão' },
   { to: '/provas', icon: FileText, label: 'Minhas Provas', section: 'Ferramentas de Gestão' },
+  { to: '/minha-biblioteca', icon: Library, label: 'Minha Biblioteca', section: 'Ferramentas de Gestão' },
   { to: '/biblioteca', icon: Library, label: 'Biblioteca de Avaliações', section: 'Ferramentas de Gestão' },
   // DOCUMENTAÇÃO
   { to: '/guia', icon: HelpCircle, label: 'Guia do Sistema', section: 'Documentação' },
