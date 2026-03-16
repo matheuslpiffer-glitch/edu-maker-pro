@@ -70,9 +70,10 @@ async function fetchAIWithRetry(
   messages: Array<{ role: string; content: string }>,
   temperature: number,
   maxAttempts = 3,
-  timeoutMs = 25000
+  timeoutMs = 50000
 ): Promise<Response> {
   let lastResponse: Response | null = null;
+  let currentModel = model;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const controller = new AbortController();
@@ -85,7 +86,7 @@ async function fetchAIWithRetry(
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ model, messages, temperature }),
+        body: JSON.stringify({ model: currentModel, messages, temperature }),
         signal: controller.signal,
       });
       clearTimeout(timer);
@@ -96,15 +97,16 @@ async function fetchAIWithRetry(
       clearTimeout(timer);
       const isAbort = e instanceof DOMException && e.name === 'AbortError';
       if (isAbort && attempt < maxAttempts - 1) {
-        console.warn(`Timeout on attempt ${attempt + 1}, retrying with reduced scope...`);
-        // On timeout, try to reduce prompt complexity by using a faster model
-        if (attempt === 1) model = "google/gemini-2.5-flash-lite";
+        console.warn(`Timeout on attempt ${attempt + 1}, retrying with faster model...`);
+        // On timeout, switch to a faster/lighter model
+        if (attempt === 0) currentModel = "google/gemini-2.5-flash";
+        if (attempt === 1) currentModel = "google/gemini-2.5-flash-lite";
       } else if (attempt >= maxAttempts - 1) {
-        throw new Error("Timeout: a geração demorou demais. Tente novamente ou reduza a quantidade de questões.");
+        throw new Error("Estamos processando sua inteligência pedagógica... isso pode levar um momento. Por favor, tente novamente ou reduza o número de questões.");
       }
     }
 
-    const waitMs = 1500 * Math.pow(2, attempt);
+    const waitMs = 1000 * Math.pow(2, attempt);
     await new Promise((resolve) => setTimeout(resolve, waitMs));
   }
 
