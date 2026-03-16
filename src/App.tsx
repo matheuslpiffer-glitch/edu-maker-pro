@@ -38,6 +38,7 @@ import StudentQuiz from "@/pages/StudentQuiz";
 import StudentPerformance from "@/pages/StudentPerformance";
 import VisionCorrector from "@/pages/VisionCorrector";
 import AltaPerformance from "@/pages/AltaPerformance";
+import BussolaVocacional from "@/pages/BussolaVocacional";
 import Inclusao from "@/pages/Inclusao";
 import ReferenciasBibliograficas from "@/pages/ReferenciasBibliograficas";
 import NotFound from "@/pages/NotFound";
