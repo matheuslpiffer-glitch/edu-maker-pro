@@ -41,6 +41,7 @@ import AltaPerformance from "@/pages/AltaPerformance";
 import BussolaVocacional from "@/pages/BussolaVocacional";
 import Inclusao from "@/pages/Inclusao";
 import ReferenciasBibliograficas from "@/pages/ReferenciasBibliograficas";
+import StudentActivityResponse from "@/pages/StudentActivityResponse";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 import SignAttendance from "@/pages/SignAttendance";
