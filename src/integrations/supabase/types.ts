@@ -543,6 +543,51 @@ export type Database = {
         }
         Relationships: []
       }
+      student_activity_results: {
+        Row: {
+          answers: Json
+          bank_id: string
+          corrections: Json
+          created_at: string
+          id: string
+          percentage: number
+          score: number
+          status: string
+          student_class: string
+          student_name: string
+          teacher_user_id: string
+          total_questions: number
+        }
+        Insert: {
+          answers?: Json
+          bank_id: string
+          corrections?: Json
+          created_at?: string
+          id?: string
+          percentage?: number
+          score?: number
+          status?: string
+          student_class?: string
+          student_name?: string
+          teacher_user_id: string
+          total_questions?: number
+        }
+        Update: {
+          answers?: Json
+          bank_id?: string
+          corrections?: Json
+          created_at?: string
+          id?: string
+          percentage?: number
+          score?: number
+          status?: string
+          student_class?: string
+          student_name?: string
+          teacher_user_id?: string
+          total_questions?: number
+        }
+        Relationships: []
+      }
       student_progress: {
         Row: {
           correct_answers: number
