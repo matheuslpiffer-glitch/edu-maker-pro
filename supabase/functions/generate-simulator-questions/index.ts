@@ -70,7 +70,7 @@ async function fetchAIWithRetry(
   messages: Array<{ role: string; content: string }>,
   temperature: number,
   maxAttempts = 3,
-  timeoutMs = 50000
+  timeoutMs = 55000
 ): Promise<Response> {
   let lastResponse: Response | null = null;
   let currentModel = model;
