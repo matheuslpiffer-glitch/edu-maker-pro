@@ -669,12 +669,14 @@ Responda em JSON:
     const effectiveCount = examModel === 'concurso_publico' ? Math.min(count || 10, 10) : count;
 
     // For large counts, instruct the AI to be more concise
-    const compactInstruction = effectiveCount > 10
-      ? `\nOTIMIZAÇÃO: São ${effectiveCount} questões. Seja DIRETO nos enunciados (máx 3 linhas cada). Evite contextos longos. Priorize clareza e objetividade.\n`
+    const compactInstruction = effectiveCount > 5
+      ? `\nOTIMIZAÇÃO: são ${effectiveCount} questões. Seja direto, com enunciados curtos, contexto mínimo necessário e sem floreios visuais.`
       : "";
 
-    const systemPrompt = `Você é um Especialista em Avaliações oficiais brasileiras como ${examLabel}, seguindo descritores da SEDUC-SP e Currículo Paulista.
-${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${compactInstruction}
+    const leanFormattingInstruction = `\nFORMATAÇÃO ENXUTA: priorize conteúdo pedagógico e estrutura simples. Use apenas HTML básico necessário (parágrafos, listas, tabelas simples). Não adicione estilos inline longos, introduções extensas nem blocos decorativos.`;
+
+    const systemPrompt = `Você cria avaliações brasileiras alinhadas ao formato ${examLabel}.
+${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${compactInstruction}${leanFormattingInstruction}
 ${questionFormatInstruction}
 Responda APENAS com JSON válido, sem markdown.`;
 
