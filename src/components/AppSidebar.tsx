@@ -17,6 +17,7 @@ const teacherLinks = [
   { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & ENEM', section: 'Estúdios de Criação' },
   { to: '/tecnicos', icon: Cpu, label: 'Técnicos & IFs', section: 'Estúdios de Criação' },
   { to: '/inclusao', icon: Accessibility, label: 'Inclusão (AEE)', section: 'Estúdios de Criação' },
+  { to: '/alta-performance', icon: Trophy, label: 'Módulo Alta Performance', section: 'Estúdios de Criação' },
   { to: '/redacao', icon: PenLine, label: 'Redação Elite', section: 'Estúdios de Criação' },
   { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', section: 'Estúdios de Criação' },
   // FERRAMENTAS DE GESTÃO
