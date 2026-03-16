@@ -637,6 +637,9 @@ Responda em JSON:
       ? `As questões devem ser ABERTAS/DISCURSIVAS (2ª Fase). NÃO inclua alternativas (A-E). Cada questão deve ter espaço para o aluno desenvolver a resolução por escrito. Inclua um "Espelho de Correção" com resolução passo a passo e critérios de pontuação para cada questão.`
       : `Cada questão deve ter EXATAMENTE 5 alternativas (A a E), com apenas 1 correta. Use distratores plausíveis.`;
 
+    // Cap concurso público to max 10 questions for timeout prevention
+    const effectiveCount = examModel === 'concurso_publico' ? Math.min(count || 10, 10) : count;
+
     // For large counts, instruct the AI to be more concise
     const compactInstruction = effectiveCount > 10
       ? `\nOTIMIZAÇÃO: São ${effectiveCount} questões. Seja DIRETO nos enunciados (máx 3 linhas cada). Evite contextos longos. Priorize clareza e objetividade.\n`
@@ -646,9 +649,6 @@ Responda em JSON:
 ${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${compactInstruction}
 ${questionFormatInstruction}
 Responda APENAS com JSON válido, sem markdown.`;
-
-    // Cap concurso público to max 10 questions for timeout prevention
-    const effectiveCount = examModel === 'concurso_publico' ? Math.min(count || 10, 10) : count;
 
     const userPrompt = isDiscursiva
       ? `Gere ${effectiveCount} questão(ões) DISCURSIVA(S) de dificuldade ${diffLabel} para a(s) disciplina(s) "${subjectString}" no ${grade}.

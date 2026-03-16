@@ -41,7 +41,7 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
       data-pdf-section="questions"
     >
       {/* Header */}
-      <div className="text-center mb-6 border-b-2 border-black pb-4">
+      <div className="text-center mb-6 border-b-2 border-black pb-4" style={{ paddingTop: '40px' }}>
         {/* 3D CSS Logo */}
         <div className="flex items-center justify-center gap-3 mb-3">
           <div
@@ -92,7 +92,7 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
         style={columns === 2 ? { columnCount: 2, columnGap: '2.5em' } : undefined}
       >
         {questions.map((q, i) => (
-          <div key={i} className="mb-6" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+          <div key={i} className="mb-6" style={{ pageBreakInside: 'avoid', breakInside: 'avoid', maxWidth: '95%', marginRight: 'auto' }}>
             <div className="flex gap-2">
               <span className="font-bold whitespace-nowrap" style={{ fontSize: '11pt' }}>
                 {String(i + 1).padStart(2, '0')}.
@@ -127,7 +127,7 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
       {/* Watermark footer */}
       <div className="mt-8 pt-4 border-t border-gray-200 text-center">
         <p style={{ fontSize: '8pt', color: '#c0c0c0', letterSpacing: '0.05em' }}>
-          EduCreator Pro • Matheus Piffer
+          EduCreator Pro • Matheus Lima Piffer
         </p>
       </div>
     </div>
