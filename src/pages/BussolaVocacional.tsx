@@ -553,7 +553,7 @@ export default function BussolaVocacional() {
         <div className="relative shrink-0">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px]">
             <div className="w-full h-full rounded-full overflow-hidden bg-background">
-              <img src={matAvatar} alt="Mat - Coordenador Pedagógico Digital" className="w-[130%] h-[130%] object-cover object-[center_15%] -ml-[15%] -mt-[5%]" />
+              <img src={matAvatar} alt="Mat - Coordenador Pedagógico Digital" className="object-cover" style={avatarStyle} />
             </div>
           </div>
           <span className="absolute top-0 right-0 w-3 h-3 rounded-full border-2 border-background" style={{ backgroundColor: 'hsl(48, 96%, 53%)' }} />
