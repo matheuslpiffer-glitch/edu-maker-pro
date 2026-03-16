@@ -11,6 +11,9 @@ type Msg = { role: 'user' | 'assistant'; content: string };
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 
 export default function MatChatbot() {
+  const { customAvatar, zoom, saveAvatar, saveZoom, clearAvatar } = useMatAvatar();
+  const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+  const avatarSrc = customAvatar || defaultAvatar;
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { role: 'assistant', content: 'E aí, professor(a)! 👋 Sou o **Mat**, seu coordenador pedagógico digital aqui no EduCreator Pro. Me conta, no que posso te ajudar hoje?' },
