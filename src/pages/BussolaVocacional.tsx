@@ -119,7 +119,7 @@ type Scores = Record<string, number>;
 export default function BussolaVocacional() {
   const { customAvatar, zoom, offsetX, offsetY } = useMatAvatar();
   const matAvatar = customAvatar || defaultMatAvatar;
-  const avatarStyle = { width: `${zoom}%`, height: `${zoom}%`, marginLeft: `${-(zoom - 100) * (offsetX / 100)}%`, marginTop: `${-((zoom - 100) / 2) + offsetY * (zoom / 200)}%` };
+  const avatarStyle = { width: `${zoom}%`, height: `${zoom}%`, transform: `translate(${-(zoom - 100) * (offsetX / 100)}%, ${-(zoom - 100) * (offsetY / 100)}%)` };
   const [step, setStep] = useState(0); // 0-2 = form steps, 3 = results
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({});
   const [scores, setScores] = useState<Scores | null>(null);
