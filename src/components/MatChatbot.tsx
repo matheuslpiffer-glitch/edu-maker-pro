@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Bot, X, Send, Sparkles } from 'lucide-react';
+import { X, Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
+import matAvatar from '@/assets/mat-avatar.png';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -10,7 +11,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 export default function MatChatbot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: 'assistant', content: 'Olá! 👋 Sou o **Mat AI**, assistente inteligente do EduCreator Pro, criado por Matheus Lima Piffer. Como posso te ajudar hoje?' },
+    { role: 'assistant', content: 'E aí, professor(a)! 👋 Sou o **Mat**, seu coordenador pedagógico digital aqui no EduCreator Pro. Me conta, no que posso te ajudar hoje?' },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -123,12 +124,10 @@ export default function MatChatbot() {
         <div className="fixed bottom-24 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[420px] max-h-[70vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200/60 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-bottom-4 duration-300 overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200/50 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-[2.5rem]">
-            <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <Bot className="h-5 w-5 text-white" />
-            </div>
+            <img src={matAvatar} alt="Mat" className="h-10 w-10 rounded-xl object-cover ring-2 ring-white/30" />
             <div className="flex-1">
-              <h3 className="text-sm font-black text-white">Mat AI</h3>
-              <p className="text-[10px] text-white/60">Assistente Inteligente</p>
+              <h3 className="text-sm font-black text-white">Mat</h3>
+              <p className="text-[10px] text-white/60">Coordenador Pedagógico Digital</p>
             </div>
             <button
               onClick={() => setOpen(false)}
@@ -159,7 +158,7 @@ export default function MatChatbot() {
             {isLoading && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex justify-start">
                 <div className="bg-slate-100/80 rounded-[1.25rem] rounded-bl-lg px-5 py-3 shadow-sm flex items-center gap-1.5">
-                  <span className="text-xs text-slate-500 font-medium mr-1">Mat está digitando</span>
+                  <span className="text-xs text-slate-500 font-medium mr-1">Mat está preparando...</span>
                   <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0ms]" />
                   <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:150ms]" />
                   <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:300ms]" />
@@ -176,7 +175,7 @@ export default function MatChatbot() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                placeholder="Pergunte ao Mat..."
+                placeholder="Fale com o Mat..."
                 className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-700 placeholder:text-slate-400 px-3 py-2"
               />
               <button
@@ -188,7 +187,7 @@ export default function MatChatbot() {
               </button>
             </div>
             <p className="text-center text-[9px] text-slate-400 mt-2">
-              Powered by Matheus Lima Piffer AI Engine
+              Mat · Seu parceiro pedagógico no EduCreator
             </p>
           </div>
         </div>
@@ -205,11 +204,11 @@ export default function MatChatbot() {
         )}
       >
         <div className={cn('transition-transform duration-300', open ? 'rotate-90' : 'rotate-0')}>
-          {open ? <X className="h-5 w-5 text-white" /> : <Bot className="h-5 w-5 text-white" />}
+          {open ? <X className="h-5 w-5 text-white" /> : <img src={matAvatar} alt="Mat" className="h-7 w-7 rounded-full object-cover" />}
         </div>
         {!open && (
           <>
-            <span className="text-sm font-bold text-white hidden sm:inline">Mat AI</span>
+            <span className="text-sm font-bold text-white hidden sm:inline">Mat</span>
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400" />
