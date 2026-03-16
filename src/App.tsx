@@ -43,6 +43,7 @@ import Inclusao from "@/pages/Inclusao";
 import ReferenciasBibliograficas from "@/pages/ReferenciasBibliograficas";
 import StudentActivityResponse from "@/pages/StudentActivityResponse";
 import ResultadosAlunos from "@/pages/ResultadosAlunos";
+import MinhaBiblioteca from "@/pages/MinhaBiblioteca";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 import SignAttendance from "@/pages/SignAttendance";
@@ -90,6 +91,7 @@ function AppRoutes() {
         <Route path="/pisa" element={<PisaSimulators />} />
         <Route path="/biblioteca" element={<BibliotecaAvaliacoes />} />
         <Route path="/resultados-alunos" element={<ResultadosAlunos />} />
+        <Route path="/minha-biblioteca" element={<MinhaBiblioteca />} />
         <Route path="/banco-ia" element={<QuestionBankAI />} />
         <Route path="/guia" element={<SystemGuide />} />
         <Route path="/manual" element={<TeacherManual />} />
