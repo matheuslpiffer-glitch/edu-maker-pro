@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Trophy, Wand2, Copy, FileDown, Loader2 } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
