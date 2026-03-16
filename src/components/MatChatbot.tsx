@@ -213,7 +213,7 @@ export default function MatChatbot() {
               {/* Gradient ring container */}
               <div className="w-[80px] h-[80px] rounded-full p-[3px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 transition-all duration-300">
                 <div className="w-full h-full rounded-full overflow-hidden bg-white">
-                  <img src={matAvatar} alt="Mat" className="w-full h-full object-cover object-top" />
+                  <img src={matAvatar} alt="Mat" className="w-[130%] h-[130%] object-cover object-[center_15%] -ml-[15%] -mt-[5%]" />
                 </div>
               </div>
               {/* Online indicator */}
