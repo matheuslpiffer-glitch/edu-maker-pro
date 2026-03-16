@@ -46,6 +46,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
     setPreviewUrl(defaultAvatar);
     setZoom(130);
     setOffsetY(15);
+    setOffsetX(50);
     setHasNewImage(false);
     onReset();
   };
