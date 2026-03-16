@@ -118,6 +118,23 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
           <p className="text-[10px] text-muted-foreground text-center">Posição Vertical</p>
         </div>
 
+        {/* Position X */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground shrink-0">←</span>
+            <Slider
+              value={[offsetX]}
+              onValueChange={([v]) => setOffsetX(v)}
+              min={0}
+              max={100}
+              step={1}
+              className="flex-1"
+            />
+            <span className="text-[10px] text-muted-foreground shrink-0">→</span>
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center">Posição Horizontal</p>
+        </div>
+
         {/* Actions */}
         <div className="flex gap-2">
           <Button
