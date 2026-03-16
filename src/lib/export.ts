@@ -39,8 +39,8 @@ export async function exportToPDF(element: HTMLElement, filename: string) {
   const opt = {
     margin: [15, 15, 15, 15] as [number, number, number, number],
     filename: `${filename}.pdf`,
-    image: { type: 'jpeg' as const, quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: element.scrollWidth },
+    image: { type: 'png' as const, quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: element.scrollWidth, logging: false, allowTaint: true },
     jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
     pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
   };
