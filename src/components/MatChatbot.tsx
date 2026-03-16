@@ -11,7 +11,7 @@ type Msg = { role: 'user' | 'assistant'; content: string };
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 
 export default function MatChatbot() {
-  const { customAvatar, zoom, saveAvatar, saveZoom, clearAvatar } = useMatAvatar();
+  const { customAvatar, zoom, offsetX, offsetY, saveAvatar, clearAvatar } = useMatAvatar();
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const avatarSrc = customAvatar || defaultAvatar;
   const [open, setOpen] = useState(false);
@@ -218,7 +218,7 @@ export default function MatChatbot() {
               {/* Gradient ring container */}
               <div className="w-[80px] h-[80px] rounded-full p-[3px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 transition-all duration-300">
                 <div className="w-full h-full rounded-full overflow-hidden bg-white">
-                  <img src={avatarSrc} alt="Mat" style={{ width: `${zoom}%`, height: `${zoom}%`, marginLeft: `${-(zoom - 100) / 2}%`, marginTop: `${-((zoom - 100) / 2) + 15 * (zoom / 200)}%` }} className="object-cover" />
+                  <img src={avatarSrc} alt="Mat" style={{ width: `${zoom}%`, height: `${zoom}%`, marginLeft: `${-(zoom - 100) * (offsetX / 100)}%`, marginTop: `${-((zoom - 100) / 2) + offsetY * (zoom / 200)}%` }} className="object-cover" />
                 </div>
               </div>
               {/* Edit button */}

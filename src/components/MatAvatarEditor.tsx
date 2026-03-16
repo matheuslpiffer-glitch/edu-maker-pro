@@ -10,7 +10,7 @@ interface Props {
   onClose: () => void;
   currentAvatar: string | null;
   currentZoom: number;
-  onSave: (dataUrl: string, zoom: number) => void;
+  onSave: (dataUrl: string, zoom: number, offsetX?: number, offsetY?: number) => void;
   onReset: () => void;
 }
 
@@ -38,7 +38,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
   }, []);
 
   const handleConfirm = () => {
-    onSave(previewUrl, zoom);
+    onSave(previewUrl, zoom, offsetX, offsetY);
     onClose();
   };
 
