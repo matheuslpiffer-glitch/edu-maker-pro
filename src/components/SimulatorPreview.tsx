@@ -127,7 +127,7 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
       {/* Watermark footer */}
       <div className="mt-8 pt-4 border-t border-gray-200 text-center">
         <p style={{ fontSize: '8pt', color: '#c0c0c0', letterSpacing: '0.05em' }}>
-          EduCreator Pro • Matheus Piffer
+          EduCreator Pro • Matheus Lima Piffer
         </p>
       </div>
     </div>
