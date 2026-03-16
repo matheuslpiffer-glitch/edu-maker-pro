@@ -11,7 +11,7 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 export default function MatChatbot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: 'assistant', content: 'Olá! 👋 Sou o **Mat AI**, assistente inteligente do EduCreator Pro, criado por Matheus Lima Piffer. Como posso te ajudar hoje?' },
+    { role: 'assistant', content: 'E aí, professor(a)! 👋 Sou o **Mat**, seu coordenador pedagógico digital aqui no EduCreator Pro. Me conta, no que posso te ajudar hoje?' },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
