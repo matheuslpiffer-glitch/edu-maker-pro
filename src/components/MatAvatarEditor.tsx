@@ -21,6 +21,30 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
   const [offsetX, setOffsetX] = useState(50);
   const fileRef = useRef<HTMLInputElement>(null);
   const [hasNewImage, setHasNewImage] = useState(false);
+  const isDragging = useRef(false);
+  const dragStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 });
+  const circleRef = useRef<HTMLDivElement>(null);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    isDragging.current = true;
+    dragStart.current = { x: e.clientX, y: e.clientY, ox: offsetX, oy: offsetY };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, [offsetX, offsetY]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDragging.current) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    const sensitivity = 0.5;
+    const newX = Math.max(0, Math.min(100, dragStart.current.ox - dx * sensitivity));
+    const newY = Math.max(0, Math.min(50, dragStart.current.oy - dy * sensitivity));
+    setOffsetX(newX);
+    setOffsetY(newY);
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    isDragging.current = false;
+  }, []);
 
   const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
