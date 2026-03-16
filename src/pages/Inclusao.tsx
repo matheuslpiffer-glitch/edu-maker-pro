@@ -169,14 +169,15 @@ export default function Inclusao() {
     if (!el) return;
     try {
       const html2pdf = (await import('html2pdf.js')).default;
-      await html2pdf().set({
+      const opts: any = {
         margin: [15, 10, 15, 10],
         filename: `AEE_${topic || 'atividade'}.pdf`,
         pagebreak: { mode: ['css', 'legacy'] },
         image: { type: 'png', quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      }).from(el).save();
+      };
+      await html2pdf().set(opts).from(el).save();
       toast({ title: 'PDF gerado com sucesso!' });
     } catch (e: any) {
       toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
