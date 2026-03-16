@@ -3,9 +3,11 @@ import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, CheckCircle2, XCircle, Send, Trophy, User, School } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Send, Trophy, User, School, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import matAvatar from '@/assets/mat-avatar.png';
 
 interface ActivityQuestion {
   index: number;
@@ -48,11 +50,34 @@ export default function StudentActivityResponse() {
   const [error, setError] = useState('');
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
   const [identified, setIdentified] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
+
+  // Check if user is already logged in via social auth
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const meta = session.user.user_metadata;
+        setStudentName(meta?.full_name || meta?.name || '');
+        setStudentEmail(session.user.email || '');
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const meta = session.user.user_metadata;
+        setStudentName(meta?.full_name || meta?.name || '');
+        setStudentEmail(session.user.email || '');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -78,12 +103,35 @@ export default function StudentActivityResponse() {
     ? activity.questions.every((_, i) => answers[i] && answers[i].trim().length > 0)
     : false;
 
+  const handleSocialLogin = async (provider: 'google' | 'apple') => {
+    setSocialLoading(provider);
+    try {
+      const { error } = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.href,
+      });
+      if (error) {
+        console.error('Social login error:', error);
+      }
+    } catch (e) {
+      console.error('Social login failed:', e);
+    } finally {
+      setSocialLoading(null);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!studentName.trim()) return;
     setSubmitting(true);
     try {
       const { data, error: err } = await supabase.functions.invoke('student-activity', {
-        body: { action: 'submit', bankId: id, studentName: studentName.trim(), studentClass: studentClass.trim(), answers },
+        body: {
+          action: 'submit',
+          bankId: id,
+          studentName: studentName.trim(),
+          studentClass: studentClass.trim(),
+          studentEmail: studentEmail.trim() || undefined,
+          answers,
+        },
       });
       if (err) throw err;
       if (data?.error) throw new Error(data.error);
@@ -121,11 +169,14 @@ export default function StudentActivityResponse() {
         <div className="border-b border-border bg-card px-4 py-3">
           <p className="text-xs text-muted-foreground text-center">EduCreator Pro | Organizado por Matheus Lima Piffer</p>
         </div>
-        <div className="max-w-md mx-auto px-4 py-12 space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-              <School className="h-8 w-8 text-primary" />
-            </div>
+        <div className="max-w-md mx-auto px-4 py-8 space-y-6">
+          {/* Branded Header */}
+          <div className="text-center space-y-3">
+            <img
+              src={matAvatar}
+              alt="EduCreator Pro"
+              className="w-20 h-20 rounded-2xl mx-auto object-cover shadow-lg"
+            />
             <h1 className="text-xl font-bold text-foreground">{activity.title}</h1>
             <p className="text-sm text-muted-foreground">{activity.institution} • {activity.grade}</p>
             <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
@@ -133,8 +184,73 @@ export default function StudentActivityResponse() {
             </span>
           </div>
 
+          {/* Social Login Section */}
+          {!studentEmail && (
+            <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
+              <p className="text-sm font-semibold text-foreground text-center">Entrar com sua conta</p>
+              <p className="text-xs text-muted-foreground text-center">Preencha seus dados automaticamente</p>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full h-12 text-sm font-medium gap-3 justify-center"
+                  onClick={() => handleSocialLogin('google')}
+                  disabled={!!socialLoading}
+                >
+                  {socialLoading === 'google' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <svg className="h-5 w-5" viewBox="0 0 24 24">
+                      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                    </svg>
+                  )}
+                  Entrar com Google
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full h-12 text-sm font-medium gap-3 justify-center"
+                  onClick={() => handleSocialLogin('apple')}
+                  disabled={!!socialLoading}
+                >
+                  {socialLoading === 'apple' ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                    </svg>
+                  )}
+                  Entrar com Apple
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-border" />
+                <span className="text-xs text-muted-foreground">ou preencha manualmente</span>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+            </div>
+          )}
+
+          {/* Social login success indicator */}
+          {studentEmail && (
+            <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">{studentName}</p>
+                <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                  <Mail size={10} /> {studentEmail}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Manual identification form */}
           <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
-            <h2 className="text-base font-bold text-foreground text-center">Identificação do Aluno</h2>
+            <h2 className="text-base font-bold text-foreground text-center">
+              {studentEmail ? 'Confirme seus dados' : 'Identificação do Aluno'}
+            </h2>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                 <User size={14} /> Nome Completo
@@ -310,6 +426,7 @@ export default function StudentActivityResponse() {
               setIdentified(false);
               setStudentName('');
               setStudentClass('');
+              setStudentEmail('');
             }}
             className="w-full font-bold"
           >
