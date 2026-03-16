@@ -348,19 +348,20 @@ const SERIE_GRADE_MAP: Record<string, string> = {
 };
 
 const ARVORE_PUBLICOS = [
-  { id: 'super_enem', label: 'Super ENEM' },
+  { id: 'super_enem', label: 'ENEM' },
   { id: 'fuvest', label: 'FUVEST (USP)' },
   { id: 'unicamp', label: 'UNICAMP' },
   { id: 'unesp', label: 'UNESP' },
-  { id: 'ufscar_federais', label: 'UFSCar / Federais' },
+  { id: 'ufrj', label: 'UFRJ' },
+  { id: 'ufmg', label: 'UFMG' },
 ];
 
 const ARVORE_PRIVADOS = [
-  { id: 'puc', label: 'PUC (Geral)' },
+  { id: 'puc', label: 'PUC' },
+  { id: 'fgv', label: 'FGV' },
+  { id: 'insper', label: 'Insper' },
   { id: 'mackenzie', label: 'Mackenzie' },
-  { id: 'fgv', label: 'FGV (Administração/Direito)' },
-  { id: 'medicina', label: 'Medicina (Einstein/Santa Casa)' },
-  { id: 'espm', label: 'ESPM' },
+  { id: 'einstein', label: 'Faculdades Albert Einstein' },
 ];
 
 const ARVORE_VESTIBULINHOS = [
@@ -439,6 +440,12 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [technicalDiscipline, setTechnicalDiscipline] = useState('');
   const [activeEspecialidade, setActiveEspecialidade] = useState('');
   const [activeFormat, setActiveFormat] = useState('completa');
+
+  // Vestibulares-specific states
+  const [vestTab, setVestTab] = useState<'publicas' | 'particulares'>('publicas');
+  const [vestInstitution, setVestInstitution] = useState('');
+  const [vestFormatType, setVestFormatType] = useState<'geral' | 'disciplina'>('geral');
+  const [vestDiscipline, setVestDiscipline] = useState('');
 
   // Técnicos-specific states
   const [tecnicoInstitution, setTecnicoInstitution] = useState('');
@@ -940,8 +947,98 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         );
                       })}
                     </div>
-                  ) : (activeMotor === 'simulado' || !!mode) ? (
-                    /* Categorized DNA Cards for Simulado / Vestibulares */
+                  ) : isVestibularesMode ? (
+                    /* ══════ VESTIBULARES: Tabs + Dropdown ══════ */
+                    <div className="space-y-5">
+                      {/* Tabs: Públicas / Particulares */}
+                      <div className="flex gap-2 bg-slate-100 p-1 rounded-2xl">
+                        {([
+                          { id: 'publicas' as const, label: '🏛️ Universidades Públicas' },
+                          { id: 'particulares' as const, label: '🏆 Universidades Particulares' },
+                        ]).map(tab => (
+                          <button
+                            key={tab.id}
+                            onClick={() => { setVestTab(tab.id); setVestInstitution(''); setActiveEspecialidade(''); setVestFormatType('geral'); setVestDiscipline(''); }}
+                            className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
+                              vestTab === tab.id
+                                ? 'bg-white text-slate-900 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Dropdown: Selecione a Instituição */}
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-slate-500">Selecione a Instituição</Label>
+                        <Select
+                          value={vestInstitution}
+                          onValueChange={(val) => {
+                            setVestInstitution(val);
+                            setActiveEspecialidade(val);
+                            const item = [...ARVORE_PUBLICOS, ...ARVORE_PRIVADOS].find(i => i.id === val);
+                            setTechnicalDiscipline(item?.label || '');
+                            setExamModel(vestTab === 'publicas' ? 'vest_publicos' : 'vest_privados');
+                          }}
+                        >
+                          <SelectTrigger className="bg-slate-50 border-slate-200 rounded-[20px]">
+                            <SelectValue placeholder="Escolha a banca examinadora..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(vestTab === 'publicas' ? ARVORE_PUBLICOS : ARVORE_PRIVADOS).map(inst => (
+                              <SelectItem key={inst.id} value={inst.id}>{inst.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Radio: Formato do Simulado */}
+                      {vestInstitution && (
+                        <div className="space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 animate-in fade-in duration-300">
+                          <Label className="text-xs font-bold text-slate-700">📋 Qual o formato do simulado?</Label>
+                          <div className="flex flex-col gap-2">
+                            {([
+                              { id: 'geral' as const, label: 'Simulado Geral (Modelo da Banca)', desc: 'Todas as disciplinas misturadas no estilo da banca' },
+                              { id: 'disciplina' as const, label: 'Focado por Disciplina', desc: 'Questões de uma única disciplina' },
+                            ]).map(opt => (
+                              <button
+                                key={opt.id}
+                                onClick={() => { setVestFormatType(opt.id); if (opt.id === 'geral') setVestDiscipline(''); setActiveFormat(opt.id === 'geral' ? 'completa' : 'disciplina'); }}
+                                className={`px-4 py-3 rounded-xl text-left border-2 transition-all ${
+                                  vestFormatType === opt.id
+                                    ? 'bg-indigo-50 border-indigo-600 shadow-sm'
+                                    : 'bg-white border-slate-200 hover:border-slate-300'
+                                }`}
+                              >
+                                <span className={`text-xs font-bold block ${vestFormatType === opt.id ? 'text-indigo-700' : 'text-slate-700'}`}>{opt.label}</span>
+                                <span className={`text-[10px] block mt-0.5 ${vestFormatType === opt.id ? 'text-indigo-500' : 'text-slate-400'}`}>{opt.desc}</span>
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Conditional: Discipline selector */}
+                          {vestFormatType === 'disciplina' && (
+                            <div className="space-y-2 mt-2 animate-in fade-in duration-200">
+                              <Label className="text-xs font-semibold text-slate-500">Disciplina desejada</Label>
+                              <Select value={vestDiscipline} onValueChange={(val) => { setVestDiscipline(val); setSelectedSubjects([val]); }}>
+                                <SelectTrigger className="bg-white border-slate-200 rounded-[20px]">
+                                  <SelectValue placeholder="Selecione a disciplina..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {SUBJECT_AREAS.map(s => (
+                                    <SelectItem key={s.name} value={s.name}>{s.icon} {s.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (activeMotor === 'simulado') ? (
+                    /* Categorized DNA Cards for Simulado */
                     <div className="space-y-5">
                       {activeDnaCategories.map(cat => (
                         <div key={cat.id}>
@@ -1530,51 +1627,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         ))}
                       </div>
 
-                      {/* Árvore Vestibulares Públicos */}
-                      {examModel === 'vest_publicos' && (
-                        <div className="space-y-3 mt-2 p-4 rounded-2xl bg-indigo-50 border border-indigo-200 animate-in fade-in duration-300">
-                          <Label className="text-xs font-bold text-indigo-700">🏛️ Vestibulares Públicos — Escolha a Banca</Label>
-                          <div className="flex flex-wrap gap-2.5">
-                            {ARVORE_PUBLICOS.map(esp => (
-                              <button
-                                key={esp.id}
-                                onClick={() => { setActiveEspecialidade(esp.id); setTechnicalDiscipline(esp.label); }}
-                                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
-                                  activeEspecialidade === esp.id
-                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                    : 'bg-white border-indigo-200 text-indigo-700 hover:border-indigo-400'
-                                }`}
-                              >
-                                {esp.label}
-                              </button>
-                            ))}
-                          </div>
-                          <p className="text-[10px] text-indigo-600">Perfil: alto rigor acadêmico no estilo das maiores universidades públicas do Brasil</p>
-                        </div>
-                      )}
-
-                      {/* Árvore Vestibulares Particulares */}
-                      {examModel === 'vest_privados' && (
-                        <div className="space-y-3 mt-2 p-4 rounded-2xl bg-amber-50 border border-amber-200 animate-in fade-in duration-300">
-                          <Label className="text-xs font-bold text-amber-700">🏆 Vestibulares Particulares — Escolha a Instituição</Label>
-                          <div className="flex flex-wrap gap-2.5">
-                            {ARVORE_PRIVADOS.map(esp => (
-                              <button
-                                key={esp.id}
-                                onClick={() => { setActiveEspecialidade(esp.id); setTechnicalDiscipline(esp.label); }}
-                                className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
-                                  activeEspecialidade === esp.id
-                                    ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                                    : 'bg-white border-amber-200 text-amber-700 hover:border-amber-400'
-                                }`}
-                              >
-                                {esp.label}
-                              </button>
-                            ))}
-                          </div>
-                          <p className="text-[10px] text-amber-600">Perfil: provas de elite com foco em raciocínio crítico, atualidades e repertório cultural</p>
-                        </div>
-                      )}
+                      {/* Árvore Vestibulares — handled by tabs+dropdown in Step 1 for vestibulares mode */}
 
                       {/* Árvore Vestibulinhos (Ingresso) */}
                       {examModel === 'vestibulinhos' && (
@@ -1623,7 +1676,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       )}
 
                       {/* Formato / Recorte da Prova — hidden for Fast-Track Vestibulinho */}
-                      {activeEspecialidade && examModel !== 'cursos_tecnicos' && !isFastTrackVestibulinho && (
+                      {activeEspecialidade && examModel !== 'cursos_tecnicos' && !isFastTrackVestibulinho && !isVestibularesMode && (
                         <div className="space-y-3 mt-2 p-4 rounded-2xl bg-slate-50 border border-slate-200 animate-in fade-in duration-300">
                           <Label className="text-xs font-bold text-slate-700">📋 Formato / Recorte da Prova</Label>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -1708,7 +1761,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     </div>
                   )}
 
-                  {!isFastTrackVestibulinho && !isObmep && !showSerieStep && (
+                  {!isFastTrackVestibulinho && !isObmep && !showSerieStep && !isVestibularesMode && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-slate-500">Série</Label>
