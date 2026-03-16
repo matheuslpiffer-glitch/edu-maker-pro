@@ -37,7 +37,7 @@ function stripHtml(html: string): string {
 export async function exportToPDF(element: HTMLElement, filename: string) {
   const html2pdf = (await import('html2pdf.js')).default;
   const opt = {
-    margin: [10, 10, 10, 10] as [number, number, number, number],
+    margin: [15, 15, 15, 15] as [number, number, number, number],
     filename: `${filename}.pdf`,
     image: { type: 'jpeg' as const, quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: element.scrollWidth },
