@@ -27,6 +27,17 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
   const dragStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 });
   const circleRef = useRef<HTMLDivElement>(null);
 
+  // Sync state when editor re-opens
+  useEffect(() => {
+    if (open) {
+      setPreviewUrl(currentAvatar || defaultAvatar);
+      setZoom(currentZoom);
+      setOffsetX(currentOffsetX);
+      setOffsetY(currentOffsetY);
+      setHasNewImage(false);
+    }
+  }, [open, currentAvatar, currentZoom, currentOffsetX, currentOffsetY]);
+
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     isDragging.current = true;
     dragStart.current = { x: e.clientX, y: e.clientY, ox: offsetX, oy: offsetY };
