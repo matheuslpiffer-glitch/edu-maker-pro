@@ -240,6 +240,16 @@ export default function AltaPerformance() {
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
+  const handleCopyStudentLink = () => {
+    if (!savedBankId) {
+      toast({ title: 'Salve as questões primeiro para gerar o link do aluno.', variant: 'destructive' });
+      return;
+    }
+    const url = `${window.location.origin}/atividade/${savedBankId}`;
+    navigator.clipboard.writeText(url);
+    toast({ title: 'Link do Aluno copiado!', description: url });
+  };
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
