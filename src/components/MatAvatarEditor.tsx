@@ -88,14 +88,21 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
           </button>
         </div>
 
-        {/* Preview Circle */}
-        <div className="flex justify-center">
-          <div className="w-[140px] h-[140px] rounded-full p-[3px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg">
-            <div className="w-full h-full rounded-full overflow-hidden bg-background">
+        {/* Preview Circle — draggable */}
+        <div className="flex flex-col items-center gap-1">
+          <div
+            ref={circleRef}
+            className="w-[140px] h-[140px] rounded-full p-[3px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg cursor-grab active:cursor-grabbing touch-none select-none"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+          >
+            <div className="w-full h-full rounded-full overflow-hidden bg-background pointer-events-none">
               <img
                 src={previewUrl}
                 alt="Preview"
-                className="object-cover"
+                className="object-cover pointer-events-none"
+                draggable={false}
                 style={{
                   width: `${zoom}%`,
                   height: `${zoom}%`,
@@ -106,6 +113,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
               />
             </div>
           </div>
+          <p className="text-[10px] text-muted-foreground flex items-center gap-1"><Move className="h-3 w-3" /> Arraste para posicionar</p>
         </div>
 
         {/* Zoom Control */}
