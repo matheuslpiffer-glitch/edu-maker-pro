@@ -1521,74 +1521,47 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   );
                 })()}
 
-                {/* ══════ PASSO: Seletor de Disciplinas (quando não auto-populado) ══════ */}
-                {!isInclusao && !isTecnicosMode && !isConcurso && !isObmep && selectedSubjects.length === 0 && (() => {
+                {/* ══════ PASSO: Seletor de Disciplina (dropdown elegante) ══════ */}
+                {!isInclusao && !isTecnicosMode && !isConcurso && !isObmep && (() => {
                   const stepDisc = modelConfig ? (showSerieStep ? 4 : 3) : (showSerieStep ? 3 : 2);
+                  const hasAutoSubjects = modelConfig && selectedSubjects.length > 0;
                   return (
                   <>
                     <div className="border-t border-slate-100" />
                     <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
                       <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">{stepDisc}</div>
-                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Selecione a(s) Disciplina(s)</h3>
+                        <div className="h-7 w-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">{hasAutoSubjects ? '✓' : stepDisc}</div>
+                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Disciplina</h3>
                       </div>
-                      <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5">
-                        ⚠️ Selecione ao menos uma disciplina para continuar.
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {SUBJECT_AREAS.map(s => {
-                          const isSelected = selectedSubjects.includes(s.name);
-                          return (
-                            <button
-                              key={s.name}
-                              onClick={() => toggleSubject(s.name)}
-                              className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
-                                isSelected
-                                  ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
-                                  : 'bg-white border-slate-200 text-slate-600 hover:border-violet-300 hover:shadow-sm'
-                              }`}
-                            >
-                              {s.icon} {s.name}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {hasAutoSubjects ? (
+                        <p className="text-xs text-indigo-500 font-medium">✅ {selectedSubjects.length} disciplina(s) selecionada(s) automaticamente</p>
+                      ) : (
+                        <div className="space-y-2">
+                          <Label className="text-xs font-semibold text-slate-500">Selecione a Disciplina</Label>
+                          <Select
+                            value={selectedSubjects[0] || ''}
+                            onValueChange={(val) => setSelectedSubjects([val])}
+                          >
+                            <SelectTrigger className="bg-slate-50 border-slate-200 rounded-xl h-12 text-sm focus:ring-4 focus:ring-violet-500/20">
+                              <SelectValue placeholder="Selecione a disciplina..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {SUBJECT_AREAS.map(s => (
+                                <SelectItem key={s.name} value={s.name}>{s.icon} {s.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {selectedSubjects.length === 0 && (
+                            <p className="text-xs text-amber-600 font-medium flex items-center gap-1.5">
+                              ⚠️ Selecione uma disciplina para continuar.
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </>
                   );
                 })()}
-
-                {/* Discipline chips when subjects ARE selected but not from modelConfig (manual selection) */}
-                {!isInclusao && !isTecnicosMode && !isConcurso && !isObmep && selectedSubjects.length > 0 && !modelConfig && (
-                  <>
-                    <div className="border-t border-slate-100" />
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-full bg-violet-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">✓</div>
-                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Disciplina(s) Selecionada(s)</h3>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {SUBJECT_AREAS.map(s => {
-                          const isSelected = selectedSubjects.includes(s.name);
-                          return (
-                            <button
-                              key={s.name}
-                              onClick={() => toggleSubject(s.name)}
-                              className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
-                                isSelected
-                                  ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
-                                  : 'bg-white border-slate-200 text-slate-600 hover:border-violet-300 hover:shadow-sm'
-                              }`}
-                            >
-                              {s.icon} {s.name}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <p className="text-xs text-violet-500 font-medium">✅ {selectedSubjects.length} disciplina(s) selecionada(s)</p>
-                    </div>
-                  </>
-                )}
 
                 {/* ══════ PASSO: Série Escolar (condicional — simulado && !obmep) ══════ */}
                 {showSerieStep && !isTecnicosAny && (() => {
