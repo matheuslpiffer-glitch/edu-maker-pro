@@ -136,8 +136,8 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
             <Slider
               value={[zoom]}
               onValueChange={([v]) => setZoom(v)}
-              min={100}
-              max={200}
+              min={50}
+              max={300}
               step={5}
               className="flex-1"
             />
