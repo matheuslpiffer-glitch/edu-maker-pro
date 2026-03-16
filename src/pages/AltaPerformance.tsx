@@ -273,6 +273,16 @@ export default function AltaPerformance() {
                 </div>
               </div>
             )}
+
+            {/* Mat Assistant */}
+            <div className="mt-6 flex items-start gap-4 rounded-2xl border border-border/50 bg-muted/30 p-4">
+              <img src={matAvatar} alt="Mat - Assistente EduCreator" className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/30 shadow-md flex-shrink-0" />
+              <div className="relative bg-card rounded-xl p-3 shadow-sm border border-border/40">
+                <div className="absolute -left-2 top-4 w-3 h-3 bg-card border-l border-b border-border/40 rotate-45" />
+                <p className="text-sm font-bold text-foreground">Mat — Seu Assistente EduCreator</p>
+                <p className="text-xs text-muted-foreground mt-1">Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
