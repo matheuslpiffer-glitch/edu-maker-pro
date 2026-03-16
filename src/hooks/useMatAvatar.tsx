@@ -5,22 +5,25 @@ const ZOOM_KEY = 'mat_avatar_zoom';
 const OFFSET_X_KEY = 'mat_avatar_offset_x';
 const OFFSET_Y_KEY = 'mat_avatar_offset_y';
 
+function loadNumber(key: string, fallback: number): number {
+  try {
+    const val = localStorage.getItem(key);
+    if (val === null) return fallback;
+    const num = Number(val);
+    return isNaN(num) ? fallback : num;
+  } catch {
+    return fallback;
+  }
+}
+
 export function useMatAvatar() {
   const [customAvatar, setCustomAvatar] = useState<string | null>(() => {
     try { return localStorage.getItem(AVATAR_KEY); } catch { return null; }
   });
 
-  const [zoom, setZoom] = useState<number>(() => {
-    try { return Number(localStorage.getItem(ZOOM_KEY)) || 130; } catch { return 130; }
-  });
-
-  const [offsetX, setOffsetX] = useState<number>(() => {
-    try { return Number(localStorage.getItem(OFFSET_X_KEY)) || 50; } catch { return 50; }
-  });
-
-  const [offsetY, setOffsetY] = useState<number>(() => {
-    try { return Number(localStorage.getItem(OFFSET_Y_KEY)) || 15; } catch { return 15; }
-  });
+  const [zoom, setZoom] = useState<number>(() => loadNumber(ZOOM_KEY, 130));
+  const [offsetX, setOffsetX] = useState<number>(() => loadNumber(OFFSET_X_KEY, 50));
+  const [offsetY, setOffsetY] = useState<number>(() => loadNumber(OFFSET_Y_KEY, 15));
 
   const saveAvatar = (dataUrl: string, zoomVal: number, ox?: number, oy?: number) => {
     localStorage.setItem(AVATAR_KEY, dataUrl);
