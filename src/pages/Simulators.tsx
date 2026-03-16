@@ -1601,30 +1601,26 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         <div className="h-7 w-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">{stepSerie}</div>
                         <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Série / Ano Escolar</h3>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                        {SERIES_CATEGORIAS.map(cat => (
-                          <div key={cat.label}>
-                            <p className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-500 mb-2">{cat.label}</p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {cat.series.map(s => {
-                                const isSelected = activeSerie === s.id;
-                                return (
-                                  <button
-                                    key={s.id}
-                                    onClick={() => { setActiveSerie(s.id); setGrade(SERIE_GRADE_MAP[s.id] || ''); }}
-                                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all ${
-                                      isSelected
-                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                                        : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-300'
-                                    }`}
-                                  >
-                                    {s.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ))}
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-slate-500">Selecione a Série / Ano</Label>
+                        <Select value={activeSerie} onValueChange={(val) => { setActiveSerie(val); setGrade(SERIE_GRADE_MAP[val] || ''); }}>
+                          <SelectTrigger className="bg-slate-50 border-slate-200 rounded-xl h-12 text-sm focus:ring-4 focus:ring-indigo-500/20">
+                            <SelectValue placeholder="Selecione a série..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SERIES_CATEGORIAS.map(cat => (
+                              <React.Fragment key={cat.label}>
+                                <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">{cat.label}</div>
+                                {cat.series.map(s => (
+                                  <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                                ))}
+                              </React.Fragment>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {activeSerie && (
+                          <p className="text-xs text-indigo-600 font-medium">📚 Série selecionada: {SERIE_GRADE_MAP[activeSerie] || activeSerie}</p>
+                        )}
                       </div>
 
                       {/* Árvore Vestibulares — handled by tabs+dropdown in Step 1 for vestibulares mode */}
