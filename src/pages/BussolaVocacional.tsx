@@ -8,7 +8,8 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal, Share2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import matAvatar from '@/assets/mat-avatar-closeup.png';
+import defaultMatAvatar from '@/assets/mat-avatar-closeup.png';
+import { useMatAvatar } from '@/hooks/useMatAvatar';
 
 const RIASEC_LABELS: Record<string, { label: string; color: string; desc: string; env: string }> = {
   R: { label: 'Realista', color: 'hsl(var(--chart-1, 220 70% 50%))', desc: 'Prático, técnico, manual', env: 'práticos, com uso de ferramentas e resolução de problemas concretos' },
@@ -116,6 +117,9 @@ const STEP_TITLES = [
 type Scores = Record<string, number>;
 
 export default function BussolaVocacional() {
+  const { customAvatar, zoom, offsetX, offsetY } = useMatAvatar();
+  const matAvatar = customAvatar || defaultMatAvatar;
+  const avatarStyle = { width: `${zoom}%`, height: `${zoom}%`, marginLeft: `${-(zoom - 100) * (offsetX / 100)}%`, marginTop: `${-((zoom - 100) / 2) + offsetY * (zoom / 200)}%` };
   const [step, setStep] = useState(0); // 0-2 = form steps, 3 = results
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({});
   const [scores, setScores] = useState<Scores | null>(null);
@@ -301,7 +305,7 @@ export default function BussolaVocacional() {
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px] shrink-0">
               <div className="w-full h-full rounded-full overflow-hidden bg-background">
-                <img src={matAvatar} alt="Dr. Mat" className="w-[130%] h-[130%] object-cover object-[center_15%] -ml-[15%] -mt-[5%]" />
+                <img src={matAvatar} alt="Dr. Mat" className="object-cover" style={avatarStyle} />
               </div>
             </div>
             <div className="space-y-1">
@@ -422,7 +426,7 @@ export default function BussolaVocacional() {
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px] shrink-0">
               <div className="w-full h-full rounded-full overflow-hidden bg-background">
-                <img src={matAvatar} alt="Dr. Mat" className="w-[130%] h-[130%] object-cover object-[center_15%] -ml-[15%] -mt-[5%]" />
+                <img src={matAvatar} alt="Dr. Mat" className="object-cover" style={avatarStyle} />
               </div>
             </div>
             <div>
@@ -549,7 +553,7 @@ export default function BussolaVocacional() {
         <div className="relative shrink-0">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px]">
             <div className="w-full h-full rounded-full overflow-hidden bg-background">
-              <img src={matAvatar} alt="Mat - Coordenador Pedagógico Digital" className="w-[130%] h-[130%] object-cover object-[center_15%] -ml-[15%] -mt-[5%]" />
+              <img src={matAvatar} alt="Mat - Coordenador Pedagógico Digital" className="object-cover" style={avatarStyle} />
             </div>
           </div>
           <span className="absolute top-0 right-0 w-3 h-3 rounded-full border-2 border-background" style={{ backgroundColor: 'hsl(48, 96%, 53%)' }} />
