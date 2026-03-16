@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Trophy, Wand2, Copy, FileDown, Loader2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle } from 'lucide-react';
 import matAvatar from '@/assets/mat-avatar.png';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,8 @@ interface GeneratedQuestion {
   options: { letter: string; text: string; isCorrect: boolean }[];
   skillCode?: string;
   descriptor?: string;
+  answerLines?: number;
+  correctionMirror?: string;
 }
 
 export default function AltaPerformance() {
@@ -39,6 +41,9 @@ export default function AltaPerformance() {
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [formato, setFormato] = useState('objetiva');
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const isDiscursiva = formato === 'discursiva';
 
   const updateNivel = (key: keyof typeof niveis, value: number) => {
     const remaining = 100 - value;
@@ -48,7 +53,6 @@ export default function AltaPerformance() {
     otherKeys.forEach(k => {
       newNiveis[k] = otherTotal > 0 ? Math.round((niveis[k] / otherTotal) * remaining) : Math.round(remaining / otherKeys.length);
     });
-    // Ensure sum = 100
     const sum = Object.values(newNiveis).reduce((a, b) => a + b, 0);
     if (sum !== 100) newNiveis[otherKeys[otherKeys.length - 1]] += 100 - sum;
     setNiveis(newNiveis);
@@ -73,6 +77,7 @@ export default function AltaPerformance() {
           specificTopic: topicos,
           activeDna: rede,
           activeSpecialty: `alta_performance_${rede}`,
+          isDiscursiva,
           difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente`,
           examModel: redeInfo?.label || rede,
         },
@@ -88,25 +93,148 @@ export default function AltaPerformance() {
     }
   };
 
+  const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '');
+
   const copyToClipboard = () => {
     const text = questions.map((q, i) => {
+      if (isDiscursiva) {
+        return `Questão ${i + 1}\n${stripHtml(q.content)}\n\n(Espaço para resposta)`;
+      }
       const opts = q.options?.map(o => `${o.letter}) ${o.text}`).join('\n') || '';
-      return `Questão ${i + 1}\n${q.content.replace(/<[^>]*>/g, '')}\n${opts}`;
+      return `Questão ${i + 1}\n${stripHtml(q.content)}\n${opts}`;
     }).join('\n\n---\n\n');
     navigator.clipboard.writeText(text);
     toast({ title: 'Copiado para a área de transferência!' });
   };
 
-  const exportPDF = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-    const html = questions.map((q, i) => {
-      const opts = q.options?.map(o => `<p style="margin:4px 0 4px 16px"><strong>${o.letter})</strong> ${o.text}</p>`).join('') || '';
-      return `<div style="margin-bottom:24px;page-break-inside:avoid"><h3 style="margin:0 0 8px">Questão ${i + 1}</h3><div>${q.content}</div>${opts}</div>`;
-    }).join('<hr/>');
-    printWindow.document.write(`<html><head><title>Simulado Alta Performance</title><style>body{font-family:sans-serif;padding:32px;max-width:800px;margin:auto}h3{color:#1e3a5f}hr{border:none;border-top:1px solid #ddd;margin:16px 0}</style></head><body><h1 style="color:#1e3a5f">Simulado Alta Performance — ${redeInfo?.label || rede}</h1><p>${disciplina} • ${serie} • ${totalQuestoes} questões</p><hr/>${html}</body></html>`);
-    printWindow.document.close();
-    printWindow.print();
+  const handleSaveQuestions = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast({ title: 'Faça login para salvar', variant: 'destructive' }); return; }
+      const questionsOnly = questions.map(q => ({
+        content: q.content,
+        options: isDiscursiva ? [] : q.options,
+        skillCode: q.skillCode,
+        descriptor: q.descriptor,
+      }));
+      await supabase.from('question_banks').insert({
+        user_id: user.id,
+        subject: disciplina,
+        topic: topicos,
+        grade: serie,
+        purpose: `alta_performance_${rede}`,
+        question_type: isDiscursiva ? 'discursiva' : 'objetiva',
+        questions: questionsOnly as any,
+        institution_name: redeInfo?.label || rede,
+      });
+      toast({ title: 'Questões salvas com sucesso!' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+    }
+  };
+
+  const handleSaveGabarito = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { toast({ title: 'Faça login para salvar', variant: 'destructive' }); return; }
+      const gabaritoData = questions.map((q, i) => ({
+        questionNumber: i + 1,
+        correctionMirror: q.correctionMirror || '',
+        correctOption: isDiscursiva ? null : q.options?.find(o => o.isCorrect)?.letter || '',
+        skillCode: q.skillCode,
+      }));
+      await supabase.from('question_banks').insert({
+        user_id: user.id,
+        subject: disciplina,
+        topic: `[GABARITO] ${topicos}`,
+        grade: serie,
+        purpose: `gabarito_${rede}`,
+        question_type: isDiscursiva ? 'gabarito_discursivo' : 'gabarito_objetiva',
+        questions: gabaritoData as any,
+        institution_name: redeInfo?.label || rede,
+      });
+      toast({ title: 'Gabarito salvo com sucesso!' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar gabarito', description: e.message, variant: 'destructive' });
+    }
+  };
+
+  const exportPDF = async () => {
+    const html2pdf = (await import('html2pdf.js')).default;
+    const container = document.createElement('div');
+    container.style.cssText = 'font-family:Inter,Arial,sans-serif;padding:0;max-width:800px;margin:auto;word-wrap:break-word;overflow-wrap:break-word;';
+
+    // Header
+    container.innerHTML = `
+      <div style="text-align:center;margin-bottom:24px;border-bottom:2px solid #1e3a5f;padding-bottom:16px;">
+        <p style="font-size:10px;color:#666;margin:0;">EduCreator Pro | Por Matheus Lima Piffer</p>
+        <h1 style="color:#1e3a5f;margin:8px 0 4px;">Simulado Alta Performance — ${redeInfo?.label || rede}</h1>
+        <p style="margin:4px 0;font-size:13px;">${disciplina} • ${serie} • ${totalQuestoes} questões${isDiscursiva ? ' • Formato Discursivo' : ''}</p>
+      </div>
+    `;
+
+    // Questions
+    questions.forEach((q, i) => {
+      let qHtml = `<div style="margin-bottom:20px;page-break-inside:avoid;">
+        <h3 style="margin:0 0 8px;color:#1e3a5f;">Questão ${i + 1}</h3>
+        <div style="word-wrap:break-word;overflow-wrap:break-word;">${q.content}</div>`;
+
+      if (isDiscursiva) {
+        const lines = q.answerLines || 10;
+        for (let j = 0; j < lines; j++) {
+          qHtml += `<div style="border-bottom:1px solid #ccc;height:28px;margin:0 0 2px;"></div>`;
+        }
+      } else if (q.options?.length) {
+        q.options.forEach(o => {
+          qHtml += `<p style="margin:4px 0 4px 16px;"><strong>${o.letter})</strong> ${o.text}</p>`;
+        });
+      }
+      qHtml += '</div><hr style="border:none;border-top:1px solid #eee;margin:12px 0;"/>';
+      container.innerHTML += qHtml;
+    });
+
+    // Gabarito on new page
+    container.innerHTML += `<div style="page-break-before:always;"></div>`;
+    container.innerHTML += `<h2 style="text-align:center;color:#1e3a5f;margin-bottom:16px;">Gabarito e Critérios de Avaliação</h2>`;
+
+    questions.forEach((q, i) => {
+      if (isDiscursiva) {
+        container.innerHTML += `<div style="margin-bottom:16px;page-break-inside:avoid;border:1px solid #e5e7eb;border-radius:8px;padding:12px;">
+          <p style="font-weight:bold;margin:0 0 4px;">Questão ${i + 1}</p>
+          <div style="word-wrap:break-word;overflow-wrap:break-word;font-size:13px;color:#374151;">${q.correctionMirror || 'Critérios de correção não disponíveis.'}</div>
+        </div>`;
+      } else {
+        const correct = q.options?.find(o => o.isCorrect);
+        container.innerHTML += `<p style="margin:4px 0;"><strong>${i + 1}.</strong> ${correct?.letter || '—'}</p>`;
+      }
+    });
+
+    container.innerHTML += `<p style="text-align:center;font-size:10px;color:#999;margin-top:32px;">EduCreator Pro — Por Matheus Lima Piffer</p>`;
+
+    document.body.appendChild(container);
+    const opt = {
+      margin: [15, 15, 15, 15] as [number, number, number, number],
+      filename: `simulado-alta-performance-${rede}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+      pagebreak: { mode: ['avoid-all', 'css'] },
+    };
+    await html2pdf().set(opt).from(container).save();
+    document.body.removeChild(container);
+  };
+
+  const handleWhatsApp = () => {
+    const text = questions.map((q, i) => {
+      if (isDiscursiva) {
+        return `*Questão ${i + 1}*\n${stripHtml(q.content)}\n_(Espaço para resposta)_`;
+      }
+      const opts = q.options?.map(o => `${o.letter}) ${o.text}`).join('\n') || '';
+      return `*Questão ${i + 1}*\n${stripHtml(q.content)}\n${opts}`;
+    }).join('\n\n---\n\n');
+
+    const msg = `🏫 *EduCreator Pro — Simulado Alta Performance*\n\n👤 Professor: Matheus Lima Piffer\n📚 Disciplina: ${disciplina}\n🎯 Rede: ${redeInfo?.label || rede}\n📝 Formato: ${isDiscursiva ? 'Discursivo' : 'Objetiva'}\n\n${text}\n\n✅ Gerado via EduCreator Pro`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   return (
@@ -129,7 +257,6 @@ export default function AltaPerformance() {
         {/* Form */}
         <div className="lg:col-span-2 space-y-5">
           <div className="rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 space-y-5 shadow-sm">
-            {/* Rede de Ensino */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Selecione a Rede de Ensino</Label>
               <Select value={rede} onValueChange={setRede}>
@@ -147,7 +274,6 @@ export default function AltaPerformance() {
               </Select>
             </div>
 
-            {/* Formato da Questão */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Formato da Questão</Label>
               <ToggleGroup type="single" value={formato} onValueChange={v => { if (v) setFormato(v); }} className="w-full border border-border/50 rounded-lg p-1 bg-muted/30">
@@ -160,7 +286,6 @@ export default function AltaPerformance() {
               </ToggleGroup>
             </div>
 
-            {/* Série e Disciplina */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Ano/Série</Label>
@@ -172,19 +297,16 @@ export default function AltaPerformance() {
               </div>
             </div>
 
-            {/* Tópicos */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Tópicos da Prova</Label>
               <Textarea placeholder="Separe por vírgula: equações, geometria plana, funções..." value={topicos} onChange={e => setTopicos(e.target.value)} rows={3} />
             </div>
 
-            {/* Quantidade */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Quantidade de questões: {totalQuestoes}</Label>
               <Slider min={5} max={30} step={1} value={[totalQuestoes]} onValueChange={v => setTotalQuestoes(v[0])} />
             </div>
 
-            {/* Distribuição de níveis */}
             <div className="space-y-3 rounded-xl border border-border/50 bg-muted/30 p-4">
               <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Distribuição de Níveis</p>
               {([
@@ -205,7 +327,6 @@ export default function AltaPerformance() {
               ))}
             </div>
 
-            {/* Generate Button */}
             <Button onClick={handleGenerate} disabled={loading} size="lg" className="w-full text-base font-bold gap-2 h-14 bg-gradient-to-r from-primary to-[hsl(260,80%,55%)] hover:from-primary/90 hover:to-[hsl(260,80%,50%)] shadow-lg shadow-primary/20">
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Wand2 size={20} />}
               {loading ? 'Gerando Simulado...' : 'Gerar Simulado Premium'}
@@ -229,37 +350,51 @@ export default function AltaPerformance() {
                   <div key={i} className="space-y-3">
                     <Skeleton className="h-5 w-32" />
                     <Skeleton className="h-16 w-full" />
-                    <div className="grid grid-cols-2 gap-2">
-                      <Skeleton className="h-8" />
-                      <Skeleton className="h-8" />
-                      <Skeleton className="h-8" />
-                      <Skeleton className="h-8" />
-                    </div>
+                    {!isDiscursiva && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Skeleton className="h-8" /><Skeleton className="h-8" />
+                        <Skeleton className="h-8" /><Skeleton className="h-8" />
+                      </div>
+                    )}
+                    {isDiscursiva && <Skeleton className="h-32 w-full" />}
                   </div>
                 ))}
               </div>
             )}
 
             {!loading && questions.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 sticky top-0 bg-card/90 backdrop-blur-sm py-2 z-10">
-                  <h2 className="text-lg font-bold flex-1">{questions.length} Questões Geradas</h2>
-                  <Button variant="outline" size="sm" onClick={copyToClipboard} className="gap-1.5">
-                    <Copy size={14} /> Copiar
+              <div className="space-y-4" ref={previewRef}>
+                {/* Action bar */}
+                <div className="flex flex-wrap items-center gap-2 sticky top-0 bg-card/90 backdrop-blur-sm py-2 z-10">
+                  <h2 className="text-lg font-bold flex-1">{questions.length} Questões {isDiscursiva ? 'Discursivas' : ''} Geradas</h2>
+                  <Button variant="outline" size="sm" onClick={handleSaveQuestions} className="gap-1.5">
+                    <Save size={14} /> Salvar Questões
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleSaveGabarito} className="gap-1.5">
+                    <Save size={14} /> Salvar Gabarito
                   </Button>
                   <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5">
                     <FileDown size={14} /> Exportar PDF
                   </Button>
+                  <Button variant="outline" size="sm" onClick={handleWhatsApp} className="gap-1.5">
+                    <MessageCircle size={14} /> WhatsApp
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={copyToClipboard} className="gap-1.5">
+                    <Copy size={14} /> Copiar
+                  </Button>
                 </div>
+
+                {/* Questions */}
                 <div className="space-y-4">
                   {questions.map((q, i) => (
-                    <div key={i} className="rounded-xl border border-border/50 bg-muted/20 p-4 space-y-2">
+                    <div key={i} className="rounded-xl border border-border/50 bg-muted/20 p-4 space-y-2" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Q{i + 1}</span>
                         {q.skillCode && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{q.skillCode}</span>}
+                        {isDiscursiva && <span className="text-[10px] font-semibold text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded">Discursiva</span>}
                       </div>
-                      <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: q.content }} />
-                      {q.options && q.options.length > 0 && (
+                      <div className="text-sm leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: q.content }} />
+                      {!isDiscursiva && q.options && q.options.length > 0 && (
                         <div className="space-y-1 pl-2">
                           {q.options.map((o, j) => (
                             <div key={j} className={`text-sm py-1.5 px-3 rounded-lg ${o.isCorrect ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium border border-emerald-500/20' : 'text-foreground'}`}>
@@ -267,6 +402,30 @@ export default function AltaPerformance() {
                             </div>
                           ))}
                         </div>
+                      )}
+                      {isDiscursiva && (
+                        <div className="mt-2 space-y-1">
+                          {Array.from({ length: q.answerLines || 8 }).map((_, j) => (
+                            <div key={j} className="border-b border-border/40 h-6" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Gabarito Section */}
+                <div className="mt-8 rounded-xl border-2 border-primary/20 bg-primary/5 p-5 space-y-4">
+                  <h3 className="text-lg font-bold text-primary text-center">Gabarito e Critérios de Avaliação</h3>
+                  {questions.map((q, i) => (
+                    <div key={i} className="rounded-lg border border-border/40 bg-card p-3 space-y-1" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                      <p className="text-sm font-bold text-foreground">Questão {i + 1}</p>
+                      {isDiscursiva ? (
+                        <p className="text-sm text-muted-foreground break-words">{q.correctionMirror || 'Critérios de correção não disponíveis.'}</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Resposta: <strong className="text-emerald-600 dark:text-emerald-400">{q.options?.find(o => o.isCorrect)?.letter || '—'}</strong>
+                        </p>
                       )}
                     </div>
                   ))}

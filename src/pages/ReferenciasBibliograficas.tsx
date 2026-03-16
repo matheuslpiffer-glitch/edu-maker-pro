@@ -55,6 +55,12 @@ const references = [
     source: 'CAST — Center for Applied Special Technology / MEC',
     url: 'https://www.cast.org/impact/universal-design-for-learning-udl',
   },
+  {
+    title: 'Manuais de Elaboração de Itens Discursivos (Inep/MEC)',
+    description: 'Documentos técnicos do INEP que orientam a elaboração de questões dissertativas e discursivas para avaliações oficiais, incluindo critérios de correção, construção de espelhos de correção e padrões de qualidade para itens abertos.',
+    source: 'INEP / MEC',
+    url: 'https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais',
+  },
 ];
 
 export default function ReferenciasBibliograficas() {
