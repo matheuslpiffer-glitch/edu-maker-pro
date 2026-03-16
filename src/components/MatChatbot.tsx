@@ -194,7 +194,7 @@ export default function MatChatbot() {
       )}
 
       {/* FAB — circular avatar + name + tooltip */}
-      <div className="fixed bottom-6 right-4 sm:right-6 z-[60] flex flex-col items-center gap-1 no-print group">
+      <div className="fixed bottom-6 right-4 sm:right-6 z-[60] flex flex-col items-center gap-1.5 no-print group">
         {/* Tooltip balloon */}
         <div className="pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 absolute -top-16 right-0 z-[9999] w-64 bg-purple-700 text-white text-xs rounded-xl px-4 py-3 shadow-xl shadow-purple-900/30 after:content-[''] after:absolute after:-bottom-2 after:right-6 after:w-4 after:h-4 after:bg-purple-700 after:rotate-45 after:rounded-sm">
           Olá! Sou o Mat, seu assistente EduCreator. Como posso ajudar você hoje? 👋
@@ -205,25 +205,28 @@ export default function MatChatbot() {
           className="relative flex items-center justify-center transition-all duration-300 focus:outline-none"
         >
           {open ? (
-            <div className="w-[60px] h-[60px] rounded-full bg-slate-800 hover:bg-slate-700 shadow-lg flex items-center justify-center transition-all">
+            <div className="w-[80px] h-[80px] rounded-full bg-slate-800 hover:bg-slate-700 shadow-lg flex items-center justify-center transition-all">
               <X className="h-6 w-6 text-white" />
             </div>
           ) : (
             <div className="relative">
-              <div className="w-[60px] h-[60px] rounded-full ring-2 ring-purple-500/50 shadow-lg shadow-indigo-500/20 hover:shadow-xl hover:shadow-indigo-500/30 hover:scale-105 transition-all duration-300 overflow-hidden">
-                <img src={matAvatar} alt="Mat" className="w-full h-full object-cover" />
+              {/* Gradient ring container */}
+              <div className="w-[80px] h-[80px] rounded-full p-[3px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 transition-all duration-300">
+                <div className="w-full h-full rounded-full overflow-hidden bg-white">
+                  <img src={matAvatar} alt="Mat" className="w-full h-full object-cover object-top" />
+                </div>
               </div>
               {/* Online indicator */}
-              <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5">
+              <span className="absolute top-0 right-0 flex h-4 w-4">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-amber-400 ring-2 ring-white" />
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-amber-400 ring-2 ring-white shadow-md" />
               </span>
             </div>
           )}
         </button>
 
         {!open && (
-          <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 select-none">Mat</span>
+          <span className="text-xs font-extrabold tracking-wide text-slate-700 dark:text-slate-300 select-none uppercase">Mat</span>
         )}
       </div>
     </>
