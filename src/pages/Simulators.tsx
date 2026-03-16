@@ -348,19 +348,20 @@ const SERIE_GRADE_MAP: Record<string, string> = {
 };
 
 const ARVORE_PUBLICOS = [
-  { id: 'super_enem', label: 'Super ENEM' },
+  { id: 'super_enem', label: 'ENEM' },
   { id: 'fuvest', label: 'FUVEST (USP)' },
   { id: 'unicamp', label: 'UNICAMP' },
   { id: 'unesp', label: 'UNESP' },
-  { id: 'ufscar_federais', label: 'UFSCar / Federais' },
+  { id: 'ufrj', label: 'UFRJ' },
+  { id: 'ufmg', label: 'UFMG' },
 ];
 
 const ARVORE_PRIVADOS = [
-  { id: 'puc', label: 'PUC (Geral)' },
+  { id: 'puc', label: 'PUC' },
+  { id: 'fgv', label: 'FGV' },
+  { id: 'insper', label: 'Insper' },
   { id: 'mackenzie', label: 'Mackenzie' },
-  { id: 'fgv', label: 'FGV (Administração/Direito)' },
-  { id: 'medicina', label: 'Medicina (Einstein/Santa Casa)' },
-  { id: 'espm', label: 'ESPM' },
+  { id: 'einstein', label: 'Faculdades Albert Einstein' },
 ];
 
 const ARVORE_VESTIBULINHOS = [
