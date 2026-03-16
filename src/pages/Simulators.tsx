@@ -1676,7 +1676,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       )}
 
                       {/* Formato / Recorte da Prova — hidden for Fast-Track Vestibulinho */}
-                      {activeEspecialidade && examModel !== 'cursos_tecnicos' && !isFastTrackVestibulinho && (
+                      {activeEspecialidade && examModel !== 'cursos_tecnicos' && !isFastTrackVestibulinho && !isVestibularesMode && (
                         <div className="space-y-3 mt-2 p-4 rounded-2xl bg-slate-50 border border-slate-200 animate-in fade-in duration-300">
                           <Label className="text-xs font-bold text-slate-700">📋 Formato / Recorte da Prova</Label>
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
