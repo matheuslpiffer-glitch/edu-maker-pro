@@ -112,16 +112,13 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
             onPointerUp={handlePointerUp}
           >
             <div className="w-full h-full rounded-full overflow-hidden bg-background pointer-events-none">
-              <img
+              <MatAvatarArtwork
                 src={previewUrl}
                 alt="Preview"
-                className="object-cover pointer-events-none"
-                draggable={false}
-                style={{
-                  width: `${zoom}%`,
-                  height: `${zoom}%`,
-                  transform: `translate(${-(zoom - 100) * (offsetX / 100)}%, ${-(zoom - 100) * (offsetY / 100)}%)`,
-                }}
+                zoom={zoom}
+                offsetX={offsetX}
+                offsetY={offsetY}
+                className="pointer-events-none"
               />
             </div>
           </div>
