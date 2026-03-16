@@ -70,9 +70,10 @@ async function fetchAIWithRetry(
   messages: Array<{ role: string; content: string }>,
   temperature: number,
   maxAttempts = 3,
-  timeoutMs = 25000
+  timeoutMs = 50000
 ): Promise<Response> {
   let lastResponse: Response | null = null;
+  let currentModel = model;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const controller = new AbortController();
@@ -85,7 +86,7 @@ async function fetchAIWithRetry(
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ model, messages, temperature }),
+        body: JSON.stringify({ model: currentModel, messages, temperature }),
         signal: controller.signal,
       });
       clearTimeout(timer);
@@ -96,15 +97,16 @@ async function fetchAIWithRetry(
       clearTimeout(timer);
       const isAbort = e instanceof DOMException && e.name === 'AbortError';
       if (isAbort && attempt < maxAttempts - 1) {
-        console.warn(`Timeout on attempt ${attempt + 1}, retrying with reduced scope...`);
-        // On timeout, try to reduce prompt complexity by using a faster model
-        if (attempt === 1) model = "google/gemini-2.5-flash-lite";
+        console.warn(`Timeout on attempt ${attempt + 1}, retrying with faster model...`);
+        // On timeout, switch to a faster/lighter model
+        if (attempt === 0) currentModel = "google/gemini-2.5-flash";
+        if (attempt === 1) currentModel = "google/gemini-2.5-flash-lite";
       } else if (attempt >= maxAttempts - 1) {
-        throw new Error("Timeout: a geração demorou demais. Tente novamente ou reduza a quantidade de questões.");
+        throw new Error("Estamos processando sua inteligência pedagógica... isso pode levar um momento. Por favor, tente novamente ou reduza o número de questões.");
       }
     }
 
-    const waitMs = 1500 * Math.pow(2, attempt);
+    const waitMs = 1000 * Math.pow(2, attempt);
     await new Promise((resolve) => setTimeout(resolve, waitMs));
   }
 
@@ -633,14 +635,16 @@ Responda em JSON:
 
     const questionFormatInstruction = isDiscursiva
       ? `As questões devem ser ABERTAS/DISCURSIVAS (2ª Fase). NÃO inclua alternativas (A-E). Cada questão deve ter espaço para o aluno desenvolver a resolução por escrito. Inclua um "Espelho de Correção" com resolução passo a passo e critérios de pontuação para cada questão.`
-      : `Cada questão deve ter EXATAMENTE 5 alternativas (A a E), com apenas 1 correta. Use linguagem precisa, contextos significativos e distratores plausíveis que reflitam erros conceituais comuns.`;
+      : `Cada questão deve ter EXATAMENTE 5 alternativas (A a E), com apenas 1 correta. Use distratores plausíveis.`;
 
-    const systemPrompt = `Você é um Doutor Especialista em Avaliações e Concursos, capaz de mimetizar o estilo de escrita, o rigor e a estrutura de grandes instituições como Vunesp, Comvest e Fuvest. Gere questões no formato de avaliações oficiais como ${examLabel}, seguindo rigorosamente os descritores de competência da SEDUC-SP e o Currículo Paulista.
+    // For large counts, instruct the AI to be more concise
+    const compactInstruction = effectiveCount > 10
+      ? `\nOTIMIZAÇÃO: São ${effectiveCount} questões. Seja DIRETO nos enunciados (máx 3 linhas cada). Evite contextos longos. Priorize clareza e objetividade.\n`
+      : "";
 
-${modelInstruction ? `MODELO DE ELITE SELECIONADO:\n${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}
-
+    const systemPrompt = `Você é um Especialista em Avaliações oficiais brasileiras como ${examLabel}, seguindo descritores da SEDUC-SP e Currículo Paulista.
+${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${compactInstruction}
 ${questionFormatInstruction}
-
 Responda APENAS com JSON válido, sem markdown.`;
 
     // Cap concurso público to max 10 questions for timeout prevention
