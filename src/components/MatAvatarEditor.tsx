@@ -18,6 +18,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
   const [previewUrl, setPreviewUrl] = useState<string>(currentAvatar || defaultAvatar);
   const [zoom, setZoom] = useState(currentZoom);
   const [offsetY, setOffsetY] = useState(15);
+  const [offsetX, setOffsetX] = useState(50);
   const fileRef = useRef<HTMLInputElement>(null);
   const [hasNewImage, setHasNewImage] = useState(false);
 
@@ -30,6 +31,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
       setHasNewImage(true);
       setZoom(130);
       setOffsetY(15);
+      setOffsetX(50);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -44,6 +46,7 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
     setPreviewUrl(defaultAvatar);
     setZoom(130);
     setOffsetY(15);
+    setOffsetX(50);
     setHasNewImage(false);
     onReset();
   };
@@ -72,9 +75,9 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
                 style={{
                   width: `${zoom}%`,
                   height: `${zoom}%`,
-                  marginLeft: `${-(zoom - 100) / 2}%`,
+                  marginLeft: `${-(zoom - 100) * (offsetX / 100)}%`,
                   marginTop: `${-((zoom - 100) / 2) + offsetY * (zoom / 200)}%`,
-                  objectPosition: `center ${offsetY}%`,
+                  objectPosition: `${offsetX}% ${offsetY}%`,
                 }}
               />
             </div>
@@ -113,6 +116,23 @@ export default function MatAvatarEditor({ open, onClose, currentAvatar, currentZ
             <span className="text-[10px] text-muted-foreground shrink-0">↓</span>
           </div>
           <p className="text-[10px] text-muted-foreground text-center">Posição Vertical</p>
+        </div>
+
+        {/* Position X */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground shrink-0">←</span>
+            <Slider
+              value={[offsetX]}
+              onValueChange={([v]) => setOffsetX(v)}
+              min={0}
+              max={100}
+              step={1}
+              className="flex-1"
+            />
+            <span className="text-[10px] text-muted-foreground shrink-0">→</span>
+          </div>
+          <p className="text-[10px] text-muted-foreground text-center">Posição Horizontal</p>
         </div>
 
         {/* Actions */}
