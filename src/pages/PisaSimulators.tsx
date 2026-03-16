@@ -278,7 +278,18 @@ export default function PisaSimulators() {
       if (isMobile) setEliteDrawerOpen(false);
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Erro ao gerar', description: e.message, variant: 'destructive' });
+      const msg = e.message || 'Erro ao gerar simulado';
+      const isCredits = msg.includes('Créditos') || msg.includes('credits') || msg.includes('402');
+      const isRate = msg.includes('Limite') || msg.includes('429');
+      toast({
+        title: isCredits ? '💳 Créditos Insuficientes' : isRate ? '⏳ Limite de Requisições' : 'Erro ao gerar',
+        description: isCredits
+          ? 'Os créditos de IA foram esgotados. Acesse Configurações → Workspace → Usage para recarregar.'
+          : isRate
+          ? 'Muitas requisições em pouco tempo. Aguarde alguns segundos e tente novamente.'
+          : msg,
+        variant: 'destructive',
+      });
     } finally {
       setGenerating(false);
     }
