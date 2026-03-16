@@ -84,11 +84,18 @@ export default function AltaPerformance() {
         },
       });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       const parsed = Array.isArray(data) ? data : data?.questions || [];
       setQuestions(parsed);
       if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar simulado', description: e.message, variant: 'destructive' });
+      const msg = e.message || 'Erro ao gerar simulado';
+      const isFriendly = msg.includes('processando') || msg.includes('Tente novamente');
+      toast({
+        title: isFriendly ? '⏳ Processando...' : 'Erro ao gerar simulado',
+        description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento. Por favor, tente novamente ou reduza o número de questões.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
