@@ -253,8 +253,8 @@ export default function StudentActivityResponse() {
       </div>
 
       {/* Result Modal */}
-      <Dialog open={showResult} onOpenChange={setShowResult}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <Dialog open={showResult} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto [&>button]:hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 justify-center text-lg">
               {result?.type === 'objetiva' ? (
@@ -286,16 +286,35 @@ export default function StudentActivityResponse() {
                   </div>
                 ))}
               </div>
+              <p className="text-center text-sm text-muted-foreground">
+                Parabéns, <strong>{result.studentName}</strong>! Sua atividade foi enviada com sucesso ao Professor Matheus Lima Piffer.
+              </p>
             </div>
           )}
 
           {result?.type === 'discursiva' && (
             <div className="text-center space-y-3 py-4">
               <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto" />
-              <p className="text-base font-semibold text-foreground">{result.message}</p>
+              <p className="text-base font-semibold text-foreground">
+                Parabéns, {result.studentName}! Sua atividade foi enviada com sucesso ao Professor Matheus Lima Piffer.
+              </p>
               <p className="text-sm text-muted-foreground">Suas {result.totalQuestions} respostas foram registradas.</p>
             </div>
           )}
+
+          <Button
+            onClick={() => {
+              setShowResult(false);
+              setResult(null);
+              setAnswers({});
+              setIdentified(false);
+              setStudentName('');
+              setStudentClass('');
+            }}
+            className="w-full font-bold"
+          >
+            Fechar
+          </Button>
         </DialogContent>
       </Dialog>
     </div>
