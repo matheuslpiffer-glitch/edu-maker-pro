@@ -1,14 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send } from 'lucide-react';
+import { X, Send, Settings } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
-import matAvatar from '@/assets/mat-avatar-closeup.png';
+import defaultAvatar from '@/assets/mat-avatar-closeup.png';
+import { useMatAvatar } from '@/hooks/useMatAvatar';
+import MatAvatarEditor from '@/components/MatAvatarEditor';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 
 export default function MatChatbot() {
+  const { customAvatar, zoom, saveAvatar, saveZoom, clearAvatar } = useMatAvatar();
+  const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+  const avatarSrc = customAvatar || defaultAvatar;
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { role: 'assistant', content: 'E aí, professor(a)! 👋 Sou o **Mat**, seu coordenador pedagógico digital aqui no EduCreator Pro. Me conta, no que posso te ajudar hoje?' },
@@ -124,7 +129,7 @@ export default function MatChatbot() {
         <div className="fixed bottom-24 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[420px] max-h-[70vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200/60 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-bottom-4 duration-300 overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200/50 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-[2.5rem]">
-            <img src={matAvatar} alt="Mat" className="h-10 w-10 rounded-xl object-cover ring-2 ring-white/30" />
+            <img src={avatarSrc} alt="Mat" className="h-10 w-10 rounded-xl object-cover ring-2 ring-white/30" />
             <div className="flex-1">
               <h3 className="text-sm font-black text-white">Mat</h3>
               <p className="text-[10px] text-white/60">Coordenador Pedagógico Digital</p>
@@ -213,9 +218,16 @@ export default function MatChatbot() {
               {/* Gradient ring container */}
               <div className="w-[80px] h-[80px] rounded-full p-[3px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 transition-all duration-300">
                 <div className="w-full h-full rounded-full overflow-hidden bg-white">
-                  <img src={matAvatar} alt="Mat" className="w-[130%] h-[130%] object-cover object-[center_15%] -ml-[15%] -mt-[5%]" />
+                  <img src={avatarSrc} alt="Mat" style={{ width: `${zoom}%`, height: `${zoom}%`, marginLeft: `${-(zoom - 100) / 2}%`, marginTop: `${-((zoom - 100) / 2) + 15 * (zoom / 200)}%` }} className="object-cover" />
                 </div>
               </div>
+              {/* Edit button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowAvatarEditor(true); }}
+                className="absolute -bottom-1 -left-1 h-6 w-6 rounded-full bg-card border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors z-10"
+              >
+                <Settings className="h-3 w-3 text-muted-foreground" />
+              </button>
               {/* Online indicator */}
               <span className="absolute top-0 right-0 flex h-4 w-4">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
@@ -229,6 +241,15 @@ export default function MatChatbot() {
           <span className="text-xs font-extrabold tracking-wide text-slate-700 dark:text-slate-300 select-none uppercase">Mat</span>
         )}
       </div>
+
+      <MatAvatarEditor
+        open={showAvatarEditor}
+        onClose={() => setShowAvatarEditor(false)}
+        currentAvatar={customAvatar}
+        currentZoom={zoom}
+        onSave={saveAvatar}
+        onReset={clearAvatar}
+      />
     </>
   );
 }
