@@ -119,6 +119,32 @@ export default function BussolaVocacional() {
   const [step, setStep] = useState(0); // 0-2 = form steps, 3 = results
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({});
   const [scores, setScores] = useState<Scores | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = async () => {
+    if (!resultsRef.current) return;
+    try {
+      toast({ title: 'Gerando PDF...', description: 'Aguarde enquanto preparamos seu laudo.' });
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+      const canvas = await html2canvas(resultsRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfH = (canvas.height * pdfW) / canvas.width;
+      let position = 0;
+      const pageH = pdf.internal.pageSize.getHeight();
+      while (position < pdfH) {
+        if (position > 0) pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, -position, pdfW, pdfH);
+        position += pageH;
+      }
+      pdf.save(`laudo-vocacional-mat-${Date.now()}.pdf`);
+      toast({ title: 'PDF gerado!', description: 'O laudo foi salvo com sucesso.' });
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível gerar o PDF.', variant: 'destructive' });
+    }
+  };
 
   const handleSlider = (id: string, val: number[]) => {
     setSliderValues(prev => ({ ...prev, [id]: val[0] }));
