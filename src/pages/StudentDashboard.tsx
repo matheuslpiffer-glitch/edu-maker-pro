@@ -67,6 +67,26 @@ export default function StudentDashboard() {
   const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [studySuggestion, setStudySuggestion] = useState('');
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [latestSimulator, setLatestSimulator] = useState<{ title: string } | null>(null);
+
+  // First-visit welcome modal
+  useEffect(() => {
+    if (!user) return;
+    const key = `educreator_welcome_${user.id}`;
+    if (!localStorage.getItem(key)) {
+      setShowWelcome(true);
+      localStorage.setItem(key, 'true');
+    }
+  }, [user]);
+
+  // Load latest available simulator (most recent from any teacher)
+  useEffect(() => {
+    supabase.from('simulators').select('title').order('created_at', { ascending: false }).limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) setLatestSimulator(data[0]);
+      });
+  }, []);
 
   useEffect(() => {
     if (!user) return;
