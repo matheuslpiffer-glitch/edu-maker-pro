@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2 } from 'lucide-react';
+import { useState, useRef, useMemo } from 'react';
+import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles } from 'lucide-react';
 import matAvatar from '@/assets/mat-avatar.png';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,197 @@ const redesEnsino = [
   { value: 'pitagoras', label: 'Pitágoras', desc: 'Didática estruturada' },
 ];
 
+const MATRIZ_OPTIONS = [
+  { value: 'bncc', label: 'Padrão BNCC', icon: '📘', desc: 'Habilidades curriculares nacionais' },
+  { value: 'saresp', label: 'Foco SARESP/ADE', icon: '📊', desc: 'Avaliações externas estaduais' },
+  { value: 'vestibular', label: 'Vestibular/Particulares', icon: '🎯', desc: 'Complexidade máxima' },
+];
+
+// Content suggestion database: série × disciplina → chips
+const CONTENT_SUGGESTIONS: Record<string, Record<string, { label: string; tag: string }[]>> = {
+  'fundamental-i': {
+    'Matemática': [
+      { label: 'Números e operações básicas', tag: 'BNCC' },
+      { label: 'Geometria: formas e sólidos', tag: 'BNCC' },
+      { label: 'Medidas de comprimento e massa', tag: 'BNCC' },
+      { label: 'Problemas com sistema monetário', tag: 'SARESP' },
+      { label: 'Tabelas e gráficos simples', tag: 'SARESP' },
+    ],
+    'Português': [
+      { label: 'Leitura e interpretação de textos', tag: 'BNCC' },
+      { label: 'Ortografia e acentuação', tag: 'BNCC' },
+      { label: 'Produção de pequenos textos narrativos', tag: 'BNCC' },
+      { label: 'Gêneros textuais: fábula, conto, poema', tag: 'SARESP' },
+      { label: 'Inferência e localização de informações', tag: 'SARESP' },
+    ],
+    'Ciências': [
+      { label: 'Corpo humano: sentidos e higiene', tag: 'BNCC' },
+      { label: 'Animais e plantas: classificação', tag: 'BNCC' },
+      { label: 'Água e ciclo da água', tag: 'BNCC' },
+      { label: 'Meio ambiente e sustentabilidade', tag: 'SARESP' },
+    ],
+    'História': [
+      { label: 'Noção de tempo: passado e presente', tag: 'BNCC' },
+      { label: 'Família e comunidade', tag: 'BNCC' },
+      { label: 'Festas populares e cultura local', tag: 'BNCC' },
+    ],
+    'Geografia': [
+      { label: 'Paisagens naturais e modificadas', tag: 'BNCC' },
+      { label: 'Bairro e cidade: elementos', tag: 'BNCC' },
+      { label: 'Representações cartográficas simples', tag: 'BNCC' },
+    ],
+  },
+  'fundamental-ii': {
+    'Matemática': [
+      { label: 'Equações do 1º grau', tag: 'BNCC' },
+      { label: 'Razão e proporção', tag: 'BNCC' },
+      { label: 'Geometria plana: áreas e perímetros', tag: 'SARESP' },
+      { label: 'Estatística: média, moda e mediana', tag: 'SARESP' },
+      { label: 'Potenciação e radiciação', tag: 'BNCC' },
+      { label: 'Frações e números decimais', tag: 'SARESP' },
+      { label: 'Teorema de Pitágoras', tag: 'Vestibular' },
+    ],
+    'Português': [
+      { label: 'Interpretação de textos argumentativos', tag: 'SARESP' },
+      { label: 'Classes gramaticais', tag: 'BNCC' },
+      { label: 'Concordância verbal e nominal', tag: 'BNCC' },
+      { label: 'Gêneros: crônica, reportagem, editorial', tag: 'SARESP' },
+      { label: 'Variação linguística', tag: 'BNCC' },
+      { label: 'Coesão e coerência textual', tag: 'Vestibular' },
+    ],
+    'Ciências': [
+      { label: 'Célula: estrutura e organelas', tag: 'BNCC' },
+      { label: 'Sistemas do corpo humano', tag: 'SARESP' },
+      { label: 'Ecologia: cadeias e teias alimentares', tag: 'BNCC' },
+      { label: 'Transformações químicas', tag: 'BNCC' },
+      { label: 'Energia: formas e transformações', tag: 'SARESP' },
+    ],
+    'História': [
+      { label: 'Idade Média: feudalismo', tag: 'BNCC' },
+      { label: 'Grandes navegações e colonização', tag: 'BNCC' },
+      { label: 'Revolução Industrial', tag: 'SARESP' },
+      { label: 'Brasil Colonial: economia e sociedade', tag: 'SARESP' },
+    ],
+    'Geografia': [
+      { label: 'Clima e vegetação do Brasil', tag: 'BNCC' },
+      { label: 'Urbanização e êxodo rural', tag: 'SARESP' },
+      { label: 'Globalização e comércio internacional', tag: 'BNCC' },
+      { label: 'Recursos naturais e sustentabilidade', tag: 'SARESP' },
+    ],
+    'Inglês': [
+      { label: 'Simple Present and Past', tag: 'BNCC' },
+      { label: 'Reading comprehension', tag: 'SARESP' },
+      { label: 'Vocabulary: daily routine', tag: 'BNCC' },
+    ],
+    'Física': [
+      { label: 'Movimento e velocidade', tag: 'BNCC' },
+      { label: 'Forças e leis de Newton (introdução)', tag: 'BNCC' },
+    ],
+    'Química': [
+      { label: 'Substâncias e misturas', tag: 'BNCC' },
+      { label: 'Tabela periódica: elementos', tag: 'BNCC' },
+    ],
+    'Biologia': [
+      { label: 'Ecossistemas brasileiros', tag: 'BNCC' },
+      { label: 'Reprodução e genética básica', tag: 'BNCC' },
+    ],
+  },
+  'medio': {
+    'Matemática': [
+      { label: 'Função afim e quadrática', tag: 'BNCC' },
+      { label: 'Progressões aritmética e geométrica', tag: 'SARESP' },
+      { label: 'Trigonometria no triângulo retângulo', tag: 'BNCC' },
+      { label: 'Probabilidade e combinatória', tag: 'Vestibular' },
+      { label: 'Logaritmos e exponenciais', tag: 'Vestibular' },
+      { label: 'Geometria espacial: prismas e cilindros', tag: 'SARESP' },
+      { label: 'Matrizes e determinantes', tag: 'Vestibular' },
+    ],
+    'Português': [
+      { label: 'Interpretação de textos filosóficos e científicos', tag: 'SARESP' },
+      { label: 'Literatura: escolas literárias', tag: 'BNCC' },
+      { label: 'Redação dissertativo-argumentativa', tag: 'Vestibular' },
+      { label: 'Figuras de linguagem', tag: 'BNCC' },
+      { label: 'Sintaxe: período composto', tag: 'SARESP' },
+      { label: 'Intertextualidade e paráfrase', tag: 'Vestibular' },
+    ],
+    'Física': [
+      { label: 'Cinemática: MRU e MRUV', tag: 'BNCC' },
+      { label: 'Dinâmica: leis de Newton', tag: 'SARESP' },
+      { label: 'Termodinâmica e calorimetria', tag: 'Vestibular' },
+      { label: 'Óptica geométrica', tag: 'SARESP' },
+      { label: 'Eletricidade: circuitos e resistores', tag: 'Vestibular' },
+      { label: 'Ondas e acústica', tag: 'BNCC' },
+    ],
+    'Química': [
+      { label: 'Estequiometria', tag: 'SARESP' },
+      { label: 'Equilíbrio químico', tag: 'Vestibular' },
+      { label: 'Funções orgânicas', tag: 'BNCC' },
+      { label: 'Eletroquímica: pilhas e eletrólise', tag: 'Vestibular' },
+      { label: 'Soluções: concentração e diluição', tag: 'SARESP' },
+    ],
+    'Biologia': [
+      { label: 'Genética: leis de Mendel', tag: 'BNCC' },
+      { label: 'Ecologia: biomas e impactos ambientais', tag: 'SARESP' },
+      { label: 'Evolução: Darwin e seleção natural', tag: 'Vestibular' },
+      { label: 'Citologia: divisão celular', tag: 'BNCC' },
+      { label: 'Fisiologia humana: sistemas', tag: 'SARESP' },
+    ],
+    'História': [
+      { label: 'Era Vargas e populismo', tag: 'SARESP' },
+      { label: 'Guerra Fria e mundo bipolar', tag: 'BNCC' },
+      { label: 'Ditadura militar no Brasil', tag: 'Vestibular' },
+      { label: 'Revolução Francesa', tag: 'BNCC' },
+      { label: 'Primeira e Segunda Guerra Mundial', tag: 'SARESP' },
+    ],
+    'Geografia': [
+      { label: 'Geopolítica contemporânea', tag: 'Vestibular' },
+      { label: 'Climatologia e mudanças climáticas', tag: 'BNCC' },
+      { label: 'Urbanização brasileira e problemas urbanos', tag: 'SARESP' },
+      { label: 'Agrária: agronegócio e reforma agrária', tag: 'SARESP' },
+    ],
+    'Inglês': [
+      { label: 'Reading comprehension: academic texts', tag: 'Vestibular' },
+      { label: 'Verb tenses: perfect and continuous', tag: 'BNCC' },
+      { label: 'Connectors and linking words', tag: 'SARESP' },
+    ],
+    'Ciências': [
+      { label: 'Física moderna: introdução', tag: 'Vestibular' },
+      { label: 'Biotecnologia e ética', tag: 'BNCC' },
+    ],
+  },
+  'eja-tecnico': {
+    'Matemática': [
+      { label: 'Porcentagem e juros simples', tag: 'BNCC' },
+      { label: 'Leitura de gráficos e tabelas', tag: 'SARESP' },
+      { label: 'Regra de três simples e composta', tag: 'BNCC' },
+      { label: 'Geometria aplicada ao cotidiano', tag: 'SARESP' },
+    ],
+    'Português': [
+      { label: 'Interpretação de textos informativos', tag: 'BNCC' },
+      { label: 'Gêneros do mundo do trabalho: currículo, e-mail', tag: 'SARESP' },
+      { label: 'Ortografia e pontuação', tag: 'BNCC' },
+    ],
+    'Ciências': [
+      { label: 'Saúde e prevenção de doenças', tag: 'BNCC' },
+      { label: 'Meio ambiente e sustentabilidade', tag: 'SARESP' },
+    ],
+    'História': [
+      { label: 'Direitos humanos e cidadania', tag: 'BNCC' },
+      { label: 'Brasil contemporâneo: democracia', tag: 'SARESP' },
+    ],
+    'Geografia': [
+      { label: 'Mercado de trabalho e globalização', tag: 'BNCC' },
+      { label: 'Espaço urbano e mobilidade', tag: 'SARESP' },
+    ],
+  },
+};
+
+function getTagColor(tag: string) {
+  if (tag === 'BNCC') return 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30';
+  if (tag === 'SARESP') return 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30';
+  return 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30';
+}
+
 interface GeneratedQuestion {
   content: string;
   options: { letter: string; text: string; isCorrect: boolean }[];
@@ -41,9 +232,22 @@ export default function AltaPerformance() {
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [formato, setFormato] = useState('objetiva');
+  const [matrizRef, setMatrizRef] = useState('bncc');
   const previewRef = useRef<HTMLDivElement>(null);
   const [savedBankId, setSavedBankId] = useState<string | null>(null);
 
+  const suggestions = useMemo(() => {
+    if (!serie || !disciplina) return [];
+    return CONTENT_SUGGESTIONS[serie]?.[disciplina] || [];
+  }, [serie, disciplina]);
+
+  const handleChipClick = (label: string) => {
+    setTopicos(prev => {
+      if (!prev.trim()) return label;
+      if (prev.includes(label)) return prev;
+      return `${prev}, ${label}`;
+    });
+  };
   const isDiscursiva = formato === 'discursiva';
 
   const updateNivel = (key: keyof typeof niveis, value: number) => {
@@ -69,6 +273,7 @@ export default function AltaPerformance() {
     setLoading(true);
     setQuestions([]);
     try {
+      const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
         body: {
           examType: 'alta_performance',
@@ -81,6 +286,8 @@ export default function AltaPerformance() {
           isDiscursiva,
           difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente`,
           examModel: redeInfo?.label || rede,
+          matrizReferencia: matrizRef,
+          matrizLabel: matrizInfo?.label || 'Padrão BNCC',
         },
       });
       if (error) throw error;
@@ -342,9 +549,59 @@ export default function AltaPerformance() {
               </div>
             </div>
 
+            {/* Assessment Matrix Selector */}
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Tópicos da Prova</Label>
-              <Textarea placeholder="Separe por vírgula: equações, geometria plana, funções..." value={topicos} onChange={e => setTopicos(e.target.value)} rows={3} />
+              <Label className="text-sm font-semibold">Matriz de Referência</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {MATRIZ_OPTIONS.map(m => (
+                  <button
+                    key={m.value}
+                    onClick={() => setMatrizRef(m.value)}
+                    className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-center transition-all duration-200 ${
+                      matrizRef === m.value
+                        ? 'border-primary bg-primary/10 ring-1 ring-primary shadow-sm'
+                        : 'border-border/50 bg-muted/20 hover:bg-muted/40'
+                    }`}
+                  >
+                    <span className="text-lg">{m.icon}</span>
+                    <span className="text-[10px] font-bold leading-tight">{m.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Content Suggestions */}
+            {suggestions.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-primary" />
+                  Sugestões de Conteúdo
+                </Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestions.map((s, i) => {
+                    const isSelected = topicos.includes(s.label);
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleChipClick(s.label)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all duration-200 ${
+                          isSelected
+                            ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40 ring-1 ring-emerald-500/30'
+                            : getTagColor(s.tag) + ' hover:scale-105 hover:shadow-sm'
+                        }`}
+                      >
+                        {s.label}
+                        <span className={`text-[9px] px-1 py-0.5 rounded ${isSelected ? 'bg-emerald-500/20' : 'bg-background/50'}`}>{s.tag}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">📝 Misturar ou Digitar Tema Próprio</Label>
+              <Textarea placeholder="Combine sugestões acima com temas próprios: ex. Frações [BNCC] + Problemas com dinheiro [Realidade Local]..." value={topicos} onChange={e => setTopicos(e.target.value)} rows={3} />
             </div>
 
             <div className="space-y-2">
