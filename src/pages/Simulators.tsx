@@ -815,14 +815,15 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
 
   const handleIllustrate = async () => {
     const prompt = window.prompt('Descreva a ilustração que deseja gerar:');
-    if (!prompt) return;
+    if (!prompt?.trim()) return;
     setMagicLoading('illustrate');
+    toast({ title: '🎨 Gerando ilustração via IA…', description: 'Aguarde ~15 segundos.' });
     try {
       const { data, error } = await supabase.functions.invoke('generate-illustration', {
-        body: { prompt },
+        body: { prompt: prompt.trim() },
       });
       if (error) throw error;
-      if (data.imageUrl) {
+      if (data?.imageUrl) {
         const imgTag = `<div style="text-align:center;margin:20px 0"><img src="${data.imageUrl}" style="max-width:100%;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.1)" alt="${prompt}" /></div>`;
         if (questions.length > 0) {
           const updated = [...questions];
@@ -830,9 +831,18 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
           setQuestions(updated);
         }
         toast({ title: '🎨 Ilustração adicionada ao documento!' });
+      } else {
+        throw new Error('Nenhuma imagem retornada pela IA.');
       }
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar ilustração', description: e.message, variant: 'destructive' });
+      const msg = e?.message || '';
+      if (msg.includes('429') || msg.includes('rate') || msg.includes('limite')) {
+        toast({ title: 'Limite de requisições excedido', description: 'Aguarde um momento e tente novamente.', variant: 'destructive' });
+      } else if (msg.includes('402') || msg.includes('créditos')) {
+        toast({ title: 'Créditos insuficientes', description: 'Adicione créditos para continuar gerando imagens.', variant: 'destructive' });
+      } else {
+        toast({ title: 'Falha na geração', description: 'Tente descrever a imagem de forma diferente.', variant: 'destructive' });
+      }
     } finally { setMagicLoading(null); }
   };
 

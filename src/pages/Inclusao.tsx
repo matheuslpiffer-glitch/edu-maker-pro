@@ -90,15 +90,30 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
   const [prompt, setPrompt] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setLoading(true);
-    const encoded = encodeURIComponent(prompt.trim());
-    const url = `https://image.pollinations.ai/prompt/${encoded}?width=600&height=400&nologo=true&model=flux`;
-    setImageUrl(url);
-    onImageGenerated(url);
-    setLoading(false);
+    setError('');
+    setImageUrl('');
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('generate-illustration', {
+        body: { prompt: prompt.trim() },
+      });
+      if (fnError) throw fnError;
+      if (data?.imageUrl) {
+        setImageUrl(data.imageUrl);
+        onImageGenerated(data.imageUrl);
+      } else {
+        throw new Error('Nenhuma imagem retornada');
+      }
+    } catch (e: any) {
+      console.error('Image generation error:', e);
+      setError('Falha na geração. Tente descrever a imagem de forma diferente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!open) {
@@ -125,7 +140,8 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
           onChange={e => setPrompt(e.target.value)}
           placeholder="Ex: Desenho simples de uma pizza dividida em 4 partes, estilo cartoon limpo"
           className="rounded-xl text-sm flex-1"
-          onKeyDown={e => e.key === 'Enter' && handleGenerate()}
+          onKeyDown={e => e.key === 'Enter' && !loading && handleGenerate()}
+          disabled={loading}
         />
         <Button
           onClick={handleGenerate}
@@ -136,6 +152,12 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
         </Button>
       </div>
+      {loading && (
+        <p className="text-xs text-purple-500 animate-pulse font-medium">🎨 Gerando imagem via IA… Aguarde ~15 segundos.</p>
+      )}
+      {error && (
+        <p className="text-xs text-red-500 font-medium">{error}</p>
+      )}
       {imageUrl && (
         <img
           src={imageUrl}
