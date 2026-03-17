@@ -6,18 +6,24 @@ import defaultAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
 import MatAvatarEditor from '@/components/MatAvatarEditor';
 import MatAvatarArtwork from '@/components/MatAvatarArtwork';
+import { useStudentMode } from '@/hooks/useStudentMode';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
+
+const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Vamos planejar sua avaliação? Selecione a **série** e **disciplina** ou me diga qual **Habilidade da BNCC** você deseja cobrar hoje. Posso ajudar com **Descritores do SARESP/ADE**, **Matriz de Referência** e muito mais! 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
+
+const STUDENT_GREETING = 'Oi! 👋 Sou o **Mat**, seu tutor digital no **EduCreator Pro**. Se tiver dúvida em alguma questão que errou, **clique nela** e eu te explico o conceito por trás da resposta correta! Também posso sugerir materiais de estudo e te ajudar a revisar conteúdos. 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
 
 export default function MatChatbot() {
   const { customAvatar, zoom, offsetX, offsetY, saveAvatar, clearAvatar } = useMatAvatar();
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const avatarSrc = customAvatar || defaultAvatar;
   const [open, setOpen] = useState(false);
+  const { isStudentMode } = useStudentMode();
   const [messages, setMessages] = useState<Msg[]>([
-    { role: 'assistant', content: 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Vamos planejar sua avaliação? Selecione a **série** e **disciplina** ou me diga qual **Habilidade da BNCC** você deseja cobrar hoje. Posso ajudar com **Descritores do SARESP/ADE**, **Matriz de Referência** e muito mais! 📚\n\n_Desenvolvido por Matheus Lima Piffer._' },
+    { role: 'assistant', content: isStudentMode ? STUDENT_GREETING : TEACHER_GREETING },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);

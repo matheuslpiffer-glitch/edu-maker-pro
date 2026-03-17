@@ -186,12 +186,78 @@ export default function StudentDashboard() {
     { id: 'jogos', label: 'Jogos Didáticos', desc: 'Cruzadinhas, sudokus e vocabulário', icon: Gamepad2, gradient: 'from-orange-500 to-amber-600', path: '/jogos' },
   ];
 
+  const studentName = user?.user_metadata?.full_name || user?.user_metadata?.name || 'Estudante';
+  const overallAverage = useMemo(() => {
+    if (simulatorResults.length === 0) return null;
+    return (simulatorResults.reduce((s, r) => s + r.percentage, 0) / simulatorResults.length).toFixed(1);
+  }, [simulatorResults]);
+
   return (
     <div className="space-y-8 p-4 md:p-8 max-w-7xl mx-auto">
+      {/* Welcome Modal */}
+      <Dialog open={showWelcome} onOpenChange={setShowWelcome}>
+        <DialogContent className="max-w-md text-center">
+          <div className="space-y-4 py-4">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <Rocket className="text-white" size={28} />
+            </div>
+            <h2 className="text-xl font-bold text-foreground">
+              Olá, {studentName}! Bem-vindo ao seu Portal de Estudos EduCreator Pro. 🚀
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Aqui você pode realizar seus simulados, revisar seus erros e acompanhar sua evolução em cada matéria. O seu sucesso é o nosso objetivo!
+            </p>
+            <p className="text-xs text-muted-foreground font-medium">
+              Direção Pedagógica: Prof. Matheus Lima Piffer
+            </p>
+            <Button onClick={() => { setShowWelcome(false); }} className="w-full gap-2" size="lg">
+              <Eye size={16} /> Ver meus Simulados
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Branding Header */}
       <p className="text-center text-xs text-muted-foreground font-medium tracking-wide">
         Portal de Estudos — EduCreator Pro | Direção Pedagógica: Matheus Lima Piffer
       </p>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="border-border bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shrink-0">
+              <ClipboardList className="text-white" size={22} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{totalQuizCount + simulatorResults.length}</p>
+              <p className="text-xs text-muted-foreground font-medium">Realizados</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shrink-0">
+              <TrendingUp className="text-white" size={22} />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{overallAverage ? `${overallAverage}%` : '—'}</p>
+              <p className="text-xs text-muted-foreground font-medium">Média Geral</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shrink-0">
+              <Rocket className="text-white" size={22} />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-foreground truncate">{latestSimulator?.title || 'Nenhum disponível'}</p>
+              <p className="text-xs text-muted-foreground font-medium">Próximo Desafio</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Header Hero */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-6 md:p-8 text-white">
