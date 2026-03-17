@@ -169,9 +169,9 @@ export default function StudentSimulatorView() {
           <CardContent className="space-y-4 py-10 text-center">
             <CheckCircle2 className="mx-auto h-14 w-14 text-primary" />
             <div className="space-y-1">
-              <h1 className="text-xl font-bold text-foreground">Respostas enviadas</h1>
+              <h1 className="text-xl font-bold text-foreground">Parabéns!</h1>
               <p className="text-sm text-muted-foreground">
-                Obrigado, {studentName}! Sua prova foi registrada com sucesso.
+                Sua atividade foi entregue ao Professor Matheus Lima Piffer.
               </p>
             </div>
             <p className="text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
