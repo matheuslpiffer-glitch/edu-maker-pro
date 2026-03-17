@@ -266,7 +266,8 @@ export default function AltaPerformance() {
   const redeInfo = redesEnsino.find(r => r.value === rede);
 
   const handleGenerate = async () => {
-    if (!rede || !serie || !disciplina || !topicos) {
+    const isMulti = disciplina === 'Todos';
+    if (!rede || !serie || !disciplina || (!isMulti && !topicos)) {
       toast({ title: 'Preencha todos os campos', variant: 'destructive' });
       return;
     }
