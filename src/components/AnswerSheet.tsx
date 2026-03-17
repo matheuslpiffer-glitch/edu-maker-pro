@@ -1,4 +1,5 @@
 import { QRCodeSVG } from 'qrcode.react';
+import { buildPublicAppUrl } from '@/lib/public-links';
 
 interface Props {
   questionCount: number;
@@ -10,7 +11,7 @@ interface Props {
 export default function AnswerSheet({ questionCount, simulatorId, title, institutionName }: Props) {
   const letters = ['A', 'B', 'C', 'D', 'E'];
   const questions = Array.from({ length: questionCount }, (_, i) => i + 1);
-  const qrUrl = `${window.location.origin}/simuladores?id=${simulatorId}`;
+  const qrUrl = buildPublicAppUrl(`/simulado/${simulatorId}`);
 
   return (
     <div

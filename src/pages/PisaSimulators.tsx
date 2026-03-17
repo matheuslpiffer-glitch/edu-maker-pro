@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
+import { buildPublicAppUrl } from '@/lib/public-links';
 import {
   Loader2, Sparkles, Globe, Brain, BarChart3, Trash2, Eye,
   Shield, AlertTriangle, TrendingUp, Star, Crown, Zap,
@@ -324,7 +325,7 @@ export default function PisaSimulators() {
   };
 
   const handleShare = (sim: PisaSimulator) => {
-    const url = `${window.location.origin}/pisa-aluno/${sim.id}`;
+    const url = buildPublicAppUrl(`/pisa-aluno/${sim.id}`);
     navigator.clipboard.writeText(url).then(() => {
       toast({ title: 'Link copiado!', description: 'Envie para os alunos responderem online.' });
     }).catch(() => {

@@ -42,6 +42,7 @@ import BussolaVocacional from "@/pages/BussolaVocacional";
 import Inclusao from "@/pages/Inclusao";
 import ReferenciasBibliograficas from "@/pages/ReferenciasBibliograficas";
 import StudentActivityResponse from "@/pages/StudentActivityResponse";
+import StudentSimulatorView from "@/pages/StudentSimulatorView";
 import ResultadosAlunos from "@/pages/ResultadosAlunos";
 import MinhaBiblioteca from "@/pages/MinhaBiblioteca";
 import NotFound from "@/pages/NotFound";
@@ -123,6 +124,7 @@ const App = () => (
                 <Route path="/assinar/:id" element={<SignAttendance />} />
                 <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
                 <Route path="/atividade/:id" element={<StudentActivityResponse />} />
+                <Route path="/simulado/:id" element={<StudentSimulatorView />} />
                 <Route path="/*" element={<AppRoutes />} />
               </Routes>
             </BrowserRouter>

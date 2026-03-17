@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Download, Copy, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { buildPublicAppUrl } from '@/lib/public-links';
 
 interface QRCodeModalProps {
   open: boolean;
@@ -16,16 +17,7 @@ export default function QRCodeModal({ open, onOpenChange, url, title }: QRCodeMo
   const { toast } = useToast();
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const getStudentUrl = () => {
-    const origin = url.startsWith('http') ? '' : (
-      window.location.hostname.includes('lovableproject.com')
-        ? 'https://edu-maker-pro.lovable.app'
-        : window.location.origin
-    );
-    return url.startsWith('http') ? url : `${origin}${url}`;
-  };
-
-  const fullUrl = getStudentUrl();
+  const fullUrl = url.startsWith('http') ? url : buildPublicAppUrl(url);
 
   const handleDownload = () => {
     const svg = canvasRef.current?.querySelector('svg');

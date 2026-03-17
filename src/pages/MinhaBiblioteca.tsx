@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { buildPublicAppUrl } from '@/lib/public-links';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface BankItem {
@@ -70,11 +71,7 @@ export default function MinhaBiblioteca() {
   };
 
   const handleCopyLink = (id: string) => {
-    // Use published domain for student links to avoid Lovable editor/preview redirects
-    const origin = window.location.hostname.includes('lovableproject.com')
-      ? 'https://edu-maker-pro.lovable.app'
-      : window.location.origin;
-    const url = `${origin}/atividade/${id}`;
+    const url = buildPublicAppUrl(`/atividade/${id}`);
     navigator.clipboard.writeText(url);
     toast({ title: '🔗 Link copiado!', description: 'Envie para sua turma.' });
   };
