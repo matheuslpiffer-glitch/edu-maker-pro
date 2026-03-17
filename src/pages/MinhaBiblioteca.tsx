@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Library, Search, Link2, Eye, Trash2, Loader2, ClipboardList, FileText, Accessibility, CalendarDays } from 'lucide-react';
+import { Library, Search, Link2, Eye, Trash2, Loader2, ClipboardList, FileText, Accessibility, CalendarDays, QrCode } from 'lucide-react';
+import QRCodeModal from '@/components/QRCodeModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,6 +38,7 @@ export default function MinhaBiblioteca() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<TabCategory>('todos');
   const [previewItem, setPreviewItem] = useState<BankItem | null>(null);
+  const [qrItem, setQrItem] = useState<BankItem | null>(null);
 
   useEffect(() => {
     loadItems();
@@ -159,17 +161,20 @@ export default function MinhaBiblioteca() {
                       {item.institution_name && <span>{item.institution_name}</span>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button size="sm" variant="outline" onClick={() => handleCopyLink(item.id)} className="gap-1.5">
-                      <Link2 size={14} /> Link
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setPreviewItem(item)} className="gap-1.5">
-                      <Eye size={14} /> Ver
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
+                   <div className="flex items-center gap-2 shrink-0">
+                     <Button size="sm" variant="outline" onClick={() => handleCopyLink(item.id)} className="gap-1.5">
+                       <Link2 size={14} /> Link
+                     </Button>
+                     <Button size="sm" variant="outline" onClick={() => setQrItem(item)} className="gap-1.5">
+                       <QrCode size={14} /> QR
+                     </Button>
+                     <Button size="sm" variant="outline" onClick={() => setPreviewItem(item)} className="gap-1.5">
+                       <Eye size={14} /> Ver
+                     </Button>
+                     <Button size="sm" variant="ghost" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
+                       <Trash2 size={14} />
+                     </Button>
+                   </div>
                 </div>
               ))}
             </div>
@@ -215,6 +220,15 @@ export default function MinhaBiblioteca() {
           )}
         </DialogContent>
       </Dialog>
+
+      {qrItem && (
+        <QRCodeModal
+          open={!!qrItem}
+          onOpenChange={(open) => { if (!open) setQrItem(null); }}
+          url={`/atividade/${qrItem.id}`}
+          title={`${qrItem.subject} — ${qrItem.topic}`}
+        />
+      )}
     </div>
   );
 }

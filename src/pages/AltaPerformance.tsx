@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
-import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays } from 'lucide-react';
+import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode } from 'lucide-react';
+import QRCodeModal from '@/components/QRCodeModal';
 import matAvatar from '@/assets/mat-avatar.png';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -235,6 +236,7 @@ export default function AltaPerformance() {
   const [matrizRef, setMatrizRef] = useState('bncc');
   const previewRef = useRef<HTMLDivElement>(null);
   const [savedBankId, setSavedBankId] = useState<string | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
 
   const suggestions = useMemo(() => {
     if (!serie || !disciplina) return [];
@@ -701,10 +703,19 @@ export default function AltaPerformance() {
                   <Button variant="outline" size="sm" onClick={copyToClipboard} className="gap-1.5">
                     <Copy size={14} /> Copiar
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5">
-                    <Link2 size={14} /> Link do Aluno
-                  </Button>
-                </div>
+                   <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5">
+                     <Link2 size={14} /> Link do Aluno
+                   </Button>
+                   <Button variant="outline" size="sm" onClick={() => {
+                     if (!savedBankId) {
+                       toast({ title: 'Salve as questões primeiro para gerar o QR Code.', variant: 'destructive' });
+                       return;
+                     }
+                     setQrOpen(true);
+                   }} className="gap-1.5">
+                     <QrCode size={14} /> QR Code
+                   </Button>
+                 </div>
 
                 {/* Questions */}
                 <div className="space-y-4">
@@ -772,6 +783,15 @@ export default function AltaPerformance() {
           </div>
         </div>
       </div>
+
+      {savedBankId && (
+        <QRCodeModal
+          open={qrOpen}
+          onOpenChange={setQrOpen}
+          url={`/atividade/${savedBankId}`}
+          title={disciplina === 'Todos' ? 'Simulado Semanal Integrado' : `${disciplina} — Alta Performance`}
+        />
+      )}
     </div>
   );
 }
