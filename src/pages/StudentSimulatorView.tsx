@@ -51,6 +51,7 @@ export default function StudentSimulatorView() {
   const [identified, setIdentified] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [studentName, setStudentName] = useState('');
+  const [studentClass, setStudentClass] = useState('');
   const [simulator, setSimulator] = useState<PublicSimulatorData | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState('');
