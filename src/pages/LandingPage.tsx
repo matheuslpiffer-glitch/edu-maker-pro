@@ -85,11 +85,22 @@ export default function LandingPage() {
               onClick={() => setShowAuth(true)}
               className="bg-[hsl(38,92%,50%)] text-[hsl(222,47%,6%)] hover:bg-[hsl(38,92%,45%)] font-bold text-lg px-10 py-7 rounded-xl"
             >
-              Entrar no Sistema
+              <GraduationCap className="mr-2 h-5 w-5" />
+              Sou Professor
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => setShowAuth(true)}
+              className="border-[hsl(162,63%,45%)]/50 text-[hsl(162,63%,45%)] hover:bg-[hsl(162,63%,45%)]/10 font-bold text-lg px-10 py-7 rounded-xl"
+            >
+              <BookOpen className="mr-2 h-5 w-5" />
+              Sou Aluno
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
-          <p className="text-sm text-white/40 mt-4">Login rápido com Google</p>
+          <p className="text-sm text-white/40 mt-4">Login rápido com Google ou Apple</p>
         </div>
       </header>
 
