@@ -204,7 +204,7 @@ export default function StudentSimulatorView() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">Seu Nome</label>
+              <label className="text-sm font-semibold text-foreground">Nome Completo</label>
               <Input
                 value={studentName}
                 onChange={(event) => setStudentName(event.target.value)}
@@ -213,13 +213,23 @@ export default function StudentSimulatorView() {
               />
             </div>
 
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-foreground">Série / Turma</label>
+              <Input
+                value={studentClass}
+                onChange={(event) => setStudentClass(event.target.value)}
+                placeholder="Ex: 9º A"
+                className="h-12"
+              />
+            </div>
+
             <Button
               onClick={() => setIdentified(true)}
-              disabled={!studentName.trim()}
+              disabled={!studentName.trim() || !studentClass.trim()}
               size="lg"
               className="h-12 w-full"
             >
-              Acessar Prova
+              Iniciar Atividade
             </Button>
 
             <p className="text-center text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
