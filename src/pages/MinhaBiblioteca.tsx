@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Library, Search, Link2, Eye, Trash2, Loader2, ClipboardList, FileText, Accessibility, CalendarDays, QrCode } from 'lucide-react';
+import { Library, Search, Link2, Eye, Trash2, Loader2, CalendarDays, QrCode, Share2 } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { buildPublicAppUrl } from '@/lib/public-links';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface BankItem {
   id: string;
@@ -20,8 +21,22 @@ interface BankItem {
   institution_name: string;
   questions: any[];
   created_at: string;
+  _source: 'bank';
 }
 
+interface SimItem {
+  id: string;
+  title: string;
+  subject_area: string;
+  grade: string;
+  exam_type: string;
+  institution_name: string;
+  questions: any[];
+  created_at: string;
+  _source: 'simulator';
+}
+
+type LibItem = BankItem | SimItem;
 type TabCategory = 'todos' | 'simulados' | 'avaliacoes' | 'aee' | 'multidisciplinar';
 
 function purposeToCategory(purpose: string): TabCategory {
@@ -32,71 +47,90 @@ function purposeToCategory(purpose: string): TabCategory {
   return 'simulados';
 }
 
+function getItemLabel(item: LibItem) {
+  if (item._source === 'simulator') return (item as SimItem).title || `${(item as SimItem).subject_area} — ${(item as SimItem).exam_type}`;
+  const b = item as BankItem;
+  return `${b.subject} — ${b.topic}`;
+}
+
+function getItemCategory(item: LibItem): TabCategory {
+  if (item._source === 'simulator') return 'simulados';
+  return purposeToCategory((item as BankItem).purpose);
+}
+
+function getSharePath(item: LibItem) {
+  return item._source === 'simulator' ? `/simulado/${item.id}` : `/atividade/${item.id}`;
+}
+
 export default function MinhaBiblioteca() {
   const { toast } = useToast();
-  const [items, setItems] = useState<BankItem[]>([]);
+  const [banks, setBanks] = useState<BankItem[]>([]);
+  const [sims, setSims] = useState<SimItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<TabCategory>('todos');
-  const [previewItem, setPreviewItem] = useState<BankItem | null>(null);
-  const [qrItem, setQrItem] = useState<BankItem | null>(null);
+  const [previewItem, setPreviewItem] = useState<LibItem | null>(null);
+  const [qrItem, setQrItem] = useState<LibItem | null>(null);
 
-  useEffect(() => {
-    loadItems();
-  }, []);
+  useEffect(() => { loadItems(); }, []);
 
   const loadItems = async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const { data, error } = await supabase
-        .from('question_banks')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      setItems((data as BankItem[]) || []);
-    } catch (e: any) {
+      const [bankRes, simRes] = await Promise.all([
+        supabase.from('question_banks').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('simulators').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+      ]);
+      setBanks((bankRes.data || []).map((b: any) => ({ ...b, _source: 'bank' as const })));
+      setSims((simRes.data || []).map((s: any) => ({ ...s, _source: 'simulator' as const })));
+    } catch {
       toast({ title: 'Erro ao carregar biblioteca', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    await supabase.from('question_banks').delete().eq('id', id);
-    setItems(prev => prev.filter(i => i.id !== id));
+  const allItems: LibItem[] = useMemo(() => {
+    return [...banks, ...sims].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [banks, sims]);
+
+  const handleDelete = async (item: LibItem) => {
+    if (item._source === 'simulator') {
+      await supabase.from('simulators').delete().eq('id', item.id);
+      setSims(prev => prev.filter(i => i.id !== item.id));
+    } else {
+      await supabase.from('question_banks').delete().eq('id', item.id);
+      setBanks(prev => prev.filter(i => i.id !== item.id));
+    }
     toast({ title: 'Atividade removida da biblioteca.' });
   };
 
-  const handleCopyLink = (id: string) => {
-    const url = buildPublicAppUrl(`/atividade/${id}`);
+  const handleCopyLink = (item: LibItem) => {
+    const url = buildPublicAppUrl(getSharePath(item));
     navigator.clipboard.writeText(url);
     toast({ title: '🔗 Link copiado!', description: 'Envie para sua turma.' });
   };
 
   const filtered = useMemo(() => {
-    return items.filter(item => {
+    return allItems.filter(item => {
       if (search) {
         const q = search.toLowerCase();
-        if (!item.subject.toLowerCase().includes(q) && !item.topic.toLowerCase().includes(q) && !item.grade.toLowerCase().includes(q)) return false;
+        const label = getItemLabel(item).toLowerCase();
+        const grade = item.grade?.toLowerCase() || '';
+        if (!label.includes(q) && !grade.includes(q)) return false;
       }
-      if (tab !== 'todos') {
-        if (purposeToCategory(item.purpose) !== tab) return false;
-      }
+      if (tab !== 'todos' && getItemCategory(item) !== tab) return false;
       return true;
     });
-  }, [items, search, tab]);
+  }, [allItems, search, tab]);
 
-  const formatDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
+  const formatDate = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   const countByCategory = (cat: TabCategory) => {
-    if (cat === 'todos') return items.length;
-    return items.filter(i => purposeToCategory(i.purpose) === cat).length;
+    if (cat === 'todos') return allItems.length;
+    return allItems.filter(i => getItemCategory(i) === cat).length;
   };
 
   if (loading) {
@@ -145,12 +179,12 @@ export default function MinhaBiblioteca() {
           ) : (
             <div className="space-y-3">
               {filtered.map(item => (
-                <div key={item.id} className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <div key={`${item._source}-${item.id}`} className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <h3 className="font-bold text-foreground truncate">{item.subject} — {item.topic}</h3>
+                      <h3 className="font-bold text-foreground truncate">{getItemLabel(item)}</h3>
                       <Badge variant="secondary" className="text-[10px]">{item.grade}</Badge>
-                      {item.question_type === 'discursiva' && <Badge variant="outline" className="text-[10px]">Discursiva</Badge>}
+                      <Badge variant="outline" className="text-[10px]">{item._source === 'simulator' ? 'Simulado' : 'Atividade'}</Badge>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><CalendarDays size={12} /> {formatDate(item.created_at)}</span>
@@ -158,20 +192,30 @@ export default function MinhaBiblioteca() {
                       {item.institution_name && <span>{item.institution_name}</span>}
                     </div>
                   </div>
-                   <div className="flex items-center gap-2 shrink-0">
-                     <Button size="sm" variant="outline" onClick={() => handleCopyLink(item.id)} className="gap-1.5">
-                       <Link2 size={14} /> Link
-                     </Button>
-                     <Button size="sm" variant="outline" onClick={() => setQrItem(item)} className="gap-1.5">
-                       <QrCode size={14} /> QR
-                     </Button>
-                     <Button size="sm" variant="outline" onClick={() => setPreviewItem(item)} className="gap-1.5">
-                       <Eye size={14} /> Ver
-                     </Button>
-                     <Button size="sm" variant="ghost" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
-                       <Trash2 size={14} />
-                     </Button>
-                   </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Universal Share Button */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button size="sm" className="gap-1.5">
+                          <Share2 size={14} /> Enviar para Aluno
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-3 space-y-2">
+                        <Button size="sm" variant="outline" className="w-full gap-2 justify-start" onClick={() => handleCopyLink(item)}>
+                          <Link2 size={14} /> Copiar Link Aberto
+                        </Button>
+                        <Button size="sm" variant="outline" className="w-full gap-2 justify-start" onClick={() => setQrItem(item)}>
+                          <QrCode size={14} /> Gerar QR Code
+                        </Button>
+                      </PopoverContent>
+                    </Popover>
+                    <Button size="sm" variant="outline" onClick={() => setPreviewItem(item)} className="gap-1.5">
+                      <Eye size={14} /> Ver
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleDelete(item)} className="text-destructive hover:text-destructive">
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -183,14 +227,13 @@ export default function MinhaBiblioteca() {
       <Dialog open={!!previewItem} onOpenChange={() => setPreviewItem(null)}>
         <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{previewItem?.subject} — {previewItem?.topic}</DialogTitle>
+            <DialogTitle>{previewItem ? getItemLabel(previewItem) : ''}</DialogTitle>
           </DialogHeader>
           {previewItem && (
             <div className="space-y-4">
               <div className="flex gap-2 flex-wrap text-xs text-muted-foreground">
                 <Badge variant="secondary">{previewItem.grade}</Badge>
-                <Badge variant="outline">{previewItem.question_type}</Badge>
-                {previewItem.institution_name && <Badge variant="outline">{previewItem.institution_name}</Badge>}
+                <Badge variant="outline">{previewItem._source === 'simulator' ? 'Simulado' : 'Atividade'}</Badge>
                 <span>{formatDate(previewItem.created_at)}</span>
               </div>
               <div className="space-y-4">
@@ -201,7 +244,7 @@ export default function MinhaBiblioteca() {
                     {q.options?.length > 0 && (
                       <div className="space-y-1 pl-2">
                         {q.options.map((o: any) => (
-                          <p key={o.letter} className={`text-sm ${o.isCorrect ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                          <p key={o.letter} className={`text-sm ${o.isCorrect ? 'font-bold text-primary' : 'text-muted-foreground'}`}>
                             <strong>{o.letter})</strong> {o.text} {o.isCorrect && '✓'}
                           </p>
                         ))}
@@ -210,7 +253,7 @@ export default function MinhaBiblioteca() {
                   </div>
                 ))}
               </div>
-              <Button onClick={() => handleCopyLink(previewItem.id)} className="w-full gap-2">
+              <Button onClick={() => handleCopyLink(previewItem)} className="w-full gap-2">
                 <Link2 size={16} /> Copiar Link do Aluno
               </Button>
             </div>
@@ -222,8 +265,8 @@ export default function MinhaBiblioteca() {
         <QRCodeModal
           open={!!qrItem}
           onOpenChange={(open) => { if (!open) setQrItem(null); }}
-          url={`/atividade/${qrItem.id}`}
-          title={`${qrItem.subject} — ${qrItem.topic}`}
+          url={getSharePath(qrItem)}
+          title={getItemLabel(qrItem)}
         />
       )}
     </div>

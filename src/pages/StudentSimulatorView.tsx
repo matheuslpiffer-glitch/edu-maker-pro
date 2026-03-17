@@ -51,6 +51,7 @@ export default function StudentSimulatorView() {
   const [identified, setIdentified] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [studentName, setStudentName] = useState('');
+  const [studentClass, setStudentClass] = useState('');
   const [simulator, setSimulator] = useState<PublicSimulatorData | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState('');
@@ -98,7 +99,7 @@ export default function StudentSimulatorView() {
   }, [answers, questions]);
 
   const handleSubmit = async () => {
-    if (!simulator || !studentName.trim()) return;
+    if (!simulator || !studentName.trim() || !studentClass.trim()) return;
 
     setSubmitting(true);
 
@@ -120,6 +121,7 @@ export default function StudentSimulatorView() {
         user_id: simulator.user_id,
         simulator_id: simulator.id,
         student_name: studentName.trim().slice(0, 200),
+        student_class: studentClass.trim().slice(0, 100),
         correct_count: correctCount,
         total_questions: totalQuestions,
         percentage,
@@ -167,9 +169,9 @@ export default function StudentSimulatorView() {
           <CardContent className="space-y-4 py-10 text-center">
             <CheckCircle2 className="mx-auto h-14 w-14 text-primary" />
             <div className="space-y-1">
-              <h1 className="text-xl font-bold text-foreground">Respostas enviadas</h1>
+              <h1 className="text-xl font-bold text-foreground">Parabéns!</h1>
               <p className="text-sm text-muted-foreground">
-                Obrigado, {studentName}! Sua prova foi registrada com sucesso.
+                Sua atividade foi entregue ao Professor Matheus Lima Piffer.
               </p>
             </div>
             <p className="text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
@@ -202,7 +204,7 @@ export default function StudentSimulatorView() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-foreground">Seu Nome</label>
+              <label className="text-sm font-semibold text-foreground">Nome Completo</label>
               <Input
                 value={studentName}
                 onChange={(event) => setStudentName(event.target.value)}
@@ -211,13 +213,23 @@ export default function StudentSimulatorView() {
               />
             </div>
 
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-foreground">Série / Turma</label>
+              <Input
+                value={studentClass}
+                onChange={(event) => setStudentClass(event.target.value)}
+                placeholder="Ex: 9º A"
+                className="h-12"
+              />
+            </div>
+
             <Button
               onClick={() => setIdentified(true)}
-              disabled={!studentName.trim()}
+              disabled={!studentName.trim() || !studentClass.trim()}
               size="lg"
               className="h-12 w-full"
             >
-              Acessar Prova
+              Iniciar Atividade
             </Button>
 
             <p className="text-center text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
