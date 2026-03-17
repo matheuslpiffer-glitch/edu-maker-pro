@@ -121,6 +121,7 @@ export default function StudentSimulatorView() {
         user_id: simulator.user_id,
         simulator_id: simulator.id,
         student_name: studentName.trim().slice(0, 200),
+        student_class: studentClass.trim().slice(0, 100),
         correct_count: correctCount,
         total_questions: totalQuestions,
         percentage,
