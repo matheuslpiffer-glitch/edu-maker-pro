@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
+import { buildPublicAppUrl } from '@/lib/public-links';
 import {
   Loader2, Sparkles, Globe, Brain, BarChart3, Trash2, Eye,
   Shield, AlertTriangle, TrendingUp, Star, Crown, Zap,
