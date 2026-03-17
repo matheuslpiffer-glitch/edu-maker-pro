@@ -277,11 +277,11 @@ export default function AltaPerformance() {
       const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
           body: {
-          examType: 'alta_performance',
+          examType: isMulti ? 'simulado_semanal' : 'alta_performance',
           subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
           grade: serie,
-          count: totalQuestoes,
-          specificTopic: isMulti ? (topicos || 'Mix equilibrado de todas as disciplinas da BNCC para a série selecionada') : topicos,
+          count: isMulti ? 10 : totalQuestoes,
+          specificTopic: isMulti ? (topicos || 'Simulado Semanal Integrado: distribua equilibradamente entre Português (3), Matemática (3), Ciências (2) e Humanas (2), cobrindo temas trabalhados na semana para a série selecionada') : topicos,
           isMultidisciplinar: isMulti,
           activeDna: rede,
           activeSpecialty: `alta_performance_${rede}`,
