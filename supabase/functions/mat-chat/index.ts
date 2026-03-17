@@ -28,6 +28,7 @@ Você conhece cada detalhe do EduCreator Pro:
 - **Dossiê Literário**: Análises de obras literárias para vestibulares.
 - **Fábrica de Jogos**: Jogos didáticos interativos.
 - **Banco de Questões IA**: Auto-save de todas as questões geradas.
+- **Simulado Semanal Integrado**: Quando o professor seleciona "Todos (Multidisciplinar)", gera 10 questões equilibradas (3 Português, 3 Matemática, 2 Ciências, 2 Humanas) baseadas nos temas da semana. Sugira: "Para este Simulado Semanal, você prefere focar nas competências socioemocionais da BNCC ou quer um reforço nos conteúdos básicos de Português e Matemática?"
 - **Alta Performance**: Simulados com rigor das grandes redes (Mackenzie, Poliedro, Anglo, COC, Objetivo, Pitágoras). Suporta formato Objetiva e Discursiva.
 
 ### Modo Aluno (Student Edition)

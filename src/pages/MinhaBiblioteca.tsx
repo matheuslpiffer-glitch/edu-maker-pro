@@ -20,10 +20,11 @@ interface BankItem {
   created_at: string;
 }
 
-type TabCategory = 'todos' | 'simulados' | 'avaliacoes' | 'aee';
+type TabCategory = 'todos' | 'simulados' | 'avaliacoes' | 'aee' | 'multidisciplinar';
 
 function purposeToCategory(purpose: string): TabCategory {
   if (purpose.includes('aee') || purpose.includes('inclusao')) return 'aee';
+  if (purpose.includes('simulado_semanal') || purpose.includes('multidisciplinar')) return 'multidisciplinar';
   if (purpose.includes('alta_performance') || purpose.includes('saresp') || purpose.includes('saeb') || purpose.includes('prova_paulista') || purpose.includes('simulad')) return 'simulados';
   if (purpose.includes('diagnostica') || purpose.includes('avaliacao') || purpose.includes('gabarito')) return 'avaliacoes';
   return 'simulados';
@@ -128,9 +129,10 @@ export default function MinhaBiblioteca() {
 
       {/* Tabs */}
       <Tabs value={tab} onValueChange={v => setTab(v as TabCategory)}>
-        <TabsList className="grid w-full max-w-lg grid-cols-4">
+        <TabsList className="grid w-full max-w-2xl grid-cols-5">
           <TabsTrigger value="todos">Todos ({countByCategory('todos')})</TabsTrigger>
           <TabsTrigger value="simulados">Simulados ({countByCategory('simulados')})</TabsTrigger>
+          <TabsTrigger value="multidisciplinar">Multi ({countByCategory('multidisciplinar')})</TabsTrigger>
           <TabsTrigger value="avaliacoes">Avaliações ({countByCategory('avaliacoes')})</TabsTrigger>
           <TabsTrigger value="aee">AEE ({countByCategory('aee')})</TabsTrigger>
         </TabsList>

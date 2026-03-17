@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles } from 'lucide-react';
+import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays } from 'lucide-react';
 import matAvatar from '@/assets/mat-avatar.png';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -277,11 +277,11 @@ export default function AltaPerformance() {
       const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
           body: {
-          examType: 'alta_performance',
+          examType: isMulti ? 'simulado_semanal' : 'alta_performance',
           subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
           grade: serie,
-          count: totalQuestoes,
-          specificTopic: isMulti ? (topicos || 'Mix equilibrado de todas as disciplinas da BNCC para a série selecionada') : topicos,
+          count: isMulti ? 10 : totalQuestoes,
+          specificTopic: isMulti ? (topicos || 'Simulado Semanal Integrado: distribua equilibradamente entre Português (3), Matemática (3), Ciências (2) e Humanas (2), cobrindo temas trabalhados na semana para a série selecionada') : topicos,
           isMultidisciplinar: isMulti,
           activeDna: rede,
           activeSpecialty: `alta_performance_${rede}`,
@@ -334,12 +334,13 @@ export default function AltaPerformance() {
         skillCode: q.skillCode,
         descriptor: q.descriptor,
       }));
+      const isMulti = disciplina === 'Todos';
       const { data: inserted, error: insertErr } = await supabase.from('question_banks').insert({
         user_id: user.id,
-        subject: disciplina,
-        topic: topicos,
+        subject: isMulti ? 'Multidisciplinar' : disciplina,
+        topic: topicos || 'Simulado Semanal Integrado',
         grade: serie,
-        purpose: `alta_performance_${rede}`,
+        purpose: isMulti ? 'simulado_semanal' : `alta_performance_${rede}`,
         question_type: isDiscursiva ? 'discursiva' : 'objetiva',
         questions: questionsOnly as any,
         institution_name: redeInfo?.label || rede,
@@ -632,7 +633,13 @@ export default function AltaPerformance() {
               ))}
             </div>
 
-            <Button onClick={handleGenerate} disabled={loading} size="lg" className="w-full text-base font-bold gap-2 h-14 bg-gradient-to-r from-primary to-[hsl(260,80%,55%)] hover:from-primary/90 hover:to-[hsl(260,80%,50%)] shadow-lg shadow-primary/20">
+            {disciplina === 'Todos' && (
+              <Button onClick={handleGenerate} disabled={loading} size="lg" className="w-full text-base font-bold gap-2 h-14 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/20">
+                {loading ? <Loader2 className="animate-spin" size={20} /> : <CalendarDays size={20} />}
+                {loading ? 'Gerando Simulado Semanal...' : '📅 Gerar Simulado Semanal Integrado'}
+              </Button>
+            )}
+            <Button onClick={handleGenerate} disabled={loading} size="lg" className={`w-full text-base font-bold gap-2 h-14 bg-gradient-to-r from-primary to-[hsl(260,80%,55%)] hover:from-primary/90 hover:to-[hsl(260,80%,50%)] shadow-lg shadow-primary/20 ${disciplina === 'Todos' ? 'hidden' : ''}`}>
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Wand2 size={20} />}
               {loading ? 'Gerando Simulado...' : 'Gerar Simulado Premium'}
             </Button>
@@ -671,7 +678,14 @@ export default function AltaPerformance() {
               <div className="space-y-4" ref={previewRef}>
                 {/* Action bar */}
                 <div className="flex flex-wrap items-center gap-2 sticky top-0 bg-card/90 backdrop-blur-sm py-2 z-10">
-                  <h2 className="text-lg font-bold flex-1">{questions.length} Questões {isDiscursiva ? 'Discursivas' : ''} {disciplina === 'Todos' ? '— Avaliação Multidisciplinar' : ''} Geradas</h2>
+                  <h2 className="text-lg font-bold flex-1">
+                    {disciplina === 'Todos' ? '📅 SIMULADO SEMANAL INTEGRADO' : `${questions.length} Questões ${isDiscursiva ? 'Discursivas' : ''} Geradas`}
+                  </h2>
+                  {disciplina === 'Todos' && (
+                    <p className="w-full text-xs text-muted-foreground -mt-1 mb-2">
+                      Áreas do Conhecimento: Linguagens, Matemática, Ciências da Natureza e Humanas
+                    </p>
+                  )}
                   <Button variant="outline" size="sm" onClick={handleSaveQuestions} className="gap-1.5">
                     <Save size={14} /> Salvar Questões
                   </Button>
@@ -749,9 +763,10 @@ export default function AltaPerformance() {
                 <p className="text-sm font-bold text-foreground">Mat — Seu Assistente EduCreator</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {disciplina === 'Todos'
-                    ? 'Excelente escolha! Vou preparar um simulado integrado. Você prefere focar em algum tema transversal ou quer um resumo geral da BNCC para esta série? 🌐'
+                    ? `Para este Simulado Semanal das turmas de ${serie || 'sua série'}, você prefere focar nas competências socioemocionais da BNCC ou quer um reforço nos conteúdos básicos de Português e Matemática? 📅`
                     : 'Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀'}
                 </p>
+                <p className="text-[10px] text-muted-foreground/60 mt-2 italic">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
               </div>
             </div>
           </div>
