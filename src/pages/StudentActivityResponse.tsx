@@ -3,9 +3,8 @@ import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, CheckCircle2, XCircle, Send, Trophy, User, School, Mail } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Send, Trophy, User, School } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import matAvatar from '@/assets/mat-avatar.png';
 
@@ -56,7 +55,7 @@ export default function StudentActivityResponse() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<string | null>(null);
+  
 
   // Check if user is already logged in via social auth
   useEffect(() => {
@@ -103,26 +102,6 @@ export default function StudentActivityResponse() {
     ? activity.questions.every((_, i) => answers[i] && answers[i].trim().length > 0)
     : false;
 
-  const handleSocialLogin = async (provider: 'google' | 'apple') => {
-    setSocialLoading(provider);
-    try {
-      // Store the current activity URL so we return here after OAuth
-      const currentUrl = window.location.href;
-      
-      // Use Lovable's managed OAuth with redirect back to this activity page
-      const { error } = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: currentUrl,
-      });
-      if (error) {
-        console.error('Social login error:', error);
-        // If OAuth bridge fails, show friendly message instead of redirecting away
-        setSocialLoading(null);
-      }
-    } catch (e) {
-      console.error('Social login failed:', e);
-      setSocialLoading(null);
-    }
-  };
 
   const handleSubmit = async () => {
     if (!studentName.trim()) return;
