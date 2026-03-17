@@ -175,7 +175,7 @@ const PisaPrintPreview = forwardRef<HTMLDivElement, Props>(
         {/* Answer Key (ALWAYS on a new page) */}
         {showAnswerKey && (
           <div style={{ pageBreakBefore: 'always', breakBefore: 'page' }}>
-            <div style={{ textAlign: 'center', marginBottom: '12px', paddingTop: '40px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
               <p style={{ fontSize: '8pt', color: '#64748b', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 EduCreator Pro | Simulado Elite | Professor Matheus Lima Piffer
               </p>
