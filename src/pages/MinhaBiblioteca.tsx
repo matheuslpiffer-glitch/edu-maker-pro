@@ -129,9 +129,10 @@ export default function MinhaBiblioteca() {
 
       {/* Tabs */}
       <Tabs value={tab} onValueChange={v => setTab(v as TabCategory)}>
-        <TabsList className="grid w-full max-w-lg grid-cols-4">
+        <TabsList className="grid w-full max-w-2xl grid-cols-5">
           <TabsTrigger value="todos">Todos ({countByCategory('todos')})</TabsTrigger>
           <TabsTrigger value="simulados">Simulados ({countByCategory('simulados')})</TabsTrigger>
+          <TabsTrigger value="multidisciplinar">Multi ({countByCategory('multidisciplinar')})</TabsTrigger>
           <TabsTrigger value="avaliacoes">Avaliações ({countByCategory('avaliacoes')})</TabsTrigger>
           <TabsTrigger value="aee">AEE ({countByCategory('aee')})</TabsTrigger>
         </TabsList>

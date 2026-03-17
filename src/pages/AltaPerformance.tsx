@@ -334,12 +334,13 @@ export default function AltaPerformance() {
         skillCode: q.skillCode,
         descriptor: q.descriptor,
       }));
+      const isMulti = disciplina === 'Todos';
       const { data: inserted, error: insertErr } = await supabase.from('question_banks').insert({
         user_id: user.id,
-        subject: disciplina,
-        topic: topicos,
+        subject: isMulti ? 'Multidisciplinar' : disciplina,
+        topic: topicos || 'Simulado Semanal Integrado',
         grade: serie,
-        purpose: `alta_performance_${rede}`,
+        purpose: isMulti ? 'simulado_semanal' : `alta_performance_${rede}`,
         question_type: isDiscursiva ? 'discursiva' : 'objetiva',
         questions: questionsOnly as any,
         institution_name: redeInfo?.label || rede,
