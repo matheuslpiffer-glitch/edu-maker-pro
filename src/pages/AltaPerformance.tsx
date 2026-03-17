@@ -703,10 +703,19 @@ export default function AltaPerformance() {
                   <Button variant="outline" size="sm" onClick={copyToClipboard} className="gap-1.5">
                     <Copy size={14} /> Copiar
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5">
-                    <Link2 size={14} /> Link do Aluno
-                  </Button>
-                </div>
+                   <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5">
+                     <Link2 size={14} /> Link do Aluno
+                   </Button>
+                   <Button variant="outline" size="sm" onClick={() => {
+                     if (!savedBankId) {
+                       toast({ title: 'Salve as questões primeiro para gerar o QR Code.', variant: 'destructive' });
+                       return;
+                     }
+                     setQrOpen(true);
+                   }} className="gap-1.5">
+                     <QrCode size={14} /> QR Code
+                   </Button>
+                 </div>
 
                 {/* Questions */}
                 <div className="space-y-4">
