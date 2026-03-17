@@ -73,7 +73,7 @@ export default function MinhaBiblioteca() {
       : window.location.origin;
     const url = `${origin}/atividade/${id}`;
     navigator.clipboard.writeText(url);
-    toast({ title: 'Link do Aluno copiado!', description: url });
+    toast({ title: '🔗 Link copiado!', description: 'Envie para sua turma.' });
   };
 
   const filtered = useMemo(() => {

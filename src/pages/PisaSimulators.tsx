@@ -272,7 +272,7 @@ export default function PisaSimulators() {
       if (insertError) throw insertError;
 
       queryClient.invalidateQueries({ queryKey: ['pisa-simulators'] });
-      toast({ title: `Simulado ${isElite ? 'Elite ' : ''}gerado com ${questions.length} questões!` });
+      toast({ title: '✅ Simulado Elite pronto para impressão!', description: `${questions.length} questões geradas com sucesso.` });
       setTitle('');
       setTab('history');
       if (isMobile) setEliteDrawerOpen(false);
@@ -318,6 +318,7 @@ export default function PisaSimulators() {
       if (pdfRef.current) {
         await exportToPDF(pdfRef.current, sim.title || 'simulado-pisa');
         setPdfSim(null);
+        toast({ title: '✅ PDF gerado com sucesso!', description: 'Simulado Elite pronto para impressão.' });
       }
     }, 500);
   };
@@ -346,7 +347,7 @@ export default function PisaSimulators() {
       }).eq('id', pendingSaveId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['pisa-simulators'] });
-      toast({ title: 'Simulado salvo no histórico!', description: `Turma: ${saveClassName || '—'} | Bimestre: ${saveBimester}` });
+      toast({ title: '📁 Salvo na Biblioteca com sucesso!', description: `Turma: ${saveClassName || '—'} | Bimestre: ${saveBimester}` });
       setSaveDialogOpen(false);
       setSaveClassName('');
       setSaveBimester('1');
