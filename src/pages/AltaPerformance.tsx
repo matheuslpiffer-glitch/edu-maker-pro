@@ -747,7 +747,11 @@ export default function AltaPerformance() {
               <div className="relative bg-card rounded-xl p-3 shadow-sm border border-border/40">
                 <div className="absolute -left-2 top-4 w-3 h-3 bg-card border-l border-b border-border/40 rotate-45" />
                 <p className="text-sm font-bold text-foreground">Mat — Seu Assistente EduCreator</p>
-                <p className="text-xs text-muted-foreground mt-1">Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {disciplina === 'Todos'
+                    ? 'Excelente escolha! Vou preparar um simulado integrado. Você prefere focar em algum tema transversal ou quer um resumo geral da BNCC para esta série? 🌐'
+                    : 'Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀'}
+                </p>
               </div>
             </div>
           </div>
