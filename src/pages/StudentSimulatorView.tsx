@@ -127,8 +127,8 @@ export default function StudentSimulatorView() {
       const { error: insertError } = await supabase.from('student_results').insert({
         user_id: simulator.user_id,
         simulator_id: simulator.id,
-        student_name: studentName.trim().slice(0, 200),
-        student_class: studentClass.trim().slice(0, 100),
+        student_name: isTeacherPreview ? `[Teste de Professor] ${studentName.trim()}` : studentName.trim().slice(0, 200),
+        student_class: isTeacherPreview ? `[TESTE] ${studentClass.trim()}` : studentClass.trim().slice(0, 100),
         correct_count: correctCount,
         total_questions: totalQuestions,
         percentage,
