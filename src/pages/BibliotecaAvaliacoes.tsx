@@ -155,7 +155,7 @@ export default function BibliotecaAvaliacoes() {
   };
 
   const handleShare = (sim: PisaSimulator) => {
-    const url = `${window.location.origin}/pisa-aluno/${sim.id}`;
+    const url = buildPublicAppUrl(`/pisa-aluno/${sim.id}`);
     navigator.clipboard.writeText(url).then(() => {
       toast({ title: 'Link copiado!', description: 'Envie para os alunos.' });
     });

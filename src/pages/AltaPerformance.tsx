@@ -465,11 +465,7 @@ export default function AltaPerformance() {
       toast({ title: 'Salve as questões primeiro para gerar o link do aluno.', variant: 'destructive' });
       return;
     }
-    // Use published domain for student links to avoid Lovable editor/preview redirects
-    const origin = window.location.hostname.includes('lovableproject.com')
-      ? 'https://edu-maker-pro.lovable.app'
-      : window.location.origin;
-    const url = `${origin}/atividade/${savedBankId}`;
+    const url = buildPublicAppUrl(`/atividade/${savedBankId}`);
     navigator.clipboard.writeText(url);
     toast({ title: 'Link do Aluno copiado!', description: url });
   };

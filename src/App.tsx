@@ -124,6 +124,7 @@ const App = () => (
                 <Route path="/assinar/:id" element={<SignAttendance />} />
                 <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
                 <Route path="/atividade/:id" element={<StudentActivityResponse />} />
+                <Route path="/simulado/:id" element={<StudentSimulatorView />} />
                 <Route path="/*" element={<AppRoutes />} />
               </Routes>
             </BrowserRouter>
