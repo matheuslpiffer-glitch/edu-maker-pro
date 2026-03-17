@@ -194,7 +194,7 @@ export default function StudentActivityResponse() {
           {/* Manual identification form */}
           <div className="rounded-2xl border border-border bg-card p-6 space-y-4">
             <h2 className="text-base font-bold text-foreground text-center">
-              {studentEmail ? 'Confirme seus dados' : 'Identificação do Aluno'}
+              Identificação do Aluno
             </h2>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
