@@ -99,7 +99,7 @@ export default function StudentSimulatorView() {
   }, [answers, questions]);
 
   const handleSubmit = async () => {
-    if (!simulator || !studentName.trim()) return;
+    if (!simulator || !studentName.trim() || !studentClass.trim()) return;
 
     setSubmitting(true);
 
