@@ -677,7 +677,14 @@ export default function AltaPerformance() {
               <div className="space-y-4" ref={previewRef}>
                 {/* Action bar */}
                 <div className="flex flex-wrap items-center gap-2 sticky top-0 bg-card/90 backdrop-blur-sm py-2 z-10">
-                  <h2 className="text-lg font-bold flex-1">{questions.length} Questões {isDiscursiva ? 'Discursivas' : ''} {disciplina === 'Todos' ? '— Avaliação Multidisciplinar' : ''} Geradas</h2>
+                  <h2 className="text-lg font-bold flex-1">
+                    {disciplina === 'Todos' ? '📅 SIMULADO SEMANAL INTEGRADO' : `${questions.length} Questões ${isDiscursiva ? 'Discursivas' : ''} Geradas`}
+                  </h2>
+                  {disciplina === 'Todos' && (
+                    <p className="w-full text-xs text-muted-foreground -mt-1 mb-2">
+                      Áreas do Conhecimento: Linguagens, Matemática, Ciências da Natureza e Humanas
+                    </p>
+                  )}
                   <Button variant="outline" size="sm" onClick={handleSaveQuestions} className="gap-1.5">
                     <Save size={14} /> Salvar Questões
                   </Button>
