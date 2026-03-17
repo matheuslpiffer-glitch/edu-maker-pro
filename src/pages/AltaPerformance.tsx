@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { buildPublicAppUrl } from '@/lib/public-links';
 
 const redesEnsino = [
   { value: 'mackenzie', label: 'Sistema Mackenzie', desc: 'Tradição e rigor acadêmico' },

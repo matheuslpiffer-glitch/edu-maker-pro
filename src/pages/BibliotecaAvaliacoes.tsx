@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { buildPublicAppUrl } from '@/lib/public-links';
 import { exportToPDF } from '@/lib/export';
 import PisaPrintPreview from '@/components/PisaPrintPreview';
 import React from 'react';
