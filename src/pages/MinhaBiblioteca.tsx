@@ -20,10 +20,11 @@ interface BankItem {
   created_at: string;
 }
 
-type TabCategory = 'todos' | 'simulados' | 'avaliacoes' | 'aee';
+type TabCategory = 'todos' | 'simulados' | 'avaliacoes' | 'aee' | 'multidisciplinar';
 
 function purposeToCategory(purpose: string): TabCategory {
   if (purpose.includes('aee') || purpose.includes('inclusao')) return 'aee';
+  if (purpose.includes('simulado_semanal') || purpose.includes('multidisciplinar')) return 'multidisciplinar';
   if (purpose.includes('alta_performance') || purpose.includes('saresp') || purpose.includes('saeb') || purpose.includes('prova_paulista') || purpose.includes('simulad')) return 'simulados';
   if (purpose.includes('diagnostica') || purpose.includes('avaliacao') || purpose.includes('gabarito')) return 'avaliacoes';
   return 'simulados';
