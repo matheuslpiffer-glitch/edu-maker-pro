@@ -266,7 +266,8 @@ export default function AltaPerformance() {
   const redeInfo = redesEnsino.find(r => r.value === rede);
 
   const handleGenerate = async () => {
-    if (!rede || !serie || !disciplina || !topicos) {
+    const isMulti = disciplina === 'Todos';
+    if (!rede || !serie || !disciplina || (!isMulti && !topicos)) {
       toast({ title: 'Preencha todos os campos', variant: 'destructive' });
       return;
     }
@@ -275,12 +276,13 @@ export default function AltaPerformance() {
     try {
       const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
-        body: {
+          body: {
           examType: 'alta_performance',
-          subjectArea: disciplina,
+          subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
           grade: serie,
           count: totalQuestoes,
-          specificTopic: topicos,
+          specificTopic: isMulti ? (topicos || 'Mix equilibrado de todas as disciplinas da BNCC para a série selecionada') : topicos,
+          isMultidisciplinar: isMulti,
           activeDna: rede,
           activeSpecialty: `alta_performance_${rede}`,
           isDiscursiva,
@@ -534,7 +536,8 @@ export default function AltaPerformance() {
                 <Label className="text-sm font-semibold">Disciplina</Label>
                 <Select value={disciplina} onValueChange={setDisciplina}>
                   <SelectTrigger><SelectValue placeholder="Selecione a disciplina..." /></SelectTrigger>
-                  <SelectContent>
+                <SelectContent>
+                    <SelectItem value="Todos">🌐 Todos (Multidisciplinar)</SelectItem>
                     <SelectItem value="Matemática">📐 Matemática</SelectItem>
                     <SelectItem value="Português">📝 Português</SelectItem>
                     <SelectItem value="Ciências">🧪 Ciências</SelectItem>
@@ -600,8 +603,8 @@ export default function AltaPerformance() {
             )}
 
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">📝 Misturar ou Digitar Tema Próprio</Label>
-              <Textarea placeholder="Combine sugestões acima com temas próprios: ex. Frações [BNCC] + Problemas com dinheiro [Realidade Local]..." value={topicos} onChange={e => setTopicos(e.target.value)} rows={3} />
+              <Label className="text-sm font-semibold">📝 {disciplina === 'Todos' ? 'Tema Transversal (Opcional)' : 'Misturar ou Digitar Tema Próprio'}</Label>
+              <Textarea placeholder={disciplina === 'Todos' ? 'Opcional: digite um tema transversal (ex: Meio Ambiente e Frações) ou deixe em branco para um mix geral...' : 'Combine sugestões acima com temas próprios: ex. Frações [BNCC] + Problemas com dinheiro [Realidade Local]...'} value={topicos} onChange={e => setTopicos(e.target.value)} rows={3} />
             </div>
 
             <div className="space-y-2">
@@ -668,7 +671,7 @@ export default function AltaPerformance() {
               <div className="space-y-4" ref={previewRef}>
                 {/* Action bar */}
                 <div className="flex flex-wrap items-center gap-2 sticky top-0 bg-card/90 backdrop-blur-sm py-2 z-10">
-                  <h2 className="text-lg font-bold flex-1">{questions.length} Questões {isDiscursiva ? 'Discursivas' : ''} Geradas</h2>
+                  <h2 className="text-lg font-bold flex-1">{questions.length} Questões {isDiscursiva ? 'Discursivas' : ''} {disciplina === 'Todos' ? '— Avaliação Multidisciplinar' : ''} Geradas</h2>
                   <Button variant="outline" size="sm" onClick={handleSaveQuestions} className="gap-1.5">
                     <Save size={14} /> Salvar Questões
                   </Button>
@@ -744,7 +747,11 @@ export default function AltaPerformance() {
               <div className="relative bg-card rounded-xl p-3 shadow-sm border border-border/40">
                 <div className="absolute -left-2 top-4 w-3 h-3 bg-card border-l border-b border-border/40 rotate-45" />
                 <p className="text-sm font-bold text-foreground">Mat — Seu Assistente EduCreator</p>
-                <p className="text-xs text-muted-foreground mt-1">Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {disciplina === 'Todos'
+                    ? 'Excelente escolha! Vou preparar um simulado integrado. Você prefere focar em algum tema transversal ou quer um resumo geral da BNCC para esta série? 🌐'
+                    : 'Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀'}
+                </p>
               </div>
             </div>
           </div>
