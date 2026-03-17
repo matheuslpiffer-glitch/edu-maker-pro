@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
@@ -10,17 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 
 const teacherLinks = [
-  // PRINCIPAL
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
   { to: '/sobre', icon: BookMarked, label: 'Sobre o Projeto', section: 'Principal' },
-  // ESTÚDIOS DE CRIAÇÃO
   { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & ENEM', section: 'Estúdios de Criação' },
   { to: '/tecnicos', icon: Cpu, label: 'Técnicos & IFs', section: 'Estúdios de Criação' },
   { to: '/inclusao', icon: Accessibility, label: 'Inclusão (AEE)', section: 'Estúdios de Criação' },
   { to: '/alta-performance', icon: Trophy, label: 'Módulo Alta Performance', section: 'Estúdios de Criação' },
   { to: '/redacao', icon: PenLine, label: 'Redação Elite', section: 'Estúdios de Criação' },
   { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', section: 'Estúdios de Criação' },
-  // FERRAMENTAS DE GESTÃO
   { to: '/resultados-alunos', icon: BarChart3, label: 'Resultados e Desempenho', section: 'Ferramentas de Gestão' },
   { to: '/redacao/corretor', icon: Camera, label: 'Corretor IA Redação', section: 'Ferramentas de Gestão' },
   { to: '/corretor-visao', icon: ScanEye, label: 'Corretor de Visão', section: 'Ferramentas de Gestão' },
@@ -34,7 +31,6 @@ const teacherLinks = [
   { to: '/provas', icon: FileText, label: 'Minhas Provas', section: 'Ferramentas de Gestão' },
   { to: '/minha-biblioteca', icon: Library, label: 'Minha Biblioteca', section: 'Ferramentas de Gestão' },
   { to: '/biblioteca', icon: Library, label: 'Biblioteca de Avaliações', section: 'Ferramentas de Gestão' },
-  // DOCUMENTAÇÃO
   { to: '/guia', icon: HelpCircle, label: 'Guia do Sistema', section: 'Documentação' },
   { to: '/manual', icon: BookMarked, label: 'Manual do Professor', section: 'Documentação' },
   { to: '/manual-aluno', icon: GraduationCap, label: 'Manual do Aluno', section: 'Documentação' },
@@ -59,7 +55,7 @@ export default function AppSidebar({ open, onClose }: Props) {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
-  const { isSuperAdmin } = useRole();
+  const { isSuperAdmin, isTeacher } = useRole();
   const { isStudentMode, toggleStudentMode, studentLevel, studentXP } = useStudentMode();
   const { canInstall, install } = usePWAInstall();
 
@@ -68,6 +64,8 @@ export default function AppSidebar({ open, onClose }: Props) {
     toggleStudentMode();
     if (wasStudent) {
       navigate('/');
+    } else {
+      navigate('/aluno');
     }
   };
 
@@ -152,26 +150,26 @@ export default function AppSidebar({ open, onClose }: Props) {
         )}
       </div>
 
-      {/* Mode Toggle — always at top, prominent */}
-      {!collapsed && (
+      {/* Mode Toggle — only for teachers */}
+      {!collapsed && isTeacher && (
         <div className="px-3 py-3 border-b border-slate-800/50">
           <button
             onClick={handleToggleMode}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
               isStudentMode
-                ? 'bg-gradient-to-r from-pink-500/20 to-orange-500/20 border border-pink-500/30'
+                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30'
                 : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800'
             )}
           >
             <div className={cn(
               "w-7 h-7 rounded-lg flex items-center justify-center",
-              isStudentMode ? 'bg-pink-500/30' : 'bg-indigo-500/20'
+              isStudentMode ? 'bg-amber-500/30' : 'bg-indigo-500/20'
             )}>
-              {isStudentMode ? <Users size={14} className="text-pink-400" /> : <Brain size={14} className="text-indigo-400" />}
+              {isStudentMode ? <Eye size={14} className="text-amber-400" /> : <Eye size={14} className="text-indigo-400" />}
             </div>
             <span className="text-xs font-semibold text-slate-300 flex-1 text-left">
-              {isStudentMode ? 'Modo Aluno' : 'Modo Professor'}
+              {isStudentMode ? 'Modo Visualização' : 'Ver como Aluno'}
             </span>
             <Switch
               checked={isStudentMode}

@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useStudentMode } from '@/hooks/useStudentMode';
+import { useRole } from '@/hooks/useRole';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -55,6 +58,10 @@ export default function StudentSimulatorView() {
   const [simulator, setSimulator] = useState<PublicSimulatorData | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState('');
+  const { isStudentMode } = useStudentMode();
+  const { isTeacher } = useRole();
+  const { user } = useAuth();
+  const isTeacherPreview = isStudentMode && isTeacher;
 
   useEffect(() => {
     if (!id) return;
@@ -120,8 +127,8 @@ export default function StudentSimulatorView() {
       const { error: insertError } = await supabase.from('student_results').insert({
         user_id: simulator.user_id,
         simulator_id: simulator.id,
-        student_name: studentName.trim().slice(0, 200),
-        student_class: studentClass.trim().slice(0, 100),
+        student_name: isTeacherPreview ? `[Teste de Professor] ${studentName.trim()}` : studentName.trim().slice(0, 200),
+        student_class: isTeacherPreview ? `[TESTE] ${studentClass.trim()}` : studentClass.trim().slice(0, 100),
         correct_count: correctCount,
         total_questions: totalQuestions,
         percentage,
