@@ -38,6 +38,7 @@ export default function MinhaBiblioteca() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<TabCategory>('todos');
   const [previewItem, setPreviewItem] = useState<BankItem | null>(null);
+  const [qrItem, setQrItem] = useState<BankItem | null>(null);
 
   useEffect(() => {
     loadItems();

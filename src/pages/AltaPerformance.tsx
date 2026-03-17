@@ -236,6 +236,7 @@ export default function AltaPerformance() {
   const [matrizRef, setMatrizRef] = useState('bncc');
   const previewRef = useRef<HTMLDivElement>(null);
   const [savedBankId, setSavedBankId] = useState<string | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
 
   const suggestions = useMemo(() => {
     if (!serie || !disciplina) return [];
