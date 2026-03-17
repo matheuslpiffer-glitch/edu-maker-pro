@@ -161,17 +161,20 @@ export default function MinhaBiblioteca() {
                       {item.institution_name && <span>{item.institution_name}</span>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Button size="sm" variant="outline" onClick={() => handleCopyLink(item.id)} className="gap-1.5">
-                      <Link2 size={14} /> Link
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setPreviewItem(item)} className="gap-1.5">
-                      <Eye size={14} /> Ver
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
+                   <div className="flex items-center gap-2 shrink-0">
+                     <Button size="sm" variant="outline" onClick={() => handleCopyLink(item.id)} className="gap-1.5">
+                       <Link2 size={14} /> Link
+                     </Button>
+                     <Button size="sm" variant="outline" onClick={() => setQrItem(item)} className="gap-1.5">
+                       <QrCode size={14} /> QR
+                     </Button>
+                     <Button size="sm" variant="outline" onClick={() => setPreviewItem(item)} className="gap-1.5">
+                       <Eye size={14} /> Ver
+                     </Button>
+                     <Button size="sm" variant="ghost" onClick={() => handleDelete(item.id)} className="text-destructive hover:text-destructive">
+                       <Trash2 size={14} />
+                     </Button>
+                   </div>
                 </div>
               ))}
             </div>
