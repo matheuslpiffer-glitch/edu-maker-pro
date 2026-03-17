@@ -318,6 +318,7 @@ export default function PisaSimulators() {
       if (pdfRef.current) {
         await exportToPDF(pdfRef.current, sim.title || 'simulado-pisa');
         setPdfSim(null);
+        toast({ title: '✅ PDF gerado com sucesso!', description: 'Simulado Elite pronto para impressão.' });
       }
     }, 500);
   };
