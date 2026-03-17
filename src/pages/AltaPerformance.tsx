@@ -534,7 +534,8 @@ export default function AltaPerformance() {
                 <Label className="text-sm font-semibold">Disciplina</Label>
                 <Select value={disciplina} onValueChange={setDisciplina}>
                   <SelectTrigger><SelectValue placeholder="Selecione a disciplina..." /></SelectTrigger>
-                  <SelectContent>
+                <SelectContent>
+                    <SelectItem value="Todos">🌐 Todos (Multidisciplinar)</SelectItem>
                     <SelectItem value="Matemática">📐 Matemática</SelectItem>
                     <SelectItem value="Português">📝 Português</SelectItem>
                     <SelectItem value="Ciências">🧪 Ciências</SelectItem>
