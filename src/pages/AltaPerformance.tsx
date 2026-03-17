@@ -783,6 +783,15 @@ export default function AltaPerformance() {
           </div>
         </div>
       </div>
+
+      {savedBankId && (
+        <QRCodeModal
+          open={qrOpen}
+          onOpenChange={setQrOpen}
+          url={`/atividade/${savedBankId}`}
+          title={disciplina === 'Todos' ? 'Simulado Semanal Integrado' : `${disciplina} — Alta Performance`}
+        />
+      )}
     </div>
   );
 }
