@@ -62,7 +62,7 @@ const PisaPrintPreview = forwardRef<HTMLDivElement, Props>(
         data-pdf-section="questions"
       >
         {/* EduCreator Pro Header */}
-        <div style={{ textAlign: 'center', borderBottom: '2px solid #1a1a1a', paddingBottom: '12px', marginBottom: '16px', paddingTop: '40px' }}>
+        <div style={{ textAlign: 'center', borderBottom: '2px solid #1a1a1a', paddingBottom: '12px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
             <div
               style={{
