@@ -17,7 +17,7 @@ export default function MatChatbot() {
   const avatarSrc = customAvatar || defaultAvatar;
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: 'assistant', content: 'E aí, professor(a)! 👋 Sou o **Mat**, seu coordenador pedagógico digital aqui no EduCreator Pro. Me conta, no que posso te ajudar hoje?' },
+    { role: 'assistant', content: 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Vamos planejar sua avaliação? Selecione a **série** e **disciplina** ou me diga qual **Habilidade da BNCC** você deseja cobrar hoje. Posso ajudar com **Descritores do SARESP/ADE**, **Matriz de Referência** e muito mais! 📚\n\n_Desenvolvido por Matheus Lima Piffer._' },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
