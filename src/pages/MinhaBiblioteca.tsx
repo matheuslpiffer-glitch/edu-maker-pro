@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Library, Search, Link2, Eye, Trash2, Loader2, ClipboardList, FileText, Accessibility, CalendarDays } from 'lucide-react';
+import { Library, Search, Link2, Eye, Trash2, Loader2, ClipboardList, FileText, Accessibility, CalendarDays, QrCode } from 'lucide-react';
+import QRCodeModal from '@/components/QRCodeModal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
