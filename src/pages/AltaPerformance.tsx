@@ -276,12 +276,13 @@ export default function AltaPerformance() {
     try {
       const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
-        body: {
+          body: {
           examType: 'alta_performance',
-          subjectArea: disciplina,
+          subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
           grade: serie,
           count: totalQuestoes,
-          specificTopic: topicos,
+          specificTopic: isMulti ? (topicos || 'Mix equilibrado de todas as disciplinas da BNCC para a série selecionada') : topicos,
+          isMultidisciplinar: isMulti,
           activeDna: rede,
           activeSpecialty: `alta_performance_${rede}`,
           isDiscursiva,
