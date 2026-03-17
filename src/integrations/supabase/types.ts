@@ -722,6 +722,7 @@ export type Database = {
           percentage: number
           proficiency_level: string
           simulator_id: string
+          student_class: string
           student_name: string
           total_questions: number
           user_id: string
@@ -733,6 +734,7 @@ export type Database = {
           percentage?: number
           proficiency_level?: string
           simulator_id: string
+          student_class?: string
           student_name?: string
           total_questions?: number
           user_id: string
@@ -744,6 +746,7 @@ export type Database = {
           percentage?: number
           proficiency_level?: string
           simulator_id?: string
+          student_class?: string
           student_name?: string
           total_questions?: number
           user_id?: string
