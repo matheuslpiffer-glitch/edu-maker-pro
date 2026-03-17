@@ -2,13 +2,17 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { useRole } from "@/hooks/useRole";
 import { SavedQuestionsBankProvider } from "@/hooks/useSavedQuestionsBank";
 import { StudentModeProvider } from "@/hooks/useStudentMode";
 import MatChatbot from "@/components/MatChatbot";
 import AppLayout from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
+import LandingProfessor from "@/pages/LandingProfessor";
+import LandingEstudo from "@/pages/LandingEstudo";
+import RoleSelection from "@/pages/RoleSelection";
 import Index from "@/pages/Index";
 import QuestionBank from "@/pages/QuestionBank";
 import CreateQuestion from "@/pages/CreateQuestion";
@@ -26,7 +30,6 @@ import GameFactory from "@/pages/GameFactory";
 import LiteraturaView from "@/views/LiteraturaView";
 import PisaSimulators from "@/pages/PisaSimulators";
 import PisaStudentView from "@/pages/PisaStudentView";
-// Removed: ResultsAnalysis, PedagogicalEvolution (focus on 5 core engines)
 import QuestionBankAI from "@/pages/QuestionBankAI";
 import SobreProjeto from "@/pages/SobreProjeto";
 import SystemGuide from "@/pages/SystemGuide";
@@ -48,14 +51,37 @@ import MinhaBiblioteca from "@/pages/MinhaBiblioteca";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 import SignAttendance from "@/pages/SignAttendance";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
-function AppRoutes() {
-  const { user, loading } = useAuth();
+/* Block student from teacher routes */
+function TeacherOnly({ children }: { children: React.ReactNode }) {
+  const { isStudent, loading } = useRole();
+  const { toast } = useToast();
+  const shown = useRef(false);
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && isStudent && !shown.current) {
+      shown.current = true;
+      toast({ title: 'Acesso restrito', description: 'Esta área é restrita a professores.', variant: 'destructive' });
+    }
+  }, [loading, isStudent, toast]);
+
+  if (loading) return null;
+  if (isStudent) return <Navigate to="/aluno" replace />;
+  return <>{children}</>;
+}
+
+function AppRoutes() {
+  const { user, loading: authLoading } = useAuth();
+  const { role, hasRole, loading: roleLoading, refetchRole, isStudent } = useRole();
+  const location = useLocation();
+
+  if (authLoading || (user && roleLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -65,6 +91,28 @@ function AppRoutes() {
 
   if (!user) return <LandingPage />;
 
+  /* User logged in but no role assigned yet → show role picker */
+  if (!hasRole) {
+    return <RoleSelection onRoleSelected={refetchRole} />;
+  }
+
+  /* Student role → only student routes */
+  if (isStudent) {
+    return (
+      <AppLayout>
+        <Routes>
+          <Route path="/" element={<Navigate to="/aluno" replace />} />
+          <Route path="/aluno" element={<StudentDashboard />} />
+          <Route path="/aluno/quiz" element={<StudentQuiz />} />
+          <Route path="/aluno/desempenho" element={<StudentPerformance />} />
+          <Route path="*" element={<Navigate to="/aluno" replace />} />
+        </Routes>
+        <MatChatbot />
+      </AppLayout>
+    );
+  }
+
+  /* Teacher / admin routes */
   return (
     <AppLayout>
       <Routes>
@@ -99,7 +147,7 @@ function AppRoutes() {
         <Route path="/manual-aluno" element={<ManualAluno />} />
         <Route path="/corretor-visao" element={<VisionCorrector />} />
         <Route path="/referencias" element={<ReferenciasBibliograficas />} />
-        {/* Student Edition routes */}
+        {/* Student routes accessible from teacher mode too */}
         <Route path="/aluno" element={<StudentDashboard />} />
         <Route path="/aluno/quiz" element={<StudentQuiz />} />
         <Route path="/aluno/desempenho" element={<StudentPerformance />} />
@@ -121,6 +169,8 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path="/install" element={<Install />} />
+                <Route path="/professor" element={<LandingProfessor />} />
+                <Route path="/estudo" element={<LandingEstudo />} />
                 <Route path="/assinar/:id" element={<SignAttendance />} />
                 <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
                 <Route path="/atividade/:id" element={<StudentActivityResponse />} />
