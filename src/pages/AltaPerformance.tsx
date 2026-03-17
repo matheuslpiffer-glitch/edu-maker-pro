@@ -632,7 +632,13 @@ export default function AltaPerformance() {
               ))}
             </div>
 
-            <Button onClick={handleGenerate} disabled={loading} size="lg" className="w-full text-base font-bold gap-2 h-14 bg-gradient-to-r from-primary to-[hsl(260,80%,55%)] hover:from-primary/90 hover:to-[hsl(260,80%,50%)] shadow-lg shadow-primary/20">
+            {disciplina === 'Todos' && (
+              <Button onClick={handleGenerate} disabled={loading} size="lg" className="w-full text-base font-bold gap-2 h-14 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/20">
+                {loading ? <Loader2 className="animate-spin" size={20} /> : <CalendarDays size={20} />}
+                {loading ? 'Gerando Simulado Semanal...' : '📅 Gerar Simulado Semanal Integrado'}
+              </Button>
+            )}
+            <Button onClick={handleGenerate} disabled={loading} size="lg" className={`w-full text-base font-bold gap-2 h-14 bg-gradient-to-r from-primary to-[hsl(260,80%,55%)] hover:from-primary/90 hover:to-[hsl(260,80%,50%)] shadow-lg shadow-primary/20 ${disciplina === 'Todos' ? 'hidden' : ''}`}>
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Wand2 size={20} />}
               {loading ? 'Gerando Simulado...' : 'Gerar Simulado Premium'}
             </Button>
