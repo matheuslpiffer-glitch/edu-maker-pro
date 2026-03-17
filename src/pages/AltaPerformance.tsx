@@ -762,9 +762,10 @@ export default function AltaPerformance() {
                 <p className="text-sm font-bold text-foreground">Mat — Seu Assistente EduCreator</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {disciplina === 'Todos'
-                    ? 'Excelente escolha! Vou preparar um simulado integrado. Você prefere focar em algum tema transversal ou quer um resumo geral da BNCC para esta série? 🌐'
+                    ? `Para este Simulado Semanal das turmas de ${serie || 'sua série'}, você prefere focar nas competências socioemocionais da BNCC ou quer um reforço nos conteúdos básicos de Português e Matemática? 📅`
                     : 'Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀'}
                 </p>
+                <p className="text-[10px] text-muted-foreground/60 mt-2 italic">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
               </div>
             </div>
           </div>
