@@ -3,9 +3,8 @@ import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, CheckCircle2, XCircle, Send, Trophy, User, School, Mail } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Send, Trophy, User, School } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable/index';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import matAvatar from '@/assets/mat-avatar.png';
 
