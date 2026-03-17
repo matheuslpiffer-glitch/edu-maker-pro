@@ -603,8 +603,8 @@ export default function AltaPerformance() {
             )}
 
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">📝 Misturar ou Digitar Tema Próprio</Label>
-              <Textarea placeholder="Combine sugestões acima com temas próprios: ex. Frações [BNCC] + Problemas com dinheiro [Realidade Local]..." value={topicos} onChange={e => setTopicos(e.target.value)} rows={3} />
+              <Label className="text-sm font-semibold">📝 {disciplina === 'Todos' ? 'Tema Transversal (Opcional)' : 'Misturar ou Digitar Tema Próprio'}</Label>
+              <Textarea placeholder={disciplina === 'Todos' ? 'Opcional: digite um tema transversal (ex: Meio Ambiente e Frações) ou deixe em branco para um mix geral...' : 'Combine sugestões acima com temas próprios: ex. Frações [BNCC] + Problemas com dinheiro [Realidade Local]...'} value={topicos} onChange={e => setTopicos(e.target.value)} rows={3} />
             </div>
 
             <div className="space-y-2">
