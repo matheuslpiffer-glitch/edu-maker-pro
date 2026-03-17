@@ -54,9 +54,9 @@ const PisaPrintPreview = forwardRef<HTMLDivElement, Props>(
           lineHeight: '1.6',
           wordBreak: 'break-word',
           overflowWrap: 'break-word',
-          maxWidth: '210mm',
+          maxWidth: '100%',
           margin: '0 auto',
-          padding: '0',
+          padding: '32px',
           boxSizing: 'border-box',
         }}
         data-pdf-section="questions"
