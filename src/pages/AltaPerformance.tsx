@@ -273,6 +273,7 @@ export default function AltaPerformance() {
     setLoading(true);
     setQuestions([]);
     try {
+      const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
         body: {
           examType: 'alta_performance',
@@ -285,6 +286,8 @@ export default function AltaPerformance() {
           isDiscursiva,
           difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente`,
           examModel: redeInfo?.label || rede,
+          matrizReferencia: matrizRef,
+          matrizLabel: matrizInfo?.label || 'Padrão BNCC',
         },
       });
       if (error) throw error;
