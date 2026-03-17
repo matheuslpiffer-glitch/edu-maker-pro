@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { BarChart3, Users, Search, Loader2, Trash2 } from 'lucide-react';
+import { BarChart3, Users, Search, Loader2, Trash2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,27 +19,39 @@ interface ActivityResult {
   percentage: number;
   status: string;
   created_at: string;
+  _type: 'activity';
 }
 
-interface BankInfo {
+interface SimulatorResult {
   id: string;
-  subject: string;
-  topic: string;
-  grade: string;
+  simulator_id: string;
+  student_name: string;
+  student_class: string;
+  correct_count: number;
+  total_questions: number;
+  percentage: number;
+  proficiency_level: string;
+  created_at: string;
+  _type: 'simulator';
 }
+
+type UnifiedResult = ActivityResult | SimulatorResult;
+
+interface BankInfo { id: string; subject: string; topic: string; grade: string; }
+interface SimInfo { id: string; title: string; subject_area: string; grade: string; }
 
 export default function ResultadosAlunos() {
   const { toast } = useToast();
-  const [results, setResults] = useState<ActivityResult[]>([]);
+  const [actResults, setActResults] = useState<ActivityResult[]>([]);
+  const [simResults, setSimResults] = useState<SimulatorResult[]>([]);
   const [banks, setBanks] = useState<BankInfo[]>([]);
+  const [sims, setSims] = useState<SimInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filterBank, setFilterBank] = useState('all');
   const [filterClass, setFilterClass] = useState('all');
+  const [activeTab, setActiveTab] = useState('todos');
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -46,72 +59,128 @@ export default function ResultadosAlunos() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Load results
-      const { data: resData } = await supabase
-        .from('student_activity_results')
-        .select('*')
-        .eq('teacher_user_id', user.id)
-        .order('created_at', { ascending: false });
+      const [actRes, simRes, bankRes, simInfoRes] = await Promise.all([
+        supabase.from('student_activity_results').select('*').eq('teacher_user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('student_results').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('question_banks').select('id, subject, topic, grade').eq('user_id', user.id),
+        supabase.from('simulators').select('id, title, subject_area, grade').eq('user_id', user.id),
+      ]);
 
-      setResults((resData as any[]) || []);
-
-      // Load banks for filter labels
-      const { data: bankData } = await supabase
-        .from('question_banks')
-        .select('id, subject, topic, grade')
-        .eq('user_id', user.id);
-
-      setBanks((bankData as any[]) || []);
-    } catch (e: any) {
+      setActResults((actRes.data || []).map((r: any) => ({ ...r, _type: 'activity' as const })));
+      setSimResults((simRes.data || []).map((r: any) => ({ ...r, _type: 'simulator' as const })));
+      setBanks((bankRes.data as any[]) || []);
+      setSims((simInfoRes.data as any[]) || []);
+    } catch {
       toast({ title: 'Erro ao carregar resultados', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    await supabase.from('student_activity_results').delete().eq('id', id);
-    setResults(prev => prev.filter(r => r.id !== id));
+  const handleDelete = async (item: UnifiedResult) => {
+    if (item._type === 'activity') {
+      await supabase.from('student_activity_results').delete().eq('id', item.id);
+      setActResults(prev => prev.filter(r => r.id !== item.id));
+    } else {
+      await supabase.from('student_results').delete().eq('id', item.id);
+      setSimResults(prev => prev.filter(r => r.id !== item.id));
+    }
     toast({ title: 'Resultado removido.' });
   };
 
+  const allResults: UnifiedResult[] = useMemo(() => {
+    const combined = [...actResults, ...simResults];
+    return combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [actResults, simResults]);
+
   const uniqueClasses = useMemo(() => {
-    const classes = new Set(results.map(r => r.student_class).filter(Boolean));
+    const classes = new Set(allResults.map(r => r.student_class).filter(Boolean));
     return Array.from(classes).sort();
-  }, [results]);
+  }, [allResults]);
 
-  const uniqueBanks = useMemo(() => {
-    const bankIds = new Set(results.map(r => r.bank_id));
-    return banks.filter(b => bankIds.has(b.id));
-  }, [results, banks]);
-
-  const filtered = useMemo(() => {
-    return results.filter(r => {
-      if (search && !r.student_name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (filterBank !== 'all' && r.bank_id !== filterBank) return false;
-      if (filterClass !== 'all' && r.student_class !== filterClass) return false;
-      return true;
-    });
-  }, [results, search, filterBank, filterClass]);
-
-  const getBankLabel = (bankId: string) => {
-    const b = banks.find(b => b.id === bankId);
-    return b ? `${b.subject} — ${b.topic}` : bankId.slice(0, 8);
+  const getLabel = (item: UnifiedResult) => {
+    if (item._type === 'activity') {
+      const b = banks.find(b => b.id === (item as ActivityResult).bank_id);
+      return b ? `${b.subject} — ${b.topic}` : 'Atividade';
+    }
+    const s = sims.find(s => s.id === (item as SimulatorResult).simulator_id);
+    return s ? s.title : 'Simulado';
   };
 
-  // Chart data: average by bank
-  const chartData = useMemo(() => {
-    const byBank: Record<string, { total: number; count: number; label: string }> = {};
-    filtered.filter(r => r.status === 'corrigido').forEach(r => {
-      if (!byBank[r.bank_id]) byBank[r.bank_id] = { total: 0, count: 0, label: getBankLabel(r.bank_id) };
-      byBank[r.bank_id].total += r.percentage;
-      byBank[r.bank_id].count++;
+  const getScore = (item: UnifiedResult) => {
+    if (item._type === 'activity') {
+      const a = item as ActivityResult;
+      return a.status === 'corrigido' ? `${a.score}/${a.total_questions}` : '—';
+    }
+    const s = item as SimulatorResult;
+    return `${s.correct_count}/${s.total_questions}`;
+  };
+
+  const getPercentage = (item: UnifiedResult) => {
+    if (item._type === 'activity') {
+      return (item as ActivityResult).status === 'corrigido' ? item.percentage : null;
+    }
+    return item.percentage;
+  };
+
+  const getStatus = (item: UnifiedResult) => {
+    if (item._type === 'activity') return (item as ActivityResult).status === 'corrigido' ? 'Corrigido' : 'Aguardando Revisão';
+    return 'Corrigido';
+  };
+
+  const filtered = useMemo(() => {
+    return allResults.filter(r => {
+      if (search && !r.student_name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (filterClass !== 'all' && r.student_class !== filterClass) return false;
+      if (activeTab === 'atividades' && r._type !== 'activity') return false;
+      if (activeTab === 'simulados' && r._type !== 'simulator') return false;
+      return true;
     });
-    return Object.values(byBank).map(b => ({
+  }, [allResults, search, filterClass, activeTab]);
+
+  // CSV export
+  const handleExportCSV = () => {
+    const header = 'Nome do Aluno,Turma,Atividade,Nota,Porcentagem,Status,Data\n';
+    const rows = filtered.map(r => {
+      const pct = getPercentage(r);
+      return [
+        `"${r.student_name}"`,
+        `"${r.student_class}"`,
+        `"${getLabel(r)}"`,
+        `"${getScore(r)}"`,
+        pct != null ? `${pct}%` : '—',
+        `"${getStatus(r)}"`,
+        new Date(r.created_at).toLocaleDateString('pt-BR'),
+      ].join(',');
+    }).join('\n');
+
+    const bom = '\uFEFF';
+    const blob = new Blob([bom + header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `resultados_alunos_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: '📊 Relatório exportado para CSV!' });
+  };
+
+  // Chart data
+  const chartData = useMemo(() => {
+    const byLabel: Record<string, { total: number; count: number; label: string }> = {};
+    filtered.forEach(r => {
+      const pct = getPercentage(r);
+      if (pct == null) return;
+      const label = getLabel(r);
+      if (!byLabel[label]) byLabel[label] = { total: 0, count: 0, label };
+      byLabel[label].total += pct;
+      byLabel[label].count++;
+    });
+    return Object.values(byLabel).map(b => ({
       label: b.label.length > 30 ? b.label.slice(0, 30) + '…' : b.label,
       average: Math.round(b.total / b.count),
     }));
-  }, [filtered, banks]);
+  }, [filtered, banks, sims]);
 
   const maxAvg = Math.max(...chartData.map(d => d.average), 1);
 
@@ -126,20 +195,25 @@ export default function ResultadosAlunos() {
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-          <BarChart3 size={24} className="text-white" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+            <BarChart3 size={24} className="text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-extrabold text-foreground">Resultados e Desempenho</h1>
+            <p className="text-sm text-muted-foreground">Acompanhe as respostas dos alunos em tempo real</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-extrabold text-foreground">Resultados e Desempenho</h1>
-          <p className="text-sm text-muted-foreground">Acompanhe as respostas dos alunos em tempo real</p>
-        </div>
+        <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={filtered.length === 0} className="gap-2">
+          <Download size={14} /> Exportar CSV
+        </Button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border bg-card p-4 text-center">
-          <p className="text-2xl font-black text-primary">{results.length}</p>
+          <p className="text-2xl font-black text-primary">{allResults.length}</p>
           <p className="text-xs text-muted-foreground">Respostas Recebidas</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 text-center">
@@ -147,12 +221,12 @@ export default function ResultadosAlunos() {
           <p className="text-xs text-muted-foreground">Turmas</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 text-center">
-          <p className="text-2xl font-black text-emerald-600">{results.filter(r => r.status === 'corrigido').length}</p>
-          <p className="text-xs text-muted-foreground">Corrigidas</p>
+          <p className="text-2xl font-black text-primary">{actResults.length}</p>
+          <p className="text-xs text-muted-foreground">Atividades</p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 text-center">
-          <p className="text-2xl font-black text-amber-600">{results.filter(r => r.status === 'aguardando_revisao').length}</p>
-          <p className="text-xs text-muted-foreground">Aguardando Revisão</p>
+          <p className="text-2xl font-black text-primary">{simResults.length}</p>
+          <p className="text-xs text-muted-foreground">Simulados</p>
         </div>
       </div>
 
@@ -169,7 +243,7 @@ export default function ResultadosAlunos() {
                 </div>
                 <div className="h-6 bg-muted rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all ${d.average >= 70 ? 'bg-emerald-500' : d.average >= 50 ? 'bg-amber-500' : 'bg-red-500'}`}
+                    className={`h-full rounded-full transition-all ${d.average >= 70 ? 'bg-primary' : d.average >= 50 ? 'bg-accent' : 'bg-destructive'}`}
                     style={{ width: `${(d.average / maxAvg) * 100}%` }}
                   />
                 </div>
@@ -185,15 +259,6 @@ export default function ResultadosAlunos() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar aluno..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <Select value={filterBank} onValueChange={setFilterBank}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Atividade" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas as atividades</SelectItem>
-            {uniqueBanks.map(b => (
-              <SelectItem key={b.id} value={b.id}>{b.subject} — {b.topic?.slice(0, 30)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
         <Select value={filterClass} onValueChange={setFilterClass}>
           <SelectTrigger className="w-[150px]"><SelectValue placeholder="Turma" /></SelectTrigger>
           <SelectContent>
@@ -205,60 +270,75 @@ export default function ResultadosAlunos() {
         </Select>
       </div>
 
-      {/* Results Table */}
-      {filtered.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground">
-          <Users className="h-12 w-12 mx-auto mb-4 opacity-30" />
-          <p className="text-sm">Nenhum resultado encontrado. Compartilhe atividades com seus alunos usando o botão "Link do Aluno".</p>
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Aluno</TableHead>
-                <TableHead>Turma</TableHead>
-                <TableHead>Atividade</TableHead>
-                <TableHead className="text-center">Nota</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="w-10"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map(r => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.student_name}</TableCell>
-                  <TableCell>{r.student_class || '—'}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{getBankLabel(r.bank_id)}</TableCell>
-                  <TableCell className="text-center font-bold">
-                    {r.status === 'corrigido' ? (
-                      <span className={r.percentage >= 70 ? 'text-emerald-600' : r.percentage >= 50 ? 'text-amber-600' : 'text-red-600'}>
-                        {r.score}/{r.total_questions}
-                      </span>
-                    ) : '—'}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant={r.status === 'corrigido' ? 'default' : 'secondary'} className="text-[10px]">
-                      {r.status === 'corrigido' ? 'Corrigido' : 'Aguardando Revisão'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {new Date(r.created_at).toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(r.id)} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive">
-                      <Trash2 size={14} />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="todos">Todos ({allResults.length})</TabsTrigger>
+          <TabsTrigger value="atividades">Atividades ({actResults.length})</TabsTrigger>
+          <TabsTrigger value="simulados">Simulados ({simResults.length})</TabsTrigger>
+        </TabsList>
 
-      <p className="text-center text-[10px] text-muted-foreground">EduCreator Pro — Por Matheus Lima Piffer</p>
+        <TabsContent value={activeTab} className="mt-4">
+          {filtered.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground">
+              <Users className="h-12 w-12 mx-auto mb-4 opacity-30" />
+              <p className="text-sm">Nenhum resultado encontrado. Compartilhe atividades com seus alunos usando o botão "Enviar para Aluno".</p>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Aluno</TableHead>
+                    <TableHead>Turma</TableHead>
+                    <TableHead>Atividade</TableHead>
+                    <TableHead className="text-center">Nota</TableHead>
+                    <TableHead className="text-center">%</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead>Data</TableHead>
+                    <TableHead className="w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map(r => {
+                    const pct = getPercentage(r);
+                    return (
+                      <TableRow key={`${r._type}-${r.id}`}>
+                        <TableCell className="font-medium">{r.student_name}</TableCell>
+                        <TableCell>{r.student_class || '—'}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{getLabel(r)}</TableCell>
+                        <TableCell className="text-center font-bold">{getScore(r)}</TableCell>
+                        <TableCell className="text-center">
+                          {pct != null ? (
+                            <span className={pct >= 70 ? 'text-primary font-bold' : pct >= 50 ? 'text-accent-foreground font-bold' : 'text-destructive font-bold'}>
+                              {pct}%
+                            </span>
+                          ) : '—'}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant={getStatus(r) === 'Corrigido' ? 'default' : 'secondary'} className="text-[10px]">
+                            {getStatus(r)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {new Date(r.created_at).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(r)} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive">
+                            <Trash2 size={14} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      <p className="text-center text-[10px] text-muted-foreground">Relatório de Desempenho — Desenvolvido por Matheus Lima Piffer</p>
     </div>
   );
 }
