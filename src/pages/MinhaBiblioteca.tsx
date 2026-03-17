@@ -220,6 +220,15 @@ export default function MinhaBiblioteca() {
           )}
         </DialogContent>
       </Dialog>
+
+      {qrItem && (
+        <QRCodeModal
+          open={!!qrItem}
+          onOpenChange={(open) => { if (!open) setQrItem(null); }}
+          url={`/atividade/${qrItem.id}`}
+          title={`${qrItem.subject} — ${qrItem.topic}`}
+        />
+      )}
     </div>
   );
 }
