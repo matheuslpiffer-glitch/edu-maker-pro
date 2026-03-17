@@ -272,7 +272,7 @@ export default function PisaSimulators() {
       if (insertError) throw insertError;
 
       queryClient.invalidateQueries({ queryKey: ['pisa-simulators'] });
-      toast({ title: `Simulado ${isElite ? 'Elite ' : ''}gerado com ${questions.length} questões!` });
+      toast({ title: '✅ Simulado Elite pronto para impressão!', description: `${questions.length} questões geradas com sucesso.` });
       setTitle('');
       setTab('history');
       if (isMobile) setEliteDrawerOpen(false);
