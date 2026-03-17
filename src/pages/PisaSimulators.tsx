@@ -347,7 +347,7 @@ export default function PisaSimulators() {
       }).eq('id', pendingSaveId);
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['pisa-simulators'] });
-      toast({ title: 'Simulado salvo no histórico!', description: `Turma: ${saveClassName || '—'} | Bimestre: ${saveBimester}` });
+      toast({ title: '📁 Salvo na Biblioteca com sucesso!', description: `Turma: ${saveClassName || '—'} | Bimestre: ${saveBimester}` });
       setSaveDialogOpen(false);
       setSaveClassName('');
       setSaveBimester('1');
