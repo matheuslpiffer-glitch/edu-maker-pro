@@ -58,6 +58,10 @@ export default function StudentSimulatorView() {
   const [simulator, setSimulator] = useState<PublicSimulatorData | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState('');
+  const { isStudentMode } = useStudentMode();
+  const { isTeacher } = useRole();
+  const { user } = useAuth();
+  const isTeacherPreview = isStudentMode && isTeacher;
 
   useEffect(() => {
     if (!id) return;
