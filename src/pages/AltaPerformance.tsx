@@ -313,11 +313,32 @@ export default function AltaPerformance() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Ano/Série</Label>
-                <Input placeholder="Ex: 9° Ano" value={serie} onChange={e => setSerie(e.target.value)} />
+                <Select value={serie} onValueChange={setSerie}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a série..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fundamental-i">Ensino Fundamental I (1º ao 5º ano)</SelectItem>
+                    <SelectItem value="fundamental-ii">Ensino Fundamental II (6º ao 9º ano)</SelectItem>
+                    <SelectItem value="medio">Ensino Médio (1ª à 3ª série)</SelectItem>
+                    <SelectItem value="eja-tecnico">EJA / Técnico</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-semibold">Disciplina</Label>
-                <Input placeholder="Ex: Matemática" value={disciplina} onChange={e => setDisciplina(e.target.value)} />
+                <Select value={disciplina} onValueChange={setDisciplina}>
+                  <SelectTrigger><SelectValue placeholder="Selecione a disciplina..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Matemática">📐 Matemática</SelectItem>
+                    <SelectItem value="Português">📝 Português</SelectItem>
+                    <SelectItem value="Ciências">🧪 Ciências</SelectItem>
+                    <SelectItem value="História">📜 História</SelectItem>
+                    <SelectItem value="Geografia">🗺️ Geografia</SelectItem>
+                    <SelectItem value="Inglês">🌍 Inglês</SelectItem>
+                    <SelectItem value="Física">⚛️ Física</SelectItem>
+                    <SelectItem value="Química">🧪 Química</SelectItem>
+                    <SelectItem value="Biologia">🧬 Biologia</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
