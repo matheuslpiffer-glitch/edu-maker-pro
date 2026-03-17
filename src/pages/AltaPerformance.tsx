@@ -549,9 +549,59 @@ export default function AltaPerformance() {
               </div>
             </div>
 
+            {/* Assessment Matrix Selector */}
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Tópicos da Prova</Label>
-              <Textarea placeholder="Separe por vírgula: equações, geometria plana, funções..." value={topicos} onChange={e => setTopicos(e.target.value)} rows={3} />
+              <Label className="text-sm font-semibold">Matriz de Referência</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {MATRIZ_OPTIONS.map(m => (
+                  <button
+                    key={m.value}
+                    onClick={() => setMatrizRef(m.value)}
+                    className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-center transition-all duration-200 ${
+                      matrizRef === m.value
+                        ? 'border-primary bg-primary/10 ring-1 ring-primary shadow-sm'
+                        : 'border-border/50 bg-muted/20 hover:bg-muted/40'
+                    }`}
+                  >
+                    <span className="text-lg">{m.icon}</span>
+                    <span className="text-[10px] font-bold leading-tight">{m.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Content Suggestions */}
+            {suggestions.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-primary" />
+                  Sugestões de Conteúdo
+                </Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestions.map((s, i) => {
+                    const isSelected = topicos.includes(s.label);
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleChipClick(s.label)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all duration-200 ${
+                          isSelected
+                            ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40 ring-1 ring-emerald-500/30'
+                            : getTagColor(s.tag) + ' hover:scale-105 hover:shadow-sm'
+                        }`}
+                      >
+                        {s.label}
+                        <span className={`text-[9px] px-1 py-0.5 rounded ${isSelected ? 'bg-emerald-500/20' : 'bg-background/50'}`}>{s.tag}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">📝 Misturar ou Digitar Tema Próprio</Label>
+              <Textarea placeholder="Combine sugestões acima com temas próprios: ex. Frações [BNCC] + Problemas com dinheiro [Realidade Local]..." value={topicos} onChange={e => setTopicos(e.target.value)} rows={3} />
             </div>
 
             <div className="space-y-2">
