@@ -55,7 +55,7 @@ export default function StudentActivityResponse() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<string | null>(null);
+  
 
   // Check if user is already logged in via social auth
   useEffect(() => {
