@@ -53,14 +53,16 @@ const PisaPrintPreview = forwardRef<HTMLDivElement, Props>(
           fontSize: '11pt',
           lineHeight: '1.6',
           wordBreak: 'break-word',
+          overflowWrap: 'break-word',
           maxWidth: '210mm',
           margin: '0 auto',
-          padding: '15mm',
+          padding: '0',
+          boxSizing: 'border-box',
         }}
         data-pdf-section="questions"
       >
         {/* EduCreator Pro Header */}
-        <div style={{ textAlign: 'center', borderBottom: '2px solid #1a1a1a', paddingBottom: '12px', marginBottom: '16px', paddingTop: '40px' }}>
+        <div style={{ textAlign: 'center', borderBottom: '2px solid #1a1a1a', paddingBottom: '12px', marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
             <div
               style={{
@@ -173,7 +175,7 @@ const PisaPrintPreview = forwardRef<HTMLDivElement, Props>(
         {/* Answer Key (ALWAYS on a new page) */}
         {showAnswerKey && (
           <div style={{ pageBreakBefore: 'always', breakBefore: 'page' }}>
-            <div style={{ textAlign: 'center', marginBottom: '12px', paddingTop: '40px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '12px' }}>
               <p style={{ fontSize: '8pt', color: '#64748b', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                 EduCreator Pro | Simulado Elite | Professor Matheus Lima Piffer
               </p>
