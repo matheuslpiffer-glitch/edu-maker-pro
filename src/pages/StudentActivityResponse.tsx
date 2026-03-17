@@ -102,26 +102,6 @@ export default function StudentActivityResponse() {
     ? activity.questions.every((_, i) => answers[i] && answers[i].trim().length > 0)
     : false;
 
-  const handleSocialLogin = async (provider: 'google' | 'apple') => {
-    setSocialLoading(provider);
-    try {
-      // Store the current activity URL so we return here after OAuth
-      const currentUrl = window.location.href;
-      
-      // Use Lovable's managed OAuth with redirect back to this activity page
-      const { error } = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: currentUrl,
-      });
-      if (error) {
-        console.error('Social login error:', error);
-        // If OAuth bridge fails, show friendly message instead of redirecting away
-        setSocialLoading(null);
-      }
-    } catch (e) {
-      console.error('Social login failed:', e);
-      setSocialLoading(null);
-    }
-  };
 
   const handleSubmit = async () => {
     if (!studentName.trim()) return;
