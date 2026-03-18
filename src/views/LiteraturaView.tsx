@@ -61,7 +61,21 @@ export default function LiteraturaView() {
     }
     setGenerating(true);
     setQuestions([]);
+    setGeneratingMessage('📖 Analisando obra literária...');
     try {
+      const progressMessages = [
+        '📖 Analisando obra literária...',
+        '🔍 Identificando personagens e enredo...',
+        '📚 Estruturando dossiê pedagógico...',
+        '✍️ Redigindo análise crítica...',
+        '✅ Finalizando dossiê...',
+      ];
+      let msgIdx = 0;
+      const msgInterval = setInterval(() => {
+        msgIdx = Math.min(msgIdx + 1, progressMessages.length - 1);
+        setGeneratingMessage(progressMessages[msgIdx]);
+      }, 8000);
+
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
         body: {
           isLiteratura: true,
@@ -70,6 +84,7 @@ export default function LiteraturaView() {
           litModel: examModel,
         },
       });
+      clearInterval(msgInterval);
       if (error) throw error;
       const parsed = Array.isArray(data) ? data : data?.questions || [];
       setQuestions(parsed);
