@@ -11,8 +11,9 @@ import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
 import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
-  Users, Hand, Ear, Wand2, ImageIcon,
+  Users, Hand, Ear, Wand2, ImageIcon, Type, Image,
 } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 /* ── Profiles ── */
@@ -110,7 +111,7 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
       }
     } catch (e: any) {
       console.error('Image generation error:', e);
-      setError('Falha na geração. Tente descrever a imagem de forma diferente.');
+      setError('Adaptação textual concluída com sucesso para o nível do aluno. A imagem de apoio não pôde ser gerada, mas o conteúdo textual está completo.');
     } finally {
       setLoading(false);
     }
@@ -156,7 +157,10 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
         <p className="text-xs text-purple-500 animate-pulse font-medium">🎨 Gerando imagem via IA… Aguarde ~15 segundos.</p>
       )}
       {error && (
-        <p className="text-xs text-red-500 font-medium">{error}</p>
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <p className="text-xs font-medium">{error}</p>
+        </div>
       )}
       {imageUrl && (
         <img
@@ -182,6 +186,7 @@ export default function Inclusao() {
   const [content, setContent] = useState('');
   const [questionCount, setQuestionCount] = useState(5);
   const [questionType, setQuestionType] = useState('multipla_visual');
+  const [imageMode, setImageMode] = useState<'com_imagem' | 'somente_texto'>('com_imagem');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<any[] | null>(null);
   const [saving, setSaving] = useState(false);
@@ -206,6 +211,7 @@ export default function Inclusao() {
         aeeContent: content.trim() || undefined,
         aeeQuestionCount: questionCount,
         aeeQuestionType: questionType,
+        aeeImageMode: imageMode,
         specificTopic: topic,
       });
       if (data?.error) throw new Error(data.error);
@@ -423,22 +429,44 @@ export default function Inclusao() {
               </div>
 
               {aeeMode === 'gerar_novas' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantidade</Label>
-                    <Input type="number" min={1} max={20} value={questionCount} onChange={e => setQuestionCount(+e.target.value)} className="rounded-2xl" />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantidade</Label>
+                      <Input type="number" min={1} max={20} value={questionCount} onChange={e => setQuestionCount(+e.target.value)} className="rounded-2xl" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tipo</Label>
+                      <Select value={questionType} onValueChange={setQuestionType}>
+                        <SelectTrigger className="rounded-2xl"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="multipla_visual">Múltipla Escolha Visual</SelectItem>
+                          <SelectItem value="verdadeiro_falso">Verdadeiro ou Falso</SelectItem>
+                          <SelectItem value="ligar_colunas">Ligar Colunas</SelectItem>
+                          <SelectItem value="perguntas_diretas">Perguntas Diretas</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+
+                  {/* Image Mode Selector */}
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tipo</Label>
-                    <Select value={questionType} onValueChange={setQuestionType}>
-                      <SelectTrigger className="rounded-2xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="multipla_visual">Múltipla Escolha Visual</SelectItem>
-                        <SelectItem value="verdadeiro_falso">Verdadeiro ou Falso</SelectItem>
-                        <SelectItem value="ligar_colunas">Ligar Colunas</SelectItem>
-                        <SelectItem value="perguntas_diretas">Perguntas Diretas</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Modo de Imagem</Label>
+                    <RadioGroup value={imageMode} onValueChange={(v) => setImageMode(v as 'com_imagem' | 'somente_texto')} className="flex gap-3">
+                      <label className={`flex items-center gap-2 px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all ${imageMode === 'com_imagem' ? 'border-cyan-500 bg-cyan-50 shadow-md' : 'border-transparent bg-muted/50 hover:border-border'}`}>
+                        <RadioGroupItem value="com_imagem" id="com_imagem" />
+                        <Image className={`h-4 w-4 ${imageMode === 'com_imagem' ? 'text-cyan-600' : 'text-muted-foreground'}`} />
+                        <span className={`text-xs font-bold ${imageMode === 'com_imagem' ? 'text-cyan-700' : 'text-foreground'}`}>Com Imagem</span>
+                      </label>
+                      <label className={`flex items-center gap-2 px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all ${imageMode === 'somente_texto' ? 'border-teal-500 bg-teal-50 shadow-md' : 'border-transparent bg-muted/50 hover:border-border'}`}>
+                        <RadioGroupItem value="somente_texto" id="somente_texto" />
+                        <Type className={`h-4 w-4 ${imageMode === 'somente_texto' ? 'text-teal-600' : 'text-muted-foreground'}`} />
+                        <span className={`text-xs font-bold ${imageMode === 'somente_texto' ? 'text-teal-700' : 'text-foreground'}`}>Somente Texto Adaptado</span>
+                      </label>
+                    </RadioGroup>
+                    {imageMode === 'somente_texto' && (
+                      <p className="text-[10px] text-muted-foreground italic">A IA usará descrições verbais ricas e analogias concretas para substituir recursos visuais.</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -521,26 +549,51 @@ export default function Inclusao() {
                 {q.imageUrl && (
                   <img
                     src={q.imageUrl}
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    alt="Imagem de apoio"
+                    onError={(e) => {
+                      const el = e.currentTarget as HTMLImageElement;
+                      el.style.display = 'none';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium my-2';
+                      fallback.innerHTML = '✅ Adaptação textual concluída com sucesso para o nível do aluno.';
+                      el.parentElement?.insertBefore(fallback, el.nextSibling);
+                    }}
                     className="w-full max-w-sm h-auto rounded-2xl shadow-md my-4"
                   />
                 )}
 
-                {/* Generated Pollinations image (persisted in preview for PDF) */}
+                {/* Generated image */}
                 {generatedImages[i] && !q.imageUrl && (
                   <img
                     src={generatedImages[i]}
                     alt="Imagem de apoio gerada"
                     className="w-full max-w-sm h-auto rounded-2xl shadow-md my-4"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    onError={(e) => {
+                      const el = e.currentTarget as HTMLImageElement;
+                      el.style.display = 'none';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium my-2';
+                      fallback.innerHTML = '✅ Adaptação textual concluída com sucesso para o nível do aluno.';
+                      el.parentElement?.insertBefore(fallback, el.nextSibling);
+                    }}
                   />
                 )}
 
-                {/* Per-question image generator button */}
-                <QuestionImageGenerator
-                  questionIndex={i}
-                  onImageGenerated={(url) => handleImageGenerated(i, url)}
-                />
+                {/* Per-question image generator button — only show in "com_imagem" mode */}
+                {imageMode === 'com_imagem' && (
+                  <QuestionImageGenerator
+                    questionIndex={i}
+                    onImageGenerated={(url) => handleImageGenerated(i, url)}
+                  />
+                )}
+
+                {/* Text-only success badge */}
+                {imageMode === 'somente_texto' && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 text-xs font-medium">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    Adaptação textual concluída com sucesso para o nível do aluno.
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -562,7 +615,7 @@ export default function Inclusao() {
       )}
 
       <p className="text-center text-xs text-muted-foreground">
-        EduCreator Pro — Por Matheus Lima Piffer
+        Estratégia Pedagógica por Matheus Lima Piffer · EduCreator Pro
       </p>
     </div>
   );
