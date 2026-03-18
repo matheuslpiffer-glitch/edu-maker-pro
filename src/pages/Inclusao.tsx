@@ -183,6 +183,7 @@ export default function Inclusao() {
   const [content, setContent] = useState('');
   const [questionCount, setQuestionCount] = useState(5);
   const [questionType, setQuestionType] = useState('multipla_visual');
+  const [imageMode, setImageMode] = useState<'com_imagem' | 'somente_texto'>('com_imagem');
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<any[] | null>(null);
   const [saving, setSaving] = useState(false);
