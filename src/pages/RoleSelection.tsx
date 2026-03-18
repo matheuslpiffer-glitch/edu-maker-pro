@@ -91,7 +91,7 @@ export default function RoleSelection({ onRoleSelected }: Props) {
         </div>
 
         <p className="text-xs text-muted-foreground pt-4">
-          Plataforma EduCreator Pro | Desenvolvido por Matheus Lima Piffer
+          Plataforma EduCreator Pro | Estabilidade de Sistema por Matheus Lima Piffer
         </p>
       </div>
     </div>
