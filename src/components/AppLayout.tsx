@@ -14,6 +14,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   /* Teacher previewing as student */
   const isPreviewMode = isStudentMode && isTeacher;
 
+  const handleExitPreview = () => {
+    setStudentMode(false);
+    navigate('/dashboard-professor');
+  };
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       {sidebarOpen && (
