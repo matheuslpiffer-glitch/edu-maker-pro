@@ -77,8 +77,7 @@ function TeacherOnly({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const { user, loading: authLoading } = useAuth();
-  const { role, hasRole, loading: roleLoading, refetchRole, isStudent } = useRole();
-  const location = useLocation();
+  const { hasRole, loading: roleLoading, refetchRole, isStudent } = useRole();
 
   if (authLoading || (user && roleLoading)) {
     return (
