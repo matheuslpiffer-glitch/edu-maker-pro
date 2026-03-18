@@ -177,7 +177,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { examType, examModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode } = await req.json();
+    const { examType, examModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
     if (isInclusao) {
@@ -186,6 +186,9 @@ serve(async (req) => {
         aee_tdah: `Seus textos devem ser CURTOS (máximo 2 linhas por enunciado). Use bullet points (•) para todas as instruções. Aplique linguagem de gamificação: chame cada questão de "Missão" (ex: "🎯 Missão 3"). DESTAQUE o verbo de comando em CAIXA ALTA e negrito (ex: "<strong>CIRCULE</strong>", "<strong>PINTE</strong>", "<strong>LIGUE</strong>"). Inclua recompensas visuais (⭐🏆) ao final.`,
         aee_intelectual: `Use vocabulário COTIDIANO e frases simples (sujeito + verbo + complemento). Reduza as alternativas para APENAS 3 opções (A, B, C). Associe SEMPRE o conteúdo à vida real do aluno (supermercado, cozinha, transporte). Use exemplos concretos e tangíveis, nunca abstratos.`,
         aee_visual: `Forneça descrições textuais detalhadas (audiodescrição) de qualquer elemento visual. Use alinhamento à ESQUERDA com muito espaçamento em branco entre blocos. PROÍBA frases com dupla negativa. Garanta alto contraste textual. Cada questão deve ter uma descrição completa do contexto sem depender de imagens.`,
+        aee_dm: `Combine múltiplas adaptações: linguagem simples, passos numerados, emojis como apoio visual, frases curtas (máximo 1 linha), alternativas reduzidas (3 opções) e descrição verbal completa de qualquer contexto visual.`,
+        aee_tod: `Use linguagem POSITIVA e motivacional. Evite ordens diretas; prefira convites ("Vamos descobrir juntos?"). Ofereça escolhas ao aluno quando possível. Quebre tarefas grandes em micro-etapas com recompensa visual (⭐) a cada conclusão. Tom acolhedor e sem julgamento.`,
+        aee_auditiva: `Priorize instruções VISUAIS e ESCRITAS claras. Use frases curtas na ordem direta. Destaque palavras-chave em <strong>negrito</strong>. Evite trocadilhos ou jogos de palavras sonoros. Cada instrução deve ser auto-explicativa sem depender de explicação oral.`,
       };
 
       const perfilLabel: Record<string, string> = {
@@ -193,12 +196,28 @@ serve(async (req) => {
         aee_tdah: 'TDAH (Transtorno de Déficit de Atenção e Hiperatividade)',
         aee_intelectual: 'Deficiência Intelectual (DI)',
         aee_visual: 'Deficiência Visual / Dislexia',
+        aee_dm: 'Deficiência Múltipla (DM)',
+        aee_tod: 'TOD (Transtorno Opositivo Desafiador)',
+        aee_auditiva: 'Deficiência Auditiva',
       };
 
       const diretriz = diretrizesPorPerfil[activeDna] || diretrizesPorPerfil.aee_tea;
       const perfil = perfilLabel[activeDna] || 'Necessidades Especiais';
 
-      const imageInstruction = `\nREGRA DE IMAGENS: Para CADA questão, inclua no campo "imageUrl" uma URL no formato: https://image.pollinations.ai/prompt/{descrição-curta-em-inglês-do-conceito}?width=800&height=450&nologo=true\nA descrição deve ser clara, educativa e relacionada ao tema da questão.\nAlém disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLINATIONS" class="w-full h-auto rounded-3xl" />\n`;
+      // Determine image mode: "com_imagem" (default) or "somente_texto"
+      const isTextOnly = aeeImageMode === 'somente_texto';
+
+      const imageInstruction = isTextOnly
+        ? `\nMODO SOMENTE TEXTO ADAPTADO:
+- NÃO inclua NENHUMA tag <img>, link de imagem ou URL de imagem.
+- NÃO preencha o campo "imageUrl".
+- COMPENSE a ausência de imagens com:
+  1. DESCRIÇÕES VERBAIS RICAS: Em vez de mostrar uma forma geométrica, descreva-a com analogia concreta (ex: "um triângulo é como um pedaço de pizza" ou "um círculo é como uma roda de bicicleta 🚲").
+  2. CONTEXTUALIZAÇÃO SIMPLES: Sempre relacione o problema com algo do dia a dia do aluno.
+  3. PALAVRAS-CHAVE EM NEGRITO: Use <strong> nos termos centrais para ajudar na focalização.\n`
+        : `\nREGRA DE IMAGENS: Para CADA questão, inclua no campo "imageUrl" uma URL no formato: https://image.pollinations.ai/prompt/{descrição-curta-em-inglês-do-conceito}?width=800&height=450&nologo=true
+A descrição deve ser clara, educativa e relacionada ao tema da questão.
+Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLINATIONS" class="w-full h-auto rounded-3xl" />\n`;
 
       const questionTypeLabels: Record<string, string> = {
         multipla_visual: 'Múltipla Escolha Visual (com 4 alternativas A-D, cada uma acompanhada de emoji ou imagem)',
@@ -208,6 +227,12 @@ serve(async (req) => {
       };
 
       let systemPromptAEE = `Você é um Pós-Doutor em Educação Especial, especialista em Desenho Universal para a Aprendizagem (DUA) e em Atendimento Educacional Especializado (AEE). Seu trabalho é criar materiais RADICALMENTE acessíveis para alunos com ${perfil}.
+
+HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
+1. LINGUAGEM SIMPLES (Plain Language): Use SEMPRE frases curtas, ordem direta (sujeito-verbo-complemento) e termos concretos do cotidiano do aluno.
+2. CONTEXTUALIZAÇÃO: Relacione CADA conceito com algo do dia a dia (ex: rodas de bicicleta para raio/diâmetro, pizza para frações, escada para sequências numéricas).
+3. DESTAQUE DE PALAVRAS-CHAVE: Use <strong> em termos centrais para auxiliar na focalização visual do aluno.
+4. ESTRUTURA PREVISÍVEL: Mantenha o mesmo padrão visual em todas as questões para criar rotina cognitiva.
 
 DIRETRIZES OBRIGATÓRIAS DO PERFIL:
 ${diretriz}
@@ -233,9 +258,9 @@ Responda em JSON:
 {
   "questions": [
     {
-      "content": "<HTML completo da questão com espaçamento, emojis, formatação acessível E uma tag <img> do Pollinations>",
+      "content": "<HTML completo da questão com espaçamento, emojis, formatação acessível${isTextOnly ? ' e descrições verbais ricas substituindo qualquer visual' : ' E uma tag <img> do Pollinations'}>",
       "options": [{"letter": "A", "text": "...", "isCorrect": false}, ...],
-      "imageUrl": "https://image.pollinations.ai/prompt/{descrição-em-inglês}?width=800&height=450&nologo=true",
+      ${isTextOnly ? '' : '"imageUrl": "https://image.pollinations.ai/prompt/{descrição-em-inglês}?width=800&height=450&nologo=true",'}
       "skillCode": "AEE-${(activeDna || '').replace('aee_', '').toUpperCase()}",
       "descriptor": "${aeeTopic}"
     }
@@ -252,10 +277,11 @@ ${(aeeContent || '').slice(0, 8000)}
 Tema: "${aeeTopic}"
 
 Mantenha o conteúdo original mas transforme:
-- Linguagem → acessível ao perfil
+- Linguagem → acessível ao perfil, frases curtas, ordem direta
 - Layout → espaçado, com blocos visuais
 - Alternativas → adaptadas conforme o perfil
 - Adicione emojis e destaques visuais
+- Destaque <strong>palavras-chave</strong> em negrito
 
 Responda em JSON:
 {
@@ -278,6 +304,7 @@ O material deve conter em HTML:
 - Destaques visuais em caixas coloridas
 - Exercícios de fixação no formato mais adequado ao perfil
 - Espaçamento generoso entre todos os elementos
+- <strong>Palavras-chave</strong> em negrito para focalização
 
 Responda em JSON:
 {
@@ -292,7 +319,7 @@ Responda em JSON:
 }`;
       }
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-3-flash-preview", [
+      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
         { role: "system", content: systemPromptAEE },
         { role: "user", content: userPromptAEE },
       ], 0.7);

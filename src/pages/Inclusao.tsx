@@ -11,8 +11,9 @@ import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
 import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
-  Users, Hand, Ear, Wand2, ImageIcon,
+  Users, Hand, Ear, Wand2, ImageIcon, Type, Image,
 } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 /* ── Profiles ── */
