@@ -619,7 +619,15 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
 
         setGenerationStep(nextStep);
         setGenerationProgress(progressValue);
-        setGenerationMessage(`Gerando bloco ${nextStep} de ${batchPlan.length}...`);
+        const stepMessages = [
+          '🧠 Estruturando questões pedagógicas...',
+          '✍️ Criando alternativas e distratores...',
+          '📊 Calibrando nível de dificuldade...',
+          '🔬 Verificando coerência disciplinar...',
+          '📝 Formatando gabarito e justificativas...',
+          '✅ Finalizando material pedagógico...',
+        ];
+        setGenerationMessage(stepMessages[index % stepMessages.length] || `Gerando bloco ${nextStep} de ${batchPlan.length}...`);
 
         if (jobId) {
           await updateSimulatorGenerationJob({
