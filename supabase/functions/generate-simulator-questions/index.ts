@@ -438,7 +438,8 @@ Responda em JSON:
         lit_personagens: 'Análise aprofundada de todos os personagens (protagonistas, antagonistas, secundários), suas motivações, arcos e relações',
         lit_contexto: 'Contexto histórico, social e cultural da obra e do autor, movimento literário e influências',
       };
-      const litDirective = litModelLabels[examModel] || litModelLabels.lit_vestibular;
+      const selectedLitModel = litModel || examModel || 'lit_vestibular';
+      const litDirective = litModelLabels[selectedLitModel] || litModelLabels.lit_vestibular;
       const autorInfo = litAutorName ? ` do autor "${litAutorName}"` : '';
       const focusExtra = specificTopic ? `\nFoco adicional solicitado pelo professor: "${specificTopic}"` : '';
 
