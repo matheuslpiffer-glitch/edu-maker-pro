@@ -84,6 +84,24 @@ export default function Auth({ preferredPortal }: AuthProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Portal Selection */}
+          {!selectedPortal && (
+            <div className="space-y-3">
+              <p className="text-sm text-center text-muted-foreground font-medium">Como deseja acessar?</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" className="py-6 flex flex-col gap-1 h-auto" onClick={() => setSelectedPortal('teacher')}>
+                  <GraduationCap size={22} className="text-primary" />
+                  <span className="font-bold text-sm">Acesso Professor</span>
+                </Button>
+                <Button variant="outline" className="py-6 flex flex-col gap-1 h-auto" onClick={() => setSelectedPortal('student')}>
+                  <BookOpen size={22} className="text-accent-foreground" />
+                  <span className="font-bold text-sm">Acesso Aluno</span>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {selectedPortal && (<>
           {/* Google Login */}
           <Button
             variant="outline"
