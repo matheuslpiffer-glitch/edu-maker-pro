@@ -79,7 +79,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => setShowAuth(true)}
+              onClick={openTeacherLogin}
               className="bg-[hsl(38,92%,50%)] text-[hsl(222,47%,6%)] hover:bg-[hsl(38,92%,45%)] font-bold text-lg px-10 py-7 rounded-xl"
             >
               <GraduationCap className="mr-2 h-5 w-5" />
@@ -89,7 +89,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => setShowAuth(true)}
+              onClick={openStudentLogin}
               className="border-[hsl(162,63%,45%)]/50 text-[hsl(162,63%,45%)] hover:bg-[hsl(162,63%,45%)]/10 font-bold text-lg px-10 py-7 rounded-xl"
             >
               <BookOpen className="mr-2 h-5 w-5" />
