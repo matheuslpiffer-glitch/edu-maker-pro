@@ -47,18 +47,23 @@ export default function RoleSelection({ onRoleSelected }: Props) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Card
-            className="cursor-pointer border-2 hover:border-primary transition-colors"
+            className="cursor-pointer border-2 hover:border-yellow-500 transition-colors hover:shadow-lg"
             onClick={() => selectRole('user')}
           >
             <CardHeader className="items-center pb-2">
-              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-2">
-                <GraduationCap className="h-8 w-8 text-primary" />
+              <div className="h-16 w-16 rounded-2xl flex items-center justify-center mb-2" style={{ background: 'linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7)' }}>
+                <GraduationCap className="h-8 w-8 text-gray-900" />
               </div>
               <CardTitle className="text-lg">Sou Professor</CardTitle>
               <CardDescription>Crie simulados, provas e acompanhe o desempenho dos alunos.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" disabled={loading !== null} onClick={() => selectRole('user')}>
+              <Button
+                className="w-full text-gray-900 font-bold border-0"
+                style={{ background: 'linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7)' }}
+                disabled={loading !== null}
+                onClick={() => selectRole('user')}
+              >
                 {loading === 'user' ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Entrar como Professor
               </Button>
