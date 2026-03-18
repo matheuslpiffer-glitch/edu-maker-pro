@@ -401,27 +401,31 @@ Responda em JSON:
       const autorInfo = litAutorName ? ` do autor "${litAutorName}"` : '';
       const focusExtra = specificTopic ? `\nFoco adicional solicitado pelo professor: "${specificTopic}"` : '';
 
-      const systemPromptLit = `Você é um Doutor em Literatura Brasileira e Universal, com especialização em obras cobradas nos principais vestibulares do Brasil (FUVEST, UNICAMP, ENEM, UNESP). Você possui conhecimento enciclopédico sobre todas as obras literárias mundiais.${NO_IMG_RULE}\nResponda APENAS com JSON válido, sem markdown.`;
-      const userPromptLit = `Crie um DOSSIÊ LITERÁRIO completo sobre a obra "${litObraName}"${autorInfo}.
+      const systemPromptLit = `Você é um Doutor em Literatura Brasileira e Universal, com especialização em obras cobradas nos principais vestibulares do Brasil (FUVEST, UNICAMP, ENEM, UNESP). Você possui conhecimento enciclopédico sobre todas as obras literárias mundiais.${NO_IMG_RULE}
+REGRA CRÍTICA DE TAMANHO: Sua resposta TOTAL (incluindo o JSON) deve ter NO MÁXIMO 4000 palavras. Seja direto e objetivo. Priorize informações essenciais para vestibulares. NÃO escreva capítulos completos — faça RESUMOS CONCISOS de cada parte.
+Responda APENAS com JSON válido, sem markdown, sem blocos de código.`;
+      const userPromptLit = `Crie um DOSSIÊ LITERÁRIO CONCISO sobre a obra "${litObraName}"${autorInfo}.
 
 DIRETRIZ: ${litDirective}${focusExtra}
 
-O dossiê deve ser em HTML rico e bem formatado:
+IMPORTANTE: Seja OBJETIVO e CONCISO. Máximo 4000 palavras no total.
+${examModel === 'lit_capitulos' ? 'Para resumo por capítulos: faça NO MÁXIMO 3-4 linhas por capítulo. Agrupe capítulos similares se necessário.' : ''}
+
+O dossiê deve ser em HTML básico (sem estilos inline longos):
 - <h1> com o título da obra e autor
 - <h2> para cada seção principal
 - <h3> para subseções
-- Parágrafos <p> bem desenvolvidos
+- Parágrafos <p> curtos e diretos
 - Listas <ul><li> quando apropriado
-- <blockquote> para citações da obra
-- <div class="destaque" style="background:#fffbeb;border-left:4px solid #f59e0b;padding:12px;margin:16px 0;border-radius:8px"> para destaques e curiosidades
+- <blockquote> para citações da obra (máximo 2)
 
 NÃO inclua formatação de prova, questões ou cabeçalho de escola. Este é um material de estudo/consulta.
 
-Responda em JSON:
+Responda em JSON (SEM markdown, SEM blocos de código):
 {
   "questions": [
     {
-      "content": "<todo o HTML do dossiê aqui>",
+      "content": "<HTML do dossiê aqui>",
       "options": [],
       "skillCode": "Dossiê Literário",
       "descriptor": "${litObraName}",
