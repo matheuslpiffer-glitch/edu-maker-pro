@@ -157,7 +157,10 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
         <p className="text-xs text-purple-500 animate-pulse font-medium">🎨 Gerando imagem via IA… Aguarde ~15 segundos.</p>
       )}
       {error && (
-        <p className="text-xs text-red-500 font-medium">{error}</p>
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <p className="text-xs font-medium">{error}</p>
+        </div>
       )}
       {imageUrl && (
         <img
