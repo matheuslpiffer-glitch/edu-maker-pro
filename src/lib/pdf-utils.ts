@@ -98,7 +98,7 @@ export async function generatePdfFromElement(
   try {
     // Step 4: Generate PDF
     const html2pdf = (await import('html2pdf.js')).default;
-    const opts = {
+    const opts: any = {
       margin: margins,
       filename: `${filename}.pdf`,
       pagebreak: { mode: ['css', 'legacy'] },
