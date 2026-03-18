@@ -644,7 +644,7 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-3-flash-preview", [
+      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
         { role: "system", content: systemPromptAula },
         { role: "user", content: userPromptAula },
       ], 0.7);
