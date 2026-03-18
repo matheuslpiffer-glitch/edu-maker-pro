@@ -59,6 +59,7 @@ export default function StudentDashboard() {
   const { user } = useAuth();
   const { studentXP, studentLevel } = useStudentMode();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [progress, setProgress] = useState<SubjectProgress[]>([]);
   const [recentQuizzes, setRecentQuizzes] = useState<any[]>([]);
   const [simulatorResults, setSimulatorResults] = useState<SimulatorResult[]>([]);
