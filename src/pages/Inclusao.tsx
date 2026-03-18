@@ -208,6 +208,7 @@ export default function Inclusao() {
         aeeContent: content.trim() || undefined,
         aeeQuestionCount: questionCount,
         aeeQuestionType: questionType,
+        aeeImageMode: imageMode,
         specificTopic: topic,
       });
       if (data?.error) throw new Error(data.error);
