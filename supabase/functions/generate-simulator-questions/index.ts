@@ -97,7 +97,7 @@ async function fetchAIWithRetry(
   messages: Array<{ role: string; content: string }>,
   temperature: number,
   maxAttempts = 3,
-  timeoutMs = 120000
+  timeoutMs = 90000
 ): Promise<Response> {
   let lastResponse: Response | null = null;
   let currentModel = model;
@@ -354,7 +354,7 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-3-flash-preview", [
+      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
         { role: "system", content: systemPromptJogos },
         { role: "user", content: userPromptJogos },
       ], 0.8);
@@ -403,7 +403,7 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-3-flash-preview", [
+      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
         { role: "system", content: systemPromptLit },
         { role: "user", content: userPromptLit },
       ], 0.7);
@@ -610,7 +610,7 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-3-flash-preview", [
+      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
         { role: "system", content: systemPromptRedacao },
         { role: "user", content: userPromptRedacao },
       ], 0.8);
@@ -644,7 +644,7 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-3-flash-preview", [
+      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
         { role: "system", content: systemPromptAula },
         { role: "user", content: userPromptAula },
       ], 0.7);
@@ -720,7 +720,7 @@ Responda em JSON:
   ]
 }`;
 
-    const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-3-flash-preview", [
+    const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ], 0.7);
