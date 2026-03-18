@@ -145,6 +145,19 @@ img {
   object-fit: cover;
 }
 
+/* Fixed dimensions for images inside PDF containers */
+#pdf-preview-container img,
+[data-pdf-section] img {
+  max-width: 300px;
+  height: auto;
+  min-height: unset;
+  object-fit: contain;
+  background: transparent;
+  display: block;
+  margin: 8px auto;
+  border-radius: 4px;
+}
+
 /* Override min-height for icons and small images */
 img[width], img.h-auto:not(.prose-output img), .shrink-0 img, img[class*="w-5"], img[class*="w-6"], img[class*="w-8"], img[class*="w-10"], img[class*="w-11"], img[class*="w-12"], img[class*="h-5"], img[class*="h-6"], img[class*="h-8"] {
   min-height: unset;
