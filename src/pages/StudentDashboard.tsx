@@ -48,9 +48,9 @@ const BADGES = [
 ];
 
 const DAILY_MISSIONS = [
-  { id: 'quiz_if', label: 'Fazer um simulado do IF', xp: 500, icon: Building2, path: '/aluno/quiz?fast=ifs' },
-  { id: 'quiz_etec', label: 'Fazer um simulado da ETEC', xp: 500, icon: Cpu, path: '/aluno/quiz?fast=etec' },
-  { id: 'quiz_enem', label: 'Treinar 10 questões ENEM', xp: 300, icon: Target, path: '/aluno/quiz' },
+  { id: 'quiz_if', label: 'Fazer um simulado do IF', xp: 500, icon: Building2, path: '/portal-aluno/quiz?fast=ifs' },
+  { id: 'quiz_etec', label: 'Fazer um simulado da ETEC', xp: 500, icon: Cpu, path: '/portal-aluno/quiz?fast=etec' },
+  { id: 'quiz_enem', label: 'Treinar 10 questões ENEM', xp: 300, icon: Target, path: '/portal-aluno/quiz' },
   { id: 'jogos', label: 'Jogar um jogo didático', xp: 200, icon: Gamepad2, path: '/jogos' },
 ];
 
