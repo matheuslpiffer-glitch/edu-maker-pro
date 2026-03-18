@@ -99,11 +99,14 @@ function AppRoutes() {
     return (
       <AppLayout>
         <Routes>
-          <Route path="/" element={<Navigate to="/aluno" replace />} />
-          <Route path="/aluno" element={<StudentDashboard />} />
-          <Route path="/aluno/quiz" element={<StudentQuiz />} />
-          <Route path="/aluno/desempenho" element={<StudentPerformance />} />
-          <Route path="*" element={<Navigate to="/aluno" replace />} />
+          <Route path="/" element={<Navigate to="/portal-aluno" replace />} />
+          <Route path="/portal-aluno" element={<StudentDashboard />} />
+          <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
+          <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
+          <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
+          <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
+          <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
+          <Route path="*" element={<Navigate to="/portal-aluno" replace />} />
         </Routes>
         <MatChatbot />
       </AppLayout>
