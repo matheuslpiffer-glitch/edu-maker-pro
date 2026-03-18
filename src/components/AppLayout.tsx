@@ -1,15 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Eye, ArrowLeft } from 'lucide-react';
+import { Menu, Eye, ArrowLeft, ArrowLeftRight } from 'lucide-react';
 import AppSidebar from './AppSidebar';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { useRole } from '@/hooks/useRole';
+import { useAuth } from '@/hooks/useAuth';
+
+const SUPER_ADMIN_EMAILS = ['matheuslpiffer@gmail.com', 'profmatheuspiffer@gmail.com'];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isStudentMode, setStudentMode } = useStudentMode();
-  const { isTeacher } = useRole();
+  const { isTeacher, isSuperAdmin } = useRole();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  const isMasterAdmin = isSuperAdmin && SUPER_ADMIN_EMAILS.includes(user?.email ?? '');
 
   /* Teacher previewing as student */
   const isPreviewMode = isStudentMode && isTeacher;
