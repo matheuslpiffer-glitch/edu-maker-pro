@@ -35,16 +35,8 @@ function stripHtml(html: string): string {
 }
 
 export async function exportToPDF(element: HTMLElement, filename: string) {
-  const html2pdf = (await import('html2pdf.js')).default;
-  const opt = {
-    margin: [15, 15, 15, 15] as [number, number, number, number],
-    filename: `${filename}.pdf`,
-    image: { type: 'png' as const, quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: element.scrollWidth, logging: false, allowTaint: true },
-    jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-    pagebreak: { mode: ['css', 'legacy'] as string[] },
-  };
-  await html2pdf().set(opt).from(element).save();
+  const { generatePdfFromElement } = await import('@/lib/pdf-utils');
+  await generatePdfFromElement(element, filename, { margins: [15, 15, 15, 15] });
 }
 
 export async function exportToDocx(
