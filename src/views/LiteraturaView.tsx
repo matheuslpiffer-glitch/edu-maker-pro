@@ -312,21 +312,38 @@ export default function LiteraturaView() {
                 </div>
               ) : (
                 <div className="flex justify-center bg-muted/30 py-4 sm:py-8 rounded-lg overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                  <div ref={printContainerRef} className="bg-white shadow-2xl border min-w-[794px] p-8" style={{ width: '794px' }}>
-                    <div className="text-center mb-6">
-                      {institutionName && <p className="text-sm text-slate-500 mb-1">{institutionName}</p>}
+                  <div
+                    ref={printContainerRef}
+                    className="bg-white shadow-2xl border min-w-[794px] p-8"
+                    style={{
+                      width: '794px',
+                      wordBreak: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                      lineHeight: '1.6',
+                      overflowWrap: 'break-word',
+                    }}
+                  >
+                    <div className="text-center mb-6" style={{ whiteSpace: 'normal' }}>
+                      {institutionName && <p className="text-sm text-muted-foreground mb-1">{institutionName}</p>}
                       <h2 className="text-xl font-bold">{title || `Dossiê Literário: ${litObraName}`}</h2>
-                      {litAutorName && <p className="text-sm text-slate-400 mt-1">Autor: {litAutorName}</p>}
+                      {litAutorName && <p className="text-sm text-muted-foreground mt-1">Autor: {litAutorName}</p>}
                     </div>
                     {questions.map((q, i) => (
-                      <div key={i} className="mb-6 pb-4 border-b border-slate-100 last:border-0">
+                      <div key={i} className="mb-6 pb-4 border-b border-border last:border-0" style={{ pageBreakInside: 'auto', whiteSpace: 'normal' }}>
                         <div className="flex items-start gap-2 mb-2">
                           <Badge variant="outline" className="shrink-0 text-xs">{String(i + 1).padStart(2, '0')}</Badge>
                           {q.skillCode && <span className="text-xs text-muted-foreground font-mono">[{q.skillCode}]</span>}
                         </div>
-                        <div className="prose prose-sm max-w-none text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                        <div
+                          className="prose prose-sm max-w-none text-sm"
+                          style={{ lineHeight: '1.6', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}
+                          dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }}
+                        />
                       </div>
                     ))}
+                    <p className="text-[10px] text-muted-foreground text-right mt-4 border-t border-border pt-2" style={{ whiteSpace: 'normal' }}>
+                      Sistema homologado por Matheus Lima Piffer
+                    </p>
                   </div>
                 </div>
               )}
