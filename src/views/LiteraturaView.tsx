@@ -293,7 +293,7 @@ export default function LiteraturaView() {
                   <p>Gere um dossiê para ver a pré-visualização.</p>
                 </div>
               ) : (
-                <div className="flex justify-center bg-muted/30 py-4 sm:py-8 rounded-lg overflow-x-auto">
+                <div className="flex justify-center bg-muted/30 py-4 sm:py-8 rounded-lg overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                   <div ref={printContainerRef} className="bg-white shadow-2xl border min-w-[794px] p-8" style={{ width: '794px' }}>
                     <div className="text-center mb-6">
                       {institutionName && <p className="text-sm text-slate-500 mb-1">{institutionName}</p>}
