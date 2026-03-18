@@ -38,9 +38,8 @@ const benefits = [
 ];
 
 export default function LandingPage() {
-  const [showAuth, setShowAuth] = useState(false);
-
-  if (showAuth) return <Auth />;
+  const openTeacherLogin = () => window.location.assign('/professor');
+  const openStudentLogin = () => window.location.assign('/estudo');
 
   return (
     <div className="min-h-screen bg-[hsl(222,47%,6%)] text-white">
