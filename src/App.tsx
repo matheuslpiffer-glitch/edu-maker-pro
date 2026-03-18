@@ -28,6 +28,7 @@ import Vestibulares from "@/pages/Vestibulares";
 import Tecnicos from "@/pages/Tecnicos";
 import GameFactory from "@/pages/GameFactory";
 import LiteraturaView from "@/views/LiteraturaView";
+import { ArrowLeftRight } from "lucide-react";
 import PisaSimulators from "@/pages/PisaSimulators";
 import PisaStudentView from "@/pages/PisaStudentView";
 import QuestionBankAI from "@/pages/QuestionBankAI";
