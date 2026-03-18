@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Menu, Eye, ArrowLeft } from 'lucide-react';
 import AppSidebar from './AppSidebar';
 import { useStudentMode } from '@/hooks/useStudentMode';
@@ -6,11 +7,17 @@ import { useRole } from '@/hooks/useRole';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isStudentMode, toggleStudentMode } = useStudentMode();
+  const { isStudentMode, setStudentMode } = useStudentMode();
   const { isTeacher } = useRole();
+  const navigate = useNavigate();
 
   /* Teacher previewing as student */
   const isPreviewMode = isStudentMode && isTeacher;
+
+  const handleExitPreview = () => {
+    setStudentMode(false);
+    navigate('/dashboard-professor');
+  };
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -24,9 +31,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="bg-amber-500 text-amber-950 text-center text-sm font-medium py-2 px-4 flex items-center justify-center gap-2 no-print shrink-0">
             <Eye size={16} />
             <span>Você está no <strong>Modo Visualização de Aluno</strong>.</span>
-            <button onClick={toggleStudentMode} className="underline font-bold hover:text-amber-800 ml-1 inline-flex items-center gap-1">
-              <ArrowLeft size={14} /> Voltar ao Painel do Professor
-            </button>
+             <button onClick={handleExitPreview} className="underline font-bold hover:text-amber-800 ml-1 inline-flex items-center gap-1">
+               <ArrowLeft size={14} /> Voltar ao Painel do Professor
+             </button>
           </div>
         )}
         <header className="lg:hidden flex items-center h-14 px-4 border-b border-slate-200 bg-white no-print shrink-0">

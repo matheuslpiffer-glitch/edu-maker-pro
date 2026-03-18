@@ -811,6 +811,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bootstrap_my_access: {
+        Args: never
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       get_my_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]

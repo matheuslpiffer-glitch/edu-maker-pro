@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   GraduationCap, ClipboardCheck, Presentation, ClipboardList, BarChart3,
   ArrowRight, Shield, Sparkles, CheckCircle2, Brain, FileText, Users, BookOpen
 } from 'lucide-react';
-import Auth from './Auth';
 
 const features = [
   {
@@ -40,9 +38,8 @@ const benefits = [
 ];
 
 export default function LandingPage() {
-  const [showAuth, setShowAuth] = useState(false);
-
-  if (showAuth) return <Auth />;
+  const openTeacherLogin = () => window.location.assign('/professor');
+  const openStudentLogin = () => window.location.assign('/estudo');
 
   return (
     <div className="min-h-screen bg-[hsl(222,47%,6%)] text-white">
@@ -59,10 +56,10 @@ export default function LandingPage() {
             <span className="font-bold text-xl tracking-tight">EduCreator <span className="text-[hsl(38,92%,50%)]">Pro</span></span>
           </div>
           <Button
-            onClick={() => setShowAuth(true)}
+            onClick={openTeacherLogin}
             className="bg-[hsl(38,92%,50%)] text-[hsl(222,47%,6%)] hover:bg-[hsl(38,92%,45%)] font-semibold"
           >
-            Entrar
+            Entrar como Professor
           </Button>
         </nav>
 
@@ -82,7 +79,7 @@ export default function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              onClick={() => setShowAuth(true)}
+              onClick={openTeacherLogin}
               className="bg-[hsl(38,92%,50%)] text-[hsl(222,47%,6%)] hover:bg-[hsl(38,92%,45%)] font-bold text-lg px-10 py-7 rounded-xl"
             >
               <GraduationCap className="mr-2 h-5 w-5" />
@@ -92,7 +89,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => setShowAuth(true)}
+              onClick={openStudentLogin}
               className="border-[hsl(162,63%,45%)]/50 text-[hsl(162,63%,45%)] hover:bg-[hsl(162,63%,45%)]/10 font-bold text-lg px-10 py-7 rounded-xl"
             >
               <BookOpen className="mr-2 h-5 w-5" />
@@ -190,7 +187,7 @@ export default function LandingPage() {
         <p className="text-white/50 max-w-lg mx-auto mb-8">Coordenadores e professores PEI já usam o EduCreator Pro para resultados melhores.</p>
         <Button
           size="lg"
-          onClick={() => setShowAuth(true)}
+          onClick={openTeacherLogin}
           className="bg-[hsl(38,92%,50%)] text-[hsl(222,47%,6%)] hover:bg-[hsl(38,92%,45%)] font-bold text-lg px-10 py-7 rounded-xl"
         >
           Entrar no Sistema

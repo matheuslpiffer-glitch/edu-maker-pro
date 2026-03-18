@@ -54,7 +54,6 @@ import SignAttendance from "@/pages/SignAttendance";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -78,8 +77,7 @@ function TeacherOnly({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const { user, loading: authLoading } = useAuth();
-  const { role, hasRole, loading: roleLoading, refetchRole, isStudent } = useRole();
-  const location = useLocation();
+  const { hasRole, loading: roleLoading, refetchRole, isStudent } = useRole();
 
   if (authLoading || (user && roleLoading)) {
     return (
@@ -101,11 +99,14 @@ function AppRoutes() {
     return (
       <AppLayout>
         <Routes>
-          <Route path="/" element={<Navigate to="/aluno" replace />} />
-          <Route path="/aluno" element={<StudentDashboard />} />
-          <Route path="/aluno/quiz" element={<StudentQuiz />} />
-          <Route path="/aluno/desempenho" element={<StudentPerformance />} />
-          <Route path="*" element={<Navigate to="/aluno" replace />} />
+          <Route path="/" element={<Navigate to="/portal-aluno" replace />} />
+          <Route path="/portal-aluno" element={<StudentDashboard />} />
+          <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
+          <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
+          <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
+          <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
+          <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
+          <Route path="*" element={<Navigate to="/portal-aluno" replace />} />
         </Routes>
         <MatChatbot />
       </AppLayout>
@@ -116,7 +117,8 @@ function AppRoutes() {
   return (
     <AppLayout>
       <Routes>
-        <Route path="/" element={<Index />} />
+        <Route path="/" element={<Navigate to="/dashboard-professor" replace />} />
+        <Route path="/dashboard-professor" element={<Index />} />
         <Route path="/sobre" element={<SobreProjeto />} />
         <Route path="/questoes" element={<QuestionBank />} />
         <Route path="/questoes/nova" element={<CreateQuestion />} />
@@ -148,9 +150,12 @@ function AppRoutes() {
         <Route path="/corretor-visao" element={<VisionCorrector />} />
         <Route path="/referencias" element={<ReferenciasBibliograficas />} />
         {/* Student routes accessible from teacher mode too */}
-        <Route path="/aluno" element={<StudentDashboard />} />
-        <Route path="/aluno/quiz" element={<StudentQuiz />} />
-        <Route path="/aluno/desempenho" element={<StudentPerformance />} />
+        <Route path="/portal-aluno" element={<StudentDashboard />} />
+        <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
+        <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
+        <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
+        <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
+        <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <MatChatbot />
