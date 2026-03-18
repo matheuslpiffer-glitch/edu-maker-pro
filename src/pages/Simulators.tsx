@@ -566,7 +566,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     setIsDiscursiva(effectiveDiscursiva);
     setGenerating(true);
     setQuestions([]);
-    setGenerationMessage('Preparando geração assíncrona...');
+    setGenerationMessage('🔍 Consultando diretrizes BNCC...');
     setGenerationStep(0);
     setGenerationProgress(0);
     setGenerationTotalSteps(0);
