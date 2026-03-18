@@ -181,8 +181,8 @@ export default function StudentDashboard() {
   };
 
   const trainingActions = [
-    { id: 'vestibular', label: 'Treino de Vestibular', desc: 'Quiz interativo com cronômetro — ENEM, IFs, ETEC', icon: Target, gradient: 'from-indigo-500 to-blue-600', path: '/aluno/quiz' },
-    { id: 'literatura', label: 'Dossiê Literário', desc: 'Resumos rápidos e flashcards literários', icon: BookOpen, gradient: 'from-pink-500 to-rose-600', path: '/literatura' },
+    { id: 'vestibular', label: 'Treino de Vestibular', desc: 'Quiz interativo com cronômetro — ENEM, IFs, ETEC', icon: Target, gradient: 'from-indigo-500 to-blue-600', path: '/portal-aluno/quiz' },
+    { id: 'literatura', label: 'Dossiê Literário', desc: 'Resumos rápidos e flashcards literários', icon: BookOpen, gradient: 'from-pink-500 to-rose-600', path: '/portal-aluno/literatura' },
     { id: 'jogos', label: 'Jogos Didáticos', desc: 'Cruzadinhas, sudokus e vocabulário', icon: Gamepad2, gradient: 'from-orange-500 to-amber-600', path: '/jogos' },
   ];
 
