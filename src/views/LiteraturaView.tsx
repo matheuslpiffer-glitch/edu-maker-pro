@@ -33,6 +33,7 @@ export default function LiteraturaView() {
 
   const [questions, setQuestions] = useState<SimQuestion[]>([]);
   const [generating, setGenerating] = useState(false);
+  const [generatingMessage, setGeneratingMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
 
@@ -60,7 +61,21 @@ export default function LiteraturaView() {
     }
     setGenerating(true);
     setQuestions([]);
+    setGeneratingMessage('📖 Analisando obra literária...');
     try {
+      const progressMessages = [
+        '📖 Analisando obra literária...',
+        '🔍 Identificando personagens e enredo...',
+        '📚 Estruturando dossiê pedagógico...',
+        '✍️ Redigindo análise crítica...',
+        '✅ Finalizando dossiê...',
+      ];
+      let msgIdx = 0;
+      const msgInterval = setInterval(() => {
+        msgIdx = Math.min(msgIdx + 1, progressMessages.length - 1);
+        setGeneratingMessage(progressMessages[msgIdx]);
+      }, 8000);
+
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
         body: {
           isLiteratura: true,
@@ -69,6 +84,7 @@ export default function LiteraturaView() {
           litModel: examModel,
         },
       });
+      clearInterval(msgInterval);
       if (error) throw error;
       const parsed = Array.isArray(data) ? data : data?.questions || [];
       setQuestions(parsed);
@@ -130,10 +146,11 @@ export default function LiteraturaView() {
     try {
       const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set({
-        margin: [10, 10, 10, 10] as [number, number, number, number],
+        margin: [20, 20, 20, 20] as [number, number, number, number],
         filename: `${title || 'dossie-literario'}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794 },
+        pagebreak: { mode: ['css', 'legacy'] },
+        image: { type: 'png' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794, scrollX: 0, scrollY: 0 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
       } as any).from(container).save();
       toast({ title: 'PDF gerado!' });
@@ -262,7 +279,8 @@ export default function LiteraturaView() {
               {generating && (
                 <div className="flex flex-col items-center gap-3 py-6 animate-pulse">
                   <Library className="h-12 w-12 text-amber-500 animate-bounce" />
-                  <p className="text-sm font-medium text-slate-500 text-center">Analisando obra literária...</p>
+                  <p className="text-sm font-medium text-muted-foreground text-center">{generatingMessage}</p>
+                  <p className="text-xs text-muted-foreground">Sem limite de tempo — aguarde a conclusão completa</p>
                 </div>
               )}
             </div>
@@ -294,21 +312,38 @@ export default function LiteraturaView() {
                 </div>
               ) : (
                 <div className="flex justify-center bg-muted/30 py-4 sm:py-8 rounded-lg overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                  <div ref={printContainerRef} className="bg-white shadow-2xl border min-w-[794px] p-8" style={{ width: '794px' }}>
-                    <div className="text-center mb-6">
-                      {institutionName && <p className="text-sm text-slate-500 mb-1">{institutionName}</p>}
+                  <div
+                    ref={printContainerRef}
+                    className="bg-white shadow-2xl border min-w-[794px] p-8"
+                    style={{
+                      width: '794px',
+                      wordBreak: 'break-word',
+                      whiteSpace: 'pre-wrap',
+                      lineHeight: '1.6',
+                      overflowWrap: 'break-word',
+                    }}
+                  >
+                    <div className="text-center mb-6" style={{ whiteSpace: 'normal' }}>
+                      {institutionName && <p className="text-sm text-muted-foreground mb-1">{institutionName}</p>}
                       <h2 className="text-xl font-bold">{title || `Dossiê Literário: ${litObraName}`}</h2>
-                      {litAutorName && <p className="text-sm text-slate-400 mt-1">Autor: {litAutorName}</p>}
+                      {litAutorName && <p className="text-sm text-muted-foreground mt-1">Autor: {litAutorName}</p>}
                     </div>
                     {questions.map((q, i) => (
-                      <div key={i} className="mb-6 pb-4 border-b border-slate-100 last:border-0">
+                      <div key={i} className="mb-6 pb-4 border-b border-border last:border-0" style={{ pageBreakInside: 'auto', whiteSpace: 'normal' }}>
                         <div className="flex items-start gap-2 mb-2">
                           <Badge variant="outline" className="shrink-0 text-xs">{String(i + 1).padStart(2, '0')}</Badge>
                           {q.skillCode && <span className="text-xs text-muted-foreground font-mono">[{q.skillCode}]</span>}
                         </div>
-                        <div className="prose prose-sm max-w-none text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                        <div
+                          className="prose prose-sm max-w-none text-sm"
+                          style={{ lineHeight: '1.6', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}
+                          dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }}
+                        />
                       </div>
                     ))}
+                    <p className="text-[10px] text-muted-foreground text-right mt-4 border-t border-border pt-2" style={{ whiteSpace: 'normal' }}>
+                      Sistema homologado por Matheus Lima Piffer
+                    </p>
                   </div>
                 </div>
               )}
