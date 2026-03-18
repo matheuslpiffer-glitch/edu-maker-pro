@@ -111,6 +111,8 @@ export async function generatePdfFromElement(
         windowWidth: element.scrollWidth,
         scrollX: 0,
         scrollY: 0,
+        letterRendering: true,
+        width: element.scrollWidth,
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation },
     };
