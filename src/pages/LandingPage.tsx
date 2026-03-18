@@ -56,10 +56,10 @@ export default function LandingPage() {
             <span className="font-bold text-xl tracking-tight">EduCreator <span className="text-[hsl(38,92%,50%)]">Pro</span></span>
           </div>
           <Button
-            onClick={() => setShowAuth(true)}
+            onClick={openTeacherLogin}
             className="bg-[hsl(38,92%,50%)] text-[hsl(222,47%,6%)] hover:bg-[hsl(38,92%,45%)] font-semibold"
           >
-            Entrar
+            Entrar como Professor
           </Button>
         </nav>
 
