@@ -80,10 +80,14 @@ export default function StudentDashboard() {
       setShowWelcome(true);
       localStorage.setItem(key, 'true');
     }
-    // Always show a brief welcome toast on dashboard load
-    const { toast } = await import('@/hooks/use-toast').then(m => m);
-    // Use setTimeout to avoid calling during render
-  }, [user]);
+    // Welcome toast on dashboard load
+    setTimeout(() => {
+      toast({
+        title: '📚 Bem-vindo ao Portal de Estudos!',
+        description: 'Clique nos cards abaixo para acessar seus simulados e o Dossiê Literário. Bons estudos!',
+      });
+    }, 1000);
+  }, [user, toast]);
 
   // Load latest available simulator (most recent from any teacher)
   useEffect(() => {
