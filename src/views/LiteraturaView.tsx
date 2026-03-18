@@ -279,7 +279,8 @@ export default function LiteraturaView() {
               {generating && (
                 <div className="flex flex-col items-center gap-3 py-6 animate-pulse">
                   <Library className="h-12 w-12 text-amber-500 animate-bounce" />
-                  <p className="text-sm font-medium text-slate-500 text-center">Analisando obra literária...</p>
+                  <p className="text-sm font-medium text-muted-foreground text-center">{generatingMessage}</p>
+                  <p className="text-xs text-muted-foreground">Sem limite de tempo — aguarde a conclusão completa</p>
                 </div>
               )}
             </div>
