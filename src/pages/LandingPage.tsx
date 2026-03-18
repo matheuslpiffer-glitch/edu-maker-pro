@@ -1,11 +1,9 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   GraduationCap, ClipboardCheck, Presentation, ClipboardList, BarChart3,
   ArrowRight, Shield, Sparkles, CheckCircle2, Brain, FileText, Users, BookOpen
 } from 'lucide-react';
-import Auth from './Auth';
 
 const features = [
   {

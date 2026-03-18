@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Menu, Eye, ArrowLeft } from 'lucide-react';
 import AppSidebar from './AppSidebar';
 import { useStudentMode } from '@/hooks/useStudentMode';
@@ -6,8 +7,9 @@ import { useRole } from '@/hooks/useRole';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isStudentMode, toggleStudentMode } = useStudentMode();
+  const { isStudentMode, setStudentMode } = useStudentMode();
   const { isTeacher } = useRole();
+  const navigate = useNavigate();
 
   /* Teacher previewing as student */
   const isPreviewMode = isStudentMode && isTeacher;

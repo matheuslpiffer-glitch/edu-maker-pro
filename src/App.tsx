@@ -54,7 +54,6 @@ import SignAttendance from "@/pages/SignAttendance";
 import { Loader2, ShieldAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient();
 

@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useRole } from '@/hooks/useRole';
+import { useStudentMode } from '@/hooks/useStudentMode';
 import { lovable } from '@/integrations/lovable/index';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,14 +11,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { GraduationCap, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-export default function Auth() {
+interface AuthProps {
+  preferredPortal?: 'teacher' | 'student';
+}
+
+export default function Auth({ preferredPortal }: AuthProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
+  const { isTeacher, isStudent, hasRole, loading: roleLoading } = useRole();
+  const { setStudentMode } = useStudentMode();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {

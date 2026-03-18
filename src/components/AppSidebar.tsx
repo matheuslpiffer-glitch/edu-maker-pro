@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 
 const teacherLinks = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
+  { to: '/dashboard-professor', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
   { to: '/sobre', icon: BookMarked, label: 'Sobre o Projeto', section: 'Principal' },
   { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & ENEM', section: 'Estúdios de Criação' },
   { to: '/tecnicos', icon: Cpu, label: 'Técnicos & IFs', section: 'Estúdios de Criação' },
@@ -38,11 +38,11 @@ const teacherLinks = [
 ];
 
 const studentLinks = [
-  { to: '/aluno', icon: LayoutDashboard, label: 'Meu Painel' },
-  { to: '/aluno/quiz', icon: Target, label: 'Treino de Vestibular' },
+  { to: '/portal-aluno', icon: LayoutDashboard, label: 'Meu Painel' },
+  { to: '/portal-aluno/quiz', icon: Target, label: 'Treino de Vestibular' },
   { to: '/literatura', icon: BookText, label: 'Dossiê Literário' },
   { to: '/jogos', icon: Gamepad2, label: 'Jogos Didáticos' },
-  { to: '/aluno/desempenho', icon: BarChart3, label: 'Meu Desempenho' },
+  { to: '/portal-aluno/desempenho', icon: BarChart3, label: 'Meu Desempenho' },
 ];
 
 interface Props {
