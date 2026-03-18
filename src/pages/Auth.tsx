@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Loader2, Eye, EyeOff } from 'lucide-react';
+import { GraduationCap, Loader2, Eye, EyeOff, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthProps {
@@ -22,6 +22,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [selectedPortal, setSelectedPortal] = useState<'teacher' | 'student' | null>(preferredPortal ?? null);
   const { signIn, signUp, user } = useAuth();
   const { isTeacher, isStudent, hasRole, loading: roleLoading } = useRole();
   const { setStudentMode } = useStudentMode();
@@ -59,6 +60,13 @@ export default function Auth({ preferredPortal }: AuthProps) {
     }
   };
 
+  // Save portal preference for post-OAuth role assignment
+  useEffect(() => {
+    if (selectedPortal) {
+      sessionStorage.setItem('preferred_portal', selectedPortal);
+    }
+  }, [selectedPortal]);
+
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
       const { error } = await lovable.auth.signInWithOAuth("google", {
@@ -83,6 +91,24 @@ export default function Auth({ preferredPortal }: AuthProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Portal Selection */}
+          {!selectedPortal && (
+            <div className="space-y-3">
+              <p className="text-sm text-center text-muted-foreground font-medium">Como deseja acessar?</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Button variant="outline" className="py-6 flex flex-col gap-1 h-auto" onClick={() => setSelectedPortal('teacher')}>
+                  <GraduationCap size={22} className="text-primary" />
+                  <span className="font-bold text-sm">Acesso Professor</span>
+                </Button>
+                <Button variant="outline" className="py-6 flex flex-col gap-1 h-auto" onClick={() => setSelectedPortal('student')}>
+                  <BookOpen size={22} className="text-accent-foreground" />
+                  <span className="font-bold text-sm">Acesso Aluno</span>
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {selectedPortal && (<>
           {/* Google Login */}
           <Button
             variant="outline"
@@ -167,11 +193,17 @@ export default function Auth({ preferredPortal }: AuthProps) {
               {isSignUp ? 'Criar Conta' : 'Entrar'}
             </Button>
           </form>
-          <div className="text-center text-sm">
+          <div className="text-center text-sm space-y-2">
             <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline">
               {isSignUp ? 'Já tem conta? Entre aqui' : 'Não tem conta? Cadastre-se'}
             </button>
+            <div>
+              <button type="button" onClick={() => setSelectedPortal(null)} className="text-xs text-muted-foreground hover:underline">
+                ← Trocar tipo de acesso ({selectedPortal === 'teacher' ? 'Professor' : 'Aluno'})
+              </button>
+            </div>
           </div>
+          </>)}
         </CardContent>
       </Card>
     </div>

@@ -28,6 +28,7 @@ import Vestibulares from "@/pages/Vestibulares";
 import Tecnicos from "@/pages/Tecnicos";
 import GameFactory from "@/pages/GameFactory";
 import LiteraturaView from "@/views/LiteraturaView";
+import { ArrowLeftRight } from "lucide-react";
 import PisaSimulators from "@/pages/PisaSimulators";
 import PisaStudentView from "@/pages/PisaStudentView";
 import QuestionBankAI from "@/pages/QuestionBankAI";
@@ -103,6 +104,7 @@ function AppRoutes() {
           <Route path="/portal-aluno" element={<StudentDashboard />} />
           <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
           <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
+          <Route path="/portal-aluno/literatura" element={<LiteraturaView />} />
           <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
           <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
           <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
@@ -153,6 +155,7 @@ function AppRoutes() {
         <Route path="/portal-aluno" element={<StudentDashboard />} />
         <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
         <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
+        <Route path="/portal-aluno/literatura" element={<LiteraturaView />} />
         <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
         <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
         <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
