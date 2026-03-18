@@ -615,7 +615,7 @@ export default function Inclusao() {
       )}
 
       <p className="text-center text-xs text-muted-foreground">
-        EduCreator Pro — Por Matheus Lima Piffer
+        Estratégia Pedagógica por Matheus Lima Piffer · EduCreator Pro
       </p>
     </div>
   );
