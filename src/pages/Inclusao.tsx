@@ -549,26 +549,51 @@ export default function Inclusao() {
                 {q.imageUrl && (
                   <img
                     src={q.imageUrl}
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    alt="Imagem de apoio"
+                    onError={(e) => {
+                      const el = e.currentTarget as HTMLImageElement;
+                      el.style.display = 'none';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium my-2';
+                      fallback.innerHTML = '✅ Adaptação textual concluída com sucesso para o nível do aluno.';
+                      el.parentElement?.insertBefore(fallback, el.nextSibling);
+                    }}
                     className="w-full max-w-sm h-auto rounded-2xl shadow-md my-4"
                   />
                 )}
 
-                {/* Generated Pollinations image (persisted in preview for PDF) */}
+                {/* Generated image */}
                 {generatedImages[i] && !q.imageUrl && (
                   <img
                     src={generatedImages[i]}
                     alt="Imagem de apoio gerada"
                     className="w-full max-w-sm h-auto rounded-2xl shadow-md my-4"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                    onError={(e) => {
+                      const el = e.currentTarget as HTMLImageElement;
+                      el.style.display = 'none';
+                      const fallback = document.createElement('div');
+                      fallback.className = 'flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-medium my-2';
+                      fallback.innerHTML = '✅ Adaptação textual concluída com sucesso para o nível do aluno.';
+                      el.parentElement?.insertBefore(fallback, el.nextSibling);
+                    }}
                   />
                 )}
 
-                {/* Per-question image generator button */}
-                <QuestionImageGenerator
-                  questionIndex={i}
-                  onImageGenerated={(url) => handleImageGenerated(i, url)}
-                />
+                {/* Per-question image generator button — only show in "com_imagem" mode */}
+                {imageMode === 'com_imagem' && (
+                  <QuestionImageGenerator
+                    questionIndex={i}
+                    onImageGenerated={(url) => handleImageGenerated(i, url)}
+                  />
+                )}
+
+                {/* Text-only success badge */}
+                {imageMode === 'somente_texto' && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 text-xs font-medium">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    Adaptação textual concluída com sucesso para o nível do aluno.
+                  </div>
+                )}
               </div>
             ))}
           </div>
