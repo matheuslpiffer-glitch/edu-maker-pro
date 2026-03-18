@@ -60,6 +60,13 @@ export default function Auth({ preferredPortal }: AuthProps) {
     }
   };
 
+  // Save portal preference for post-OAuth role assignment
+  useEffect(() => {
+    if (selectedPortal) {
+      sessionStorage.setItem('preferred_portal', selectedPortal);
+    }
+  }, [selectedPortal]);
+
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
       const { error } = await lovable.auth.signInWithOAuth("google", {
