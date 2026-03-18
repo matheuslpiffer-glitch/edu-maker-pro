@@ -479,7 +479,7 @@ Responda em JSON (SEM markdown, SEM blocos de código):
       const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
         { role: "system", content: systemPromptLit },
         { role: "user", content: userPromptLit },
-      ], 0.7);
+      ], 0.7, 3, 150000);
 
       return await parseAIResponse(response, "dossiê literário");
     }
