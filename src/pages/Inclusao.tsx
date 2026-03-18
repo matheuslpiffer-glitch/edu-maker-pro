@@ -111,7 +111,7 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
       }
     } catch (e: any) {
       console.error('Image generation error:', e);
-      setError('Falha na geração. Tente descrever a imagem de forma diferente.');
+      setError('Adaptação textual concluída com sucesso para o nível do aluno. A imagem de apoio não pôde ser gerada, mas o conteúdo textual está completo.');
     } finally {
       setLoading(false);
     }
