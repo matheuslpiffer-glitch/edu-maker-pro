@@ -5,44 +5,86 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function extractJsonFromResponse(response: string): unknown {
-  let cleaned = response
+function detectRefusal(content: string): boolean {
+  const refusalIndicators = [
+    "i cannot",
+    "i don't have the ability",
+    "cannot complete this request",
+    "i'm unable to",
+    "as a language model",
+    "my limitations",
+    "i apologize, but",
+  ];
+
+  const normalized = content.toLowerCase();
+  return refusalIndicators.some((indicator) => normalized.includes(indicator));
+}
+
+function repairAndParse(json: string): unknown {
+  let cleaned = json
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, " ")
+    .trim();
+
+  cleaned = cleaned
+    .replace(/,\s*}/g, "}")
+    .replace(/,\s*]/g, "]")
+    .replace(/"\s*\n\s*/g, '" ')
+    .replace(/\t/g, " ");
+
+  const openBraces = (cleaned.match(/{/g) || []).length;
+  const closeBraces = (cleaned.match(/}/g) || []).length;
+  const openBrackets = (cleaned.match(/\[/g) || []).length;
+  const closeBrackets = (cleaned.match(/\]/g) || []).length;
+
+  for (let i = 0; i < openBrackets - closeBrackets; i++) cleaned += "]";
+  for (let i = 0; i < openBraces - closeBraces; i++) cleaned += "}";
+
+  return JSON.parse(cleaned);
+}
+
+function extractJsonFromMixedResponse(response: string): unknown {
+  const cleaned = response
     .replace(/```json\s*/gi, "")
     .replace(/```\s*/g, "")
     .trim();
 
-  const jsonStart = cleaned.search(/[\{\[]/);
-  const isArray = jsonStart !== -1 && cleaned[jsonStart] === '[';
-  const jsonEnd = cleaned.lastIndexOf(isArray ? ']' : '}');
-
-  if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
-    throw new Error("No JSON object found in response");
-  }
-
-  cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
-
   try {
     return JSON.parse(cleaned);
   } catch {
-    cleaned = cleaned
-      .replace(/,\s*}/g, "}")
-      .replace(/,\s*]/g, "]")
-      .replace(/[\x00-\x1F\x7F]/g, " ")
-      .replace(/"\s*\n\s*/g, '" ')
-      .replace(/\t/g, " ");
-
-    const openBraces = (cleaned.match(/{/g) || []).length;
-    const closeBraces = (cleaned.match(/}/g) || []).length;
-    const openBrackets = (cleaned.match(/\[/g) || []).length;
-    const closeBrackets = (cleaned.match(/\]/g) || []).length;
-
-    for (let i = 0; i < openBrackets - closeBrackets; i++) cleaned += "]";
-    for (let i = 0; i < openBraces - closeBraces; i++) cleaned += "}";
-
-    cleaned = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
-
-    return JSON.parse(cleaned);
+    // fall through
   }
+
+  const jsonStart = cleaned.search(/[\[{]/);
+  if (jsonStart !== -1) {
+    const candidate = cleaned.slice(jsonStart).trim();
+
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      try {
+        return repairAndParse(candidate);
+      } catch {
+        // fall through
+      }
+    }
+  }
+
+  const codeBlockMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (codeBlockMatch?.[1]) {
+    try {
+      return repairAndParse(codeBlockMatch[1].trim());
+    } catch {
+      // fall through
+    }
+  }
+
+  if (detectRefusal(response)) {
+    throw new Error("LLM refused to process the literary dossier request");
+  }
+
+  throw new Error("Could not extract valid JSON from response");
 }
 
 // Strip any <img> tags from all content fields recursively
@@ -158,12 +200,11 @@ async function parseAIResponse(response: Response, label: string) {
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content || "";
   try {
-    const parsed = extractJsonFromResponse(content);
-    // Strip ALL img tags from output for stability
+    const parsed = extractJsonFromMixedResponse(content);
     const sanitized = stripImgTags(parsed);
     return new Response(JSON.stringify(sanitized), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch {
-    console.error(`Failed to parse ${label}:`, content.substring(0, 500));
+  } catch (error) {
+    console.error(`Failed to parse ${label}:`, content.substring(0, 1200), error);
     return new Response(JSON.stringify({ error: `Erro ao processar ${label}. Tente novamente.` }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 }
@@ -177,7 +218,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { examType, examModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode } = await req.json();
+    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
     if (isInclusao) {
@@ -397,7 +438,8 @@ Responda em JSON:
         lit_personagens: 'Análise aprofundada de todos os personagens (protagonistas, antagonistas, secundários), suas motivações, arcos e relações',
         lit_contexto: 'Contexto histórico, social e cultural da obra e do autor, movimento literário e influências',
       };
-      const litDirective = litModelLabels[examModel] || litModelLabels.lit_vestibular;
+      const selectedLitModel = litModel || examModel || 'lit_vestibular';
+      const litDirective = litModelLabels[selectedLitModel] || litModelLabels.lit_vestibular;
       const autorInfo = litAutorName ? ` do autor "${litAutorName}"` : '';
       const focusExtra = specificTopic ? `\nFoco adicional solicitado pelo professor: "${specificTopic}"` : '';
 
