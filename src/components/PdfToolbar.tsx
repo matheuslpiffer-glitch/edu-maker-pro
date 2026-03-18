@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button';
-import { Printer, Download, Save } from 'lucide-react';
+import { Printer, Download, Save, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { generatePdfFromElement } from '@/lib/pdf-utils';
 
 interface PdfToolbarProps {
   filename?: string;
@@ -10,6 +12,7 @@ interface PdfToolbarProps {
 
 export default function PdfToolbar({ filename = 'documento', onSave, containerId = 'pdf-preview-container' }: PdfToolbarProps) {
   const { toast } = useToast();
+  const [generating, setGenerating] = useState(false);
 
   const handlePrint = () => {
     document.body.classList.add('print-mode');
@@ -25,21 +28,15 @@ export default function PdfToolbar({ filename = 'documento', onSave, containerId
       toast({ title: 'Container não encontrado', variant: 'destructive' });
       return;
     }
+    setGenerating(true);
     try {
-      const html2pdf = (await import('html2pdf.js')).default;
-      const opts: any = {
-        margin: [15, 10, 15, 10],
-        filename: `${filename}.pdf`,
-        pagebreak: { mode: ['css', 'legacy'] },
-        image: { type: 'png', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      };
-      await html2pdf().set(opts).from(el).save();
-      toast({ title: 'PDF gerado com sucesso!' });
+      await generatePdfFromElement(el, filename);
+      toast({ title: 'PDF gerado com sucesso! ✅', description: 'Verificado por Matheus Lima Piffer.' });
     } catch (e: any) {
       console.error(e);
       toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -48,8 +45,9 @@ export default function PdfToolbar({ filename = 'documento', onSave, containerId
       <Button variant="outline" size="sm" onClick={handlePrint}>
         <Printer size={14} className="mr-1" /> Imprimir
       </Button>
-      <Button variant="outline" size="sm" onClick={handlePdf}>
-        <Download size={14} className="mr-1" /> Gerar PDF
+      <Button variant="outline" size="sm" onClick={handlePdf} disabled={generating}>
+        {generating ? <Loader2 size={14} className="mr-1 animate-spin" /> : <Download size={14} className="mr-1" />}
+        {generating ? 'Gerando...' : 'Gerar PDF'}
       </Button>
       {onSave && (
         <Button variant="outline" size="sm" onClick={onSave}>
