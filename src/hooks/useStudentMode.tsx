@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface StudentModeContextType {
   isStudentMode: boolean;
   toggleStudentMode: () => void;
+  setStudentMode: (value: boolean) => void;
   studentXP: number;
   studentLevel: number;
   addXP: (amount: number) => void;
@@ -13,6 +14,7 @@ interface StudentModeContextType {
 const StudentModeContext = createContext<StudentModeContextType>({
   isStudentMode: false,
   toggleStudentMode: () => {},
+  setStudentMode: () => {},
   studentXP: 0,
   studentLevel: 1,
   addXP: () => {},
@@ -23,15 +25,24 @@ export function StudentModeProvider({ children }: { children: ReactNode }) {
   const [studentXP, setStudentXP] = useState(0);
   const [studentLevel, setStudentLevel] = useState(1);
   const { user } = useAuth();
+  const storageKey = user ? `studentMode:${user.id}` : null;
 
   useEffect(() => {
-    const saved = localStorage.getItem('studentMode');
-    if (saved === 'true') setIsStudentMode(true);
-  }, []);
+    if (!storageKey) {
+      setIsStudentMode(false);
+      setStudentXP(0);
+      setStudentLevel(1);
+      return;
+    }
+
+    const saved = localStorage.getItem(storageKey);
+    setIsStudentMode(saved === 'true');
+    localStorage.removeItem('studentMode');
+  }, [storageKey]);
 
   useEffect(() => {
     if (!user || !isStudentMode) return;
-    // Load aggregate XP
+
     supabase
       .from('student_progress')
       .select('xp_earned, level')
@@ -46,10 +57,20 @@ export function StudentModeProvider({ children }: { children: ReactNode }) {
       });
   }, [user, isStudentMode]);
 
+  const persistStudentMode = (value: boolean) => {
+    setIsStudentMode(value);
+    if (storageKey) {
+      localStorage.setItem(storageKey, String(value));
+    }
+    localStorage.removeItem('studentMode');
+  };
+
   const toggleStudentMode = () => {
-    const next = !isStudentMode;
-    setIsStudentMode(next);
-    localStorage.setItem('studentMode', String(next));
+    persistStudentMode(!isStudentMode);
+  };
+
+  const setStudentMode = (value: boolean) => {
+    persistStudentMode(value);
   };
 
   const addXP = (amount: number) => {
@@ -62,7 +83,7 @@ export function StudentModeProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <StudentModeContext.Provider value={{ isStudentMode, toggleStudentMode, studentXP, studentLevel, addXP }}>
+    <StudentModeContext.Provider value={{ isStudentMode, toggleStudentMode, setStudentMode, studentXP, studentLevel, addXP }}>
       {children}
     </StudentModeContext.Provider>
   );

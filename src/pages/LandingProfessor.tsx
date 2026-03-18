@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { GraduationCap, ClipboardCheck, Presentation, ClipboardList, BarChart3, ArrowRight, Sparkles } from 'lucide-react';
+import { GraduationCap, ClipboardCheck, Presentation, ClipboardList, BarChart3, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useRole } from '@/hooks/useRole';
+import { useStudentMode } from '@/hooks/useStudentMode';
 import Auth from './Auth';
 
 const features = [
@@ -13,7 +17,39 @@ const features = [
 
 export default function LandingProfessor() {
   const [showAuth, setShowAuth] = useState(false);
-  if (showAuth) return <Auth />;
+  const { user } = useAuth();
+  const { isTeacher, isStudent, hasRole, loading } = useRole();
+  const { setStudentMode } = useStudentMode();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user || loading) return;
+
+    if (isTeacher) {
+      setStudentMode(false);
+      navigate('/dashboard-professor', { replace: true });
+      return;
+    }
+
+    if (isStudent) {
+      navigate('/portal-aluno', { replace: true });
+      return;
+    }
+
+    if (!hasRole) {
+      navigate('/', { replace: true });
+    }
+  }, [user, loading, isTeacher, isStudent, hasRole, navigate, setStudentMode]);
+
+  if (user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (showAuth) return <Auth preferredPortal="teacher" />;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -54,7 +90,7 @@ export default function LandingProfessor() {
       </main>
 
       <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-        Plataforma EduCreator Pro | Desenvolvido por Matheus Lima Piffer
+        EduCreator Pro | Gestão Pedagógica: Matheus Lima Piffer
       </footer>
     </div>
   );

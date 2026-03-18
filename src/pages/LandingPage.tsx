@@ -187,7 +187,7 @@ export default function LandingPage() {
         <p className="text-white/50 max-w-lg mx-auto mb-8">Coordenadores e professores PEI já usam o EduCreator Pro para resultados melhores.</p>
         <Button
           size="lg"
-          onClick={() => setShowAuth(true)}
+          onClick={openTeacherLogin}
           className="bg-[hsl(38,92%,50%)] text-[hsl(222,47%,6%)] hover:bg-[hsl(38,92%,45%)] font-bold text-lg px-10 py-7 rounded-xl"
         >
           Entrar no Sistema

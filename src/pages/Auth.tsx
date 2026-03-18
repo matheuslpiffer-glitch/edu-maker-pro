@@ -109,7 +109,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
             onClick={async () => {
               setGoogleLoading(true);
               const { error } = await lovable.auth.signInWithOAuth("apple", {
-                redirect_uri: window.location.origin,
+                redirect_uri: window.location.href,
               });
               setGoogleLoading(false);
               if (error) {

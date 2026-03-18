@@ -22,7 +22,7 @@ export default function Index() {
     load();
   }, []);
 
-  if (isStudentMode) return <Navigate to="/aluno" replace />;
+  if (isStudentMode) return <Navigate to="/portal-aluno" replace />;
 
   const coreEngines = [
     { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & ENEM', desc: 'FUVEST, UNICAMP, ENEM, Federais e mais', gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20' },

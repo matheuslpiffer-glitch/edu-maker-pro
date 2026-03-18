@@ -54,7 +54,7 @@ export default function AppSidebar({ open, onClose }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, user } = useAuth();
+  const { signOut } = useAuth();
   const { isSuperAdmin, isTeacher } = useRole();
   const { isStudentMode, toggleStudentMode, studentLevel, studentXP } = useStudentMode();
   const { canInstall, install } = usePWAInstall();
@@ -63,9 +63,9 @@ export default function AppSidebar({ open, onClose }: Props) {
     const wasStudent = isStudentMode;
     toggleStudentMode();
     if (wasStudent) {
-      navigate('/');
+      navigate('/dashboard-professor');
     } else {
-      navigate('/aluno');
+      navigate('/portal-aluno');
     }
   };
 

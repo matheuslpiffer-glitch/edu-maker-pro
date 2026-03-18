@@ -15,13 +15,16 @@ export function useRole() {
       setLoading(false);
       return;
     }
+
     setLoading(true);
-    const { data, error } = await supabase.rpc('get_my_role');
+    const { data, error } = await supabase.rpc('bootstrap_my_access');
+
     if (!error && data) {
       setRole(data as AppRole);
     } else {
       setRole(null);
     }
+
     setLoading(false);
   }, [user]);
 

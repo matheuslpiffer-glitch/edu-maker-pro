@@ -31,9 +31,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="bg-amber-500 text-amber-950 text-center text-sm font-medium py-2 px-4 flex items-center justify-center gap-2 no-print shrink-0">
             <Eye size={16} />
             <span>Você está no <strong>Modo Visualização de Aluno</strong>.</span>
-            <button onClick={toggleStudentMode} className="underline font-bold hover:text-amber-800 ml-1 inline-flex items-center gap-1">
-              <ArrowLeft size={14} /> Voltar ao Painel do Professor
-            </button>
+             <button onClick={handleExitPreview} className="underline font-bold hover:text-amber-800 ml-1 inline-flex items-center gap-1">
+               <ArrowLeft size={14} /> Voltar ao Painel do Professor
+             </button>
           </div>
         )}
         <header className="lg:hidden flex items-center h-14 px-4 border-b border-slate-200 bg-white no-print shrink-0">
