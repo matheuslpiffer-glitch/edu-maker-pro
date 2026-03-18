@@ -22,6 +22,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [selectedPortal, setSelectedPortal] = useState<'teacher' | 'student' | null>(preferredPortal ?? null);
   const { signIn, signUp, user } = useAuth();
   const { isTeacher, isStudent, hasRole, loading: roleLoading } = useRole();
   const { setStudentMode } = useStudentMode();
