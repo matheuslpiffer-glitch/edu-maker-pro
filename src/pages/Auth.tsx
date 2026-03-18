@@ -61,9 +61,9 @@ export default function Auth({ preferredPortal }: AuthProps) {
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
-    const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.href,
+      });
     setGoogleLoading(false);
     if (error) {
       toast({ title: 'Erro', description: String(error), variant: 'destructive' });
