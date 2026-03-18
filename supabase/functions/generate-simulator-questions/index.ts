@@ -200,12 +200,11 @@ async function parseAIResponse(response: Response, label: string) {
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content || "";
   try {
-    const parsed = extractJsonFromResponse(content);
-    // Strip ALL img tags from output for stability
+    const parsed = extractJsonFromMixedResponse(content);
     const sanitized = stripImgTags(parsed);
     return new Response(JSON.stringify(sanitized), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-  } catch {
-    console.error(`Failed to parse ${label}:`, content.substring(0, 500));
+  } catch (error) {
+    console.error(`Failed to parse ${label}:`, content.substring(0, 1200), error);
     return new Response(JSON.stringify({ error: `Erro ao processar ${label}. Tente novamente.` }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 }
