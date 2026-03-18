@@ -96,9 +96,14 @@ export default function Auth({ preferredPortal }: AuthProps) {
             <div className="space-y-3">
               <p className="text-sm text-center text-muted-foreground font-medium">Como deseja acessar?</p>
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="py-6 flex flex-col gap-1 h-auto" onClick={() => setSelectedPortal('teacher')}>
-                  <GraduationCap size={22} className="text-primary" />
-                  <span className="font-bold text-sm">Acesso Professor</span>
+                <Button
+                  variant="outline"
+                  className="py-6 flex flex-col gap-1 h-auto font-bold text-gray-900 border-2 hover:border-yellow-500 hover:shadow-lg"
+                  style={{ background: 'linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7)' }}
+                  onClick={() => setSelectedPortal('teacher')}
+                >
+                  <GraduationCap size={22} className="text-gray-900" />
+                  <span className="font-bold text-sm text-gray-900">Acesso Professor</span>
                 </Button>
                 <Button variant="outline" className="py-6 flex flex-col gap-1 h-auto" onClick={() => setSelectedPortal('student')}>
                   <BookOpen size={22} className="text-accent-foreground" />

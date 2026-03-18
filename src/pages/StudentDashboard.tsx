@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { Zap, Target, BookOpen, Gamepad2, Trophy, Star, Clock, Brain, Flame, Building2, Cpu, Award, Landmark, Medal, Shield, Sparkles, BarChart3, Eye, ChevronDown, ChevronUp, CheckCircle2, XCircle, MessageCircle, ClipboardList, TrendingUp, Rocket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -48,9 +49,9 @@ const BADGES = [
 ];
 
 const DAILY_MISSIONS = [
-  { id: 'quiz_if', label: 'Fazer um simulado do IF', xp: 500, icon: Building2, path: '/aluno/quiz?fast=ifs' },
-  { id: 'quiz_etec', label: 'Fazer um simulado da ETEC', xp: 500, icon: Cpu, path: '/aluno/quiz?fast=etec' },
-  { id: 'quiz_enem', label: 'Treinar 10 questões ENEM', xp: 300, icon: Target, path: '/aluno/quiz' },
+  { id: 'quiz_if', label: 'Fazer um simulado do IF', xp: 500, icon: Building2, path: '/portal-aluno/quiz?fast=ifs' },
+  { id: 'quiz_etec', label: 'Fazer um simulado da ETEC', xp: 500, icon: Cpu, path: '/portal-aluno/quiz?fast=etec' },
+  { id: 'quiz_enem', label: 'Treinar 10 questões ENEM', xp: 300, icon: Target, path: '/portal-aluno/quiz' },
   { id: 'jogos', label: 'Jogar um jogo didático', xp: 200, icon: Gamepad2, path: '/jogos' },
 ];
 
@@ -58,6 +59,7 @@ export default function StudentDashboard() {
   const { user } = useAuth();
   const { studentXP, studentLevel } = useStudentMode();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [progress, setProgress] = useState<SubjectProgress[]>([]);
   const [recentQuizzes, setRecentQuizzes] = useState<any[]>([]);
   const [simulatorResults, setSimulatorResults] = useState<SimulatorResult[]>([]);
@@ -70,7 +72,7 @@ export default function StudentDashboard() {
   const [showWelcome, setShowWelcome] = useState(false);
   const [latestSimulator, setLatestSimulator] = useState<{ title: string } | null>(null);
 
-  // First-visit welcome modal
+  // First-visit welcome modal + toast
   useEffect(() => {
     if (!user) return;
     const key = `educreator_welcome_${user.id}`;
@@ -78,7 +80,14 @@ export default function StudentDashboard() {
       setShowWelcome(true);
       localStorage.setItem(key, 'true');
     }
-  }, [user]);
+    // Welcome toast on dashboard load
+    setTimeout(() => {
+      toast({
+        title: '📚 Bem-vindo ao Portal de Estudos!',
+        description: 'Clique nos cards abaixo para acessar seus simulados e o Dossiê Literário. Bons estudos!',
+      });
+    }, 1000);
+  }, [user, toast]);
 
   // Load latest available simulator (most recent from any teacher)
   useEffect(() => {
@@ -181,8 +190,8 @@ export default function StudentDashboard() {
   };
 
   const trainingActions = [
-    { id: 'vestibular', label: 'Treino de Vestibular', desc: 'Quiz interativo com cronômetro — ENEM, IFs, ETEC', icon: Target, gradient: 'from-indigo-500 to-blue-600', path: '/aluno/quiz' },
-    { id: 'literatura', label: 'Dossiê Literário', desc: 'Resumos rápidos e flashcards literários', icon: BookOpen, gradient: 'from-pink-500 to-rose-600', path: '/literatura' },
+    { id: 'vestibular', label: 'Treino de Vestibular', desc: 'Quiz interativo com cronômetro — ENEM, IFs, ETEC', icon: Target, gradient: 'from-indigo-500 to-blue-600', path: '/portal-aluno/quiz' },
+    { id: 'literatura', label: 'Dossiê Literário', desc: 'Resumos rápidos e flashcards literários', icon: BookOpen, gradient: 'from-pink-500 to-rose-600', path: '/portal-aluno/literatura' },
     { id: 'jogos', label: 'Jogos Didáticos', desc: 'Cruzadinhas, sudokus e vocabulário', icon: Gamepad2, gradient: 'from-orange-500 to-amber-600', path: '/jogos' },
   ];
 
