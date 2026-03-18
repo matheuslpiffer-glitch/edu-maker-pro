@@ -33,6 +33,7 @@ export default function LiteraturaView() {
 
   const [questions, setQuestions] = useState<SimQuestion[]>([]);
   const [generating, setGenerating] = useState(false);
+  const [generatingMessage, setGeneratingMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
 
