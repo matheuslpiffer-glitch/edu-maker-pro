@@ -158,6 +158,27 @@ img {
   border-radius: 4px;
 }
 
+/* PDF summary container — prevent text overflow on A4 */
+#pdf-preview-container .resumo-simulado,
+#pdf-preview-container [data-resumo],
+[data-pdf-section] .resumo-simulado,
+[data-pdf-section] [data-resumo] {
+  max-width: 180mm;
+  padding-right: 15mm;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* General PDF text overflow protection */
+#pdf-preview-container,
+[data-pdf-section] {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 /* Override min-height for icons and small images */
 img[width], img.h-auto:not(.prose-output img), .shrink-0 img, img[class*="w-5"], img[class*="w-6"], img[class*="w-8"], img[class*="w-10"], img[class*="w-11"], img[class*="w-12"], img[class*="h-5"], img[class*="h-6"], img[class*="h-8"] {
   min-height: unset;

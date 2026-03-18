@@ -9,12 +9,14 @@ interface Props {
 
 const PROGRESS_MESSAGES = [
   { threshold: 0, text: '🔍 Consultando diretrizes BNCC/Currículo Paulista...' },
-  { threshold: 10, text: '📐 Alinhando habilidades ao Escopo e Sequência...' },
-  { threshold: 20, text: '🧠 Estruturando enunciados pedagógicos...' },
-  { threshold: 35, text: '✍️ Criando alternativas e distratores...' },
-  { threshold: 50, text: '📊 Calibrando nível de dificuldade...' },
-  { threshold: 65, text: '🔬 Verificando coerência disciplinar...' },
-  { threshold: 75, text: '📝 Formatando gabarito e justificativas...' },
+  { threshold: 8, text: '📐 Alinhando habilidades ao Escopo e Sequência...' },
+  { threshold: 16, text: '🧠 Estruturando enunciados pedagógicos...' },
+  { threshold: 25, text: '✍️ Criando alternativas e distratores...' },
+  { threshold: 35, text: '🎨 Desenhando figuras e elementos visuais...' },
+  { threshold: 45, text: '📊 Calibrando nível de dificuldade...' },
+  { threshold: 55, text: '🔬 Verificando coerência disciplinar...' },
+  { threshold: 65, text: '📝 Analisando descritores BNCC...' },
+  { threshold: 75, text: '📄 Formatando gabarito e justificativas...' },
   { threshold: 85, text: '✅ Finalizando seu material pedagógico...' },
   { threshold: 95, text: '🚀 Quase pronto! Últimos ajustes...' },
 ];
