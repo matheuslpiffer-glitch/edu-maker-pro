@@ -426,22 +426,44 @@ export default function Inclusao() {
               </div>
 
               {aeeMode === 'gerar_novas' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantidade</Label>
-                    <Input type="number" min={1} max={20} value={questionCount} onChange={e => setQuestionCount(+e.target.value)} className="rounded-2xl" />
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantidade</Label>
+                      <Input type="number" min={1} max={20} value={questionCount} onChange={e => setQuestionCount(+e.target.value)} className="rounded-2xl" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tipo</Label>
+                      <Select value={questionType} onValueChange={setQuestionType}>
+                        <SelectTrigger className="rounded-2xl"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="multipla_visual">Múltipla Escolha Visual</SelectItem>
+                          <SelectItem value="verdadeiro_falso">Verdadeiro ou Falso</SelectItem>
+                          <SelectItem value="ligar_colunas">Ligar Colunas</SelectItem>
+                          <SelectItem value="perguntas_diretas">Perguntas Diretas</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
+
+                  {/* Image Mode Selector */}
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tipo</Label>
-                    <Select value={questionType} onValueChange={setQuestionType}>
-                      <SelectTrigger className="rounded-2xl"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="multipla_visual">Múltipla Escolha Visual</SelectItem>
-                        <SelectItem value="verdadeiro_falso">Verdadeiro ou Falso</SelectItem>
-                        <SelectItem value="ligar_colunas">Ligar Colunas</SelectItem>
-                        <SelectItem value="perguntas_diretas">Perguntas Diretas</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Modo de Imagem</Label>
+                    <RadioGroup value={imageMode} onValueChange={(v) => setImageMode(v as 'com_imagem' | 'somente_texto')} className="flex gap-3">
+                      <label className={`flex items-center gap-2 px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all ${imageMode === 'com_imagem' ? 'border-cyan-500 bg-cyan-50 shadow-md' : 'border-transparent bg-muted/50 hover:border-border'}`}>
+                        <RadioGroupItem value="com_imagem" id="com_imagem" />
+                        <Image className={`h-4 w-4 ${imageMode === 'com_imagem' ? 'text-cyan-600' : 'text-muted-foreground'}`} />
+                        <span className={`text-xs font-bold ${imageMode === 'com_imagem' ? 'text-cyan-700' : 'text-foreground'}`}>Com Imagem</span>
+                      </label>
+                      <label className={`flex items-center gap-2 px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all ${imageMode === 'somente_texto' ? 'border-teal-500 bg-teal-50 shadow-md' : 'border-transparent bg-muted/50 hover:border-border'}`}>
+                        <RadioGroupItem value="somente_texto" id="somente_texto" />
+                        <Type className={`h-4 w-4 ${imageMode === 'somente_texto' ? 'text-teal-600' : 'text-muted-foreground'}`} />
+                        <span className={`text-xs font-bold ${imageMode === 'somente_texto' ? 'text-teal-700' : 'text-foreground'}`}>Somente Texto Adaptado</span>
+                      </label>
+                    </RadioGroup>
+                    {imageMode === 'somente_texto' && (
+                      <p className="text-[10px] text-muted-foreground italic">A IA usará descrições verbais ricas e analogias concretas para substituir recursos visuais.</p>
+                    )}
                   </div>
                 </div>
               )}
