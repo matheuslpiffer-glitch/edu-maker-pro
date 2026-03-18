@@ -5,44 +5,86 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function extractJsonFromResponse(response: string): unknown {
-  let cleaned = response
+function detectRefusal(content: string): boolean {
+  const refusalIndicators = [
+    "i cannot",
+    "i don't have the ability",
+    "cannot complete this request",
+    "i'm unable to",
+    "as a language model",
+    "my limitations",
+    "i apologize, but",
+  ];
+
+  const normalized = content.toLowerCase();
+  return refusalIndicators.some((indicator) => normalized.includes(indicator));
+}
+
+function repairAndParse(json: string): unknown {
+  let cleaned = json
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, " ")
+    .trim();
+
+  cleaned = cleaned
+    .replace(/,\s*}/g, "}")
+    .replace(/,\s*]/g, "]")
+    .replace(/"\s*\n\s*/g, '" ')
+    .replace(/\t/g, " ");
+
+  const openBraces = (cleaned.match(/{/g) || []).length;
+  const closeBraces = (cleaned.match(/}/g) || []).length;
+  const openBrackets = (cleaned.match(/\[/g) || []).length;
+  const closeBrackets = (cleaned.match(/\]/g) || []).length;
+
+  for (let i = 0; i < openBrackets - closeBrackets; i++) cleaned += "]";
+  for (let i = 0; i < openBraces - closeBraces; i++) cleaned += "}";
+
+  return JSON.parse(cleaned);
+}
+
+function extractJsonFromMixedResponse(response: string): unknown {
+  const cleaned = response
     .replace(/```json\s*/gi, "")
     .replace(/```\s*/g, "")
     .trim();
 
-  const jsonStart = cleaned.search(/[\{\[]/);
-  const isArray = jsonStart !== -1 && cleaned[jsonStart] === '[';
-  const jsonEnd = cleaned.lastIndexOf(isArray ? ']' : '}');
-
-  if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
-    throw new Error("No JSON object found in response");
-  }
-
-  cleaned = cleaned.substring(jsonStart, jsonEnd + 1);
-
   try {
     return JSON.parse(cleaned);
   } catch {
-    cleaned = cleaned
-      .replace(/,\s*}/g, "}")
-      .replace(/,\s*]/g, "]")
-      .replace(/[\x00-\x1F\x7F]/g, " ")
-      .replace(/"\s*\n\s*/g, '" ')
-      .replace(/\t/g, " ");
-
-    const openBraces = (cleaned.match(/{/g) || []).length;
-    const closeBraces = (cleaned.match(/}/g) || []).length;
-    const openBrackets = (cleaned.match(/\[/g) || []).length;
-    const closeBrackets = (cleaned.match(/\]/g) || []).length;
-
-    for (let i = 0; i < openBrackets - closeBrackets; i++) cleaned += "]";
-    for (let i = 0; i < openBraces - closeBraces; i++) cleaned += "}";
-
-    cleaned = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
-
-    return JSON.parse(cleaned);
+    // fall through
   }
+
+  const jsonStart = cleaned.search(/[\[{]/);
+  if (jsonStart !== -1) {
+    const candidate = cleaned.slice(jsonStart).trim();
+
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      try {
+        return repairAndParse(candidate);
+      } catch {
+        // fall through
+      }
+    }
+  }
+
+  const codeBlockMatch = response.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (codeBlockMatch?.[1]) {
+    try {
+      return repairAndParse(codeBlockMatch[1].trim());
+    } catch {
+      // fall through
+    }
+  }
+
+  if (detectRefusal(response)) {
+    throw new Error("LLM refused to process the literary dossier request");
+  }
+
+  throw new Error("Could not extract valid JSON from response");
 }
 
 // Strip any <img> tags from all content fields recursively
