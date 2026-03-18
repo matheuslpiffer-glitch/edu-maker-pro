@@ -14,6 +14,18 @@ export default function RoleSelection({ onRoleSelected }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
+  const [autoAssigned, setAutoAssigned] = useState(false);
+
+  // Auto-assign role from session preference (OAuth flow)
+  useEffect(() => {
+    if (!user || autoAssigned) return;
+    const preferred = sessionStorage.getItem('preferred_portal');
+    if (preferred === 'teacher' || preferred === 'student') {
+      setAutoAssigned(true);
+      sessionStorage.removeItem('preferred_portal');
+      selectRole(preferred === 'teacher' ? 'user' : 'student');
+    }
+  }, [user, autoAssigned]);
 
   const selectRole = async (role: 'user' | 'student') => {
     if (!user) return;
