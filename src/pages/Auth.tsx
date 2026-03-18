@@ -28,6 +28,25 @@ export default function Auth({ preferredPortal }: AuthProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (!user || roleLoading) return;
+
+    if (isTeacher) {
+      setStudentMode(false);
+      navigate('/dashboard-professor', { replace: true });
+      return;
+    }
+
+    if (isStudent) {
+      navigate('/portal-aluno', { replace: true });
+      return;
+    }
+
+    if (!hasRole) {
+      navigate('/', { replace: true });
+    }
+  }, [user, roleLoading, isTeacher, isStudent, hasRole, navigate, preferredPortal, setStudentMode]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
