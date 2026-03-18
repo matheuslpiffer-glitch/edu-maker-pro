@@ -66,7 +66,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">{children}</main>
         <footer className="text-center text-xs text-muted-foreground py-3 border-t no-print">
-          EduCreator Pro | Gestão Pedagógica: Matheus Lima Piffer
+          EduCreator Pro | Estabilidade de Sistema por Matheus Lima Piffer
         </footer>
       </div>
     </div>

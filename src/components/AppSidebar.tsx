@@ -40,7 +40,7 @@ const teacherLinks = [
 const studentLinks = [
   { to: '/portal-aluno', icon: LayoutDashboard, label: 'Meu Painel' },
   { to: '/portal-aluno/quiz', icon: Target, label: 'Treino de Vestibular' },
-  { to: '/literatura', icon: BookText, label: 'Dossiê Literário' },
+  { to: '/portal-aluno/literatura', icon: BookText, label: 'Dossiê Literário' },
   { to: '/jogos', icon: Gamepad2, label: 'Jogos Didáticos' },
   { to: '/portal-aluno/desempenho', icon: BarChart3, label: 'Meu Desempenho' },
 ];

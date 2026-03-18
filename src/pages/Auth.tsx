@@ -186,11 +186,17 @@ export default function Auth({ preferredPortal }: AuthProps) {
               {isSignUp ? 'Criar Conta' : 'Entrar'}
             </Button>
           </form>
-          <div className="text-center text-sm">
+          <div className="text-center text-sm space-y-2">
             <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline">
               {isSignUp ? 'Já tem conta? Entre aqui' : 'Não tem conta? Cadastre-se'}
             </button>
+            <div>
+              <button type="button" onClick={() => setSelectedPortal(null)} className="text-xs text-muted-foreground hover:underline">
+                ← Trocar tipo de acesso ({selectedPortal === 'teacher' ? 'Professor' : 'Aluno'})
+              </button>
+            </div>
           </div>
+          </>)}
         </CardContent>
       </Card>
     </div>
