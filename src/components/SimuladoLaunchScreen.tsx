@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Play, Users, Copy, Maximize2, Minimize2 } from 'lucide-react';
-import { buildPublicAppUrl } from '@/lib/public-links';
+import { buildPinUrl } from '@/lib/public-links';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
