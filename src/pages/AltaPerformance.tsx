@@ -250,6 +250,7 @@ export default function AltaPerformance() {
   const [savedBankId, setSavedBankId] = useState<string | null>(null);
   const [savedAccessCode, setSavedAccessCode] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
+  const [launchOpen, setLaunchOpen] = useState(false);
 
   // Map specific series to content suggestion segment
   const serieSegment = SERIES_ESPECIFICAS.find(s => s.value === serie)?.segment || '';
