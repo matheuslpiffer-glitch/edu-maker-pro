@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, GraduationCap, CheckCircle2, Send, XCircle } from 'lucide-react';
+import MathRenderer from '@/components/MathRenderer';
 
 interface SimulatorOption {
   letter: string;

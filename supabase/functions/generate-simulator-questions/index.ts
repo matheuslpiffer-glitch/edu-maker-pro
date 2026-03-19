@@ -445,6 +445,7 @@ Responda em JSON:
 
       const systemPromptLit = `Você é um Doutor em Literatura Brasileira e Universal, com especialização em obras cobradas nos principais vestibulares do Brasil (FUVEST, UNICAMP, ENEM, UNESP). Você possui conhecimento enciclopédico sobre todas as obras literárias mundiais.${NO_IMG_RULE}
 REGRA CRÍTICA DE TAMANHO: Sua resposta TOTAL (incluindo o JSON) deve ter NO MÁXIMO 4000 palavras. Seja direto e objetivo. Priorize informações essenciais para vestibulares. NÃO escreva capítulos completos — faça RESUMOS CONCISOS de cada parte.
+Responda em formato JSON simplificado, limitando cada seção a no máximo 3 parágrafos. Não use explicações prolixas.
 Responda APENAS com JSON válido, sem markdown, sem blocos de código.`;
       const userPromptLit = `Crie um DOSSIÊ LITERÁRIO CONCISO sobre a obra "${litObraName}"${autorInfo}.
 

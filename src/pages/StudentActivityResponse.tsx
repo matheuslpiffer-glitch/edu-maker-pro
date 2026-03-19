@@ -240,7 +240,7 @@ export default function StudentActivityResponse() {
                   <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{q.skillCode}</span>
                 )}
               </div>
-              <div className="text-sm leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: q.content }} />
+              <MathRenderer content={q.content} className="text-sm leading-relaxed break-words" />
 
               {isDiscursiva ? (
                 <Textarea
