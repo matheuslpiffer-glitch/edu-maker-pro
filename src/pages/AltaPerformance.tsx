@@ -733,8 +733,22 @@ export default function AltaPerformance() {
                      setQrOpen(true);
                    }} className="gap-1.5">
                      <QrCode size={14} /> QR Code
-                   </Button>
-                 </div>
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (!savedBankId || !savedAccessCode) {
+                          toast({ title: 'Salve as questões primeiro para lançar o simulado.', variant: 'destructive' });
+                          return;
+                        }
+                        setLaunchOpen(true);
+                      }}
+                      className="gap-1.5 text-gray-900 font-bold border-0"
+                      style={{ background: 'linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7)' }}
+                    >
+                      <Rocket size={14} /> Lançar Simulado
+                    </Button>
+                  </div>
 
                 {/* Access Code Display */}
                 {savedAccessCode && (
