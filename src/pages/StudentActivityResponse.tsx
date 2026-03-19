@@ -261,7 +261,8 @@ export default function StudentActivityResponse() {
                         key={o.letter}
                         onClick={() => !result && setAnswers(prev => ({ ...prev, [i]: o.letter }))}
                         disabled={!!result}
-                        className={`w-full text-left text-sm py-2.5 px-4 rounded-lg border transition-all ${
+                        data-student-option
+                        className={`w-full text-left text-sm py-2.5 px-4 rounded-lg border transition-all relative z-50 ${
                           selected
                             ? 'border-primary bg-primary/10 text-primary font-medium'
                             : 'border-border hover:border-primary/40 text-foreground'
