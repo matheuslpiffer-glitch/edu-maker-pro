@@ -7,6 +7,7 @@ import { Loader2, CheckCircle2, XCircle, Send, Trophy, User, School } from 'luci
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import matAvatar from '@/assets/mat-avatar.png';
+import MathRenderer from '@/components/MathRenderer';
 
 interface ActivityQuestion {
   index: number;
