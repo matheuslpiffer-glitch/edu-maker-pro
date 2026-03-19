@@ -75,7 +75,7 @@ export default function SimuladoLaunchScreen({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[100vw] w-[100vw] h-[100vh] p-0 border-0 bg-transparent shadow-none [&>button]:hidden rounded-none">
-        <div className="relative overflow-hidden bg-gradient-to-br from-[hsl(220,60%,8%)] via-[hsl(220,50%,12%)] to-[hsl(220,40%,18%)] p-8 md:p-12 text-white h-[100vh] w-full flex flex-col items-center justify-center">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[hsl(220,60%,8%)] via-[hsl(220,50%,12%)] to-[hsl(220,40%,18%)] p-6 md:p-10 text-white h-[100vh] w-full flex flex-col items-center justify-center" style={{ overflow: 'hidden', maxHeight: '100vh' }}>
           {/* Gold accent overlays */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(45,90%,55%,0.08),transparent_50%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(45,80%,50%,0.05),transparent_60%)]" />

@@ -240,7 +240,7 @@ export default function AltaPerformance() {
   // Restore persisted state from sessionStorage
   const stored = useMemo(() => {
     try {
-      const raw = sessionStorage.getItem('alta_perf_state');
+      const raw = localStorage.getItem('alta_perf_state');
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   }, []);
@@ -264,7 +264,7 @@ export default function AltaPerformance() {
   // Persist state to sessionStorage on changes
   useEffect(() => {
     const state = { rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode };
-    sessionStorage.setItem('alta_perf_state', JSON.stringify(state));
+    localStorage.setItem('alta_perf_state', JSON.stringify(state));
   }, [rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode]);
 
   // Map specific series to content suggestion segment
