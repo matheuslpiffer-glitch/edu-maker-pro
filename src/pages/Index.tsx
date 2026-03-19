@@ -4,6 +4,7 @@ import { BookOpen, FileText, Layers, Sparkles, Presentation, Paperclip, Send, La
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { Badge } from '@/components/ui/badge';
+import WelcomeModal from '@/components/WelcomeModal';
 
 export default function Index() {
   const { isStudentMode } = useStudentMode();
@@ -47,6 +48,7 @@ export default function Index() {
         <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full bg-cyan-500/8 blur-[120px]" />
       </div>
 
+      <WelcomeModal role="teacher" />
       <div className="relative z-10">
         {/* Hero Banner */}
         <div className="bg-[#0F172A] rounded-[3rem] p-8 sm:p-10 mb-8 relative overflow-hidden">
