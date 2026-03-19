@@ -542,10 +542,9 @@ export default function AltaPerformance() {
                 <Select value={serie} onValueChange={setSerie}>
                   <SelectTrigger><SelectValue placeholder="Selecione a série..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fundamental-i">Ensino Fundamental I (1º ao 5º ano)</SelectItem>
-                    <SelectItem value="fundamental-ii">Ensino Fundamental II (6º ao 9º ano)</SelectItem>
-                    <SelectItem value="medio">Ensino Médio (1ª à 3ª série)</SelectItem>
-                    <SelectItem value="eja-tecnico">EJA / Técnico</SelectItem>
+                    {SERIES_ESPECIFICAS.map(s => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
