@@ -49,6 +49,7 @@ import StudentActivityResponse from "@/pages/StudentActivityResponse";
 import StudentSimulatorView from "@/pages/StudentSimulatorView";
 import ResultadosAlunos from "@/pages/ResultadosAlunos";
 import MinhaBiblioteca from "@/pages/MinhaBiblioteca";
+import ShortLinkRedirect from "@/pages/ShortLinkRedirect";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 import SignAttendance from "@/pages/SignAttendance";
