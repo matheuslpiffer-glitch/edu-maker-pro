@@ -272,9 +272,9 @@ export default function StudentSimulatorView() {
                   {question.descriptor && <Badge variant="outline">{question.descriptor}</Badge>}
                 </div>
 
-                <div
+                <MathRenderer
+                  content={question.content}
                   className="text-sm leading-relaxed text-foreground [&_img]:h-auto [&_img]:max-w-full"
-                  dangerouslySetInnerHTML={{ __html: question.content }}
                 />
 
                 {hasOptions ? (
