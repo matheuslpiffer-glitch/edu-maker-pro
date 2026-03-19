@@ -734,6 +734,27 @@ export default function AltaPerformance() {
                    </Button>
                  </div>
 
+                {/* Access Code Display */}
+                {savedAccessCode && (
+                  <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5">
+                    <span className="text-sm font-semibold text-foreground">Código de Acesso:</span>
+                    <span className="font-mono text-xl font-extrabold tracking-widest text-primary">{savedAccessCode}</span>
+                    <Button variant="outline" size="sm" className="gap-1.5 ml-auto" onClick={() => {
+                      navigator.clipboard.writeText(savedAccessCode);
+                      toast({ title: 'Código copiado!' });
+                    }}>
+                      <Copy size={14} /> Copiar
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1.5" onClick={() => {
+                      const shortUrl = buildPublicAppUrl(`/s/${savedAccessCode}`);
+                      navigator.clipboard.writeText(shortUrl);
+                      toast({ title: 'Link curto copiado!', description: shortUrl });
+                    }}>
+                      <Link2 size={14} /> Link Curto
+                    </Button>
+                  </div>
+                )}
+
                 {/* Questions */}
                 <div className="space-y-4">
                   {questions.map((q, i) => (
