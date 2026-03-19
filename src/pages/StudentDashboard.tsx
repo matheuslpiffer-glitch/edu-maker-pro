@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Target, BookOpen, Gamepad2, Trophy, Star, Clock, Brain, Flame, Building2, Cpu, Award, Landmark, Medal, Shield, Sparkles, BarChart3, Eye, ChevronDown, ChevronUp, CheckCircle2, XCircle, MessageCircle, ClipboardList, TrendingUp, Rocket, KeyRound } from 'lucide-react';
+import { Zap, Target, BookOpen, Gamepad2, Trophy, Star, Clock, Brain, Flame, Building2, Cpu, Award, Landmark, Medal, Shield, Sparkles, BarChart3, Eye, ChevronDown, ChevronUp, CheckCircle2, XCircle, MessageCircle, ClipboardList, TrendingUp, Rocket, KeyRound, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface SubjectProgress {
@@ -271,24 +271,30 @@ export default function StudentDashboard() {
         </Card>
       </div>
 
-      {/* Access Code Entry */}
-      <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
-        <CardContent className="flex flex-col sm:flex-row items-center gap-3 p-4">
-          <KeyRound className="text-primary shrink-0" size={24} />
-          <div className="flex-1 text-center sm:text-left">
-            <p className="text-sm font-bold text-foreground">Entrar com Código do Simulado</p>
-            <p className="text-xs text-muted-foreground">Recebeu um código de 6 dígitos do professor? Digite aqui:</p>
+      {/* Access Code Entry — HERO */}
+      <Card className="border-2 border-primary/40 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent shadow-lg shadow-primary/10">
+        <CardContent className="flex flex-col items-center gap-4 p-6 md:p-8">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md">
+            <KeyRound className="text-primary-foreground" size={28} />
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="text-center space-y-1">
+            <h2 className="text-lg md:text-xl font-extrabold text-foreground">Tem um código? Digite o PIN aqui</h2>
+            <p className="text-sm text-muted-foreground">Recebeu um código de 6 dígitos do professor? Entre direto no simulado!</p>
+          </div>
+          <div className="flex gap-3 w-full max-w-sm">
             <Input
               value={accessCode}
-              onChange={e => setAccessCode(e.target.value.toUpperCase().slice(0, 6))}
+              onChange={e => setAccessCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
               placeholder="EX: A3B2C1"
-              className="font-mono text-center tracking-widest uppercase w-32"
+              className="font-mono text-center text-xl tracking-[0.3em] uppercase h-14 border-2 border-primary/30 focus:border-primary bg-background"
               maxLength={6}
+              data-student-option
             />
             <Button
+              size="lg"
               disabled={accessCode.length !== 6 || codeLoading}
+              className="h-14 px-6 text-base font-bold gap-2"
+              data-student-option
               onClick={async () => {
                 setCodeLoading(true);
                 const upper = accessCode.toUpperCase();
@@ -300,6 +306,7 @@ export default function StudentDashboard() {
                 setCodeLoading(false);
               }}
             >
+              {codeLoading ? <Loader2 className="animate-spin" size={18} /> : <Rocket size={18} />}
               Entrar
             </Button>
           </div>

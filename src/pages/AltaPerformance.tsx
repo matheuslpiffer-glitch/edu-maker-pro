@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
@@ -236,21 +236,36 @@ const SERIES_ESPECIFICAS = [
 
 export default function AltaPerformance() {
   const { toast } = useToast();
-  const [rede, setRede] = useState('');
-  const [serie, setSerie] = useState('');
-  const [disciplina, setDisciplina] = useState('');
-  const [topicos, setTopicos] = useState('');
-  const [totalQuestoes, setTotalQuestoes] = useState(10);
-  const [niveis, setNiveis] = useState({ abaixo: 15, basico: 30, proficiente: 35, avancado: 20 });
+
+  // Restore persisted state from sessionStorage
+  const stored = useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem('alta_perf_state');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }, []);
+
+  const [rede, setRede] = useState(stored?.rede || '');
+  const [serie, setSerie] = useState(stored?.serie || '');
+  const [disciplina, setDisciplina] = useState(stored?.disciplina || '');
+  const [topicos, setTopicos] = useState(stored?.topicos || '');
+  const [totalQuestoes, setTotalQuestoes] = useState(stored?.totalQuestoes || 10);
+  const [niveis, setNiveis] = useState(stored?.niveis || { abaixo: 15, basico: 30, proficiente: 35, avancado: 20 });
   const [loading, setLoading] = useState(false);
-  const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
-  const [formato, setFormato] = useState('objetiva');
-  const [matrizRef, setMatrizRef] = useState('bncc');
+  const [questions, setQuestions] = useState<GeneratedQuestion[]>(stored?.questions || []);
+  const [formato, setFormato] = useState(stored?.formato || 'objetiva');
+  const [matrizRef, setMatrizRef] = useState(stored?.matrizRef || 'bncc');
   const previewRef = useRef<HTMLDivElement>(null);
-  const [savedBankId, setSavedBankId] = useState<string | null>(null);
-  const [savedAccessCode, setSavedAccessCode] = useState<string | null>(null);
+  const [savedBankId, setSavedBankId] = useState<string | null>(stored?.savedBankId || null);
+  const [savedAccessCode, setSavedAccessCode] = useState<string | null>(stored?.savedAccessCode || null);
   const [qrOpen, setQrOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
+
+  // Persist state to sessionStorage on changes
+  useEffect(() => {
+    const state = { rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode };
+    sessionStorage.setItem('alta_perf_state', JSON.stringify(state));
+  }, [rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode]);
 
   // Map specific series to content suggestion segment
   const serieSegment = SERIES_ESPECIFICAS.find(s => s.value === serie)?.segment || '';
@@ -272,13 +287,13 @@ export default function AltaPerformance() {
   const updateNivel = (key: keyof typeof niveis, value: number) => {
     const remaining = 100 - value;
     const otherKeys = (Object.keys(niveis) as (keyof typeof niveis)[]).filter(k => k !== key);
-    const otherTotal = otherKeys.reduce((s, k) => s + niveis[k], 0);
+    const otherTotal = otherKeys.reduce((s: number, k) => s + niveis[k], 0);
     const newNiveis = { ...niveis, [key]: value };
     otherKeys.forEach(k => {
       newNiveis[k] = otherTotal > 0 ? Math.round((niveis[k] / otherTotal) * remaining) : Math.round(remaining / otherKeys.length);
     });
-    const sum = Object.values(newNiveis).reduce((a, b) => a + b, 0);
-    if (sum !== 100) newNiveis[otherKeys[otherKeys.length - 1]] += 100 - sum;
+    const sum = (Object.values(newNiveis) as number[]).reduce((a, b) => a + b, 0);
+    if (sum !== 100) newNiveis[otherKeys[otherKeys.length - 1]] += (100 - sum);
     setNiveis(newNiveis);
   };
 
