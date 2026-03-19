@@ -7,6 +7,7 @@ import { Loader2, CheckCircle2, XCircle, Send, Trophy, User, School } from 'luci
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import matAvatar from '@/assets/mat-avatar.png';
+import MathRenderer from '@/components/MathRenderer';
 
 interface ActivityQuestion {
   index: number;
@@ -240,7 +241,7 @@ export default function StudentActivityResponse() {
                   <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{q.skillCode}</span>
                 )}
               </div>
-              <div className="text-sm leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: q.content }} />
+              <MathRenderer content={q.content} className="text-sm leading-relaxed break-words" />
 
               {isDiscursiva ? (
                 <Textarea
@@ -260,7 +261,8 @@ export default function StudentActivityResponse() {
                         key={o.letter}
                         onClick={() => !result && setAnswers(prev => ({ ...prev, [i]: o.letter }))}
                         disabled={!!result}
-                        className={`w-full text-left text-sm py-2.5 px-4 rounded-lg border transition-all ${
+                        data-student-option
+                        className={`w-full text-left text-sm py-2.5 px-4 rounded-lg border transition-all relative z-50 ${
                           selected
                             ? 'border-primary bg-primary/10 text-primary font-medium'
                             : 'border-border hover:border-primary/40 text-foreground'

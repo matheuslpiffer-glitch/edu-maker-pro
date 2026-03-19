@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, GraduationCap, CheckCircle2, Send, XCircle } from 'lucide-react';
+import MathRenderer from '@/components/MathRenderer';
 
 interface SimulatorOption {
   letter: string;
@@ -272,9 +273,9 @@ export default function StudentSimulatorView() {
                   {question.descriptor && <Badge variant="outline">{question.descriptor}</Badge>}
                 </div>
 
-                <div
+                <MathRenderer
+                  content={question.content}
                   className="text-sm leading-relaxed text-foreground [&_img]:h-auto [&_img]:max-w-full"
-                  dangerouslySetInnerHTML={{ __html: question.content }}
                 />
 
                 {hasOptions ? (
@@ -286,8 +287,9 @@ export default function StudentSimulatorView() {
                         <button
                           key={option.letter}
                           type="button"
+                          data-student-option
                           onClick={() => setAnswers((current) => ({ ...current, [index]: option.letter }))}
-                          className={`w-full rounded-lg border px-4 py-3 text-left text-sm transition-colors ${
+                          className={`w-full rounded-lg border px-4 py-3 text-left text-sm transition-colors relative z-50 ${
                             isSelected
                               ? 'border-primary bg-primary/10 text-primary'
                               : 'border-border bg-background text-foreground hover:border-primary/40'

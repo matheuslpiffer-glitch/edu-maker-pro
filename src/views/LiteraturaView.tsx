@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Sparkles, ArrowLeft, BookOpen, GraduationCap, Brain, Globe, Library, Download, Printer, Eye, Trash2, Save } from 'lucide-react';
+import MathRenderer from '@/components/MathRenderer';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { SimQuestion, SavedSimulator } from './types';
@@ -334,10 +335,9 @@ export default function LiteraturaView() {
                           <Badge variant="outline" className="shrink-0 text-xs">{String(i + 1).padStart(2, '0')}</Badge>
                           {q.skillCode && <span className="text-xs text-muted-foreground font-mono">[{q.skillCode}]</span>}
                         </div>
-                        <div
-                          className="prose prose-sm max-w-none text-sm"
-                          style={{ lineHeight: '1.6', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'normal' }}
-                          dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }}
+                        <MathRenderer
+                          content={q.content || ''}
+                          className="text-sm"
                         />
                       </div>
                     ))}

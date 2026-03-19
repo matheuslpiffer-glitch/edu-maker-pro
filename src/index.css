@@ -89,6 +89,14 @@
   }
 }
 
+/* Student card button stability — force z-index for mobile tap reliability */
+[data-student-option] {
+  z-index: 50 !important;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 @layer utilities {
   .shadow-master {
     box-shadow: 0 4px 24px -4px hsl(239 84% 67% / 0.12), 0 1px 3px hsl(239 84% 67% / 0.06);
