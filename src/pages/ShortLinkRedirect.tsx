@@ -26,10 +26,10 @@ export default function ShortLinkRedirect() {
       }
 
       // Check question_banks
-      const { data: bank } = await supabase
+      const { data: bank } = await (supabase
         .from('question_banks')
-        .select('id')
-        .eq('access_code' as any, upper)
+        .select('id') as any)
+        .eq('access_code', upper)
         .maybeSingle();
 
       if (bank?.id) {
