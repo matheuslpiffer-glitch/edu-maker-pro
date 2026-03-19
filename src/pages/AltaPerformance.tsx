@@ -240,7 +240,7 @@ export default function AltaPerformance() {
   // Restore persisted state from sessionStorage
   const stored = useMemo(() => {
     try {
-      const raw = sessionStorage.getItem('alta_perf_state');
+      const raw = localStorage.getItem('alta_perf_state');
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   }, []);
