@@ -3,7 +3,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Play, Users, Copy, Maximize2, Minimize2 } from 'lucide-react';
-import { buildPublicAppUrl } from '@/lib/public-links';
+import { buildPinUrl } from '@/lib/public-links';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,7 +29,7 @@ export default function SimuladoLaunchScreen({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [started, setStarted] = useState(false);
 
-  const shortUrl = buildPublicAppUrl(`/s/${accessCode}`);
+  const shortUrl = buildPinUrl(accessCode);
   const formattedCode = accessCode
     ? `${accessCode.slice(0, 3)} ${accessCode.slice(3)}`
     : '';

@@ -8,6 +8,8 @@ import { useRole } from "@/hooks/useRole";
 import { SavedQuestionsBankProvider } from "@/hooks/useSavedQuestionsBank";
 import { StudentModeProvider } from "@/hooks/useStudentMode";
 import MatChatbot from "@/components/MatChatbot";
+import WwwRedirect from "@/components/WwwRedirect";
+import PinAutoRedirect from "@/components/PinAutoRedirect";
 import AppLayout from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
 import LandingProfessor from "@/pages/LandingProfessor";
@@ -176,18 +178,21 @@ const App = () => (
         <AuthProvider>
           <StudentModeProvider>
             <BrowserRouter>
-              <Routes>
-                <Route path="/install" element={<Install />} />
-                <Route path="/professor" element={<LandingProfessor />} />
-                <Route path="/estudo" element={<LandingEstudo />} />
-                <Route path="/assinar/:id" element={<SignAttendance />} />
-                <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
-                <Route path="/atividade/:id" element={<StudentActivityResponse />} />
-                <Route path="/simulado/:id" element={<StudentSimulatorView />} />
-                <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
-                <Route path="/s/:code" element={<ShortLinkRedirect />} />
-                <Route path="/*" element={<AppRoutes />} />
-              </Routes>
+              <WwwRedirect />
+              <PinAutoRedirect>
+                <Routes>
+                  <Route path="/install" element={<Install />} />
+                  <Route path="/professor" element={<LandingProfessor />} />
+                  <Route path="/estudo" element={<LandingEstudo />} />
+                  <Route path="/assinar/:id" element={<SignAttendance />} />
+                  <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
+                  <Route path="/atividade/:id" element={<StudentActivityResponse />} />
+                  <Route path="/simulado/:id" element={<StudentSimulatorView />} />
+                  <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
+                  <Route path="/s/:code" element={<ShortLinkRedirect />} />
+                  <Route path="/*" element={<AppRoutes />} />
+                </Routes>
+              </PinAutoRedirect>
             </BrowserRouter>
           </StudentModeProvider>
         </AuthProvider>
