@@ -185,6 +185,7 @@ const App = () => (
                 <Route path="/atividade/:id" element={<StudentActivityResponse />} />
                 <Route path="/simulado/:id" element={<StudentSimulatorView />} />
                 <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
+                <Route path="/s/:code" element={<ShortLinkRedirect />} />
                 <Route path="/*" element={<AppRoutes />} />
               </Routes>
             </BrowserRouter>
