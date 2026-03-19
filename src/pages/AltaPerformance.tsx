@@ -846,6 +846,16 @@ export default function AltaPerformance() {
           title={disciplina === 'Todos' ? 'Simulado Semanal Integrado' : `${disciplina} — Alta Performance`}
         />
       )}
+
+      {savedBankId && savedAccessCode && (
+        <SimuladoLaunchScreen
+          open={launchOpen}
+          onOpenChange={setLaunchOpen}
+          accessCode={savedAccessCode}
+          title={disciplina === 'Todos' ? 'Simulado Semanal Integrado' : `${disciplina} — Alta Performance (${SERIES_ESPECIFICAS.find(s => s.value === serie)?.label || serie})`}
+          bankId={savedBankId}
+        />
+      )}
     </div>
   );
 }
