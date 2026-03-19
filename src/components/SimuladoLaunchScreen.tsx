@@ -29,7 +29,7 @@ export default function SimuladoLaunchScreen({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [started, setStarted] = useState(false);
 
-  const shortUrl = buildPublicAppUrl(`/s/${accessCode}`);
+  const shortUrl = buildPinUrl(accessCode);
   const formattedCode = accessCode
     ? `${accessCode.slice(0, 3)} ${accessCode.slice(3)}`
     : '';
