@@ -40,6 +40,12 @@ serve(async (req) => {
 
 IMPORTANTE: Para cada questão, inclua um campo "justification" com a explicação pedagógica de por que a resposta correta é aquela, e por que cada distrator está errado (no caso de múltipla escolha). Esta justificativa é destinada ao professor.
 
+FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL:
+Está TERMINANTEMENTE PROIBIDO o uso de delimitadores LaTeX ($...$, $$...$$, \\(...\\), \\[...\\]) e tags HTML de formatação (<sup>, <sub>, <b>, <i>, <em>, <strong>).
+Use EXCLUSIVAMENTE caracteres Unicode: π, ², ³, √, ±, ×, ÷, ≠, ≤, ≥, ≈, ∞, ½, ⅓, ¼, ¾, α, β, γ, δ, θ, Δ, Σ, Ω, ∈, ⊂, ∪, ∩, ∅, ∀, ∃, ⟹, ℝ, ℕ, ℤ.
+Para frações não-padrão use barra comum: 1/3, 2/7. Para sobrescritos: ⁰¹²³⁴⁵⁶⁷⁸⁹. Para subscritos: ₀₁₂₃₄₅₆₇₈₉.
+VALIDAÇÃO: Verifique que NENHUM $ ou <sup>/<sub>/<b>/<i> exista no texto final.
+
 Responda APENAS com JSON válido, sem markdown.`;
 
     let formatInstruction: string;
