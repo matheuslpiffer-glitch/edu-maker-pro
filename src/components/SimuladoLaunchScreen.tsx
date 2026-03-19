@@ -74,8 +74,8 @@ export default function SimuladoLaunchScreen({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-[95vw] p-0 border-0 bg-transparent shadow-none [&>button]:hidden">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[hsl(220,60%,8%)] via-[hsl(220,50%,12%)] to-[hsl(220,40%,18%)] p-8 md:p-12 text-white min-h-[80vh] flex flex-col items-center justify-center">
+      <DialogContent className="max-w-[100vw] w-[100vw] h-[100vh] p-0 border-0 bg-transparent shadow-none [&>button]:hidden rounded-none">
+        <div className="relative overflow-hidden bg-gradient-to-br from-[hsl(220,60%,8%)] via-[hsl(220,50%,12%)] to-[hsl(220,40%,18%)] p-8 md:p-12 text-white h-[100vh] w-full flex flex-col items-center justify-center">
           {/* Gold accent overlays */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(45,90%,55%,0.08),transparent_50%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(45,80%,50%,0.05),transparent_60%)]" />
