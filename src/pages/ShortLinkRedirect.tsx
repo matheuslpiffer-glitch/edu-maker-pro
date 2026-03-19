@@ -14,10 +14,10 @@ export default function ShortLinkRedirect() {
 
     (async () => {
       // Check simulators first
-      const { data: sim } = await supabase
+      const { data: sim } = await (supabase
         .from('simulators')
-        .select('id')
-        .eq('access_code' as any, upper)
+        .select('id') as any)
+        .eq('access_code', upper)
         .maybeSingle();
 
       if (sim?.id) {
