@@ -4,6 +4,7 @@ import { BookOpen, FileText, Layers, Sparkles, Presentation, Paperclip, Send, La
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { Badge } from '@/components/ui/badge';
+import WelcomeModal from '@/components/WelcomeModal';
 
 export default function Index() {
   const { isStudentMode } = useStudentMode();
