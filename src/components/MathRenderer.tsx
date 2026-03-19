@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
 import 'katex/dist/katex.min.css';
 
 interface MathRendererProps {
@@ -10,15 +11,10 @@ interface MathRendererProps {
 }
 
 /**
- * Detects if content contains LaTeX math delimiters ($...$, $$...$$, \(...\), \[...\])
- * If yes, renders via react-markdown with KaTeX. Otherwise uses dangerouslySetInnerHTML for HTML.
+ * Universal renderer: supports LaTeX ($...$), HTML tags (<sup>, <sub>, etc.),
+ * and Markdown simultaneously via react-markdown + rehype-raw + rehype-katex.
  */
 const MathRenderer: React.FC<MathRendererProps> = ({ content, className = '' }) => {
-  const hasLatex = useMemo(() => {
-    if (!content) return false;
-    return /\$[^$]+\$|\\\(.*?\\\)|\\\[.*?\\\]/s.test(content);
-  }, [content]);
-
   const cleanedContent = useMemo(() => {
     if (!content) return '';
     return content
@@ -27,24 +23,17 @@ const MathRenderer: React.FC<MathRendererProps> = ({ content, className = '' }) 
       .trim();
   }, [content]);
 
-  if (hasLatex) {
-    return (
-      <div className={`prose prose-sm max-w-none ${className}`}>
-        <ReactMarkdown
-          remarkPlugins={[remarkMath]}
-          rehypePlugins={[rehypeKatex]}
-        >
-          {cleanedContent}
-        </ReactMarkdown>
-      </div>
-    );
-  }
+  if (!cleanedContent) return null;
 
   return (
-    <div
-      className={`prose prose-sm max-w-none ${className}`}
-      dangerouslySetInnerHTML={{ __html: cleanedContent }}
-    />
+    <div className={`prose prose-sm max-w-none ${className}`}>
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeRaw, rehypeKatex]}
+      >
+        {cleanedContent}
+      </ReactMarkdown>
+    </div>
   );
 };
 
