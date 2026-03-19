@@ -361,10 +361,13 @@ export default function AltaPerformance() {
         question_type: isDiscursiva ? 'discursiva' : 'objetiva',
         questions: questionsOnly as any,
         institution_name: redeInfo?.label || rede,
-      }).select('id').single();
+      }).select('id, access_code').single();
       if (insertErr) throw insertErr;
-      if (inserted?.id) setSavedBankId(inserted.id);
-      toast({ title: 'Questões salvas com sucesso!' });
+      if (inserted?.id) {
+        setSavedBankId(inserted.id);
+        setSavedAccessCode((inserted as any).access_code || null);
+      }
+      toast({ title: 'Questões salvas com sucesso!', description: (inserted as any).access_code ? `Código de acesso: ${(inserted as any).access_code}` : undefined });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     }
