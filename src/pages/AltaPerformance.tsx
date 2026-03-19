@@ -223,6 +223,16 @@ interface GeneratedQuestion {
   correctionMirror?: string;
 }
 
+const SERIES_ESPECIFICAS = [
+  { value: '6ano', label: '6º Ano', segment: 'fundamental-ii' },
+  { value: '7ano', label: '7º Ano', segment: 'fundamental-ii' },
+  { value: '8ano', label: '8º Ano', segment: 'fundamental-ii' },
+  { value: '9ano', label: '9º Ano', segment: 'fundamental-ii' },
+  { value: '1serie', label: '1ª Série EM', segment: 'medio' },
+  { value: '2serie', label: '2ª Série EM', segment: 'medio' },
+  { value: '3serie', label: '3ª Série EM', segment: 'medio' },
+];
+
 export default function AltaPerformance() {
   const { toast } = useToast();
   const [rede, setRede] = useState('');
@@ -230,19 +240,23 @@ export default function AltaPerformance() {
   const [disciplina, setDisciplina] = useState('');
   const [topicos, setTopicos] = useState('');
   const [totalQuestoes, setTotalQuestoes] = useState(10);
-  const [niveis, setNiveis] = useState({ abaixo: 20, basico: 40, proficiente: 40 });
+  const [niveis, setNiveis] = useState({ abaixo: 15, basico: 30, proficiente: 35, avancado: 20 });
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [formato, setFormato] = useState('objetiva');
   const [matrizRef, setMatrizRef] = useState('bncc');
   const previewRef = useRef<HTMLDivElement>(null);
   const [savedBankId, setSavedBankId] = useState<string | null>(null);
+  const [savedAccessCode, setSavedAccessCode] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
+  // Map specific series to content suggestion segment
+  const serieSegment = SERIES_ESPECIFICAS.find(s => s.value === serie)?.segment || '';
+
   const suggestions = useMemo(() => {
-    if (!serie || !disciplina) return [];
-    return CONTENT_SUGGESTIONS[serie]?.[disciplina] || [];
-  }, [serie, disciplina]);
+    if (!serieSegment || !disciplina) return [];
+    return CONTENT_SUGGESTIONS[serieSegment]?.[disciplina] || [];
+  }, [serieSegment, disciplina]);
 
   const handleChipClick = (label: string) => {
     setTopicos(prev => {
