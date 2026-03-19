@@ -634,6 +634,7 @@ export default function AltaPerformance() {
                 { key: 'abaixo' as const, label: 'Abaixo do Básico', color: 'bg-red-500' },
                 { key: 'basico' as const, label: 'Básico', color: 'bg-amber-500' },
                 { key: 'proficiente' as const, label: 'Proficiente', color: 'bg-emerald-500' },
+                { key: 'avancado' as const, label: 'Avançado (Elite)', color: 'bg-purple-500' },
               ]).map(n => (
                 <div key={n.key} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
@@ -646,6 +647,9 @@ export default function AltaPerformance() {
                   <Slider min={0} max={100} step={5} value={[niveis[n.key]]} onValueChange={v => updateNivel(n.key, v[0])} />
                 </div>
               ))}
+              <p className="text-[10px] text-muted-foreground italic mt-1">
+                🎯 Avançado (Elite): questões interdisciplinares com raciocínio profundo — nível Fuvest, Unicamp, ITA.
+              </p>
             </div>
 
             {disciplina === 'Todos' && (
