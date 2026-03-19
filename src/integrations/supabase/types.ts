@@ -462,6 +462,7 @@ export type Database = {
       }
       question_banks: {
         Row: {
+          access_code: string | null
           created_at: string
           grade: string
           id: string
@@ -474,6 +475,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          access_code?: string | null
           created_at?: string
           grade?: string
           id?: string
@@ -486,6 +488,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          access_code?: string | null
           created_at?: string
           grade?: string
           id?: string
@@ -548,6 +551,7 @@ export type Database = {
       }
       simulators: {
         Row: {
+          access_code: string | null
           answer_key: Json
           created_at: string
           exam_type: string
@@ -562,6 +566,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          access_code?: string | null
           answer_key?: Json
           created_at?: string
           exam_type?: string
@@ -576,6 +581,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          access_code?: string | null
           answer_key?: Json
           created_at?: string
           exam_type?: string
