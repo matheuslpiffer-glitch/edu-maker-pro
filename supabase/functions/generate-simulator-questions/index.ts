@@ -209,7 +209,20 @@ async function parseAIResponse(response: Response, label: string) {
   }
 }
 
-const NO_IMG_RULE = "\nREGRA ABSOLUTA: NÃO inclua NENHUMA tag <img>, link de imagem ou URL de imagem. Todo o conteúdo deve ser 100% textual. NUNCA use blocos de código markdown (```html). Retorne somente HTML cru nos campos de conteúdo.\n";
+const NO_IMG_RULE = `
+REGRA ABSOLUTA: NÃO inclua NENHUMA tag <img>, link de imagem ou URL de imagem. Todo o conteúdo deve ser 100% textual. NUNCA use blocos de código markdown (\`\`\`html). Retorne somente HTML cru nos campos de conteúdo.
+
+FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL (por Matheus Lima Piffer):
+Está TERMINANTEMENTE PROIBIDO o uso de:
+- Delimitadores LaTeX: $...$ , $$...$$ , \\( ... \\) , \\[ ... \\]
+- Tags HTML de formatação inline: <sup>, <sub>, <b>, <i>, <em>, <strong> (EXCETO quando explicitamente permitido para AEE/inclusão)
+Use EXCLUSIVAMENTE caracteres Unicode para símbolos matemáticos:
+- π (pi), ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ⁰ ¹ (sobrescritos), ₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉ (subscritos)
+- √ (raiz), ∛ (raiz cúbica), ± ∓ × ÷ ≠ ≤ ≥ ≈ ∞ ∑ ∏ ∫ ∂ Δ ∈ ∉ ⊂ ⊃ ∪ ∩ ∅ ∀ ∃ ⟹ ⟺ ⊥ ∠ ∥ ≡ ∝ ℝ ℕ ℤ ℚ
+- Frações Unicode: ½ ⅓ ⅔ ¼ ¾ ⅕ ⅖ ⅗ ⅘ ⅙ ⅚ ⅛ ⅜ ⅝ ⅞ — para outras frações use barra: 1/3, 2/7
+- Letras gregas: α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ σ τ υ φ χ ψ ω Γ Δ Θ Λ Ξ Π Σ Φ Ψ Ω
+VALIDAÇÃO: Antes de retornar, verifique que NENHUM caractere $ ou sequência <sup>, <sub>, <b>, <i> exista no texto das questões e alternativas.
+`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

@@ -31,6 +31,12 @@ serve(async (req) => {
 
     const systemPrompt = `Você é um assistente de ensino do Estado de São Paulo. Ao gerar atividades, utilize estritamente o Escopo e Sequência da SEDUC-SP e o Currículo Paulista. Foque nos Objetos de Conhecimento e Habilidades específicos para o bimestre e série selecionados. Garanta que a linguagem e a complexidade estejam alinhadas com o material digital oficial da rede.
 
+FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL:
+Está TERMINANTEMENTE PROIBIDO o uso de delimitadores LaTeX ($...$, $$...$$, \\(...\\), \\[...\\]) e tags HTML de formatação (<sup>, <sub>, <b>, <i>, <em>, <strong>).
+Use EXCLUSIVAMENTE caracteres Unicode: π, ², ³, √, ±, ×, ÷, ≠, ≤, ≥, ≈, ∞, ½, ⅓, ¼, ¾, α, β, γ, δ, θ, Δ, Σ, Ω, ∈, ⊂, ∪, ∩, ∅, ∀, ∃, ⟹, ℝ, ℕ, ℤ.
+Para frações não-padrão use barra comum: 1/3, 2/7. Para sobrescritos use: ⁰¹²³⁴⁵⁶⁷⁸⁹. Para subscritos: ₀₁₂₃₄₅₆₇₈₉.
+VALIDAÇÃO: Verifique que NENHUM $ ou <sup>/<sub>/<b>/<i> exista no texto final.
+
 Responda APENAS com JSON válido, sem markdown ou texto adicional.`;
 
     let userPrompt: string;
