@@ -815,7 +815,7 @@ export default function AltaPerformance() {
                     ? `Para este Simulado Semanal das turmas de ${serie || 'sua série'}, você prefere focar nas competências socioemocionais da BNCC ou quer um reforço nos conteúdos básicos de Português e Matemática? 📅`
                     : 'Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀'}
                 </p>
-                <p className="text-[10px] text-muted-foreground/60 mt-2 italic">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-2 italic">EduCreator Pro | Tecnologia de Elite por Matheus Lima Piffer</p>
               </div>
             </div>
           </div>
