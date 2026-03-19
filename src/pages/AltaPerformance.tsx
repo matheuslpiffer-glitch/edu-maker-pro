@@ -287,13 +287,13 @@ export default function AltaPerformance() {
   const updateNivel = (key: keyof typeof niveis, value: number) => {
     const remaining = 100 - value;
     const otherKeys = (Object.keys(niveis) as (keyof typeof niveis)[]).filter(k => k !== key);
-    const otherTotal = otherKeys.reduce((s, k) => s + niveis[k], 0);
+    const otherTotal = otherKeys.reduce((s: number, k) => s + niveis[k], 0);
     const newNiveis = { ...niveis, [key]: value };
     otherKeys.forEach(k => {
       newNiveis[k] = otherTotal > 0 ? Math.round((niveis[k] / otherTotal) * remaining) : Math.round(remaining / otherKeys.length);
     });
-    const sum = Object.values(newNiveis).reduce((a, b) => a + b, 0);
-    if (sum !== 100) newNiveis[otherKeys[otherKeys.length - 1]] += 100 - sum;
+    const sum = (Object.values(newNiveis) as number[]).reduce((a, b) => a + b, 0);
+    if (sum !== 100) newNiveis[otherKeys[otherKeys.length - 1]] += (100 - sum);
     setNiveis(newNiveis);
   };
 
