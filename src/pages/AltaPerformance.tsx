@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
-import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode } from 'lucide-react';
+import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
+import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
 import matAvatar from '@/assets/mat-avatar.png';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Button } from '@/components/ui/button';
@@ -249,6 +250,7 @@ export default function AltaPerformance() {
   const [savedBankId, setSavedBankId] = useState<string | null>(null);
   const [savedAccessCode, setSavedAccessCode] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
+  const [launchOpen, setLaunchOpen] = useState(false);
 
   // Map specific series to content suggestion segment
   const serieSegment = SERIES_ESPECIFICAS.find(s => s.value === serie)?.segment || '';
@@ -731,8 +733,22 @@ export default function AltaPerformance() {
                      setQrOpen(true);
                    }} className="gap-1.5">
                      <QrCode size={14} /> QR Code
-                   </Button>
-                 </div>
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (!savedBankId || !savedAccessCode) {
+                          toast({ title: 'Salve as questões primeiro para lançar o simulado.', variant: 'destructive' });
+                          return;
+                        }
+                        setLaunchOpen(true);
+                      }}
+                      className="gap-1.5 text-gray-900 font-bold border-0"
+                      style={{ background: 'linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7)' }}
+                    >
+                      <Rocket size={14} /> Lançar Simulado
+                    </Button>
+                  </div>
 
                 {/* Access Code Display */}
                 {savedAccessCode && (
@@ -828,6 +844,16 @@ export default function AltaPerformance() {
           onOpenChange={setQrOpen}
           url={`/atividade/${savedBankId}`}
           title={disciplina === 'Todos' ? 'Simulado Semanal Integrado' : `${disciplina} — Alta Performance`}
+        />
+      )}
+
+      {savedBankId && savedAccessCode && (
+        <SimuladoLaunchScreen
+          open={launchOpen}
+          onOpenChange={setLaunchOpen}
+          accessCode={savedAccessCode}
+          title={disciplina === 'Todos' ? 'Simulado Semanal Integrado' : `${disciplina} — Alta Performance (${SERIES_ESPECIFICAS.find(s => s.value === serie)?.label || serie})`}
+          bankId={savedBankId}
         />
       )}
     </div>
