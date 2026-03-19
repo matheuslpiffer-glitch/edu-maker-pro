@@ -223,6 +223,16 @@ interface GeneratedQuestion {
   correctionMirror?: string;
 }
 
+const SERIES_ESPECIFICAS = [
+  { value: '6ano', label: '6º Ano', segment: 'fundamental-ii' },
+  { value: '7ano', label: '7º Ano', segment: 'fundamental-ii' },
+  { value: '8ano', label: '8º Ano', segment: 'fundamental-ii' },
+  { value: '9ano', label: '9º Ano', segment: 'fundamental-ii' },
+  { value: '1serie', label: '1ª Série EM', segment: 'medio' },
+  { value: '2serie', label: '2ª Série EM', segment: 'medio' },
+  { value: '3serie', label: '3ª Série EM', segment: 'medio' },
+];
+
 export default function AltaPerformance() {
   const { toast } = useToast();
   const [rede, setRede] = useState('');
@@ -230,19 +240,23 @@ export default function AltaPerformance() {
   const [disciplina, setDisciplina] = useState('');
   const [topicos, setTopicos] = useState('');
   const [totalQuestoes, setTotalQuestoes] = useState(10);
-  const [niveis, setNiveis] = useState({ abaixo: 20, basico: 40, proficiente: 40 });
+  const [niveis, setNiveis] = useState({ abaixo: 15, basico: 30, proficiente: 35, avancado: 20 });
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<GeneratedQuestion[]>([]);
   const [formato, setFormato] = useState('objetiva');
   const [matrizRef, setMatrizRef] = useState('bncc');
   const previewRef = useRef<HTMLDivElement>(null);
   const [savedBankId, setSavedBankId] = useState<string | null>(null);
+  const [savedAccessCode, setSavedAccessCode] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
 
+  // Map specific series to content suggestion segment
+  const serieSegment = SERIES_ESPECIFICAS.find(s => s.value === serie)?.segment || '';
+
   const suggestions = useMemo(() => {
-    if (!serie || !disciplina) return [];
-    return CONTENT_SUGGESTIONS[serie]?.[disciplina] || [];
-  }, [serie, disciplina]);
+    if (!serieSegment || !disciplina) return [];
+    return CONTENT_SUGGESTIONS[serieSegment]?.[disciplina] || [];
+  }, [serieSegment, disciplina]);
 
   const handleChipClick = (label: string) => {
     setTopicos(prev => {
@@ -289,7 +303,7 @@ export default function AltaPerformance() {
           activeDna: rede,
           activeSpecialty: `alta_performance_${rede}`,
           isDiscursiva,
-          difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente`,
+          difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente, ${niveis.avancado}% Avançado (interdisciplinar, raciocínio lógico profundo, nível Fuvest/Unicamp/ITA)`,
           examModel: redeInfo?.label || rede,
           matrizReferencia: matrizRef,
           matrizLabel: matrizInfo?.label || 'Padrão BNCC',
@@ -347,10 +361,13 @@ export default function AltaPerformance() {
         question_type: isDiscursiva ? 'discursiva' : 'objetiva',
         questions: questionsOnly as any,
         institution_name: redeInfo?.label || rede,
-      }).select('id').single();
+      }).select('id, access_code').single();
       if (insertErr) throw insertErr;
-      if (inserted?.id) setSavedBankId(inserted.id);
-      toast({ title: 'Questões salvas com sucesso!' });
+      if (inserted?.id) {
+        setSavedBankId(inserted.id);
+        setSavedAccessCode((inserted as any).access_code || null);
+      }
+      toast({ title: 'Questões salvas com sucesso!', description: (inserted as any).access_code ? `Código de acesso: ${(inserted as any).access_code}` : undefined });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     }
@@ -525,10 +542,9 @@ export default function AltaPerformance() {
                 <Select value={serie} onValueChange={setSerie}>
                   <SelectTrigger><SelectValue placeholder="Selecione a série..." /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fundamental-i">Ensino Fundamental I (1º ao 5º ano)</SelectItem>
-                    <SelectItem value="fundamental-ii">Ensino Fundamental II (6º ao 9º ano)</SelectItem>
-                    <SelectItem value="medio">Ensino Médio (1ª à 3ª série)</SelectItem>
-                    <SelectItem value="eja-tecnico">EJA / Técnico</SelectItem>
+                    {SERIES_ESPECIFICAS.map(s => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -618,6 +634,7 @@ export default function AltaPerformance() {
                 { key: 'abaixo' as const, label: 'Abaixo do Básico', color: 'bg-red-500' },
                 { key: 'basico' as const, label: 'Básico', color: 'bg-amber-500' },
                 { key: 'proficiente' as const, label: 'Proficiente', color: 'bg-emerald-500' },
+                { key: 'avancado' as const, label: 'Avançado (Elite)', color: 'bg-purple-500' },
               ]).map(n => (
                 <div key={n.key} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
@@ -630,6 +647,9 @@ export default function AltaPerformance() {
                   <Slider min={0} max={100} step={5} value={[niveis[n.key]]} onValueChange={v => updateNivel(n.key, v[0])} />
                 </div>
               ))}
+              <p className="text-[10px] text-muted-foreground italic mt-1">
+                🎯 Avançado (Elite): questões interdisciplinares com raciocínio profundo — nível Fuvest, Unicamp, ITA.
+              </p>
             </div>
 
             {disciplina === 'Todos' && (
@@ -714,6 +734,27 @@ export default function AltaPerformance() {
                    </Button>
                  </div>
 
+                {/* Access Code Display */}
+                {savedAccessCode && (
+                  <div className="flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5">
+                    <span className="text-sm font-semibold text-foreground">Código de Acesso:</span>
+                    <span className="font-mono text-xl font-extrabold tracking-widest text-primary">{savedAccessCode}</span>
+                    <Button variant="outline" size="sm" className="gap-1.5 ml-auto" onClick={() => {
+                      navigator.clipboard.writeText(savedAccessCode);
+                      toast({ title: 'Código copiado!' });
+                    }}>
+                      <Copy size={14} /> Copiar
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-1.5" onClick={() => {
+                      const shortUrl = buildPublicAppUrl(`/s/${savedAccessCode}`);
+                      navigator.clipboard.writeText(shortUrl);
+                      toast({ title: 'Link curto copiado!', description: shortUrl });
+                    }}>
+                      <Link2 size={14} /> Link Curto
+                    </Button>
+                  </div>
+                )}
+
                 {/* Questions */}
                 <div className="space-y-4">
                   {questions.map((q, i) => (
@@ -774,7 +815,7 @@ export default function AltaPerformance() {
                     ? `Para este Simulado Semanal das turmas de ${serie || 'sua série'}, você prefere focar nas competências socioemocionais da BNCC ou quer um reforço nos conteúdos básicos de Português e Matemática? 📅`
                     : 'Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀'}
                 </p>
-                <p className="text-[10px] text-muted-foreground/60 mt-2 italic">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-2 italic">EduCreator Pro | Tecnologia de Elite por Matheus Lima Piffer</p>
               </div>
             </div>
           </div>

@@ -49,6 +49,7 @@ import StudentActivityResponse from "@/pages/StudentActivityResponse";
 import StudentSimulatorView from "@/pages/StudentSimulatorView";
 import ResultadosAlunos from "@/pages/ResultadosAlunos";
 import MinhaBiblioteca from "@/pages/MinhaBiblioteca";
+import ShortLinkRedirect from "@/pages/ShortLinkRedirect";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 import SignAttendance from "@/pages/SignAttendance";
@@ -184,6 +185,7 @@ const App = () => (
                 <Route path="/atividade/:id" element={<StudentActivityResponse />} />
                 <Route path="/simulado/:id" element={<StudentSimulatorView />} />
                 <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
+                <Route path="/s/:code" element={<ShortLinkRedirect />} />
                 <Route path="/*" element={<AppRoutes />} />
               </Routes>
             </BrowserRouter>

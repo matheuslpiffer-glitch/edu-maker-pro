@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Target, BookOpen, Gamepad2, Trophy, Star, Clock, Brain, Flame, Building2, Cpu, Award, Landmark, Medal, Shield, Sparkles, BarChart3, Eye, ChevronDown, ChevronUp, CheckCircle2, XCircle, MessageCircle, ClipboardList, TrendingUp, Rocket } from 'lucide-react';
+import { Zap, Target, BookOpen, Gamepad2, Trophy, Star, Clock, Brain, Flame, Building2, Cpu, Award, Landmark, Medal, Shield, Sparkles, BarChart3, Eye, ChevronDown, ChevronUp, CheckCircle2, XCircle, MessageCircle, ClipboardList, TrendingUp, Rocket, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface SubjectProgress {
@@ -71,6 +72,8 @@ export default function StudentDashboard() {
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [latestSimulator, setLatestSimulator] = useState<{ title: string } | null>(null);
+  const [accessCode, setAccessCode] = useState('');
+  const [codeLoading, setCodeLoading] = useState(false);
 
   // First-visit welcome modal + toast
   useEffect(() => {
@@ -267,6 +270,41 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Access Code Entry */}
+      <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
+        <CardContent className="flex flex-col sm:flex-row items-center gap-3 p-4">
+          <KeyRound className="text-primary shrink-0" size={24} />
+          <div className="flex-1 text-center sm:text-left">
+            <p className="text-sm font-bold text-foreground">Entrar com Código do Simulado</p>
+            <p className="text-xs text-muted-foreground">Recebeu um código de 6 dígitos do professor? Digite aqui:</p>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Input
+              value={accessCode}
+              onChange={e => setAccessCode(e.target.value.toUpperCase().slice(0, 6))}
+              placeholder="EX: A3B2C1"
+              className="font-mono text-center tracking-widest uppercase w-32"
+              maxLength={6}
+            />
+            <Button
+              disabled={accessCode.length !== 6 || codeLoading}
+              onClick={async () => {
+                setCodeLoading(true);
+                const upper = accessCode.toUpperCase();
+                const { data: sim } = await (supabase.from('simulators').select('id') as any).eq('access_code', upper).maybeSingle();
+                if (sim?.id) { navigate(`/simulado/${sim.id}`); setCodeLoading(false); return; }
+                const { data: bank } = await (supabase.from('question_banks').select('id') as any).eq('access_code', upper).maybeSingle();
+                if (bank?.id) { navigate(`/atividade/${bank.id}`); setCodeLoading(false); return; }
+                toast({ title: 'Código não encontrado', description: 'Verifique o código com seu professor.', variant: 'destructive' });
+                setCodeLoading(false);
+              }}
+            >
+              Entrar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Header Hero */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 p-6 md:p-8 text-white">
