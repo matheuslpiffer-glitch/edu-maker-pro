@@ -72,6 +72,8 @@ export default function StudentDashboard() {
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [latestSimulator, setLatestSimulator] = useState<{ title: string } | null>(null);
+  const [accessCode, setAccessCode] = useState('');
+  const [codeLoading, setCodeLoading] = useState(false);
 
   // First-visit welcome modal + toast
   useEffect(() => {
