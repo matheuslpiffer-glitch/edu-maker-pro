@@ -5,16 +5,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
 import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
-  Users, Hand, Ear, Wand2, ImageIcon, Type, Image,
+  Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { buildPinUrl } from '@/lib/public-links';
+import QRCodeModal from '@/components/QRCodeModal';
 
 /* ── Profiles ── */
 const AEE_PROFILES = [
@@ -180,7 +183,7 @@ export default function Inclusao() {
   const { addQuestions } = useSavedQuestionsBank();
 
   const [subject, setSubject] = useState('');
-  const [selectedProfile, setSelectedProfile] = useState('');
+  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [aeeMode, setAeeMode] = useState<'gerar_novas' | 'adaptar_antigas' | 'texto_resumo'>('gerar_novas');
   const [topic, setTopic] = useState('');
   const [content, setContent] = useState('');
@@ -191,8 +194,16 @@ export default function Inclusao() {
   const [result, setResult] = useState<any[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
+  const [savedAccessCode, setSavedAccessCode] = useState('');
+  const [qrOpen, setQrOpen] = useState(false);
 
-  const canGenerate = !!subject && !!selectedProfile && !!topic;
+  const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic;
+
+  const toggleProfile = (value: string) => {
+    setSelectedProfiles(prev =>
+      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
+    );
+  };
 
   const handleImageGenerated = (index: number, url: string) => {
     setGeneratedImages(prev => ({ ...prev, [index]: url }));
@@ -202,10 +213,12 @@ export default function Inclusao() {
     setGenerating(true);
     setResult(null);
     setGeneratedImages({});
+    setSavedAccessCode('');
     try {
       const data = await fetchAeeWithRetry({
         isInclusao: true,
-        activeDna: selectedProfile,
+        activeDna: selectedProfiles.join(','),
+        aeeProfiles: selectedProfiles,
         aeeMode,
         aeeTopic: topic,
         aeeContent: content.trim() || undefined,
@@ -240,14 +253,13 @@ export default function Inclusao() {
     if (!user || !result) return;
     setSaving(true);
     try {
-      // Merge generated images into questions
       const questionsWithImages = result.map((q: any, i: number) => ({
         ...q,
         generatedImageUrl: generatedImages[i] || q.imageUrl || null,
       }));
       const { error } = await supabase.from('aee_activities').insert({
         user_id: user.id,
-        profile: selectedProfile,
+        profile: selectedProfiles.join(','),
         subject,
         topic,
         mode: aeeMode,
@@ -263,6 +275,53 @@ export default function Inclusao() {
     }
   };
 
+  const handleSaveToBank = async () => {
+    if (!user || !result) return;
+    setSaving(true);
+    try {
+      const profileLabels = selectedProfiles.map(p => AEE_PROFILES.find(ap => ap.value === p)?.label || p).join(' + ');
+      const { data, error } = await supabase.from('question_banks').insert({
+        user_id: user.id,
+        subject,
+        topic: `AEE: ${profileLabels} — ${topic}`,
+        grade: 'AEE',
+        purpose: 'regular',
+        question_type: questionType,
+        institution_name: 'EduCreator Pro — Inclusão',
+        questions: result.map((q: any, i: number) => ({
+          ...q,
+          generatedImageUrl: generatedImages[i] || q.imageUrl || null,
+        })) as any,
+      }).select('access_code').single();
+      if (error) throw error;
+      if (data?.access_code) {
+        setSavedAccessCode(data.access_code);
+        toast({ title: '✅ Simulado salvo com PIN!', description: `PIN: ${data.access_code}` });
+      } else {
+        toast({ title: '✅ Simulado salvo!' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCopyQuestions = () => {
+    if (!result) return;
+    const profileLabels = selectedProfiles.map(p => AEE_PROFILES.find(ap => ap.value === p)?.label || p).join(' + ');
+    const lines = result.map((q: any, i: number) => {
+      let text = `${i + 1}) ${q.content?.replace(/<[^>]*>/g, '') || ''}`;
+      if (q.options?.length) {
+        text += '\n' + q.options.map((o: any) => `  ${o.letter}) ${o.text}`).join('\n');
+      }
+      return text;
+    });
+    const fullText = `📚 Atividade Adaptada — ${subject}\n🎯 Público-Alvo: ${profileLabels}\n📝 Tema: ${topic}\n\n${lines.join('\n\n')}\n\n✅ EduCreator Pro — Tecnologia Assistiva Autoral por Matheus Lima Piffer`;
+    navigator.clipboard.writeText(fullText);
+    toast({ title: '📋 Questões copiadas!' });
+  };
+
   const handlePdf = async () => {
     const el = document.getElementById('aee-result-preview');
     if (!el) return;
@@ -270,10 +329,9 @@ export default function Inclusao() {
       const header = document.createElement('div');
       header.id = 'aee-pdf-header';
       header.style.cssText = 'text-align:center;padding:10px 0 16px;border-bottom:2px solid #0891b2;margin-bottom:16px;font-family:Inter,Arial,sans-serif;';
-      header.innerHTML = `<strong style="font-size:16px;color:#0F172A;">EduCreator Pro</strong><br/><span style="font-size:11px;color:#64748b;">Por Matheus Lima Piffer</span>`;
+      header.innerHTML = `<strong style="font-size:16px;color:#0F172A;">EduCreator Pro</strong><br/><span style="font-size:11px;color:#64748b;">Tecnologia Assistiva Autoral por Matheus Lima Piffer</span>`;
       el.prepend(header);
 
-      // Hide no-print elements for PDF capture
       const noPrintEls = el.querySelectorAll('.no-print');
       noPrintEls.forEach(e => (e as HTMLElement).style.display = 'none');
 
@@ -298,20 +356,19 @@ export default function Inclusao() {
 
   const handleWhatsApp = () => {
     if (!result) return;
-    const profileLabel = AEE_PROFILES.find(p => p.value === selectedProfile)?.label || selectedProfile;
+    const profileLabels = selectedProfiles.map(p => AEE_PROFILES.find(ap => ap.value === p)?.label || p).join(' + ');
     const activityLines = result.map((q: any, i: number) => {
       let text = `*${i + 1})* ${q.content?.replace(/<[^>]*>/g, '') || ''}`;
       if (q.options?.length) {
         text += '\n' + q.options.map((o: any) => `  ${o.letter}) ${o.text}`).join('\n');
       }
-      // Include image URL if generated
       const imgUrl = generatedImages[i] || q.imageUrl;
       if (imgUrl) {
         text += `\n🖼️ Imagem: ${imgUrl}`;
       }
       return text;
     });
-    const msg = `🏫 *EduCreator Pro - Atividade Adaptada*\n\n👤 Professor: Matheus Lima Piffer\n\n📚 Disciplina: ${subject}\n\n🎯 Público-Alvo: ${profileLabel}\n\n${activityLines.join('\n\n')}\n\n✅ Gerado via EduCreator Pro`;
+    const msg = `🏫 *EduCreator Pro - Atividade Adaptada*\n\n👤 Professor: Matheus Lima Piffer\n\n📚 Disciplina: ${subject}\n\n🎯 Público-Alvo: ${profileLabels}\n\n${activityLines.join('\n\n')}\n\n✅ Tecnologia Assistiva Autoral por Matheus Lima Piffer`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -364,28 +421,39 @@ export default function Inclusao() {
             </Select>
           </div>
 
-          {/* STEP 2 — Profile (shown after discipline) */}
+          {/* STEP 2 — Profile multi-select */}
           {subject && (
             <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                2. Público-Alvo (Deficiência) <span className="text-destructive">*</span>
+                2. Público-Alvo — Selecione um ou mais <span className="text-destructive">*</span>
               </Label>
+              {selectedProfiles.length > 1 && (
+                <p className="text-[10px] text-cyan-600 font-semibold">
+                  ✨ A IA cruzará as adaptações de {selectedProfiles.length} perfis automaticamente.
+                </p>
+              )}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {AEE_PROFILES.map(profile => {
                   const Icon = profile.icon;
-                  const isSelected = selectedProfile === profile.value;
+                  const isSelected = selectedProfiles.includes(profile.value);
                   const colors = colorMap[profile.color];
                   return (
                     <button
                       key={profile.value}
-                      onClick={() => setSelectedProfile(profile.value)}
+                      onClick={() => toggleProfile(profile.value)}
                       className={`relative p-4 rounded-2xl border-[3px] text-left transition-all duration-200 ${
                         isSelected
                           ? `${colors.bg} ${colors.border} shadow-lg ${colors.shadow}`
                           : 'bg-card border-transparent hover:border-border'
                       }`}
                     >
-                      {isSelected && <CheckCircle2 className={`absolute top-2 right-2 h-4 w-4 ${colors.text}`} />}
+                      <div className="absolute top-2 right-2">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleProfile(profile.value)}
+                          className="pointer-events-none"
+                        />
+                      </div>
                       <Icon className={`h-6 w-6 mb-2 ${isSelected ? colors.text : 'text-muted-foreground'}`} />
                       <span className={`text-xs font-bold block ${isSelected ? colors.text : 'text-foreground'}`}>{profile.label}</span>
                     </button>
@@ -395,8 +463,8 @@ export default function Inclusao() {
             </div>
           )}
 
-          {/* STEP 3 — Generation fields (shown after profile) */}
-          {subject && selectedProfile && (
+          {/* STEP 3 — Generation fields */}
+          {subject && selectedProfiles.length > 0 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 3. Gerar Atividade Adaptada
@@ -516,7 +584,7 @@ export default function Inclusao() {
           {!subject && (
             <div className="bg-muted/50 rounded-2xl p-5 text-center space-y-2">
               <p className="text-sm font-semibold text-muted-foreground">Comece selecionando a Disciplina</p>
-              <p className="text-xs text-muted-foreground">Depois escolha o perfil de deficiência para desbloquear a geração.</p>
+              <p className="text-xs text-muted-foreground">Depois escolha o(s) perfil(is) de deficiência para desbloquear a geração.</p>
             </div>
           )}
         </div>
@@ -526,19 +594,53 @@ export default function Inclusao() {
       {result && result.length > 0 && (
         <div className="bg-card rounded-[3rem] border p-8 space-y-6">
           <h3 className="text-lg font-black text-foreground">📋 Material Gerado</h3>
+
+          {/* PIN badge */}
+          {savedAccessCode && (
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-cyan-50 border border-cyan-200">
+              <KeyRound className="h-5 w-5 text-cyan-600" />
+              <div>
+                <p className="text-xs font-bold text-cyan-700">PIN de Acesso do Aluno</p>
+                <p className="text-2xl font-black tracking-[0.3em] text-cyan-800">{savedAccessCode}</p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="ml-auto rounded-xl gap-1"
+                onClick={() => {
+                  navigator.clipboard.writeText(savedAccessCode);
+                  toast({ title: 'PIN copiado!' });
+                }}
+              >
+                <Copy className="h-3.5 w-3.5" /> Copiar
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-xl gap-1"
+                onClick={() => setQrOpen(true)}
+              >
+                <QrCode className="h-3.5 w-3.5" /> QR Code
+              </Button>
+            </div>
+          )}
+
           <div id="aee-result-preview" className="space-y-6" style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>
             {result.map((q: any, i: number) => (
-              <div key={i} className="border rounded-2xl p-6 space-y-3 break-words">
-                <p className="font-bold text-sm text-foreground">Questão {i + 1}</p>
+              <div key={i} className="border rounded-2xl p-6 sm:p-8 space-y-4 break-words">
+                <p className="font-black text-base sm:text-lg text-foreground">Questão {i + 1}</p>
                 <div
-                  className="prose prose-sm max-w-none break-words"
+                  className="prose prose-sm sm:prose-base max-w-none break-words leading-relaxed"
+                  style={{ fontSize: '1.05rem', lineHeight: '1.75' }}
                   dangerouslySetInnerHTML={{ __html: cleanHtml(q.content || '') }}
                 />
                 {q.options && q.options.length > 0 && (
-                  <div className="space-y-1.5 mt-2">
+                  <div className="space-y-2.5 mt-3">
                     {q.options.map((opt: any, j: number) => (
-                      <div key={j} className={`flex items-start gap-2 p-2 rounded-xl text-sm ${opt.isCorrect ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-muted-foreground'}`}>
-                        <span className="font-bold shrink-0">{opt.letter})</span>
+                      <div key={j} className={`flex items-start gap-3 p-3 sm:p-4 rounded-xl text-sm sm:text-base ${opt.isCorrect ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-muted-foreground'}`}
+                        style={{ fontSize: '1rem', lineHeight: '1.6' }}
+                      >
+                        <span className="font-black shrink-0 text-base">{opt.letter})</span>
                         <span className="break-words">{opt.text}</span>
                       </div>
                     ))}
@@ -579,7 +681,7 @@ export default function Inclusao() {
                   />
                 )}
 
-                {/* Per-question image generator button — only show in "com_imagem" mode */}
+                {/* Per-question image generator */}
                 {imageMode === 'com_imagem' && (
                   <QuestionImageGenerator
                     questionIndex={i}
@@ -587,7 +689,7 @@ export default function Inclusao() {
                   />
                 )}
 
-                {/* Text-only success badge */}
+                {/* Text-only badge */}
                 {imageMode === 'somente_texto' && (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 text-xs font-medium">
                     <CheckCircle2 className="h-4 w-4 shrink-0" />
@@ -598,24 +700,41 @@ export default function Inclusao() {
             ))}
           </div>
 
-          {/* Output action bar */}
+          {/* Action bar */}
           <div className="flex flex-wrap items-center gap-3 pt-4 border-t no-print">
             <Button onClick={handleSave} disabled={saving} variant="outline" className="rounded-2xl gap-2">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Salvar Atividade
             </Button>
+            <Button onClick={handleSaveToBank} disabled={saving} className="rounded-2xl gap-2 bg-gradient-to-r from-cyan-600 to-teal-600 text-white hover:from-cyan-700 hover:to-teal-700">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+              Enviar para Aluno (PIN)
+            </Button>
+            <Button onClick={handleCopyQuestions} variant="outline" className="rounded-2xl gap-2">
+              <Copy className="h-4 w-4" /> Copiar Questões
+            </Button>
             <Button onClick={handlePdf} variant="outline" className="rounded-2xl gap-2">
               <FileDown className="h-4 w-4" /> Gerar PDF
             </Button>
             <Button onClick={handleWhatsApp} variant="outline" className="rounded-2xl gap-2">
-              <MessageCircle className="h-4 w-4" /> Enviar para WhatsApp
+              <MessageCircle className="h-4 w-4" /> WhatsApp
             </Button>
           </div>
         </div>
       )}
 
+      {/* QR Code Modal */}
+      {savedAccessCode && (
+        <QRCodeModal
+          open={qrOpen}
+          onOpenChange={setQrOpen}
+          url={buildPinUrl(savedAccessCode)}
+          title="PIN do Simulado Adaptado"
+        />
+      )}
+
       <p className="text-center text-xs text-muted-foreground">
-        Estratégia Pedagógica por Matheus Lima Piffer · EduCreator Pro
+        Tecnologia Assistiva Autoral por Matheus Lima Piffer · Sistema de Inclusão Blindado · EduCreator Pro
       </p>
     </div>
   );

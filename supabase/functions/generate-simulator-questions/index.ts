@@ -231,7 +231,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode } = await req.json();
+    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
     if (isInclusao) {
@@ -255,8 +255,13 @@ serve(async (req) => {
         aee_auditiva: 'Deficiência Auditiva',
       };
 
-      const diretriz = diretrizesPorPerfil[activeDna] || diretrizesPorPerfil.aee_tea;
-      const perfil = perfilLabel[activeDna] || 'Necessidades Especiais';
+      // Support multiple profiles (aeeProfiles array) for crossed adaptations
+      const profileKeys: string[] = Array.isArray(aeeProfiles) && aeeProfiles.length > 0
+        ? aeeProfiles
+        : (activeDna ? activeDna.split(',').map((s: string) => s.trim()).filter(Boolean) : ['aee_tea']);
+
+      const diretriz = profileKeys.map(k => diretrizesPorPerfil[k] || '').filter(Boolean).join('\n\n');
+      const perfil = profileKeys.map(k => perfilLabel[k] || k).join(' + ');
 
       // Determine image mode: "com_imagem" (default) or "somente_texto"
       const isTextOnly = aeeImageMode === 'somente_texto';
@@ -296,6 +301,15 @@ REGRAS VISUAIS HTML:
 - Use espaçamento generoso (margin: 16px 0) entre todos os elementos
 - Use fonte grande implícita nos textos (tags <span style="font-size:1.15em">)
 - Cada questão deve ter um número grande e colorido: <span style="font-size:1.5em;color:#0891b2;font-weight:bold">Questão 1 🎯</span>
+
+FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL (Acessibilidade para Leitores de Tela):
+Está TERMINANTEMENTE PROIBIDO o uso de delimitadores LaTeX ($...$, $$...$$, \\(...\\), \\[...\\]) e tags HTML de formatação (<sup>, <sub>, <b>, <i>, <em>).
+Use EXCLUSIVAMENTE caracteres Unicode: π, ², ³, √, ±, ×, ÷, ≠, ≤, ≥, ≈, ∞, ½, ⅓, ¼, ¾, α, β, γ, δ, θ, Δ, Σ, Ω.
+Para frações não-padrão use barra comum: 1/3, 2/7. Para sobrescritos: ⁰¹²³⁴⁵⁶⁷⁸⁹. Para subscritos: ₀₁₂₃₄₅₆₇₈₉.
+VALIDAÇÃO: Verifique que NENHUM $ ou <sup>/<sub>/<b>/<i> exista no texto final das alternativas.
+Exceção: <strong> é permitido APENAS para destacar palavras-chave pedagógicas no enunciado.
+
+${profileKeys.length > 1 ? `CRUZAMENTO DE ADAPTAÇÕES: O aluno possui MÚLTIPLOS perfis (${perfil}). Você DEVE cruzar TODAS as diretrizes acima simultaneamente. Priorize as adaptações mais restritivas quando houver conflito (ex: se um perfil pede 4 alternativas e outro pede 3, use 3).` : ''}
 
 Responda APENAS com JSON válido, sem markdown.
 NUNCA use blocos de código markdown; retorne somente HTML cru no campo content.`;
