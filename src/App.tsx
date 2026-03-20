@@ -46,6 +46,7 @@ import VisionCorrector from "@/pages/VisionCorrector";
 import AltaPerformance from "@/pages/AltaPerformance";
 import BussolaVocacional from "@/pages/BussolaVocacional";
 import Inclusao from "@/pages/Inclusao";
+import EduStudio from "@/pages/EduStudio";
 import ReferenciasBibliograficas from "@/pages/ReferenciasBibliograficas";
 import StudentActivityResponse from "@/pages/StudentActivityResponse";
 import StudentSimulatorView from "@/pages/StudentSimulatorView";
