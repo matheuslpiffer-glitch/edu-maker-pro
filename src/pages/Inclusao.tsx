@@ -674,16 +674,16 @@ export default function Inclusao() {
                 <p className="font-black text-base sm:text-lg text-foreground">Questão {i + 1}</p>
                 <div
                   className="prose prose-sm sm:prose-base max-w-none break-words leading-relaxed"
-                  style={{ fontSize: '1.05rem', lineHeight: '1.75' }}
+                  style={{ fontSize: '1.1rem', lineHeight: '1.85', fontFamily: 'Inter, system-ui, sans-serif' }}
                   dangerouslySetInnerHTML={{ __html: cleanHtml(q.content || '') }}
                 />
                 {q.options && q.options.length > 0 && (
-                  <div className="space-y-2.5 mt-3">
+                  <div className="space-y-3 mt-4">
                     {q.options.map((opt: any, j: number) => (
-                      <div key={j} className={`flex items-start gap-3 p-3 sm:p-4 rounded-xl text-sm sm:text-base ${opt.isCorrect ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-muted-foreground'}`}
-                        style={{ fontSize: '1rem', lineHeight: '1.6' }}
+                      <div key={j} className={`flex items-start gap-3 p-4 sm:p-5 rounded-xl ${opt.isCorrect ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-foreground'}`}
+                        style={{ fontSize: '1.1rem', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.01em' }}
                       >
-                        <span className="font-black shrink-0 text-base">{opt.letter})</span>
+                        <span className="font-black shrink-0 text-lg">{opt.letter})</span>
                         <span className="break-words">{opt.text}</span>
                       </div>
                     ))}
