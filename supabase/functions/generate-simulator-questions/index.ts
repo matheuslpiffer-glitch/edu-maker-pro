@@ -302,6 +302,15 @@ REGRAS VISUAIS HTML:
 - Use fonte grande implícita nos textos (tags <span style="font-size:1.15em">)
 - Cada questão deve ter um número grande e colorido: <span style="font-size:1.5em;color:#0891b2;font-weight:bold">Questão 1 🎯</span>
 
+FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL (Acessibilidade para Leitores de Tela):
+Está TERMINANTEMENTE PROIBIDO o uso de delimitadores LaTeX ($...$, $$...$$, \\(...\\), \\[...\\]) e tags HTML de formatação (<sup>, <sub>, <b>, <i>, <em>).
+Use EXCLUSIVAMENTE caracteres Unicode: π, ², ³, √, ±, ×, ÷, ≠, ≤, ≥, ≈, ∞, ½, ⅓, ¼, ¾, α, β, γ, δ, θ, Δ, Σ, Ω.
+Para frações não-padrão use barra comum: 1/3, 2/7. Para sobrescritos: ⁰¹²³⁴⁵⁶⁷⁸⁹. Para subscritos: ₀₁₂₃₄₅₆₇₈₉.
+VALIDAÇÃO: Verifique que NENHUM $ ou <sup>/<sub>/<b>/<i> exista no texto final das alternativas.
+Exceção: <strong> é permitido APENAS para destacar palavras-chave pedagógicas no enunciado.
+
+${profileKeys.length > 1 ? `CRUZAMENTO DE ADAPTAÇÕES: O aluno possui MÚLTIPLOS perfis (${perfil}). Você DEVE cruzar TODAS as diretrizes acima simultaneamente. Priorize as adaptações mais restritivas quando houver conflito (ex: se um perfil pede 4 alternativas e outro pede 3, use 3).` : ''}
+
 Responda APENAS com JSON válido, sem markdown.
 NUNCA use blocos de código markdown; retorne somente HTML cru no campo content.`;
 
