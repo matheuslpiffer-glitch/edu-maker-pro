@@ -303,11 +303,14 @@ REGRAS VISUAIS HTML:
 - Cada questão deve ter um número grande e colorido: <span style="font-size:1.5em;color:#0891b2;font-weight:bold">Questão 1 🎯</span>
 
 FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL (Acessibilidade para Leitores de Tela):
-Está TERMINANTEMENTE PROIBIDO o uso de delimitadores LaTeX ($...$, $$...$$, \\(...\\), \\[...\\]) e tags HTML de formatação (<sup>, <sub>, <b>, <i>, <em>).
+Está TERMINANTEMENTE PROIBIDO o uso de:
+- Delimitadores LaTeX: $...$ , $$...$$ , \\( ... \\) , \\[ ... \\] , \\frac, \\cfrac, \\sqrt, \\pi, \\alpha ou qualquer comando LaTeX
+- Tags HTML de formatação nas ALTERNATIVAS: <sup>, <sub>, <b>, <i>, <em>, <strong>, <span> — ZERO tags HTML nas alternativas
+- No campo "text" das options, use APENAS texto puro Unicode sem nenhuma tag HTML
 Use EXCLUSIVAMENTE caracteres Unicode: π, ², ³, √, ±, ×, ÷, ≠, ≤, ≥, ≈, ∞, ½, ⅓, ¼, ¾, α, β, γ, δ, θ, Δ, Σ, Ω.
 Para frações não-padrão use barra comum: 1/3, 2/7. Para sobrescritos: ⁰¹²³⁴⁵⁶⁷⁸⁹. Para subscritos: ₀₁₂₃₄₅₆₇₈₉.
-VALIDAÇÃO: Verifique que NENHUM $ ou <sup>/<sub>/<b>/<i> exista no texto final das alternativas.
-Exceção: <strong> é permitido APENAS para destacar palavras-chave pedagógicas no enunciado.
+VALIDAÇÃO FINAL: Antes de retornar o JSON, verifique que NENHUM $ ou <sup>/<sub>/<b>/<i>/<span> exista no campo "text" das alternativas.
+Exceção: <strong> é permitido APENAS no campo "content" (enunciado) para destacar palavras-chave pedagógicas.
 
 ${profileKeys.length > 1 ? `CRUZAMENTO DE ADAPTAÇÕES: O aluno possui MÚLTIPLOS perfis (${perfil}). Você DEVE cruzar TODAS as diretrizes acima simultaneamente. Priorize as adaptações mais restritivas quando houver conflito (ex: se um perfil pede 4 alternativas e outro pede 3, use 3).` : ''}
 
