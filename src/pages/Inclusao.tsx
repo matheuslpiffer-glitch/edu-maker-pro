@@ -54,6 +54,48 @@ function cleanHtml(raw: string): string {
     .trim();
 }
 
+/**
+ * Sanitize text fields (options, plain text) — strips LaTeX delimiters and HTML tags.
+ * Keeps only plain Unicode text safe for screen readers and any browser.
+ */
+function sanitizeText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\$\$(.*?)\$\$/g, '$1')
+    .replace(/\$(.*?)\$/g, '$1')
+    .replace(/\\(?:c?frac)\{([^}]*)\}\{([^}]*)\}/g, '$1/$2')
+    .replace(/\\sqrt\{([^}]*)\}/g, '√$1')
+    .replace(/\\pi/g, 'π').replace(/\\alpha/g, 'α').replace(/\\beta/g, 'β')
+    .replace(/\\gamma/g, 'γ').replace(/\\delta/g, 'δ').replace(/\\theta/g, 'θ')
+    .replace(/\\Delta/g, 'Δ').replace(/\\Sigma/g, 'Σ').replace(/\\Omega/g, 'Ω')
+    .replace(/\\infty/g, '∞').replace(/\\times/g, '×').replace(/\\div/g, '÷')
+    .replace(/\\neq/g, '≠').replace(/\\leq/g, '≤').replace(/\\geq/g, '≥')
+    .replace(/\\approx/g, '≈').replace(/\\pm/g, '±').replace(/\\cdot/g, '·')
+    .replace(/\\[a-zA-Z]+/g, '')
+    .replace(/[{}]/g, '')
+    .replace(/<sup>([\d]+)<\/sup>/gi, (_m, d: string) => {
+      const s: Record<string, string> = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹' };
+      return d.split('').map((c: string) => s[c] || c).join('');
+    })
+    .replace(/<sub>([\d]+)<\/sub>/gi, (_m, d: string) => {
+      const s: Record<string, string> = { '0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉' };
+      return d.split('').map((c: string) => s[c] || c).join('');
+    })
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function sanitizeQuestion(q: any): any {
+  return {
+    ...q,
+    options: q.options?.map((opt: any) => ({
+      ...opt,
+      text: sanitizeText(opt.text || ''),
+    })),
+  };
+}
+
 async function fetchAeeWithRetry(payload: Record<string, unknown>, retries = 2, delay = 1200): Promise<any> {
   try {
     const { data: { session } } = await supabase.auth.getSession();
@@ -229,8 +271,9 @@ export default function Inclusao() {
       });
       if (data?.error) throw new Error(data.error);
       if (data?.questions) {
-        setResult(data.questions);
-        addQuestions(data.questions.map((q: any, i: number) => ({
+        const sanitized = data.questions.map((q: any) => sanitizeQuestion(q));
+        setResult(sanitized);
+        addQuestions(sanitized.map((q: any, i: number) => ({
           id: `aee-${Date.now()}-${i}`,
           banca: 'AEE',
           tema: topic || 'Inclusão',
@@ -631,16 +674,16 @@ export default function Inclusao() {
                 <p className="font-black text-base sm:text-lg text-foreground">Questão {i + 1}</p>
                 <div
                   className="prose prose-sm sm:prose-base max-w-none break-words leading-relaxed"
-                  style={{ fontSize: '1.05rem', lineHeight: '1.75' }}
+                  style={{ fontSize: '1.1rem', lineHeight: '1.85', fontFamily: 'Inter, system-ui, sans-serif' }}
                   dangerouslySetInnerHTML={{ __html: cleanHtml(q.content || '') }}
                 />
                 {q.options && q.options.length > 0 && (
-                  <div className="space-y-2.5 mt-3">
+                  <div className="space-y-3 mt-4">
                     {q.options.map((opt: any, j: number) => (
-                      <div key={j} className={`flex items-start gap-3 p-3 sm:p-4 rounded-xl text-sm sm:text-base ${opt.isCorrect ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-muted-foreground'}`}
-                        style={{ fontSize: '1rem', lineHeight: '1.6' }}
+                      <div key={j} className={`flex items-start gap-3 p-4 sm:p-5 rounded-xl ${opt.isCorrect ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-foreground'}`}
+                        style={{ fontSize: '1.1rem', lineHeight: '1.7', fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.01em' }}
                       >
-                        <span className="font-black shrink-0 text-base">{opt.letter})</span>
+                        <span className="font-black shrink-0 text-lg">{opt.letter})</span>
                         <span className="break-words">{opt.text}</span>
                       </div>
                     ))}
