@@ -255,8 +255,13 @@ serve(async (req) => {
         aee_auditiva: 'Deficiência Auditiva',
       };
 
-      const diretriz = diretrizesPorPerfil[activeDna] || diretrizesPorPerfil.aee_tea;
-      const perfil = perfilLabel[activeDna] || 'Necessidades Especiais';
+      // Support multiple profiles (aeeProfiles array) for crossed adaptations
+      const profileKeys: string[] = Array.isArray(aeeProfiles) && aeeProfiles.length > 0
+        ? aeeProfiles
+        : (activeDna ? activeDna.split(',').map((s: string) => s.trim()).filter(Boolean) : ['aee_tea']);
+
+      const diretriz = profileKeys.map(k => diretrizesPorPerfil[k] || '').filter(Boolean).join('\n\n');
+      const perfil = profileKeys.map(k => perfilLabel[k] || k).join(' + ');
 
       // Determine image mode: "com_imagem" (default) or "somente_texto"
       const isTextOnly = aeeImageMode === 'somente_texto';
