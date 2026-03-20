@@ -54,6 +54,48 @@ function cleanHtml(raw: string): string {
     .trim();
 }
 
+/**
+ * Sanitize text fields (options, plain text) — strips LaTeX delimiters and HTML tags.
+ * Keeps only plain Unicode text safe for screen readers and any browser.
+ */
+function sanitizeText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\$\$(.*?)\$\$/g, '$1')
+    .replace(/\$(.*?)\$/g, '$1')
+    .replace(/\\(?:c?frac)\{([^}]*)\}\{([^}]*)\}/g, '$1/$2')
+    .replace(/\\sqrt\{([^}]*)\}/g, '√$1')
+    .replace(/\\pi/g, 'π').replace(/\\alpha/g, 'α').replace(/\\beta/g, 'β')
+    .replace(/\\gamma/g, 'γ').replace(/\\delta/g, 'δ').replace(/\\theta/g, 'θ')
+    .replace(/\\Delta/g, 'Δ').replace(/\\Sigma/g, 'Σ').replace(/\\Omega/g, 'Ω')
+    .replace(/\\infty/g, '∞').replace(/\\times/g, '×').replace(/\\div/g, '÷')
+    .replace(/\\neq/g, '≠').replace(/\\leq/g, '≤').replace(/\\geq/g, '≥')
+    .replace(/\\approx/g, '≈').replace(/\\pm/g, '±').replace(/\\cdot/g, '·')
+    .replace(/\\[a-zA-Z]+/g, '')
+    .replace(/[{}]/g, '')
+    .replace(/<sup>([\d]+)<\/sup>/gi, (_m, d: string) => {
+      const s: Record<string, string> = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹' };
+      return d.split('').map((c: string) => s[c] || c).join('');
+    })
+    .replace(/<sub>([\d]+)<\/sub>/gi, (_m, d: string) => {
+      const s: Record<string, string> = { '0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉' };
+      return d.split('').map((c: string) => s[c] || c).join('');
+    })
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function sanitizeQuestion(q: any): any {
+  return {
+    ...q,
+    options: q.options?.map((opt: any) => ({
+      ...opt,
+      text: sanitizeText(opt.text || ''),
+    })),
+  };
+}
+
 async function fetchAeeWithRetry(payload: Record<string, unknown>, retries = 2, delay = 1200): Promise<any> {
   try {
     const { data: { session } } = await supabase.auth.getSession();
