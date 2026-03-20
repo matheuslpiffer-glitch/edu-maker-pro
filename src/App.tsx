@@ -140,6 +140,7 @@ function AppRoutes() {
         <Route path="/eduslides" element={<EduSlides />} />
         <Route path="/simuladores" element={<Simulators />} />
         <Route path="/inclusao" element={<Inclusao />} />
+        <Route path="/edustudio" element={<EduStudio />} />
         <Route path="/alta-performance" element={<AltaPerformance />} />
         <Route path="/vestibulares" element={<Vestibulares />} />
         <Route path="/tecnicos" element={<Tecnicos />} />
