@@ -271,8 +271,9 @@ export default function Inclusao() {
       });
       if (data?.error) throw new Error(data.error);
       if (data?.questions) {
-        setResult(data.questions);
-        addQuestions(data.questions.map((q: any, i: number) => ({
+        const sanitized = data.questions.map((q: any) => sanitizeQuestion(q));
+        setResult(sanitized);
+        addQuestions(sanitized.map((q: any, i: number) => ({
           id: `aee-${Date.now()}-${i}`,
           banca: 'AEE',
           tema: topic || 'Inclusão',
