@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,47 +29,7 @@ const GAME_TYPES = [
   { id: 'memoria', label: 'Jogo da Memória', icon: Brain, desc: 'Pares de conceito/definição para memorização' },
 ];
 
-const SERIES_CATEGORIAS = [
-  {
-    label: '🌈 Educação Infantil',
-    series: [
-      { id: 'mini_maternal', label: 'Mini Maternal' },
-      { id: 'maternal', label: 'Maternal' },
-      { id: 'jardim_1', label: 'Jardim I' },
-      { id: 'jardim_2', label: 'Jardim II' },
-      { id: 'pre', label: 'Pré-Escola' },
-    ],
-  },
-  {
-    label: '📗 Ensino Fundamental I',
-    series: [
-      { id: 'ano_1', label: '1º Ano' },
-      { id: 'ano_2', label: '2º Ano' },
-      { id: 'ano_3', label: '3º Ano' },
-      { id: 'ano_4', label: '4º Ano' },
-      { id: 'ano_5', label: '5º Ano' },
-    ],
-  },
-  {
-    label: '📘 Ensino Fundamental II',
-    series: [
-      { id: 'ano_6', label: '6º Ano' },
-      { id: 'ano_7', label: '7º Ano' },
-      { id: 'ano_8', label: '8º Ano' },
-      { id: 'ano_9', label: '9º Ano' },
-    ],
-  },
-  {
-    label: '🎓 Ensino Médio & Técnico',
-    series: [
-      { id: 'serie_1', label: '1ª Série EM' },
-      { id: 'serie_2', label: '2ª Série EM' },
-      { id: 'serie_3', label: '3ª Série EM' },
-      { id: 'tecnico', label: 'Curso Técnico' },
-      { id: 'etec', label: 'ETEC / COTUCA' },
-    ],
-  },
-];
+// SERIES_CATEGORIAS imported from @/lib/series-data
 
 export default function GameFactory() {
   const { user } = useAuth();

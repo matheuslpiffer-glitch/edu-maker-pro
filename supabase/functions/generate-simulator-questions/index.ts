@@ -549,7 +549,36 @@ JSON:
 
     const topicInstruction = specificTopic ? `\nTEMA ESPECÍFICO: Foque TODO o conteúdo gerado no tema "${specificTopic}". Todos os enunciados, contextos e exercícios devem girar em torno deste tema.\n` : "";
 
-    const serieInstruction = serie ? `\nSÉRIE ESCOLAR: O conteúdo deve ser calibrado para o nível "${serie}". Ajuste vocabulário, complexidade e profundidade dos conceitos de acordo com esta faixa etária.\n` : "";
+    // ── Ciclo Escolar Completo — Matheus Lima Piffer ──
+    const isInfantil = ['bercario', 'maternal_1', 'maternal_2', 'mini_maternal', 'maternal', 'jardim_1', 'jardim_2', 'pre'].includes(serie || '');
+    const isAlfabetizacao = ['ano_1', 'ano_2'].includes(serie || '');
+    const isAnosIniciais = ['ano_3', 'ano_4', 'ano_5'].includes(serie || '');
+
+    let serieInstruction = '';
+    if (isInfantil) {
+      serieInstruction = `\nSÉRIE ESCOLAR: EDUCAÇÃO INFANTIL ("${serie}").
+DIRETRIZES OBRIGATÓRIAS:
+- Use linguagem LÚDICA, com frases curtíssimas e vocabulário concreto do universo infantil (brinquedos, animais, frutas, cores).
+- Foco em CAMPOS DE EXPERIÊNCIA (BNCC): O eu/outro/nós, Corpo/gestos/movimentos, Traços/sons/cores/formas, Escuta/fala/pensamento/imaginação, Espaços/tempos/quantidades/relações/transformações.
+- As questões devem ser ORIENTAÇÕES PARA O PROFESSOR/MEDIADOR realizar ATIVIDADES PRÁTICAS com a criança (recorte, pintura, roda de conversa, jogo).
+- NÃO gere questões de múltipla escolha tradicionais. Gere roteiros de atividades lúdicas com materiais simples.
+- Inclua emojis como apoio visual (🎨🧩🎶🌈).
+- Tom acolhedor e afetivo.\n`;
+    } else if (isAlfabetizacao) {
+      serieInstruction = `\nSÉRIE ESCOLAR: ${serie === 'ano_1' ? '1º ANO (ALFABETIZAÇÃO)' : '2º ANO'}.
+DIRETRIZES OBRIGATÓRIAS:
+- Use frases MUITO CURTAS (máximo 1 linha) com palavras simples do cotidiano.
+- Priorize SÍLABAS, LETRAS e PALAVRAS-CHAVE em destaque.
+- Alternativas com no máximo 5 palavras cada.
+- Inclua pistas visuais textuais (emojis: 🍎📚✏️) para apoiar a leitura.
+- Sugira ao professor onde inserir imagens de apoio: [INSERIR IMAGEM: descrição].
+- Conteúdo alinhado à BNCC para alfabetização/letramento e numeramento inicial.\n`;
+    } else if (isAnosIniciais) {
+      serieInstruction = `\nSÉRIE ESCOLAR: ${serie} (Anos Iniciais do Ensino Fundamental).
+DIRETRIZES: Use linguagem acessível com frases curtas. Vocabulário adequado para crianças de 8-10 anos. Contextualize problemas com situações do dia a dia (escola, família, brincadeiras). Alternativas claras e diretas.\n`;
+    } else if (serie) {
+      serieInstruction = `\nSÉRIE ESCOLAR: O conteúdo deve ser calibrado para o nível "${serie}". Ajuste vocabulário, complexidade e profundidade dos conceitos de acordo com esta faixa etária.\n`;
+    }
 
     const generoInstruction = generoTextual ? `\nGÊNERO TEXTUAL OBRIGATÓRIO: A proposta de redação deve exigir a produção de um texto no gênero "${generoTextual}". Adapte o comando de escrita, os textos motivadores e os critérios de avaliação para este gênero específico.\n` : "";
 

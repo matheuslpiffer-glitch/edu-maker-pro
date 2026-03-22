@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
 import { useAuth } from '@/hooks/useAuth';
@@ -300,55 +301,7 @@ const GRADES = [
   '1ª Série EM', '2ª Série EM',
 ];
 
-const SERIES_CATEGORIAS = [
-  {
-    label: '🌈 Educação Infantil',
-    series: [
-      { id: 'mini_maternal', label: 'Mini Maternal' },
-      { id: 'maternal', label: 'Maternal' },
-      { id: 'jardim_1', label: 'Jardim I' },
-      { id: 'jardim_2', label: 'Jardim II' },
-      { id: 'pre', label: 'Pré-Escola' },
-    ],
-  },
-  {
-    label: '📗 Ensino Fundamental I',
-    series: [
-      { id: 'ano_1', label: '1º Ano' },
-      { id: 'ano_2', label: '2º Ano' },
-      { id: 'ano_3', label: '3º Ano' },
-      { id: 'ano_4', label: '4º Ano' },
-      { id: 'ano_5', label: '5º Ano' },
-    ],
-  },
-  {
-    label: '📘 Ensino Fundamental II',
-    series: [
-      { id: 'ano_6', label: '6º Ano' },
-      { id: 'ano_7', label: '7º Ano' },
-      { id: 'ano_8', label: '8º Ano' },
-      { id: 'ano_9', label: '9º Ano' },
-    ],
-  },
-  {
-    label: '🎓 Ensino Médio & Técnico',
-    series: [
-      { id: 'serie_1', label: '1ª Série EM' },
-      { id: 'serie_2', label: '2ª Série EM' },
-      { id: 'serie_3', label: '3ª Série EM' },
-      { id: 'tecnico', label: 'Curso Técnico' },
-      { id: 'etec', label: 'ETEC / COTUCA' },
-    ],
-  },
-];
-
-const SERIE_GRADE_MAP: Record<string, string> = {
-  mini_maternal: 'Mini Maternal', maternal: 'Maternal', jardim_1: 'Jardim I', jardim_2: 'Jardim II', pre: 'Pré-Escola',
-  ano_1: '1º Ano EF', ano_2: '2º Ano EF', ano_3: '3º Ano EF', ano_4: '4º Ano EF', ano_5: '5º Ano EF',
-  ano_6: '6º Ano EF', ano_7: '7º Ano EF', ano_8: '8º Ano EF', ano_9: '9º Ano EF',
-  serie_1: '1ª Série EM', serie_2: '2ª Série EM', serie_3: '3ª Série EM',
-  tecnico: 'Curso Técnico', etec: 'ETEC / COTUCA',
-};
+// SERIES_CATEGORIAS and SERIE_GRADE_MAP imported from @/lib/series-data
 
 const ARVORE_PUBLICOS = [
   { id: 'super_enem', label: 'ENEM' },
