@@ -241,15 +241,51 @@ interface GeneratedQuestion {
   correctionMirror?: string;
 }
 
-const SERIES_ESPECIFICAS = [
-  { value: '6ano', label: '6º Ano', segment: 'fundamental-ii' },
-  { value: '7ano', label: '7º Ano', segment: 'fundamental-ii' },
-  { value: '8ano', label: '8º Ano', segment: 'fundamental-ii' },
-  { value: '9ano', label: '9º Ano', segment: 'fundamental-ii' },
-  { value: '1serie', label: '1ª Série EM', segment: 'medio' },
-  { value: '2serie', label: '2ª Série EM', segment: 'medio' },
-  { value: '3serie', label: '3ª Série EM', segment: 'medio' },
+interface SerieGroup {
+  label: string;
+  items: { value: string; label: string; segment: string }[];
+}
+
+const SERIES_ESPECIFICAS_GROUPED: SerieGroup[] = [
+  {
+    label: '🌈 Educação Infantil',
+    items: [
+      { value: 'bercario', label: 'Berçário (0–1a6m)', segment: 'infantil' },
+      { value: 'maternal_1', label: 'Maternal I (1a7m–3a)', segment: 'infantil' },
+      { value: 'maternal_2', label: 'Maternal II (4 anos)', segment: 'infantil' },
+      { value: 'pre', label: 'Jardim / Pré-Escola (5 anos)', segment: 'infantil' },
+    ],
+  },
+  {
+    label: '📗 Anos Iniciais (Fund. I)',
+    items: [
+      { value: '1ano', label: '1º Ano (Alfabetização)', segment: 'fundamental-i' },
+      { value: '2ano', label: '2º Ano (Consolidação da Leitura)', segment: 'fundamental-i' },
+      { value: '3ano', label: '3º Ano (Desenvolvimento da Escrita)', segment: 'fundamental-i' },
+      { value: '4ano', label: '4º Ano (Autonomia Acadêmica)', segment: 'fundamental-i' },
+      { value: '5ano', label: '5º Ano (Transição para Anos Finais)', segment: 'fundamental-i' },
+    ],
+  },
+  {
+    label: '📘 Anos Finais (Fund. II)',
+    items: [
+      { value: '6ano', label: '6º Ano', segment: 'fundamental-ii' },
+      { value: '7ano', label: '7º Ano', segment: 'fundamental-ii' },
+      { value: '8ano', label: '8º Ano', segment: 'fundamental-ii' },
+      { value: '9ano', label: '9º Ano', segment: 'fundamental-ii' },
+    ],
+  },
+  {
+    label: '🎓 Ensino Médio & Técnico',
+    items: [
+      { value: '1serie', label: '1ª Série EM', segment: 'medio' },
+      { value: '2serie', label: '2ª Série EM', segment: 'medio' },
+      { value: '3serie', label: '3ª Série EM', segment: 'medio' },
+    ],
+  },
 ];
+
+const SERIES_ESPECIFICAS = SERIES_ESPECIFICAS_GROUPED.flatMap(g => g.items);
 
 export default function AltaPerformance() {
   const { toast } = useToast();
