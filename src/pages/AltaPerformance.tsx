@@ -612,8 +612,13 @@ export default function AltaPerformance() {
                 <Select value={serie} onValueChange={setSerie}>
                   <SelectTrigger><SelectValue placeholder="Selecione a série..." /></SelectTrigger>
                   <SelectContent>
-                    {SERIES_ESPECIFICAS.map(s => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    {SERIES_ESPECIFICAS_GROUPED.map(group => (
+                      <SelectGroup key={group.label}>
+                        <SelectLabel className="text-xs font-bold text-muted-foreground">{group.label}</SelectLabel>
+                        {group.items.map(s => (
+                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                        ))}
+                      </SelectGroup>
                     ))}
                   </SelectContent>
                 </Select>
