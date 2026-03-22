@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
 import { useAuth } from '@/hooks/useAuth';
