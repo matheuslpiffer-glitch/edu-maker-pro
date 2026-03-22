@@ -32,6 +32,23 @@ const MATRIZ_OPTIONS = [
 
 // Content suggestion database: série × disciplina → chips
 const CONTENT_SUGGESTIONS: Record<string, Record<string, { label: string; tag: string }[]>> = {
+  'infantil': {
+    'Linguagem': [
+      { label: 'Histórias cantadas e parlendas', tag: 'BNCC' },
+      { label: 'Reconhecimento de letras do nome', tag: 'BNCC' },
+      { label: 'Contação de histórias com imagens', tag: 'BNCC' },
+    ],
+    'Matemática': [
+      { label: 'Contagem de objetos até 10', tag: 'BNCC' },
+      { label: 'Formas geométricas no cotidiano', tag: 'BNCC' },
+      { label: 'Noções de grande/pequeno, perto/longe', tag: 'BNCC' },
+    ],
+    'Natureza': [
+      { label: 'Partes do corpo e sentidos', tag: 'BNCC' },
+      { label: 'Animais domésticos e selvagens', tag: 'BNCC' },
+      { label: 'Plantas e ciclo de crescimento', tag: 'BNCC' },
+    ],
+  },
   'fundamental-i': {
     'Matemática': [
       { label: 'Números e operações básicas', tag: 'BNCC' },
