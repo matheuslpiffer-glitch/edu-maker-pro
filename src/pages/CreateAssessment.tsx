@@ -282,6 +282,7 @@ export default function CreateAssessment() {
           questions={selectedQuestions}
           subjects={subjects}
           showGabarito={showGabarito}
+          twoColumns={twoColumns}
         />
       </div>
 
