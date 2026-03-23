@@ -239,6 +239,12 @@ export default function CreateAssessment() {
                   <Checkbox id="gabarito" checked={showGabarito} onCheckedChange={(v) => setShowGabarito(!!v)} />
                   <Label htmlFor="gabarito" className="text-sm cursor-pointer">Incluir Gabarito</Label>
                 </div>
+                <div className="flex items-center gap-2 ml-4">
+                  <Switch id="twocol" checked={twoColumns} onCheckedChange={setTwoColumns} />
+                  <Label htmlFor="twocol" className="text-sm cursor-pointer flex items-center gap-1">
+                    <Columns2 size={14} /> Duas Colunas
+                  </Label>
+                </div>
                 <div className="flex-1" />
                 <Button variant="outline" size="sm" onClick={handlePrint}><Printer size={16} className="mr-2" />Imprimir</Button>
                 <Button variant="outline" size="sm" onClick={handlePDF}><Download size={16} className="mr-2" />PDF</Button>
