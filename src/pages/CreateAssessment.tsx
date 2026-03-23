@@ -54,6 +54,7 @@ export default function CreateAssessment() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [filterSubject, setFilterSubject] = useState('all');
+  const [twoColumns, setTwoColumns] = useState(false);
 
   useEffect(() => {
     async function load() {

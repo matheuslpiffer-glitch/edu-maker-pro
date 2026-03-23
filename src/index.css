@@ -234,12 +234,36 @@ h1, h2, h3, h4, h5, h6 {
   p, li, tr, .print-no-break {
     page-break-inside: avoid;
   }
+  /* Anti-corte: cada bloco de questão não quebra entre páginas */
+  .question-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
   table {
     width: 100% !important;
     word-break: break-word;
   }
   .print-list {
     font-size: 10pt !important;
+  }
+  /* Layout duas colunas para impressão */
+  .print-two-columns {
+    column-count: 2;
+    column-gap: 20px;
+    column-rule: 1px solid #ccc;
+  }
+  .print-two-columns .question-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* AEE: fontes maiores para acessibilidade */
+  .aee-print .question-block {
+    font-size: 14pt !important;
+    line-height: 1.6 !important;
+  }
+  .aee-print img {
+    min-width: 120px;
+    min-height: 80px;
   }
 }
 

@@ -34,16 +34,29 @@ interface Props {
   questions: Question[];
   subjects: Subject[];
   showGabarito: boolean;
+  twoColumns?: boolean;
+  isAEE?: boolean;
 }
 
-const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({ header, questions, subjects, showGabarito }, ref) => {
+const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({ header, questions, subjects, showGabarito, twoColumns = false, isAEE = false }, ref) => {
+  const fontSize = isAEE ? '14pt' : '12pt';
+  const lineHeight = isAEE ? '1.8' : '1.6';
+
   return (
-    <div ref={ref} className="bg-white text-black p-8 max-w-[210mm] mx-auto" style={{ fontFamily: 'serif', fontSize: '12pt', lineHeight: '1.6' }}>
-      {/* Header */}
+    <div
+      ref={ref}
+      className={`bg-white text-black p-8 max-w-[210mm] mx-auto ${isAEE ? 'aee-print' : ''}`}
+      style={{ fontFamily: 'serif', fontSize, lineHeight }}
+    >
+      {/* Header — institutional layout */}
       <div className="text-center mb-6 border-b-2 border-black pb-4">
-        {header.logoUrl && <img src={header.logoUrl} alt="Logo" className="h-16 mx-auto mb-2" />}
-        <h1 className="text-xl font-bold uppercase">{header.institutionName || 'Nome da Instituição'}</h1>
-        <h2 className="text-lg font-semibold mt-1">{header.title || 'Avaliação'}</h2>
+        <div className="flex items-center justify-center gap-4">
+          {header.logoUrl && <img src={header.logoUrl} alt="Logo" className="h-16 object-contain" style={{ minHeight: 'unset', background: 'transparent' }} />}
+          <div>
+            <h1 className="text-xl font-bold uppercase">{header.institutionName || 'Nome da Instituição'}</h1>
+            <h2 className="text-lg font-semibold mt-1">{header.title || 'Avaliação'}</h2>
+          </div>
+        </div>
         <div className="flex justify-center gap-6 mt-2 text-sm">
           {header.teacherName && <span>Professor(a): {header.teacherName}</span>}
           {header.date && <span>Data: {header.date}</span>}
@@ -55,38 +68,40 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({ header, questions
         <p>Nome: __________________________________________ Nº: ______</p>
       </div>
 
-      {/* Questions */}
-      {questions.map((q, i) => {
-        const subject = subjects.find(s => s.id === q.subject_id);
-        return (
-          <div key={q.id} className="mb-6">
-            <div className="flex gap-1">
-              <span className="font-bold whitespace-nowrap">{i + 1})</span>
-              <div>
-                <span className="text-xs italic text-gray-500">[{subject?.name}]</span>
-                <div dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+      {/* Questions — with optional two-column layout */}
+      <div className={twoColumns ? 'print-two-columns' : ''} style={twoColumns ? { columnCount: 2, columnGap: '20px', columnRule: '1px solid #ccc' } : {}}>
+        {questions.map((q, i) => {
+          const subject = subjects.find(s => s.id === q.subject_id);
+          return (
+            <div key={q.id} className="mb-6 question-block" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+              <div className="flex gap-1">
+                <span className="font-bold whitespace-nowrap">{i + 1})</span>
+                <div>
+                  <span className="text-xs italic text-gray-500">[{subject?.name}]</span>
+                  <div dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                </div>
               </div>
+              {q.type === 'multiple-choice' && (
+                <div className="ml-5 mt-2 space-y-1">
+                  {q.options.map((opt, j) => (
+                    <div key={opt.id} className="flex gap-2">
+                      <span className="font-medium">{String.fromCharCode(97 + j)})</span>
+                      <span>{opt.text}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {q.type === 'essay' && (
+                <div className="ml-5 mt-3 space-y-4">
+                  {[...Array(6)].map((_, j) => (
+                    <div key={j} className="border-b border-gray-400" style={{ height: '1.5em' }} />
+                  ))}
+                </div>
+              )}
             </div>
-            {q.type === 'multiple-choice' && (
-              <div className="ml-5 mt-2 space-y-1">
-                {q.options.map((opt, j) => (
-                  <div key={opt.id} className="flex gap-2">
-                    <span className="font-medium">{String.fromCharCode(97 + j)})</span>
-                    <span>{opt.text}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {q.type === 'essay' && (
-              <div className="ml-5 mt-3 space-y-4">
-                {[...Array(6)].map((_, j) => (
-                  <div key={j} className="border-b border-gray-400" style={{ height: '1.5em' }} />
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
 
       {/* Gabarito */}
       {showGabarito && (
@@ -107,7 +122,7 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({ header, questions
           {questions.filter(q => q.type === 'essay').length > 0 && (
             <div className="mt-4">
               <p className="font-bold text-sm mb-2">Respostas Dissertativas:</p>
-              {questions.filter(q => q.type === 'essay').map((q, i) => (
+              {questions.filter(q => q.type === 'essay').map((q) => (
                 <div key={q.id} className="mb-2 text-sm">
                   <span className="font-bold">{questions.indexOf(q) + 1}. </span>
                   <span className="italic">{q.answer || 'Sem gabarito definido'}</span>
@@ -117,6 +132,11 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({ header, questions
           )}
         </div>
       )}
+
+      {/* Footer */}
+      <div className="mt-8 pt-2 border-t border-gray-300 text-center text-xs text-gray-400">
+        Avaliação de Elite por Matheus Lima Piffer | EduCreator Pro
+      </div>
     </div>
   );
 });
