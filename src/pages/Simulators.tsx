@@ -763,6 +763,34 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const totalQuestions = easyCount + mediumCount + hardCount;
   const currentId = savedId || crypto.randomUUID();
 
+  const handleCopyStudentLink = async () => {
+    if (!savedId) {
+      toast({ title: 'Salve o simulado antes de enviar para o aluno.', variant: 'destructive' });
+      return;
+    }
+    const link = buildPublicAppUrl(`/simulado/${savedId}`);
+    try {
+      await navigator.clipboard.writeText(link);
+      toast({ title: '🔗 Link copiado!', description: 'Envie para seus alunos via WhatsApp ou projete o QR Code.' });
+    } catch {
+      toast({ title: 'Link do Simulado', description: link });
+    }
+  };
+
+  const handleSaveAndShare = async () => {
+    if (!savedId) {
+      await handleSave();
+    }
+    // savedId will be set after handleSave
+  };
+
+  const handleWhatsApp = () => {
+    if (!savedId) return;
+    const link = buildPublicAppUrl(`/simulado/${savedId}`);
+    const text = `📝 *Simulado Online — ${title || 'EduCreator Pro'}*\n\nAcesse o link, digite seu Nome e Turma e responda as questões:\n${link}\n\nBoa prova! 🚀`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   // === MAGIC ACTIONS ===
   const handlePodcast = async () => {
     if (questions.length === 0) return;
