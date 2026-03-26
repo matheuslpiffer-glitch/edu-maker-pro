@@ -283,7 +283,7 @@ export default function StudentSimulatorView() {
             </div>
 
             <Button
-              onClick={() => setIdentified(true)}
+              onClick={() => { setIdentified(true); startTimer(); }}
               disabled={!studentName.trim() || !studentClass.trim()}
               size="lg"
               className="h-12 w-full"
@@ -306,7 +306,12 @@ export default function StudentSimulatorView() {
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Simulado do Aluno</p>
             <h1 className="text-xl font-bold text-foreground">{simulator.title}</h1>
           </div>
-          <Badge variant="secondary" className="w-fit">{studentName}</Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="w-fit">{studentName}</Badge>
+            <Badge variant="outline" className="w-fit gap-1">
+              <Timer className="h-3 w-3" /> {formatTime(elapsedSeconds)}
+            </Badge>
+          </div>
         </div>
       </div>
 
