@@ -12,7 +12,10 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Download, Printer, Eye, Save, Trash2, FileText, GraduationCap, Wrench, BookOpen, School, Infinity, Calculator, Shapes, Trophy, PenTool, Brain, Building2, Award, Columns2, AlignJustify, Globe, Zap, PenLine, BookText, ListChecks, Mic, Palette, Gamepad2, Library, CheckCircle2, Accessibility, RefreshCw, BookMarked, Cpu, Target } from 'lucide-react';
+import { Loader2, Sparkles, Download, Printer, Eye, Save, Trash2, FileText, GraduationCap, Wrench, BookOpen, School, Infinity, Calculator, Shapes, Trophy, PenTool, Brain, Building2, Award, Columns2, AlignJustify, Globe, Zap, PenLine, BookText, ListChecks, Mic, Palette, Gamepad2, Library, CheckCircle2, Accessibility, RefreshCw, BookMarked, Cpu, Target, Share2, Link, QrCode } from 'lucide-react';
+import { buildPublicAppUrl } from '@/lib/public-links';
+import QRCodeModal from '@/components/QRCodeModal';
+import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import SimulatorPreview from '@/components/SimulatorPreview';
@@ -419,6 +422,8 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [activeTab, setActiveTab] = useState('create');
   const [magicLoading, setMagicLoading] = useState<string | null>(null);
   const [podcastScript, setPodcastScript] = useState<string | null>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [showLaunchScreen, setShowLaunchScreen] = useState(false);
 
   useEffect(() => { loadHistory(); }, []);
 
