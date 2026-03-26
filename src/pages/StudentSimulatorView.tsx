@@ -204,14 +204,35 @@ export default function StudentSimulatorView() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md border-border">
-          <CardContent className="space-y-4 py-10 text-center">
-            <CheckCircle2 className="mx-auto h-14 w-14 text-primary" />
+          <CardContent className="space-y-6 py-10 text-center">
+            <Trophy className="mx-auto h-16 w-16 text-yellow-500" />
             <div className="space-y-1">
-              <h1 className="text-xl font-bold text-foreground">Parabéns!</h1>
+              <h1 className="text-2xl font-bold text-foreground">Parabéns, {studentName}!</h1>
               <p className="text-sm text-muted-foreground">
                 Sua atividade foi entregue ao Professor Matheus Lima Piffer.
               </p>
             </div>
+
+            {resultData && (
+              <div className="grid grid-cols-3 gap-3 pt-2">
+                <div className="rounded-xl bg-primary/10 p-3">
+                  <Target className="mx-auto h-5 w-5 text-primary mb-1" />
+                  <p className="text-lg font-bold text-primary">{resultData.correct}/{resultData.total}</p>
+                  <p className="text-[10px] text-muted-foreground">Acertos</p>
+                </div>
+                <div className="rounded-xl bg-primary/10 p-3">
+                  <Trophy className="mx-auto h-5 w-5 text-primary mb-1" />
+                  <p className="text-lg font-bold text-primary">{resultData.percentage}%</p>
+                  <p className="text-[10px] text-muted-foreground">Desempenho</p>
+                </div>
+                <div className="rounded-xl bg-primary/10 p-3">
+                  <Clock className="mx-auto h-5 w-5 text-primary mb-1" />
+                  <p className="text-lg font-bold text-primary">{formatTime(resultData.timeSeconds)}</p>
+                  <p className="text-[10px] text-muted-foreground">Tempo</p>
+                </div>
+              </div>
+            )}
+
             <p className="text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
           </CardContent>
         </Card>
