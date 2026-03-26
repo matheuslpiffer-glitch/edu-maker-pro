@@ -45,8 +45,8 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({ header, questions
   return (
     <div
       ref={ref}
-      className={`bg-white text-black p-8 max-w-[210mm] mx-auto ${isAEE ? 'aee-print' : ''}`}
-      style={{ fontFamily: 'serif', fontSize, lineHeight }}
+      className={`bg-white text-black max-w-[210mm] mx-auto ${isAEE ? 'aee-print' : ''}`}
+      style={{ fontFamily: 'serif', fontSize, lineHeight, padding: '30mm 20mm 20mm 30mm', boxSizing: 'border-box' }}
     >
       {/* Header — institutional layout */}
       <div className="text-center mb-6 border-b-2 border-black pb-4">
