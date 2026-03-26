@@ -2169,6 +2169,17 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
           </>
         )}
       </div>
+
+      {/* Launch Screen Modal */}
+      {savedId && (
+        <SimuladoLaunchScreen
+          open={showLaunchScreen}
+          onOpenChange={setShowLaunchScreen}
+          accessCode={savedId.slice(0, 6).toUpperCase()}
+          title={title || 'Simulado'}
+          bankId={savedId}
+        />
+      )}
     </div>
   );
 }

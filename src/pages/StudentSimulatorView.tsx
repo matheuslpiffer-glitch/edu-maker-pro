@@ -200,37 +200,57 @@ export default function StudentSimulatorView() {
     );
   }
 
+  const getMotivationalMessage = (pct: number, name: string) => {
+    if (pct >= 70) {
+      return `Incrível, ${name}! Você está no caminho certo para o IF. Sua base está sólida, agora é hora de refinar os detalhes. Continue assim, Agente Maker!`;
+    }
+    if (pct >= 50) {
+      return `Bom trabalho, ${name}! Você já domina metade do caminho. O segredo da alta performance é a constância. Revise as questões que errou e tente de novo. Paz e Bem!`;
+    }
+    return `Não desanime, ${name}! Como dizemos na Academia Maker, o erro é apenas o primeiro rascunho do sucesso. Cada questão errada é uma oportunidade de aprender algo novo. Vamos revisar o conteúdo e subir esse nível!`;
+  };
+
   if (submitted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md border-border">
           <CardContent className="space-y-6 py-10 text-center">
             <Trophy className="mx-auto h-16 w-16 text-yellow-500" />
-            <div className="space-y-1">
+            <div className="space-y-2">
               <h1 className="text-2xl font-bold text-foreground">Parabéns, {studentName}!</h1>
               <p className="text-sm text-muted-foreground">
-                Sua atividade foi entregue ao Professor Matheus Lima Piffer.
+                Você concluiu o desafio.
               </p>
             </div>
 
             {resultData && (
-              <div className="grid grid-cols-3 gap-3 pt-2">
-                <div className="rounded-xl bg-primary/10 p-3">
-                  <Target className="mx-auto h-5 w-5 text-primary mb-1" />
-                  <p className="text-lg font-bold text-primary">{resultData.correct}/{resultData.total}</p>
-                  <p className="text-[10px] text-muted-foreground">Acertos</p>
+              <>
+                <div className="grid grid-cols-3 gap-3 pt-2">
+                  <div className="rounded-xl bg-primary/10 p-3">
+                    <Target className="mx-auto h-5 w-5 text-primary mb-1" />
+                    <p className="text-lg font-bold text-primary">{resultData.correct}/{resultData.total}</p>
+                    <p className="text-[10px] text-muted-foreground">Acertos</p>
+                  </div>
+                  <div className="rounded-xl bg-primary/10 p-3">
+                    <Trophy className="mx-auto h-5 w-5 text-primary mb-1" />
+                    <p className="text-lg font-bold text-primary">{resultData.percentage}%</p>
+                    <p className="text-[10px] text-muted-foreground">Desempenho</p>
+                  </div>
+                  <div className="rounded-xl bg-primary/10 p-3">
+                    <Clock className="mx-auto h-5 w-5 text-primary mb-1" />
+                    <p className="text-lg font-bold text-primary">{formatTime(resultData.timeSeconds)}</p>
+                    <p className="text-[10px] text-muted-foreground">Tempo</p>
+                  </div>
                 </div>
-                <div className="rounded-xl bg-primary/10 p-3">
-                  <Trophy className="mx-auto h-5 w-5 text-primary mb-1" />
-                  <p className="text-lg font-bold text-primary">{resultData.percentage}%</p>
-                  <p className="text-[10px] text-muted-foreground">Desempenho</p>
+
+                <div className={`p-4 rounded-xl text-sm text-left leading-relaxed ${
+                  resultData.percentage >= 70 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' :
+                  resultData.percentage >= 50 ? 'bg-amber-50 text-amber-800 border border-amber-200' :
+                  'bg-blue-50 text-blue-800 border border-blue-200'
+                }`}>
+                  {getMotivationalMessage(resultData.percentage, studentName)}
                 </div>
-                <div className="rounded-xl bg-primary/10 p-3">
-                  <Clock className="mx-auto h-5 w-5 text-primary mb-1" />
-                  <p className="text-lg font-bold text-primary">{formatTime(resultData.timeSeconds)}</p>
-                  <p className="text-[10px] text-muted-foreground">Tempo</p>
-                </div>
-              </div>
+              </>
             )}
 
             <p className="text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
