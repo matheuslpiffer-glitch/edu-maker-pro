@@ -137,6 +137,7 @@ export default function StudentSimulatorView() {
     if (!simulator || !studentName.trim() || !studentClass.trim()) return;
 
     setSubmitting(true);
+    stopTimer();
 
     try {
       const gradableQuestions = questions.filter(
@@ -165,6 +166,8 @@ export default function StudentSimulatorView() {
 
       if (insertError) throw insertError;
 
+      setResultData({ correct: correctCount, total: totalQuestions, percentage, timeSeconds: elapsedSeconds });
+      setShowResultModal(true);
       setSubmitted(true);
     } catch (err: any) {
       setError(err.message || 'Não foi possível enviar suas respostas.');
