@@ -2036,6 +2036,11 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         <button onClick={() => setColumns(2)} className={`p-1.5 rounded ${columns === 2 ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`} title="2 Colunas"><Columns2 size={14} /></button>
                       </div>
                       <div className="flex-1" />
+                      {savedId && (
+                        <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1 text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+                          <Share2 size={14} /> Enviar
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={14} className="mr-1" />Imprimir</Button>
                       <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                         <Download size={14} className="mr-1" />PDF
