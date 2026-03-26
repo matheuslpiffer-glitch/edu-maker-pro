@@ -83,7 +83,7 @@ export async function generatePdfFromElement(
     orientation?: 'portrait' | 'landscape';
   }
 ): Promise<void> {
-  const margins = options?.margins ?? [15, 10, 15, 10];
+  const margins = options?.margins ?? [0, 0, 0, 0];
   const orientation = options?.orientation ?? 'portrait';
 
   // Step 1: Convert all images to base64
@@ -108,11 +108,12 @@ export async function generatePdfFromElement(
         useCORS: true,
         logging: false,
         allowTaint: true,
-        windowWidth: element.scrollWidth,
+        windowWidth: 794,
         scrollX: 0,
         scrollY: 0,
         letterRendering: true,
-        width: element.scrollWidth,
+        width: 794,
+        height: element.scrollHeight,
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation },
     };
