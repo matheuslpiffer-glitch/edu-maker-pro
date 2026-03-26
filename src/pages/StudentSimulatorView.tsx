@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentMode } from '@/hooks/useStudentMode';
@@ -9,7 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, GraduationCap, CheckCircle2, Send, XCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Loader2, GraduationCap, CheckCircle2, Send, XCircle, Clock, Trophy, Target, Timer } from 'lucide-react';
 import MathRenderer from '@/components/MathRenderer';
 
 interface SimulatorOption {
@@ -59,10 +60,36 @@ export default function StudentSimulatorView() {
   const [simulator, setSimulator] = useState<PublicSimulatorData | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState('');
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultData, setResultData] = useState<{ correct: number; total: number; percentage: number; timeSeconds: number } | null>(null);
   const { isStudentMode } = useStudentMode();
   const { isTeacher } = useRole();
   const { user } = useAuth();
   const isTeacherPreview = isStudentMode && isTeacher;
+
+  // Timer
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) return;
+    timerRef.current = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  }, []);
+
+  useEffect(() => () => stopTimer(), [stopTimer]);
+
+  const formatTime = (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return h > 0
+      ? `${h}h ${String(m).padStart(2, '0')}min ${String(sec).padStart(2, '0')}s`
+      : `${m}min ${String(sec).padStart(2, '0')}s`;
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -110,6 +137,7 @@ export default function StudentSimulatorView() {
     if (!simulator || !studentName.trim() || !studentClass.trim()) return;
 
     setSubmitting(true);
+    stopTimer();
 
     try {
       const gradableQuestions = questions.filter(
@@ -138,6 +166,8 @@ export default function StudentSimulatorView() {
 
       if (insertError) throw insertError;
 
+      setResultData({ correct: correctCount, total: totalQuestions, percentage, timeSeconds: elapsedSeconds });
+      setShowResultModal(true);
       setSubmitted(true);
     } catch (err: any) {
       setError(err.message || 'Não foi possível enviar suas respostas.');
@@ -174,14 +204,35 @@ export default function StudentSimulatorView() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md border-border">
-          <CardContent className="space-y-4 py-10 text-center">
-            <CheckCircle2 className="mx-auto h-14 w-14 text-primary" />
+          <CardContent className="space-y-6 py-10 text-center">
+            <Trophy className="mx-auto h-16 w-16 text-yellow-500" />
             <div className="space-y-1">
-              <h1 className="text-xl font-bold text-foreground">Parabéns!</h1>
+              <h1 className="text-2xl font-bold text-foreground">Parabéns, {studentName}!</h1>
               <p className="text-sm text-muted-foreground">
                 Sua atividade foi entregue ao Professor Matheus Lima Piffer.
               </p>
             </div>
+
+            {resultData && (
+              <div className="grid grid-cols-3 gap-3 pt-2">
+                <div className="rounded-xl bg-primary/10 p-3">
+                  <Target className="mx-auto h-5 w-5 text-primary mb-1" />
+                  <p className="text-lg font-bold text-primary">{resultData.correct}/{resultData.total}</p>
+                  <p className="text-[10px] text-muted-foreground">Acertos</p>
+                </div>
+                <div className="rounded-xl bg-primary/10 p-3">
+                  <Trophy className="mx-auto h-5 w-5 text-primary mb-1" />
+                  <p className="text-lg font-bold text-primary">{resultData.percentage}%</p>
+                  <p className="text-[10px] text-muted-foreground">Desempenho</p>
+                </div>
+                <div className="rounded-xl bg-primary/10 p-3">
+                  <Clock className="mx-auto h-5 w-5 text-primary mb-1" />
+                  <p className="text-lg font-bold text-primary">{formatTime(resultData.timeSeconds)}</p>
+                  <p className="text-[10px] text-muted-foreground">Tempo</p>
+                </div>
+              </div>
+            )}
+
             <p className="text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
           </CardContent>
         </Card>
@@ -232,7 +283,7 @@ export default function StudentSimulatorView() {
             </div>
 
             <Button
-              onClick={() => setIdentified(true)}
+              onClick={() => { setIdentified(true); startTimer(); }}
               disabled={!studentName.trim() || !studentClass.trim()}
               size="lg"
               className="h-12 w-full"
@@ -255,7 +306,12 @@ export default function StudentSimulatorView() {
             <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Simulado do Aluno</p>
             <h1 className="text-xl font-bold text-foreground">{simulator.title}</h1>
           </div>
-          <Badge variant="secondary" className="w-fit">{studentName}</Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="w-fit">{studentName}</Badge>
+            <Badge variant="outline" className="w-fit gap-1">
+              <Timer className="h-3 w-3" /> {formatTime(elapsedSeconds)}
+            </Badge>
+          </div>
         </div>
       </div>
 
