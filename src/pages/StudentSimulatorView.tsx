@@ -60,10 +60,36 @@ export default function StudentSimulatorView() {
   const [simulator, setSimulator] = useState<PublicSimulatorData | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState('');
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [resultData, setResultData] = useState<{ correct: number; total: number; percentage: number; timeSeconds: number } | null>(null);
   const { isStudentMode } = useStudentMode();
   const { isTeacher } = useRole();
   const { user } = useAuth();
   const isTeacherPreview = isStudentMode && isTeacher;
+
+  // Timer
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const startTimer = useCallback(() => {
+    if (timerRef.current) return;
+    timerRef.current = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
+  }, []);
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  }, []);
+
+  useEffect(() => () => stopTimer(), [stopTimer]);
+
+  const formatTime = (s: number) => {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return h > 0
+      ? `${h}h ${String(m).padStart(2, '0')}min ${String(sec).padStart(2, '0')}s`
+      : `${m}min ${String(sec).padStart(2, '0')}s`;
+  };
 
   useEffect(() => {
     if (!id) return;
