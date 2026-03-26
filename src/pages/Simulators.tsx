@@ -12,7 +12,10 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Download, Printer, Eye, Save, Trash2, FileText, GraduationCap, Wrench, BookOpen, School, Infinity, Calculator, Shapes, Trophy, PenTool, Brain, Building2, Award, Columns2, AlignJustify, Globe, Zap, PenLine, BookText, ListChecks, Mic, Palette, Gamepad2, Library, CheckCircle2, Accessibility, RefreshCw, BookMarked, Cpu, Target } from 'lucide-react';
+import { Loader2, Sparkles, Download, Printer, Eye, Save, Trash2, FileText, GraduationCap, Wrench, BookOpen, School, Infinity, Calculator, Shapes, Trophy, PenTool, Brain, Building2, Award, Columns2, AlignJustify, Globe, Zap, PenLine, BookText, ListChecks, Mic, Palette, Gamepad2, Library, CheckCircle2, Accessibility, RefreshCw, BookMarked, Cpu, Target, Share2, Link, QrCode } from 'lucide-react';
+import { buildPublicAppUrl } from '@/lib/public-links';
+import QRCodeModal from '@/components/QRCodeModal';
+import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import SimulatorPreview from '@/components/SimulatorPreview';
@@ -419,6 +422,8 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [activeTab, setActiveTab] = useState('create');
   const [magicLoading, setMagicLoading] = useState<string | null>(null);
   const [podcastScript, setPodcastScript] = useState<string | null>(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [showLaunchScreen, setShowLaunchScreen] = useState(false);
 
   useEffect(() => { loadHistory(); }, []);
 
@@ -757,6 +762,34 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
 
   const totalQuestions = easyCount + mediumCount + hardCount;
   const currentId = savedId || crypto.randomUUID();
+
+  const handleCopyStudentLink = async () => {
+    if (!savedId) {
+      toast({ title: 'Salve o simulado antes de enviar para o aluno.', variant: 'destructive' });
+      return;
+    }
+    const link = buildPublicAppUrl(`/simulado/${savedId}`);
+    try {
+      await navigator.clipboard.writeText(link);
+      toast({ title: '🔗 Link copiado!', description: 'Envie para seus alunos via WhatsApp ou projete o QR Code.' });
+    } catch {
+      toast({ title: 'Link do Simulado', description: link });
+    }
+  };
+
+  const handleSaveAndShare = async () => {
+    if (!savedId) {
+      await handleSave();
+    }
+    // savedId will be set after handleSave
+  };
+
+  const handleWhatsApp = () => {
+    if (!savedId) return;
+    const link = buildPublicAppUrl(`/simulado/${savedId}`);
+    const text = `📝 *Simulado Online — ${title || 'EduCreator Pro'}*\n\nAcesse o link, digite seu Nome e Turma e responda as questões:\n${link}\n\nBoa prova! 🚀`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
 
   // === MAGIC ACTIONS ===
   const handlePodcast = async () => {
@@ -2003,6 +2036,11 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         <button onClick={() => setColumns(2)} className={`p-1.5 rounded ${columns === 2 ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`} title="2 Colunas"><Columns2 size={14} /></button>
                       </div>
                       <div className="flex-1" />
+                      {savedId && (
+                        <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1 text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+                          <Share2 size={14} /> Enviar
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={14} className="mr-1" />Imprimir</Button>
                       <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                         <Download size={14} className="mr-1" />PDF
@@ -2036,6 +2074,25 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   <button onClick={() => setColumns(2)} className={`p-1.5 rounded ${columns === 2 ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`} title="2 Colunas"><Columns2 size={14} /></button>
                 </div>
                 <div className="flex-1" />
+                {savedId && (
+                  <>
+                    <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5 text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+                      <Link size={14} /> Copiar Link
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleWhatsApp} className="gap-1.5 text-green-700 border-green-300 hover:bg-green-50">
+                      <Share2 size={14} /> WhatsApp
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setShowLaunchScreen(true)} className="gap-1.5 text-amber-700 border-amber-300 hover:bg-amber-50">
+                      <QrCode size={14} /> Lançar em Sala
+                    </Button>
+                  </>
+                )}
+                {!savedId && questions.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={handleSave} disabled={saving} className="gap-1.5 text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+                    {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                    Salvar & Enviar
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={16} className="mr-2" />Imprimir</Button>
                 <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                   <Download size={16} className="mr-2" />Baixar PDF
@@ -2117,6 +2174,17 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
           </>
         )}
       </div>
+
+      {/* Launch Screen Modal */}
+      {savedId && (
+        <SimuladoLaunchScreen
+          open={showLaunchScreen}
+          onOpenChange={setShowLaunchScreen}
+          accessCode={savedId.slice(0, 6).toUpperCase()}
+          title={title || 'Simulado'}
+          bankId={savedId}
+        />
+      )}
     </div>
   );
 }
