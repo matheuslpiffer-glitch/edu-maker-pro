@@ -2069,6 +2069,25 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   <button onClick={() => setColumns(2)} className={`p-1.5 rounded ${columns === 2 ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`} title="2 Colunas"><Columns2 size={14} /></button>
                 </div>
                 <div className="flex-1" />
+                {savedId && (
+                  <>
+                    <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5 text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+                      <Link size={14} /> Copiar Link
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleWhatsApp} className="gap-1.5 text-green-700 border-green-300 hover:bg-green-50">
+                      <Share2 size={14} /> WhatsApp
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setShowLaunchScreen(true)} className="gap-1.5 text-amber-700 border-amber-300 hover:bg-amber-50">
+                      <QrCode size={14} /> Lançar em Sala
+                    </Button>
+                  </>
+                )}
+                {!savedId && questions.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={handleSave} disabled={saving} className="gap-1.5 text-emerald-700 border-emerald-300 hover:bg-emerald-50">
+                    {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                    Salvar & Enviar
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={16} className="mr-2" />Imprimir</Button>
                 <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                   <Download size={16} className="mr-2" />Baixar PDF
