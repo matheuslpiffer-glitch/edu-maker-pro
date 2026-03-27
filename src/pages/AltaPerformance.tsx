@@ -389,40 +389,51 @@ export default function AltaPerformance() {
     setLoading(true);
     setQuestions([]);
     try {
-      const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
+    const isMulti = disciplina === 'Todos';
+    const currentParams = {
+      examType: isMulti ? 'simulado_semanal' : 'alta_performance',
+      subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
+      grade: serie,
+      count: isMulti ? 10 : totalQuestoes,
+      specificTopic: isMulti ? (topicos || 'Simulado Semanal Integrado: distribua equilibradamente entre Português (3), Matemática (3), Ciências (2) e Humanas (2), cobrindo temas trabalhados na semana para a série selecionada') : topicos,
+      isMultidisciplinar: isMulti,
+      activeDna: rede,
+      activeSpecialty: `alta_performance_${rede}`,
+      isDiscursiva,
+      difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente, ${niveis.avancado}% Avançado (interdisciplinar, raciocínio lógico profundo, nível Fuvest/Unicamp/ITA)`,
+      examModel: redeInfo?.label || rede,
+      matrizReferencia: matrizRef,
+      matrizLabel: matrizInfo?.label || 'Padrão BNCC',
+    };
+
+    startGeneration('alta_performance', async () => {
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
-          body: {
-          examType: isMulti ? 'simulado_semanal' : 'alta_performance',
-          subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
-          grade: serie,
-          count: isMulti ? 10 : totalQuestoes,
-          specificTopic: isMulti ? (topicos || 'Simulado Semanal Integrado: distribua equilibradamente entre Português (3), Matemática (3), Ciências (2) e Humanas (2), cobrindo temas trabalhados na semana para a série selecionada') : topicos,
-          isMultidisciplinar: isMulti,
-          activeDna: rede,
-          activeSpecialty: `alta_performance_${rede}`,
-          isDiscursiva,
-          difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente, ${niveis.avancado}% Avançado (interdisciplinar, raciocínio lógico profundo, nível Fuvest/Unicamp/ITA)`,
-          examModel: redeInfo?.label || rede,
-          matrizReferencia: matrizRef,
-          matrizLabel: matrizInfo?.label || 'Padrão BNCC',
-        },
+        body: currentParams,
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const parsed = Array.isArray(data) ? data : data?.questions || [];
-      setQuestions(parsed);
-      if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
-    } catch (e: any) {
-      const msg = e.message || 'Erro ao gerar simulado';
-      const isFriendly = msg.includes('processando') || msg.includes('Tente novamente');
-      toast({
-        title: isFriendly ? '⏳ Processando...' : 'Erro ao gerar simulado',
-        description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento. Por favor, tente novamente ou reduza o número de questões.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+      return data;
+    });
+
+    const interval = setInterval(() => {
+      const c = getGeneration('alta_performance');
+      if (c.status === 'done') {
+        const parsed = Array.isArray(c.result) ? c.result : c.result?.questions || [];
+        setQuestions(parsed); setLoading(false); clearGeneration('alta_performance');
+        if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
+        clearInterval(interval);
+      } else if (c.status === 'error') {
+        setLoading(false); clearGeneration('alta_performance');
+        const msg = c.error || 'Erro ao gerar simulado';
+        const isFriendly = msg.includes('processando') || msg.includes('Tente novamente');
+        toast({
+          title: isFriendly ? '⏳ Processando...' : 'Erro ao gerar simulado',
+          description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento. Por favor, tente novamente ou reduza o número de questões.',
+          variant: 'destructive',
+        });
+        clearInterval(interval);
+      }
+    }, 500);
   };
 
   const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '');
