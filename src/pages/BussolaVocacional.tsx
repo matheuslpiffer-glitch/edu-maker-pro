@@ -249,6 +249,64 @@ export default function BussolaVocacional() {
     R: 'O diagnóstico aponta para o perfil Realista. Você possui uma inclinação natural para o pensamento pragmático e a operação de sistemas tecnológicos ou físicos. Sua satisfação profissional está correlacionada a resultados tangíveis e à aplicação prática do conhecimento técnico.',
   };
 
+  // ── Regional Courses (Limeira/SP) based on RIASEC ──
+  const CURSOS_REGIONAIS: Record<string, { cursos: string[]; universidades: string[]; tecnicos: string[] }> = {
+    R: {
+      cursos: ['Engenharia Mecânica', 'Engenharia de Produção', 'Engenharia Elétrica', 'Tecnologia em Automação'],
+      universidades: ['UNICAMP (Limeira - FCA/FT)', 'USP (ESALQ - Piracicaba)', 'UNESP (Rio Claro)', 'UNIMEP (Piracicaba)'],
+      tecnicos: ['ETEC (Eletroeletrônica)', 'SENAI (Mecânica Industrial)', 'COTUCA/UNICAMP (Técnico em Mecatrônica)'],
+    },
+    I: {
+      cursos: ['Ciência da Computação', 'Engenharia de Software', 'Física', 'Biologia', 'Química'],
+      universidades: ['UNICAMP (IC - Campinas)', 'USP (ICMC - São Carlos)', 'UNESP (Rio Claro - Geociências)', 'UFSCar (São Carlos)'],
+      tecnicos: ['ETEC (Informática)', 'COTUCA/UNICAMP (Técnico em Informática)', 'SENAI (Análise de Dados)'],
+    },
+    A: {
+      cursos: ['Design Gráfico', 'Arquitetura e Urbanismo', 'Comunicação Social', 'Artes Visuais'],
+      universidades: ['UNICAMP (IA - Artes)', 'USP (FAU - Arquitetura)', 'UNESP (FAAC - Bauru)', 'PUC-Campinas (Design)'],
+      tecnicos: ['ETEC (Design de Interiores)', 'SENAC (Produção Multimídia)', 'ETEC (Comunicação Visual)'],
+    },
+    S: {
+      cursos: ['Pedagogia', 'Psicologia', 'Serviço Social', 'Enfermagem', 'Medicina'],
+      universidades: ['UNICAMP (FCM - Medicina)', 'USP (FEUSP - Pedagogia)', 'UNESP (Araraquara - Odontologia)', 'PUC-Campinas (Psicologia)'],
+      tecnicos: ['ETEC (Enfermagem)', 'SENAC (Recursos Humanos)', 'ETEC (Nutrição e Dietética)'],
+    },
+    E: {
+      cursos: ['Administração', 'Economia', 'Direito', 'Gestão Empresarial', 'Marketing'],
+      universidades: ['UNICAMP (FCA - Administração)', 'USP (FEA - Economia)', 'UNESP (Araraquara - Administração Pública)', 'Mackenzie (Campinas)'],
+      tecnicos: ['ETEC (Administração)', 'FATEC (Gestão Empresarial)', 'SENAC (Comércio Exterior)'],
+    },
+    C: {
+      cursos: ['Ciências Contábeis', 'Gestão Financeira', 'Logística', 'Estatística'],
+      universidades: ['UNICAMP (IMECC - Estatística)', 'USP (FEA - Contábeis)', 'FATEC (Gestão Financeira)', 'UFSCar (Engenharia de Produção)'],
+      tecnicos: ['ETEC (Contabilidade)', 'FATEC (Logística)', 'SENAI (Gestão da Qualidade)'],
+    },
+  };
+
+  // ── EduCreator tool suggestions based on profile ──
+  const getEduCreatorSuggestions = (topKey: string) => {
+    const suggestions: { icon: React.ElementType; label: string; desc: string; route: string }[] = [];
+    if (['R', 'I', 'C'].includes(topKey)) {
+      suggestions.push(
+        { icon: Calculator, label: 'Simulado de Matemática', desc: 'Alta Performance com foco em Exatas', route: '/alta-performance' },
+        { icon: Brain, label: 'Mapa Mental de Física', desc: 'Síntese Acadêmica para revisão', route: '/mapas-mentais' },
+      );
+    }
+    if (['A', 'S'].includes(topKey)) {
+      suggestions.push(
+        { icon: BookOpen, label: 'Dossiê Literário', desc: 'Análise profunda de obras para vestibular', route: '/edu-studio' },
+        { icon: Brain, label: 'Mapa Mental de História', desc: 'Conexão Analítica para Humanas', route: '/mapas-mentais' },
+      );
+    }
+    if (topKey === 'E') {
+      suggestions.push(
+        { icon: Calculator, label: 'Simulado Multidisciplinar', desc: 'Simulado semanal integrado', route: '/alta-performance' },
+        { icon: BookOpen, label: 'Dossiê de Redação', desc: 'Temas de atualidades e argumentação', route: '/edu-studio' },
+      );
+    }
+    return suggestions;
+  };
+
   const computeBigFive = () => {
     if (!scores) return [];
     return [
