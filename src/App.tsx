@@ -12,56 +12,63 @@ import WwwRedirect from "@/components/WwwRedirect";
 import PinAutoRedirect from "@/components/PinAutoRedirect";
 import AppLayout from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
-import LandingProfessor from "@/pages/LandingProfessor";
-import LandingEstudo from "@/pages/LandingEstudo";
 import RoleSelection from "@/pages/RoleSelection";
-import Index from "@/pages/Index";
-import QuestionBank from "@/pages/QuestionBank";
-import CreateQuestion from "@/pages/CreateQuestion";
-import Assessments from "@/pages/Assessments";
-import CreateAssessment from "@/pages/CreateAssessment";
-import Subjects from "@/pages/Subjects";
-import AdvancedSettings from "@/pages/AdvancedSettings";
-import RedacaoView from "@/views/RedacaoView";
-import EssayCorrector from "@/pages/EssayCorrector";
-import EduSlides from "@/pages/EduSlides";
-import Simulators from "@/pages/Simulators";
-import Vestibulares from "@/pages/Vestibulares";
-import Tecnicos from "@/pages/Tecnicos";
-import GameFactory from "@/pages/GameFactory";
-import LiteraturaView from "@/views/LiteraturaView";
-import { ArrowLeftRight } from "lucide-react";
-import PisaSimulators from "@/pages/PisaSimulators";
-import PisaStudentView from "@/pages/PisaStudentView";
-import QuestionBankAI from "@/pages/QuestionBankAI";
-import SobreProjeto from "@/pages/SobreProjeto";
-import SystemGuide from "@/pages/SystemGuide";
-import ManualAluno from "@/pages/ManualAluno";
-import TeacherManual from "@/pages/TeacherManual";
-import BibliotecaAvaliacoes from "@/pages/BibliotecaAvaliacoes";
-import StudentDashboard from "@/pages/StudentDashboard";
-import StudentQuiz from "@/pages/StudentQuiz";
-import StudentPerformance from "@/pages/StudentPerformance";
-import VisionCorrector from "@/pages/VisionCorrector";
-import AltaPerformance from "@/pages/AltaPerformance";
-import BussolaVocacional from "@/pages/BussolaVocacional";
-import Inclusao from "@/pages/Inclusao";
-import EduStudio from "@/pages/EduStudio";
-import MindMapGenerator from "@/pages/MindMapGenerator";
-import ReferenciasBibliograficas from "@/pages/ReferenciasBibliograficas";
-import StudentActivityResponse from "@/pages/StudentActivityResponse";
-import StudentSimulatorView from "@/pages/StudentSimulatorView";
-import ResultadosAlunos from "@/pages/ResultadosAlunos";
-import MinhaBiblioteca from "@/pages/MinhaBiblioteca";
-import ShortLinkRedirect from "@/pages/ShortLinkRedirect";
 import NotFound from "@/pages/NotFound";
-import Install from "@/pages/Install";
-import SignAttendance from "@/pages/SignAttendance";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, lazy, Suspense } from "react";
+
+// Lazy-loaded pages
+const LandingProfessor = lazy(() => import("@/pages/LandingProfessor"));
+const LandingEstudo = lazy(() => import("@/pages/LandingEstudo"));
+const Index = lazy(() => import("@/pages/Index"));
+const QuestionBank = lazy(() => import("@/pages/QuestionBank"));
+const CreateQuestion = lazy(() => import("@/pages/CreateQuestion"));
+const Assessments = lazy(() => import("@/pages/Assessments"));
+const CreateAssessment = lazy(() => import("@/pages/CreateAssessment"));
+const Subjects = lazy(() => import("@/pages/Subjects"));
+const AdvancedSettings = lazy(() => import("@/pages/AdvancedSettings"));
+const RedacaoView = lazy(() => import("@/views/RedacaoView"));
+const EssayCorrector = lazy(() => import("@/pages/EssayCorrector"));
+const EduSlides = lazy(() => import("@/pages/EduSlides"));
+const Simulators = lazy(() => import("@/pages/Simulators"));
+const Vestibulares = lazy(() => import("@/pages/Vestibulares"));
+const Tecnicos = lazy(() => import("@/pages/Tecnicos"));
+const GameFactory = lazy(() => import("@/pages/GameFactory"));
+const LiteraturaView = lazy(() => import("@/views/LiteraturaView"));
+const PisaSimulators = lazy(() => import("@/pages/PisaSimulators"));
+const PisaStudentView = lazy(() => import("@/pages/PisaStudentView"));
+const QuestionBankAI = lazy(() => import("@/pages/QuestionBankAI"));
+const SobreProjeto = lazy(() => import("@/pages/SobreProjeto"));
+const SystemGuide = lazy(() => import("@/pages/SystemGuide"));
+const ManualAluno = lazy(() => import("@/pages/ManualAluno"));
+const TeacherManual = lazy(() => import("@/pages/TeacherManual"));
+const BibliotecaAvaliacoes = lazy(() => import("@/pages/BibliotecaAvaliacoes"));
+const StudentDashboard = lazy(() => import("@/pages/StudentDashboard"));
+const StudentQuiz = lazy(() => import("@/pages/StudentQuiz"));
+const StudentPerformance = lazy(() => import("@/pages/StudentPerformance"));
+const VisionCorrector = lazy(() => import("@/pages/VisionCorrector"));
+const AltaPerformance = lazy(() => import("@/pages/AltaPerformance"));
+const BussolaVocacional = lazy(() => import("@/pages/BussolaVocacional"));
+const Inclusao = lazy(() => import("@/pages/Inclusao"));
+const EduStudio = lazy(() => import("@/pages/EduStudio"));
+const MindMapGenerator = lazy(() => import("@/pages/MindMapGenerator"));
+const ReferenciasBibliograficas = lazy(() => import("@/pages/ReferenciasBibliograficas"));
+const StudentActivityResponse = lazy(() => import("@/pages/StudentActivityResponse"));
+const StudentSimulatorView = lazy(() => import("@/pages/StudentSimulatorView"));
+const ResultadosAlunos = lazy(() => import("@/pages/ResultadosAlunos"));
+const MinhaBiblioteca = lazy(() => import("@/pages/MinhaBiblioteca"));
+const ShortLinkRedirect = lazy(() => import("@/pages/ShortLinkRedirect"));
+const Install = lazy(() => import("@/pages/Install"));
+const SignAttendance = lazy(() => import("@/pages/SignAttendance"));
 
 const queryClient = new QueryClient();
+
+const LazyFallback = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 /* Block student from teacher routes */
 function TeacherOnly({ children }: { children: React.ReactNode }) {
@@ -86,26 +93,74 @@ function AppRoutes() {
   const { hasRole, loading: roleLoading, refetchRole, isStudent } = useRole();
 
   if (authLoading || (user && roleLoading)) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <LazyFallback />;
   }
 
   if (!user) return <LandingPage />;
 
-  /* User logged in but no role assigned yet → show role picker */
   if (!hasRole) {
     return <RoleSelection onRoleSelected={refetchRole} />;
   }
 
-  /* Student role → only student routes */
   if (isStudent) {
     return (
       <AppLayout>
+        <Suspense fallback={<LazyFallback />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/portal-aluno" replace />} />
+            <Route path="/portal-aluno" element={<StudentDashboard />} />
+            <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
+            <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
+            <Route path="/portal-aluno/literatura" element={<LiteraturaView />} />
+            <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
+            <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
+            <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
+            <Route path="*" element={<Navigate to="/portal-aluno" replace />} />
+          </Routes>
+        </Suspense>
+        <MatChatbot />
+      </AppLayout>
+    );
+  }
+
+  return (
+    <AppLayout>
+      <Suspense fallback={<LazyFallback />}>
         <Routes>
-          <Route path="/" element={<Navigate to="/portal-aluno" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard-professor" replace />} />
+          <Route path="/dashboard-professor" element={<Index />} />
+          <Route path="/sobre" element={<SobreProjeto />} />
+          <Route path="/questoes" element={<QuestionBank />} />
+          <Route path="/questoes/nova" element={<CreateQuestion />} />
+          <Route path="/questoes/:id/editar" element={<CreateQuestion />} />
+          <Route path="/provas" element={<Assessments />} />
+          <Route path="/provas/nova" element={<CreateAssessment />} />
+          <Route path="/provas/:id" element={<CreateAssessment />} />
+          <Route path="/disciplinas" element={<Subjects />} />
+          <Route path="/redacao" element={<RedacaoView />} />
+          <Route path="/redacao/corretor" element={<EssayCorrector />} />
+          <Route path="/literatura" element={<LiteraturaView />} />
+          <Route path="/configuracoes" element={<AdvancedSettings />} />
+          <Route path="/eduslides" element={<EduSlides />} />
+          <Route path="/simuladores" element={<Simulators />} />
+          <Route path="/inclusao" element={<Inclusao />} />
+          <Route path="/edustudio" element={<EduStudio />} />
+          <Route path="/mapas-mentais" element={<MindMapGenerator />} />
+          <Route path="/alta-performance" element={<AltaPerformance />} />
+          <Route path="/vestibulares" element={<Vestibulares />} />
+          <Route path="/tecnicos" element={<Tecnicos />} />
+          <Route path="/jogos" element={<GameFactory />} />
+          <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
+          <Route path="/pisa" element={<PisaSimulators />} />
+          <Route path="/biblioteca" element={<BibliotecaAvaliacoes />} />
+          <Route path="/resultados-alunos" element={<ResultadosAlunos />} />
+          <Route path="/minha-biblioteca" element={<MinhaBiblioteca />} />
+          <Route path="/banco-ia" element={<QuestionBankAI />} />
+          <Route path="/guia" element={<SystemGuide />} />
+          <Route path="/manual" element={<TeacherManual />} />
+          <Route path="/manual-aluno" element={<ManualAluno />} />
+          <Route path="/corretor-visao" element={<VisionCorrector />} />
+          <Route path="/referencias" element={<ReferenciasBibliograficas />} />
           <Route path="/portal-aluno" element={<StudentDashboard />} />
           <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
           <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
@@ -113,61 +168,9 @@ function AppRoutes() {
           <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
           <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
           <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
-          <Route path="*" element={<Navigate to="/portal-aluno" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
-        <MatChatbot />
-      </AppLayout>
-    );
-  }
-
-  /* Teacher / admin routes */
-  return (
-    <AppLayout>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard-professor" replace />} />
-        <Route path="/dashboard-professor" element={<Index />} />
-        <Route path="/sobre" element={<SobreProjeto />} />
-        <Route path="/questoes" element={<QuestionBank />} />
-        <Route path="/questoes/nova" element={<CreateQuestion />} />
-        <Route path="/questoes/:id/editar" element={<CreateQuestion />} />
-        <Route path="/provas" element={<Assessments />} />
-        <Route path="/provas/nova" element={<CreateAssessment />} />
-        <Route path="/provas/:id" element={<CreateAssessment />} />
-        <Route path="/disciplinas" element={<Subjects />} />
-        <Route path="/redacao" element={<RedacaoView />} />
-        <Route path="/redacao/corretor" element={<EssayCorrector />} />
-        <Route path="/literatura" element={<LiteraturaView />} />
-        <Route path="/configuracoes" element={<AdvancedSettings />} />
-        <Route path="/eduslides" element={<EduSlides />} />
-        <Route path="/simuladores" element={<Simulators />} />
-        <Route path="/inclusao" element={<Inclusao />} />
-        <Route path="/edustudio" element={<EduStudio />} />
-        <Route path="/mapas-mentais" element={<MindMapGenerator />} />
-        <Route path="/alta-performance" element={<AltaPerformance />} />
-        <Route path="/vestibulares" element={<Vestibulares />} />
-        <Route path="/tecnicos" element={<Tecnicos />} />
-        <Route path="/jogos" element={<GameFactory />} />
-        <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
-        <Route path="/pisa" element={<PisaSimulators />} />
-        <Route path="/biblioteca" element={<BibliotecaAvaliacoes />} />
-        <Route path="/resultados-alunos" element={<ResultadosAlunos />} />
-        <Route path="/minha-biblioteca" element={<MinhaBiblioteca />} />
-        <Route path="/banco-ia" element={<QuestionBankAI />} />
-        <Route path="/guia" element={<SystemGuide />} />
-        <Route path="/manual" element={<TeacherManual />} />
-        <Route path="/manual-aluno" element={<ManualAluno />} />
-        <Route path="/corretor-visao" element={<VisionCorrector />} />
-        <Route path="/referencias" element={<ReferenciasBibliograficas />} />
-        {/* Student routes accessible from teacher mode too */}
-        <Route path="/portal-aluno" element={<StudentDashboard />} />
-        <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
-        <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
-        <Route path="/portal-aluno/literatura" element={<LiteraturaView />} />
-        <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
-        <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
-        <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      </Suspense>
       <MatChatbot />
     </AppLayout>
   );
@@ -184,18 +187,20 @@ const App = () => (
             <BrowserRouter>
               <WwwRedirect />
               <PinAutoRedirect>
-                <Routes>
-                  <Route path="/install" element={<Install />} />
-                  <Route path="/professor" element={<LandingProfessor />} />
-                  <Route path="/estudo" element={<LandingEstudo />} />
-                  <Route path="/assinar/:id" element={<SignAttendance />} />
-                  <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
-                  <Route path="/atividade/:id" element={<StudentActivityResponse />} />
-                  <Route path="/simulado/:id" element={<StudentSimulatorView />} />
-                  <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
-                  <Route path="/s/:code" element={<ShortLinkRedirect />} />
-                  <Route path="/*" element={<AppRoutes />} />
-                </Routes>
+                <Suspense fallback={<LazyFallback />}>
+                  <Routes>
+                    <Route path="/install" element={<Install />} />
+                    <Route path="/professor" element={<LandingProfessor />} />
+                    <Route path="/estudo" element={<LandingEstudo />} />
+                    <Route path="/assinar/:id" element={<SignAttendance />} />
+                    <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
+                    <Route path="/atividade/:id" element={<StudentActivityResponse />} />
+                    <Route path="/simulado/:id" element={<StudentSimulatorView />} />
+                    <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
+                    <Route path="/s/:code" element={<ShortLinkRedirect />} />
+                    <Route path="/*" element={<AppRoutes />} />
+                  </Routes>
+                </Suspense>
               </PinAutoRedirect>
             </BrowserRouter>
           </StudentModeProvider>
