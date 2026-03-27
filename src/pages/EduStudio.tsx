@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { GraduationCap, Wrench, PenLine, Sparkles, Coins, Loader2, ChevronLeft, FileDown, Copy, Check } from 'lucide-react';
+import { GraduationCap, Wrench, PenLine, Sparkles, Coins, Loader2, ChevronLeft, FileDown, Copy, Check, Video, Mic, Camera, FileText, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -115,22 +115,51 @@ export default function EduStudio() {
 
       {/* Tool Cards */}
       {!activeTool && (
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">Ferramentas de IA</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {tools.map(tool => (
-              <button
-                key={tool.id}
-                onClick={() => { setActiveTool(tool.id); setResult(null); }}
-                className="text-left rounded-2xl border border-slate-700/50 bg-white/[0.03] p-6 hover:bg-white/[0.06] hover:border-slate-600/50 hover:shadow-md transition-all group"
-              >
-                <div className={`flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${tool.gradient} shadow-lg ${tool.glow} group-hover:scale-110 transition-transform`}>
-                  <tool.icon size={26} className="text-white" />
+        <div className="space-y-8">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">Ferramentas de IA</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {tools.map(tool => (
+                <button
+                  key={tool.id}
+                  onClick={() => { setActiveTool(tool.id); setResult(null); }}
+                  className="text-left rounded-2xl border border-slate-700/50 bg-white/[0.03] p-6 hover:bg-white/[0.06] hover:border-slate-600/50 hover:shadow-md transition-all group"
+                >
+                  <div className={`flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${tool.gradient} shadow-lg ${tool.glow} group-hover:scale-110 transition-transform`}>
+                    <tool.icon size={26} className="text-white" />
+                  </div>
+                  <p className="font-bold text-white mt-4 text-base">{tool.title}</p>
+                  <p className="text-xs text-slate-400 mt-1.5">{tool.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Multimedia Labs */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">Laboratórios Multimídia <Badge variant="outline" className="ml-2 text-[9px] border-cyan-500/30 text-cyan-400">Em Breve</Badge></p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { id: 'videolab', title: 'VideoLab', desc: 'Crie vídeo-aulas curtas com narração e legendas via IA', icon: Video, gradient: 'from-red-500 to-rose-600', glow: 'shadow-red-500/20' },
+                { id: 'audiolab', title: 'AudioLab', desc: 'Gere podcasts educativos e áudio-resumos com voz sintetizada', icon: Mic, gradient: 'from-cyan-500 to-blue-600', glow: 'shadow-cyan-500/20' },
+                { id: 'photolab', title: 'PhotoLab', desc: 'Ilustrações e imagens didáticas geradas por IA para suas aulas', icon: Camera, gradient: 'from-pink-500 to-purple-600', glow: 'shadow-pink-500/20' },
+                { id: 'scriptlab', title: 'ScriptLab', desc: 'Roteiros de aula, scripts de vídeo e storyboards inteligentes', icon: FileText, gradient: 'from-yellow-500 to-amber-600', glow: 'shadow-yellow-500/20' },
+              ].map(lab => (
+                <div
+                  key={lab.id}
+                  className="relative text-left rounded-2xl border border-slate-700/30 bg-white/[0.02] p-6 opacity-60 cursor-default"
+                >
+                  <div className="absolute top-3 right-3">
+                    <Lock size={14} className="text-slate-500" />
+                  </div>
+                  <div className={`flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${lab.gradient} shadow-lg ${lab.glow}`}>
+                    <lab.icon size={26} className="text-white" />
+                  </div>
+                  <p className="font-bold text-white mt-4 text-base">{lab.title}</p>
+                  <p className="text-xs text-slate-400 mt-1.5">{lab.desc}</p>
                 </div>
-                <p className="font-bold text-white mt-4 text-base">{tool.title}</p>
-                <p className="text-xs text-slate-400 mt-1.5">{tool.desc}</p>
-              </button>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
