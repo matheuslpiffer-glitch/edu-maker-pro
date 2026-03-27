@@ -315,6 +315,33 @@ export default function AltaPerformance() {
   const [qrOpen, setQrOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
 
+  // Restore background generation on mount
+  useEffect(() => {
+    const bg = getGeneration('alta_performance');
+    if (bg.status === 'running') {
+      setLoading(true);
+      const interval = setInterval(() => {
+        const c = getGeneration('alta_performance');
+        if (c.status === 'done') {
+          const parsed = Array.isArray(c.result) ? c.result : c.result?.questions || [];
+          setQuestions(parsed); setLoading(false); clearGeneration('alta_performance');
+          if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
+          clearInterval(interval);
+        } else if (c.status === 'error') {
+          setLoading(false); clearGeneration('alta_performance');
+          toast({ title: 'Erro ao gerar simulado', description: c.error || '', variant: 'destructive' }); clearInterval(interval);
+        }
+      }, 500);
+      return () => clearInterval(interval);
+    } else if (bg.status === 'done') {
+      const parsed = Array.isArray(bg.result) ? bg.result : bg.result?.questions || [];
+      setQuestions(parsed); clearGeneration('alta_performance');
+    } else if (bg.status === 'error') {
+      toast({ title: 'Erro ao gerar simulado', description: bg.error || '', variant: 'destructive' });
+      clearGeneration('alta_performance');
+    }
+  }, []);
+
   // Persist state to sessionStorage on changes
   useEffect(() => {
     const state = { rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode };
