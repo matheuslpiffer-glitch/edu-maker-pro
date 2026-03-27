@@ -12,46 +12,64 @@ serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
 
-    const { theme, mode, subject } = await req.json();
+    const { theme, mode, subject, grade, aee } = await req.json();
     if (!theme) return new Response(JSON.stringify({ error: "Tema obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
+    const aeeOverlay = aee ? `
+
+AJUSTE AEE OBRIGATÓRIO (sobreponha qualquer estilo):
+- Use ALTO CONTRASTE: fundo escuro com textos claros OU fundo branco com textos pretos.
+- Tipografia amigável para dislexia: fontes sans-serif, espaçamento extra entre letras.
+- Reduza DRASTICAMENTE o texto: máximo 3 palavras por nó.
+- AUMENTE os ícones/emojis: use 2-3 emojis grandes por conceito.
+- Use 'Pistas Visuais': cores específicas para tipos de informação (azul=definição, verde=exemplo, amarelo=atenção, vermelho=importante).
+- Cada branch DEVE ter a propriedade "aee_hint" com uma dica visual curta.
+- Simplifique vocabulário ao máximo, use linguagem concreta e direta.` : '';
+
     const modeInstructions: Record<string, string> = {
-      infantil: `Modelo "Nuvem Lúdica" para Anos Iniciais (1º ao 5º ano):
-- Crie um mapa mental LÚDICO e COLORIDO com no máximo 5 ramificações.
-- Cada nó deve ter no máximo 3 palavras-chave simples.
-- Use emojis GRANDES e expressivos como ícones visuais para cada conceito (use 2 emojis por nó se possível).
-- As conexões devem usar verbos simples: "tem", "é", "usa".
-- Vocabulário adequado para crianças de 6 a 10 anos.
-- Cores PASTÉIS suaves: use tons como #F9A8D4, #93C5FD, #86EFAC, #FDE68A, #C4B5FD, #FDBA74.
+      infantil: `Estilo "Explorador Mirim" para Anos Iniciais (1º ao 5º ano):
+- Layout circular/nuvem com NO MÁXIMO 5 ramificações.
+- Cada nó: máximo 3 palavras-chave simples e concretas.
+- Emojis GIGANTES e expressivos (2-3 por nó).
+- Conectores com verbos simples: "tem", "é", "usa", "faz".
+- Vocabulário adequado para 6–10 anos, frases curtas e divertidas.
+- Cores PASTÉIS vibrantes: #F9A8D4, #93C5FD, #86EFAC, #FDE68A, #C4B5FD, #FDBA74.
 - NÃO inclua children/sub-ramificações.
-- Cada summary deve ter NO MÁXIMO 1 frase curta e divertida.`,
+- Cada summary: NO MÁXIMO 1 frase curta, lúdica e memorável.
+- Inclua "memory_trick" em cada branch: uma rima, acrônimo ou associação para memorização.`,
 
-      fundamental: `Modelo "Rede de Conhecimento" para Fundamental II (6º ao 9º ano):
-- Crie um mapa mental ANALÍTICO com 5 a 7 ramificações.
-- Cada nó deve ter um título curto e um resumo de 1 a 2 frases.
-- Os conectores DEVEM usar verbos de ação: "gera", "causa", "resulta em", "é composto por", "influencia", "depende de".
-- Inclua 2-3 children (sub-conceitos) em cada braço com exemplos práticos.
-- Use emojis como suporte visual.
-- Cores sóbrias mas distintas: #3B82F6, #10B981, #F59E0B, #EF4444, #8B5CF6, #EC4899, #06B6D4.`,
+      fundamental: `Estilo "Conexão Analítica" para Fundamental II (6º ao 9º ano):
+- Layout ramificado analítico com 5 a 7 ramificações.
+- Título curto + resumo de 1-2 frases com GATILHOS MENTAIS para memorização.
+- Conectores com VERBOS DE AÇÃO: "gera", "causa", "resulta em", "é composto por", "influencia", "depende de".
+- 2-3 children (sub-conceitos) com exemplos práticos do cotidiano do aluno.
+- Emojis como suporte visual contextual.
+- Cores contrastantes por braço: #3B82F6, #10B981, #F59E0B, #EF4444, #8B5CF6, #EC4899, #06B6D4.
+- Inclua "memory_trick" em cada branch: mnemônicos, associações ou analogias.`,
 
-      medio: `Modelo "Infográfico Técnico" para Ensino Médio:
-- Crie um mapa mental DENSO estilo infográfico de revisão com 6 a 8 ramificações.
-- Cada nó deve conter definições técnicas precisas e completas.
-- Inclua fórmulas quando aplicável (use APENAS caracteres Unicode, NUNCA LaTeX).
-- Adicione conexões interdisciplinares entre os braços quando possível.
-- Use gatilhos mentais e palavras-chave para memorização.
-- Hierarquia clara com 3-4 sub-ramificações por braço.
-- Cada sub-ramificação deve ter "detail" com uma explicação técnica de 1 frase.
-- Cores profissionais e sóbrias: #1E40AF, #047857, #B45309, #B91C1C, #6D28D9, #BE185D, #0E7490, #4338CA.`,
+      medio: `Estilo "Síntese Acadêmica" para Ensino Médio:
+- Layout denso hierárquico estilo cartaz de revisão com 6 a 8 ramificações.
+- Definições técnicas PRECISAS e completas em cada nó.
+- Use APENAS caracteres Unicode para fórmulas (², ³, √, π, ÷, ×, ≠, ≤, ≥, →, ←, ↔, ∞, Σ, Δ, ∫).
+- Conexões INTERDISCIPLINARES entre braços quando possível.
+- Gatilhos mentais e palavras-chave para memorização rápida.
+- 3-4 sub-ramificações por braço com "detail" técnico de 1 frase.
+- Cores profissionais e sóbrias: #1E40AF, #047857, #B45309, #B91C1C, #6D28D9, #BE185D, #0E7490, #4338CA.
+- Inclua "memory_trick" em cada branch: mnemônicos acadêmicos, regras práticas ou associações.
+- Inclua "cross_link" quando um braço se conecta a outro (ex: "ver também: Braço 3").`,
     };
 
     const instruction = modeInstructions[mode] || modeInstructions.medio;
 
-    const prompt = `Você é um especialista em pedagogia, infografia e mapas mentais educacionais profissionais.
+    const gradeContext = grade ? `\nSérie/Ano do aluno: ${grade}. Adapte TODO o vocabulário, profundidade e complexidade para este nível específico.` : '';
 
-Gere um mapa mental sobre o tema: "${theme}"${subject ? ` na disciplina de ${subject}` : ''}.
+    const prompt = `Você é a Dra. Mapa Mental, uma especialista doutora em Neuroeducação e Design Instrucional Visual com 20 anos de experiência em Visual Thinking e técnicas de memorização.
 
-${instruction}
+Sua missão: criar mapas mentais que FACILITEM A MEMORIZAÇÃO, promovam CONEXÃO DE IDEIAS e apliquem princípios de Visual Thinking adaptados rigorosamente à série de ensino.
+
+Gere um mapa mental sobre o tema: "${theme}"${subject ? ` na disciplina de ${subject}` : ''}.${gradeContext}
+
+${instruction}${aeeOverlay}
 
 REGRAS INVIOLÁVEIS:
 - NUNCA use LaTeX ($, $$), tags HTML (<sup>, <sub>, <b>) ou Markdown.
@@ -59,6 +77,7 @@ REGRAS INVIOLÁVEIS:
 - Para frações use barra: 1/2, 3/4.
 - Os summaries devem ser DENSOS em informação mas CONCISOS em palavras.
 - Cada branch DEVE ter uma cor HEX distinta.
+- Aplique princípios de Neuroeducação: hierarquia visual clara, agrupamento lógico, uso estratégico de cores.
 
 Retorne um JSON PURO (sem markdown, sem crases) com esta estrutura:
 {
@@ -70,6 +89,7 @@ Retorne um JSON PURO (sem markdown, sem crases) com esta estrutura:
       "color": "#3B82F6",
       "summary": "Resumo técnico do conceito",
       "connector": "verbo de conexão",
+      "memory_trick": "dica de memorização",${aee ? '\n      "aee_hint": "pista visual para AEE",' : ''}
       "children": [
         { "label": "Sub-conceito", "detail": "explicação técnica curta" }
       ]
