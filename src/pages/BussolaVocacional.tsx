@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal, Share2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal, Share2, MapPin, GraduationCap, BookOpen, Brain, Calculator } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import defaultMatAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
