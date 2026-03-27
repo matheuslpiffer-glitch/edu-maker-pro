@@ -388,8 +388,8 @@ export default function AltaPerformance() {
     }
     setLoading(true);
     setQuestions([]);
-    try {
-    const isMulti = disciplina === 'Todos';
+
+    const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
     const currentParams = {
       examType: isMulti ? 'simulado_semanal' : 'alta_performance',
       subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
@@ -428,7 +428,7 @@ export default function AltaPerformance() {
         const isFriendly = msg.includes('processando') || msg.includes('Tente novamente');
         toast({
           title: isFriendly ? '⏳ Processando...' : 'Erro ao gerar simulado',
-          description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento. Por favor, tente novamente ou reduza o número de questões.',
+          description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento.',
           variant: 'destructive',
         });
         clearInterval(interval);
