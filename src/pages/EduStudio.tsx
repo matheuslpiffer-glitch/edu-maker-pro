@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
 import { GraduationCap, Wrench, PenLine, Sparkles, Coins, Loader2, ChevronLeft, FileDown, Copy, Check, Video, Mic, Camera, FileText, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,6 +59,31 @@ export default function EduStudio() {
   const [slDuration, setSlDuration] = useState('50');
   const [slMethodology, setSlMethodology] = useState('expositiva-dialogada');
 
+  // Restore background generation on mount
+  useEffect(() => {
+    const bg = getGeneration('edustudio');
+    if (bg.status === 'running') {
+      setLoading(true);
+      const interval = setInterval(() => {
+        const c = getGeneration('edustudio');
+        if (c.status === 'done') {
+          setResult(c.result); setLoading(false); clearGeneration('edustudio');
+          toast({ title: 'Conteúdo gerado com sucesso! ✨' }); clearInterval(interval);
+        } else if (c.status === 'error') {
+          setLoading(false); clearGeneration('edustudio');
+          toast({ title: 'Erro na geração', description: c.error || '', variant: 'destructive' }); clearInterval(interval);
+        }
+      }, 500);
+      return () => clearInterval(interval);
+    } else if (bg.status === 'done') {
+      setResult(bg.result); clearGeneration('edustudio');
+      toast({ title: 'Conteúdo gerado com sucesso! ✨' });
+    } else if (bg.status === 'error') {
+      toast({ title: 'Erro na geração', description: bg.error || '', variant: 'destructive' });
+      clearGeneration('edustudio');
+    }
+  }, []);
+
   const generate = async () => {
     if (!activeTool) return;
     setLoading(true);
@@ -77,19 +103,26 @@ export default function EduStudio() {
       params = { topic: slTopic.trim(), grade: slGrade, subject: slSubject, duration: slDuration, methodology: slMethodology };
     }
 
-    try {
+    const tool = activeTool;
+    startGeneration('edustudio', async () => {
       const { data, error } = await supabase.functions.invoke('edu-studio-ai', {
-        body: { tool: activeTool, params },
+        body: { tool, params },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setResult(data);
-      toast({ title: 'Conteúdo gerado com sucesso! ✨' });
-    } catch (e: any) {
-      toast({ title: 'Erro na geração', description: e.message, variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
+      return data;
+    });
+
+    const interval = setInterval(() => {
+      const c = getGeneration('edustudio');
+      if (c.status === 'done') {
+        setResult(c.result); setLoading(false); clearGeneration('edustudio');
+        toast({ title: 'Conteúdo gerado com sucesso! ✨' }); clearInterval(interval);
+      } else if (c.status === 'error') {
+        setLoading(false); clearGeneration('edustudio');
+        toast({ title: 'Erro na geração', description: c.error || '', variant: 'destructive' }); clearInterval(interval);
+      }
+    }, 500);
   };
 
   const copyToClipboard = () => {

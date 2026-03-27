@@ -1,4 +1,5 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
 import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
