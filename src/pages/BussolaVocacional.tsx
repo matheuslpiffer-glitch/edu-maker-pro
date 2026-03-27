@@ -6,7 +6,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal, Share2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal, Share2, MapPin, GraduationCap, BookOpen, Brain, Calculator } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import defaultMatAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
@@ -247,6 +247,64 @@ export default function BussolaVocacional() {
     A: 'O vetor Artístico é predominante, sugerindo uma necessidade de autonomia e expressão original. Sua estrutura mental foge do convencionalismo, buscando soluções disruptivas. Carreiras em design, comunicação e inovação apresentam a maior probabilidade de satisfação profissional a longo prazo.',
     C: 'Sua pontuação máxima no vetor Convencional indica um alto nível de Conscienciosidade. Você se destaca no processamento minucioso de dados e na manutenção de sistemas estruturados. O rigor técnico e a eficiência operacional são suas marcas registradas de alta performance.',
     R: 'O diagnóstico aponta para o perfil Realista. Você possui uma inclinação natural para o pensamento pragmático e a operação de sistemas tecnológicos ou físicos. Sua satisfação profissional está correlacionada a resultados tangíveis e à aplicação prática do conhecimento técnico.',
+  };
+
+  // ── Regional Courses (Limeira/SP) based on RIASEC ──
+  const CURSOS_REGIONAIS: Record<string, { cursos: string[]; universidades: string[]; tecnicos: string[] }> = {
+    R: {
+      cursos: ['Engenharia Mecânica', 'Engenharia de Produção', 'Engenharia Elétrica', 'Tecnologia em Automação'],
+      universidades: ['UNICAMP (Limeira - FCA/FT)', 'USP (ESALQ - Piracicaba)', 'UNESP (Rio Claro)', 'UNIMEP (Piracicaba)'],
+      tecnicos: ['ETEC (Eletroeletrônica)', 'SENAI (Mecânica Industrial)', 'COTUCA/UNICAMP (Técnico em Mecatrônica)'],
+    },
+    I: {
+      cursos: ['Ciência da Computação', 'Engenharia de Software', 'Física', 'Biologia', 'Química'],
+      universidades: ['UNICAMP (IC - Campinas)', 'USP (ICMC - São Carlos)', 'UNESP (Rio Claro - Geociências)', 'UFSCar (São Carlos)'],
+      tecnicos: ['ETEC (Informática)', 'COTUCA/UNICAMP (Técnico em Informática)', 'SENAI (Análise de Dados)'],
+    },
+    A: {
+      cursos: ['Design Gráfico', 'Arquitetura e Urbanismo', 'Comunicação Social', 'Artes Visuais'],
+      universidades: ['UNICAMP (IA - Artes)', 'USP (FAU - Arquitetura)', 'UNESP (FAAC - Bauru)', 'PUC-Campinas (Design)'],
+      tecnicos: ['ETEC (Design de Interiores)', 'SENAC (Produção Multimídia)', 'ETEC (Comunicação Visual)'],
+    },
+    S: {
+      cursos: ['Pedagogia', 'Psicologia', 'Serviço Social', 'Enfermagem', 'Medicina'],
+      universidades: ['UNICAMP (FCM - Medicina)', 'USP (FEUSP - Pedagogia)', 'UNESP (Araraquara - Odontologia)', 'PUC-Campinas (Psicologia)'],
+      tecnicos: ['ETEC (Enfermagem)', 'SENAC (Recursos Humanos)', 'ETEC (Nutrição e Dietética)'],
+    },
+    E: {
+      cursos: ['Administração', 'Economia', 'Direito', 'Gestão Empresarial', 'Marketing'],
+      universidades: ['UNICAMP (FCA - Administração)', 'USP (FEA - Economia)', 'UNESP (Araraquara - Administração Pública)', 'Mackenzie (Campinas)'],
+      tecnicos: ['ETEC (Administração)', 'FATEC (Gestão Empresarial)', 'SENAC (Comércio Exterior)'],
+    },
+    C: {
+      cursos: ['Ciências Contábeis', 'Gestão Financeira', 'Logística', 'Estatística'],
+      universidades: ['UNICAMP (IMECC - Estatística)', 'USP (FEA - Contábeis)', 'FATEC (Gestão Financeira)', 'UFSCar (Engenharia de Produção)'],
+      tecnicos: ['ETEC (Contabilidade)', 'FATEC (Logística)', 'SENAI (Gestão da Qualidade)'],
+    },
+  };
+
+  // ── EduCreator tool suggestions based on profile ──
+  const getEduCreatorSuggestions = (topKey: string) => {
+    const suggestions: { icon: React.ElementType; label: string; desc: string; route: string }[] = [];
+    if (['R', 'I', 'C'].includes(topKey)) {
+      suggestions.push(
+        { icon: Calculator, label: 'Simulado de Matemática', desc: 'Alta Performance com foco em Exatas', route: '/alta-performance' },
+        { icon: Brain, label: 'Mapa Mental de Física', desc: 'Síntese Acadêmica para revisão', route: '/mapas-mentais' },
+      );
+    }
+    if (['A', 'S'].includes(topKey)) {
+      suggestions.push(
+        { icon: BookOpen, label: 'Dossiê Literário', desc: 'Análise profunda de obras para vestibular', route: '/edu-studio' },
+        { icon: Brain, label: 'Mapa Mental de História', desc: 'Conexão Analítica para Humanas', route: '/mapas-mentais' },
+      );
+    }
+    if (topKey === 'E') {
+      suggestions.push(
+        { icon: Calculator, label: 'Simulado Multidisciplinar', desc: 'Simulado semanal integrado', route: '/alta-performance' },
+        { icon: BookOpen, label: 'Dossiê de Redação', desc: 'Temas de atualidades e argumentação', route: '/edu-studio' },
+      );
+    }
+    return suggestions;
   };
 
   const computeBigFive = () => {
@@ -531,9 +589,88 @@ export default function BussolaVocacional() {
         </CardContent>
       </Card>
 
+      {/* ── Cursos Regionais (Limeira/SP) ── */}
+      {parecer && (() => {
+        const regional = CURSOS_REGIONAIS[parecer.top[0]];
+        if (!regional) return null;
+        return (
+          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" /> Cursos Recomendados — Região Limeira/SP
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Baseado no seu perfil {parecer.topLabel}</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-primary" /> Graduações
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {regional.cursos.map(c => (
+                    <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground">🏛️ Universidades Próximas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {regional.universidades.map(u => (
+                    <Badge key={u} className="bg-primary/10 text-primary border-primary/30 text-xs">{u}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground">🔧 Cursos Técnicos</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {regional.tecnicos.map(t => (
+                    <Badge key={t} variant="outline" className="text-xs">{t}</Badge>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+      {/* ── Integração EduCreator ── */}
+      {parecer && (() => {
+        const suggestions = getEduCreatorSuggestions(parecer.top[0]);
+        if (suggestions.length === 0) return null;
+        return (
+          <Card className="border-primary/20 bg-card/90 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" /> Ferramentas EduCreator para Você
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Sugestões personalizadas baseadas no seu perfil {parecer.topLabel}</p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {suggestions.map(s => (
+                  <button
+                    key={s.label}
+                    onClick={() => window.location.href = s.route}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/60 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <s.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{s.label}</p>
+                      <p className="text-xs text-muted-foreground">{s.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       <div className="flex flex-col sm:flex-row justify-center gap-3">
         <Button onClick={handleExportPDF} className="gap-2">
-          <Download className="w-4 h-4" /> Gerar Laudo PDF
+          <Download className="w-4 h-4" /> Baixar meu Plano de Carreira (PDF)
         </Button>
         <Button onClick={handleShare} variant="secondary" className="gap-2">
           <Share2 className="w-4 h-4" /> Compartilhar com meu Coordenador
