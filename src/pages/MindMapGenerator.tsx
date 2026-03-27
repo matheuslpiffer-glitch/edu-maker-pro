@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { ALL_DEFAULT_SUBJECTS } from '@/lib/subjects-data';
 import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import MindMapVisual from '@/components/mindmap/MindMapVisual';
 import type { MindMapData } from '@/components/mindmap/MindMapVisual';
+import { startGeneration, getGeneration, clearGeneration, isGenerating } from '@/lib/background-generation';
 
 function getAutoMode(grade: string): string {
   const iniciais = ['ano_1', 'ano_2', 'ano_3', 'ano_4', 'ano_5', 'bercario', 'maternal_1', 'maternal_2'];
@@ -27,6 +28,8 @@ const MODES = [
   { id: 'medio', label: '🎓 Síntese Acadêmica', tag: 'Ensino Médio', desc: 'Denso, hierárquico, definições técnicas, interconexões' },
 ];
 
+const GEN_KEY = 'mindmap';
+
 export default function MindMapGenerator() {
   const { toast } = useToast();
   const mapRef = useRef<HTMLDivElement>(null);
@@ -40,6 +43,38 @@ export default function MindMapGenerator() {
   const [saving, setSaving] = useState(false);
   const [mapData, setMapData] = useState<MindMapData | null>(null);
 
+  // Restore background generation result on mount
+  useEffect(() => {
+    const bg = getGeneration(GEN_KEY);
+    if (bg.status === 'running') {
+      setLoading(true);
+      // Poll until done
+      const interval = setInterval(() => {
+        const current = getGeneration(GEN_KEY);
+        if (current.status === 'done') {
+          setMapData(current.result);
+          setLoading(false);
+          clearGeneration(GEN_KEY);
+          toast({ title: 'Mapa mental gerado com sucesso! 🧠' });
+          clearInterval(interval);
+        } else if (current.status === 'error') {
+          setLoading(false);
+          toast({ title: 'Erro ao gerar mapa', description: current.error || '', variant: 'destructive' });
+          clearGeneration(GEN_KEY);
+          clearInterval(interval);
+        }
+      }, 500);
+      return () => clearInterval(interval);
+    } else if (bg.status === 'done') {
+      setMapData(bg.result);
+      clearGeneration(GEN_KEY);
+      toast({ title: 'Mapa mental gerado com sucesso! 🧠' });
+    } else if (bg.status === 'error') {
+      toast({ title: 'Erro ao gerar mapa', description: bg.error || '', variant: 'destructive' });
+      clearGeneration(GEN_KEY);
+    }
+  }, []);
+
   const handleGradeChange = (val: string) => {
     setGrade(val);
     setMode(getAutoMode(val));
@@ -49,19 +84,38 @@ export default function MindMapGenerator() {
     if (!theme.trim()) { toast({ title: 'Informe o tema central', variant: 'destructive' }); return; }
     if (!grade) { toast({ title: 'Selecione a série/ano', variant: 'destructive' }); return; }
     setLoading(true);
-    try {
+
+    const currentTheme = theme.trim();
+    const currentMode = mode;
+    const currentSubject = subject;
+    const currentGrade = grade;
+    const currentAee = aee;
+
+    startGeneration(GEN_KEY, async () => {
       const { data, error } = await supabase.functions.invoke('generate-mind-map', {
-        body: { theme: theme.trim(), mode, subject, grade, aee },
+        body: { theme: currentTheme, mode: currentMode, subject: currentSubject, grade: currentGrade, aee: currentAee },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setMapData(data);
-      toast({ title: 'Mapa mental gerado com sucesso! 🧠' });
-    } catch (e: any) {
-      toast({ title: 'Erro ao gerar mapa', description: e.message, variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
+      return data;
+    });
+
+    // Poll for result
+    const interval = setInterval(() => {
+      const current = getGeneration(GEN_KEY);
+      if (current.status === 'done') {
+        setMapData(current.result);
+        setLoading(false);
+        clearGeneration(GEN_KEY);
+        toast({ title: 'Mapa mental gerado com sucesso! 🧠' });
+        clearInterval(interval);
+      } else if (current.status === 'error') {
+        setLoading(false);
+        toast({ title: 'Erro ao gerar mapa', description: current.error || '', variant: 'destructive' });
+        clearGeneration(GEN_KEY);
+        clearInterval(interval);
+      }
+    }, 500);
   };
 
   const exportImage = async () => {
