@@ -154,7 +154,6 @@ export default function EduStudio() {
                 { id: 'videolab', title: 'VideoLab', desc: 'Crie vídeo-aulas curtas com narração e legendas via IA', icon: Video, gradient: 'from-red-500 to-rose-600', glow: 'shadow-red-500/20' },
                 { id: 'audiolab', title: 'AudioLab', desc: 'Gere podcasts educativos e áudio-resumos com voz sintetizada', icon: Mic, gradient: 'from-cyan-500 to-blue-600', glow: 'shadow-cyan-500/20' },
                 { id: 'photolab', title: 'PhotoLab', desc: 'Ilustrações e imagens didáticas geradas por IA para suas aulas', icon: Camera, gradient: 'from-pink-500 to-purple-600', glow: 'shadow-pink-500/20' },
-                { id: 'scriptlab', title: 'ScriptLab', desc: 'Roteiros de aula, scripts de vídeo e storyboards inteligentes', icon: FileText, gradient: 'from-yellow-500 to-amber-600', glow: 'shadow-yellow-500/20' },
               ].map(lab => (
                 <div
                   key={lab.id}
