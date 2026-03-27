@@ -4,35 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Download, Brain, Sparkles, Palette } from 'lucide-react';
+import { Loader2, Download, Brain, Sparkles, Palette, FileDown } from 'lucide-react';
 import { ALL_DEFAULT_SUBJECTS } from '@/lib/subjects-data';
-
-interface MindMapChild {
-  label: string;
-  detail?: string;
-}
-
-interface MindMapBranch {
-  label: string;
-  emoji: string;
-  color: string;
-  summary: string;
-  connector: string;
-  children?: MindMapChild[];
-}
-
-interface MindMapData {
-  center: { label: string; emoji: string };
-  branches: MindMapBranch[];
-}
+import MindMapVisual from '@/components/mindmap/MindMapVisual';
+import type { MindMapData } from '@/components/mindmap/MindMapVisual';
 
 const MODES = [
-  { id: 'infantil', label: 'Anos Iniciais', tag: 'Nuvem Mágica', desc: 'Lúdico, poucas palavras, ícones grandes' },
-  { id: 'fundamental', label: 'Fundamental II', tag: 'Rede de Conhecimento', desc: 'Conectores lógicos, resumos por braço' },
-  { id: 'medio', label: 'Ensino Médio', tag: 'Mapa Conceitual', desc: 'Denso, termos técnicos, interdisciplinar' },
+  { id: 'infantil', label: 'Nuvem Lúdica', tag: 'Anos Iniciais', desc: 'Figuras grandes, emojis, cores pastéis, resumos de 1 linha' },
+  { id: 'fundamental', label: 'Rede de Conhecimento', tag: 'Fundamental II', desc: 'Conectores lógicos, ícones menores, parágrafos curtos' },
+  { id: 'medio', label: 'Infográfico Técnico', tag: 'Ensino Médio', desc: 'Layout denso, hierarquia clara, definições técnicas completas' },
 ];
 
 export default function MindMapGenerator() {
@@ -127,12 +109,14 @@ export default function MindMapGenerator() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Nível de Complexidade</Label>
+              <Label>Modelo Visual</Label>
               <Select value={mode} onValueChange={setMode}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {MODES.map(m => (
-                    <SelectItem key={m.id} value={m.id}>{m.label} — {m.tag}</SelectItem>
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.label} — {m.tag}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -142,7 +126,7 @@ export default function MindMapGenerator() {
           {selectedMode && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Palette className="h-4 w-4" />
-              <span>Estilo: <strong>{selectedMode.tag}</strong> — {selectedMode.desc}</span>
+              <span>Estilo: <strong>{selectedMode.label}</strong> — {selectedMode.desc}</span>
             </div>
           )}
 
@@ -158,17 +142,21 @@ export default function MindMapGenerator() {
         <>
           <div className="flex gap-2 no-print">
             <Button variant="outline" size="sm" onClick={exportImage}>
-              <Download className="h-4 w-4 mr-1" /> Exportar PNG
+              <Download className="h-4 w-4 mr-1" /> PNG
             </Button>
             <Button variant="outline" size="sm" onClick={exportPdf}>
-              <Download className="h-4 w-4 mr-1" /> Exportar PDF
+              <FileDown className="h-4 w-4 mr-1" /> PDF
             </Button>
           </div>
 
           <div
             ref={mapRef}
             className="rounded-2xl p-8 md:p-12 overflow-auto"
-            style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', minHeight: 500 }}
+            style={{
+              background: 'linear-gradient(145deg, #0c1222 0%, #162032 50%, #0f1729 100%)',
+              minHeight: 560,
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 20px 60px rgba(0,0,0,0.5)',
+            }}
           >
             <MindMapVisual data={mapData} mode={mode} />
           </div>
@@ -178,104 +166,6 @@ export default function MindMapGenerator() {
       <p className="text-center text-xs text-muted-foreground">
         Mapas Mentais Maker · Resumo Visual Inteligente por Matheus Lima Piffer
       </p>
-    </div>
-  );
-}
-
-/* ——— Visual Renderer ——— */
-
-function MindMapVisual({ data, mode }: { data: MindMapData; mode: string }) {
-  const branches = data.branches || [];
-  const total = branches.length;
-
-  return (
-    <div className="relative flex items-center justify-center" style={{ minHeight: 480 }}>
-      {/* Center node */}
-      <div className="absolute z-20 flex flex-col items-center justify-center rounded-full border-4 border-white/20 shadow-2xl"
-        style={{
-          width: 160, height: 160,
-          background: 'radial-gradient(circle, #6366f1 0%, #4f46e5 100%)',
-        }}
-      >
-        <span className="text-3xl">{data.center.emoji}</span>
-        <span className="text-white font-bold text-center text-sm px-3 leading-tight mt-1">{data.center.label}</span>
-      </div>
-
-      {/* Branches */}
-      {branches.map((branch, i) => {
-        const angle = (360 / total) * i - 90;
-        const rad = (angle * Math.PI) / 180;
-        const radius = mode === 'infantil' ? 220 : 260;
-        const x = Math.cos(rad) * radius;
-        const y = Math.sin(rad) * radius;
-
-        return (
-          <BranchNode key={i} branch={branch} x={x} y={y} angle={angle} mode={mode} />
-        );
-      })}
-
-      {/* SVG connectors */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" style={{ overflow: 'visible' }}>
-        <g transform={`translate(${0},${0})`} style={{ transform: 'translate(50%, 50%)' }}>
-          {branches.map((branch, i) => {
-            const angle = (360 / total) * i - 90;
-            const rad = (angle * Math.PI) / 180;
-            const radius = mode === 'infantil' ? 220 : 260;
-            const x = Math.cos(rad) * radius;
-            const y = Math.sin(rad) * radius;
-            return (
-              <line key={i} x1={0} y1={0} x2={x} y2={y}
-                stroke={branch.color || '#6366f1'} strokeWidth={2.5} strokeDasharray="6 4" opacity={0.5}
-              />
-            );
-          })}
-        </g>
-      </svg>
-    </div>
-  );
-}
-
-function BranchNode({ branch, x, y, mode }: { branch: MindMapBranch; x: number; y: number; angle: number; mode: string }) {
-  const isInfantil = mode === 'infantil';
-  const isMedio = mode === 'medio';
-
-  return (
-    <div
-      className="absolute z-20 flex flex-col items-center"
-      style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`, maxWidth: isInfantil ? 140 : 200 }}
-    >
-      {/* Connector verb */}
-      {branch.connector && !isInfantil && (
-        <Badge variant="outline" className="mb-1 text-[10px] border-white/30 text-white/70 bg-white/5">
-          {branch.connector}
-        </Badge>
-      )}
-
-      {/* Node card */}
-      <div
-        className="rounded-xl p-3 text-center shadow-lg border border-white/10"
-        style={{ background: `${branch.color}22`, borderColor: `${branch.color}55` }}
-      >
-        <span className={isInfantil ? 'text-3xl' : 'text-xl'}>{branch.emoji}</span>
-        <p className="text-white font-semibold text-sm mt-1 leading-tight">{branch.label}</p>
-        {!isInfantil && branch.summary && (
-          <p className="text-white/60 text-[11px] mt-1 leading-snug">{branch.summary}</p>
-        )}
-      </div>
-
-      {/* Children */}
-      {branch.children && branch.children.length > 0 && (isMedio || mode === 'fundamental') && (
-        <div className="mt-2 space-y-1">
-          {branch.children.map((child, ci) => (
-            <div key={ci} className="bg-white/5 border border-white/10 rounded-md px-2 py-1 text-center">
-              <span className="text-white/90 text-[11px] font-medium">{child.label}</span>
-              {child.detail && isMedio && (
-                <p className="text-white/50 text-[10px] leading-tight">{child.detail}</p>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

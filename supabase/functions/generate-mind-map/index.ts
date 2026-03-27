@@ -16,33 +16,38 @@ serve(async (req) => {
     if (!theme) return new Response(JSON.stringify({ error: "Tema obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const modeInstructions: Record<string, string> = {
-      infantil: `Modo "Nuvem Mágica" para Anos Iniciais (1º ao 5º ano):
-- Crie um mapa mental LÚDICO com no máximo 5 ramificações.
+      infantil: `Modelo "Nuvem Lúdica" para Anos Iniciais (1º ao 5º ano):
+- Crie um mapa mental LÚDICO e COLORIDO com no máximo 5 ramificações.
 - Cada nó deve ter no máximo 3 palavras-chave simples.
-- Use emojis como ícones visuais para cada conceito.
+- Use emojis GRANDES e expressivos como ícones visuais para cada conceito (use 2 emojis por nó se possível).
 - As conexões devem usar verbos simples: "tem", "é", "usa".
 - Vocabulário adequado para crianças de 6 a 10 anos.
-- Cores sugeridas: amarelo, azul claro, verde, rosa, laranja.`,
+- Cores PASTÉIS suaves: use tons como #F9A8D4, #93C5FD, #86EFAC, #FDE68A, #C4B5FD, #FDBA74.
+- NÃO inclua children/sub-ramificações.
+- Cada summary deve ter NO MÁXIMO 1 frase curta e divertida.`,
 
-      fundamental: `Modo "Rede de Conhecimento" para Fundamental II (6º ao 9º ano):
+      fundamental: `Modelo "Rede de Conhecimento" para Fundamental II (6º ao 9º ano):
 - Crie um mapa mental ANALÍTICO com 5 a 7 ramificações.
-- Cada nó deve ter um título curto e um resumo de 1 frase.
-- Os conectores devem usar verbos de ação: "gera", "causa", "resulta em", "é composto por".
-- Inclua exemplos práticos em cada braço.
-- Use emojis como suporte visual.`,
+- Cada nó deve ter um título curto e um resumo de 1 a 2 frases.
+- Os conectores DEVEM usar verbos de ação: "gera", "causa", "resulta em", "é composto por", "influencia", "depende de".
+- Inclua 2-3 children (sub-conceitos) em cada braço com exemplos práticos.
+- Use emojis como suporte visual.
+- Cores sóbrias mas distintas: #3B82F6, #10B981, #F59E0B, #EF4444, #8B5CF6, #EC4899, #06B6D4.`,
 
-      medio: `Modo "Mapa Conceitual Completo" para Ensino Médio:
+      medio: `Modelo "Infográfico Técnico" para Ensino Médio:
 - Crie um mapa mental DENSO estilo infográfico de revisão com 6 a 8 ramificações.
-- Cada nó deve conter definições técnicas precisas.
+- Cada nó deve conter definições técnicas precisas e completas.
 - Inclua fórmulas quando aplicável (use APENAS caracteres Unicode, NUNCA LaTeX).
-- Adicione conexões interdisciplinares entre os braços.
+- Adicione conexões interdisciplinares entre os braços quando possível.
 - Use gatilhos mentais e palavras-chave para memorização.
-- Hierarquia clara com sub-ramificações.`,
+- Hierarquia clara com 3-4 sub-ramificações por braço.
+- Cada sub-ramificação deve ter "detail" com uma explicação técnica de 1 frase.
+- Cores profissionais e sóbrias: #1E40AF, #047857, #B45309, #B91C1C, #6D28D9, #BE185D, #0E7490, #4338CA.`,
     };
 
     const instruction = modeInstructions[mode] || modeInstructions.medio;
 
-    const prompt = `Você é um especialista em pedagogia e mapas mentais educacionais.
+    const prompt = `Você é um especialista em pedagogia, infografia e mapas mentais educacionais profissionais.
 
 Gere um mapa mental sobre o tema: "${theme}"${subject ? ` na disciplina de ${subject}` : ''}.
 
@@ -52,8 +57,10 @@ REGRAS INVIOLÁVEIS:
 - NUNCA use LaTeX ($, $$), tags HTML (<sup>, <sub>, <b>) ou Markdown.
 - Use APENAS caracteres Unicode para símbolos: ², ³, √, π, ÷, ×, ≠, ≤, ≥, →, ←, ↔, ∞, Σ, Δ, ∫, ≈, ∈, ∉, ⊂, ∪, ∩, ∀, ∃.
 - Para frações use barra: 1/2, 3/4.
+- Os summaries devem ser DENSOS em informação mas CONCISOS em palavras.
+- Cada branch DEVE ter uma cor HEX distinta.
 
-Retorne um JSON PURO (sem markdown) com esta estrutura:
+Retorne um JSON PURO (sem markdown, sem crases) com esta estrutura:
 {
   "center": { "label": "Tema Central", "emoji": "🎯" },
   "branches": [
@@ -61,10 +68,10 @@ Retorne um JSON PURO (sem markdown) com esta estrutura:
       "label": "Conceito",
       "emoji": "📘",
       "color": "#3B82F6",
-      "summary": "Resumo curto do conceito",
+      "summary": "Resumo técnico do conceito",
       "connector": "verbo de conexão",
       "children": [
-        { "label": "Sub-conceito", "detail": "detalhe opcional" }
+        { "label": "Sub-conceito", "detail": "explicação técnica curta" }
       ]
     }
   ]
