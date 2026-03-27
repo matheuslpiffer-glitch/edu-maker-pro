@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 export interface MindMapChild {
   label: string;
@@ -23,133 +23,141 @@ export interface MindMapData {
   branches: MindMapBranch[];
 }
 
-function BranchNode({ branch, x, y, mode, aee }: { branch: MindMapBranch; x: number; y: number; mode: string; aee: boolean }) {
+/* ─── Layout engine: place branches in a grid-like vertical list to avoid all overlaps ─── */
+interface PlacedBranch {
+  branch: MindMapBranch;
+  col: 'left' | 'right';
+  row: number;
+}
+
+function computeLayout(branches: MindMapBranch[]): PlacedBranch[] {
+  const placed: PlacedBranch[] = [];
+  let leftRow = 0;
+  let rightRow = 0;
+  branches.forEach((branch, i) => {
+    // Alternate left/right columns
+    if (i % 2 === 0) {
+      placed.push({ branch, col: 'left', row: leftRow });
+      leftRow++;
+    } else {
+      placed.push({ branch, col: 'right', row: rightRow });
+      rightRow++;
+    }
+  });
+  return placed;
+}
+
+/* ─── Branch Card ─── */
+function BranchCard({ branch, mode, aee }: { branch: MindMapBranch; mode: string; aee: boolean }) {
   const [hovered, setHovered] = useState(false);
   const isInfantil = mode === 'infantil';
   const isMedio = mode === 'medio';
 
-  const cardStyle: React.CSSProperties = {
-    background: aee
-      ? `linear-gradient(135deg, ${branch.color}30 0%, ${branch.color}50 100%)`
-      : `linear-gradient(135deg, ${branch.color}18 0%, ${branch.color}30 100%)`,
-    borderColor: hovered ? branch.color : `${branch.color}44`,
-    borderWidth: aee ? 3 : 2,
-    boxShadow: hovered
-      ? `0 8px 32px ${branch.color}40, 0 0 0 1px ${branch.color}60`
-      : `0 4px 16px ${branch.color}20`,
-    transform: hovered ? 'scale(1.05)' : 'scale(1)',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  };
-
-  const fontSize = aee ? '16px' : isInfantil ? '15px' : '14px';
-  const emojiSize = aee ? 'text-5xl' : isInfantil ? 'text-4xl' : 'text-2xl';
+  const borderColor = hovered ? branch.color : `${branch.color}66`;
+  const bgGrad = aee
+    ? `linear-gradient(135deg, ${branch.color}28 0%, ${branch.color}40 100%)`
+    : `linear-gradient(135deg, ${branch.color}12 0%, ${branch.color}22 100%)`;
 
   return (
     <div
-      className="absolute z-20 flex flex-col items-center"
+      className="rounded-xl border-2 backdrop-blur-sm transition-all duration-300 cursor-default"
       style={{
-        transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-        maxWidth: isInfantil ? 170 : isMedio ? 230 : 210,
+        background: bgGrad,
+        borderColor,
+        borderWidth: aee ? 3 : 2,
+        boxShadow: hovered
+          ? `0 6px 24px ${branch.color}35`
+          : `0 2px 8px ${branch.color}15`,
+        transform: hovered ? 'translateY(-2px)' : 'none',
+        padding: isInfantil ? '16px' : '12px 14px',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
+      {/* Connector badge */}
       {branch.connector && !isInfantil && (
         <Badge
           variant="outline"
-          className="mb-1.5 text-[10px] font-semibold tracking-wide uppercase"
+          className="mb-2 text-[10px] font-bold tracking-wider uppercase"
           style={{
             borderColor: `${branch.color}55`,
-            color: aee ? '#ffffff' : `${branch.color}cc`,
+            color: `${branch.color}cc`,
             background: `${branch.color}10`,
-            fontSize: aee ? '11px' : '10px',
           }}
         >
           {branch.connector}
         </Badge>
       )}
 
-      <div
-        className="rounded-2xl backdrop-blur-sm cursor-default"
-        style={{
-          ...cardStyle,
-          padding: isInfantil ? '16px 14px' : isMedio ? '14px 16px' : '12px 14px',
-        }}
-      >
-        <div className="text-center">
-          <span className={emojiSize}>{branch.emoji}</span>
+      {/* Header: emoji + label */}
+      <div className="flex items-start gap-2">
+        <span className={aee ? 'text-3xl' : isInfantil ? 'text-3xl' : 'text-xl'} style={{ lineHeight: 1 }}>
+          {branch.emoji}
+        </span>
+        <div className="flex-1 min-w-0">
           <p
-            className="font-bold mt-1.5 leading-tight"
+            className="font-bold leading-tight"
             style={{
-              color: aee ? '#ffffff' : '#f1f5f9',
-              fontSize,
-              textShadow: '0 1px 3px rgba(0,0,0,0.3)',
+              color: aee ? '#ffffff' : '#e2e8f0',
+              fontSize: aee ? '15px' : isInfantil ? '14px' : '13px',
               letterSpacing: aee ? '0.5px' : undefined,
-              lineHeight: aee ? '1.6' : '1.3',
             }}
           >
             {branch.label}
           </p>
           {!isInfantil && branch.summary && (
-            <p className="mt-1.5 leading-snug" style={{
-              color: aee ? '#e2e8f0' : '#94a3b8',
+            <p className="mt-1 leading-snug" style={{
+              color: aee ? '#cbd5e1' : '#94a3b8',
               fontSize: aee ? '12px' : '11px',
-              lineHeight: aee ? '1.7' : '1.4',
+              lineHeight: '1.5',
             }}>
               {branch.summary}
-            </p>
-          )}
-          {branch.memory_trick && (
-            <p className="mt-1 italic" style={{
-              color: '#fbbf24',
-              fontSize: '10px',
-            }}>
-              💡 {branch.memory_trick}
-            </p>
-          )}
-          {aee && branch.aee_hint && (
-            <p className="mt-1 font-semibold" style={{
-              color: '#60a5fa',
-              fontSize: '10px',
-            }}>
-              👁 {branch.aee_hint}
             </p>
           )}
         </div>
       </div>
 
+      {/* Memory trick */}
+      {branch.memory_trick && (
+        <p className="mt-2 italic text-amber-400" style={{ fontSize: '10px', lineHeight: '1.4' }}>
+          💡 {branch.memory_trick}
+        </p>
+      )}
+
+      {/* AEE hint */}
+      {aee && branch.aee_hint && (
+        <p className="mt-1 font-semibold text-blue-400" style={{ fontSize: '10px' }}>
+          👁 {branch.aee_hint}
+        </p>
+      )}
+
+      {/* Children sub-concepts */}
       {branch.children && branch.children.length > 0 && (isMedio || mode === 'fundamental') && (
-        <div className="mt-2 space-y-1 w-full">
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {branch.children.slice(0, isMedio ? 4 : 3).map((child, ci) => (
             <div
               key={ci}
-              className="rounded-lg px-2.5 py-1.5 text-center border"
+              className="rounded-md px-2 py-1 text-xs border"
               style={{
-                background: `${branch.color}0d`,
-                borderColor: `${branch.color}22`,
+                background: `${branch.color}0a`,
+                borderColor: `${branch.color}20`,
+                color: aee ? '#e2e8f0' : '#cbd5e1',
               }}
             >
-              <span className="font-medium" style={{
-                color: aee ? '#e2e8f0' : '#cbd5e1',
-                fontSize: aee ? '12px' : '11px',
-              }}>
-                {child.label}
-              </span>
+              {child.label}
               {child.detail && isMedio && (
-                <p className="leading-tight mt-0.5" style={{
-                  color: aee ? '#94a3b8' : '#64748b',
-                  fontSize: aee ? '11px' : '10px',
-                }}>
+                <span className="block mt-0.5" style={{ color: '#64748b', fontSize: '9px' }}>
                   {child.detail}
-                </p>
+                </span>
               )}
             </div>
           ))}
         </div>
       )}
 
+      {/* Cross-link */}
       {branch.cross_link && isMedio && (
-        <p className="mt-1 text-center" style={{ color: '#a78bfa', fontSize: '9px' }}>
+        <p className="mt-1.5 text-purple-400" style={{ fontSize: '9px' }}>
           🔗 {branch.cross_link}
         </p>
       )}
@@ -157,81 +165,149 @@ function BranchNode({ branch, x, y, mode, aee }: { branch: MindMapBranch; x: num
   );
 }
 
+/* ─── SVG connector lines ─── */
+function ConnectorLines({
+  layout,
+  centerX,
+  centerY,
+  cardWidth,
+  rowHeight,
+  startY,
+  aee,
+  mode,
+}: {
+  layout: PlacedBranch[];
+  centerX: number;
+  centerY: number;
+  cardWidth: number;
+  rowHeight: number;
+  startY: number;
+  aee: boolean;
+  mode: string;
+}) {
+  const gap = 24;
+  return (
+    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
+      <defs>
+        {layout.map((item, i) => (
+          <linearGradient key={`lg-${i}`} id={`mg-${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor={aee ? '#fbbf24' : '#6366f1'} stopOpacity="0.5" />
+            <stop offset="100%" stopColor={item.branch.color} stopOpacity="0.7" />
+          </linearGradient>
+        ))}
+      </defs>
+      {layout.map((item, i) => {
+        const cardY = startY + item.row * rowHeight + rowHeight / 2;
+        const isLeft = item.col === 'left';
+        const cardEdgeX = isLeft
+          ? centerX - gap - cardWidth + cardWidth  // right edge of left card = centerX - gap
+          : centerX + gap; // left edge of right card
+        const endX = isLeft ? centerX - gap : centerX + gap;
+        const cx1 = centerX + (isLeft ? -gap * 0.3 : gap * 0.3);
+        const cy1 = centerY;
+        const cx2 = endX + (isLeft ? gap * 0.3 : -gap * 0.3);
+        const cy2 = cardY;
+
+        return (
+          <path
+            key={i}
+            d={`M ${centerX},${centerY} C ${cx1},${cy1} ${cx2},${cy2} ${endX},${cardY}`}
+            stroke={`url(#mg-${i})`}
+            strokeWidth={aee ? 4 : mode === 'infantil' ? 3 : 2}
+            fill="none"
+            strokeLinecap="round"
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+/* ─── Main component ─── */
 export default function MindMapVisual({ data, mode, aee = false }: { data: MindMapData; mode: string; aee?: boolean }) {
   const branches = data.branches || [];
-  const total = branches.length;
+  const layout = useMemo(() => computeLayout(branches), [branches]);
+
   const isInfantil = mode === 'infantil';
-  const radius = isInfantil ? 230 : mode === 'medio' ? 300 : 270;
+  const cardWidth = isInfantil ? 200 : 260;
+  const rowHeight = isInfantil ? 130 : mode === 'medio' ? 170 : 150;
+  const gap = 24;
+  const centerNodeSize = isInfantil ? 140 : 150;
+
+  const leftCount = layout.filter(l => l.col === 'left').length;
+  const rightCount = layout.filter(l => l.col === 'right').length;
+  const maxRows = Math.max(leftCount, rightCount, 1);
+
+  const totalWidth = cardWidth * 2 + centerNodeSize + gap * 4;
+  const totalHeight = Math.max(maxRows * rowHeight + 40, centerNodeSize + 80);
+  const centerX = totalWidth / 2;
+  const centerY = totalHeight / 2;
+  const startY = (totalHeight - maxRows * rowHeight) / 2;
 
   return (
-    <div className="relative flex items-center justify-center" style={{ minHeight: isInfantil ? 520 : 600 }}>
+    <div className="relative mx-auto" style={{ width: totalWidth, minHeight: totalHeight }}>
+      {/* Connector lines */}
+      <ConnectorLines
+        layout={layout}
+        centerX={centerX}
+        centerY={centerY}
+        cardWidth={cardWidth}
+        rowHeight={rowHeight}
+        startY={startY}
+        aee={aee}
+        mode={mode}
+      />
+
+      {/* Center node */}
       <div
-        className="absolute z-30 flex flex-col items-center justify-center rounded-full"
+        className="absolute z-20 flex flex-col items-center justify-center rounded-full"
         style={{
-          width: isInfantil ? 150 : 170,
-          height: isInfantil ? 150 : 170,
+          width: centerNodeSize,
+          height: centerNodeSize,
+          left: centerX - centerNodeSize / 2,
+          top: centerY - centerNodeSize / 2,
           background: aee
             ? 'radial-gradient(circle at 30% 30%, #f59e0b 0%, #d97706 60%, #92400e 100%)'
             : 'radial-gradient(circle at 30% 30%, #818cf8 0%, #4f46e5 60%, #3730a3 100%)',
           border: aee ? '4px solid #fbbf24' : '3px solid rgba(255,255,255,0.15)',
           boxShadow: aee
-            ? '0 0 60px rgba(245,158,11,0.5), 0 0 120px rgba(245,158,11,0.2)'
-            : '0 0 60px rgba(99,102,241,0.4), 0 0 120px rgba(99,102,241,0.15), inset 0 -4px 12px rgba(0,0,0,0.2)',
+            ? '0 0 40px rgba(245,158,11,0.5)'
+            : '0 0 40px rgba(99,102,241,0.4), inset 0 -4px 12px rgba(0,0,0,0.2)',
         }}
       >
-        <span className={isInfantil ? 'text-4xl' : 'text-3xl'}>{data.center.emoji}</span>
+        <span className="text-3xl">{data.center.emoji}</span>
         <span
-          className="text-white font-extrabold text-center px-4 leading-tight mt-1"
+          className="text-white font-extrabold text-center px-3 leading-tight mt-1"
           style={{
-            fontSize: isInfantil ? '14px' : '13px',
+            fontSize: '12px',
             textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-            letterSpacing: aee ? '0.5px' : undefined,
           }}
         >
           {data.center.label}
         </span>
       </div>
 
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none z-10"
-        style={{ overflow: 'visible' }}
-      >
-        <defs>
-          {branches.map((branch, i) => (
-            <linearGradient key={`grad-${i}`} id={`line-grad-${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={aee ? '#fbbf24' : '#6366f1'} stopOpacity="0.6" />
-              <stop offset="100%" stopColor={branch.color || '#6366f1'} stopOpacity="0.8" />
-            </linearGradient>
-          ))}
-        </defs>
-        <g style={{ transform: 'translate(50%, 50%)' }}>
-          {branches.map((branch, i) => {
-            const angle = (360 / total) * i - 90;
-            const rad = (angle * Math.PI) / 180;
-            const x = Math.cos(rad) * radius;
-            const y = Math.sin(rad) * radius;
-            const cx = x * 0.5 + y * 0.15;
-            const cy = y * 0.5 - x * 0.15;
-            return (
-              <path
-                key={i}
-                d={`M 0,0 Q ${cx},${cy} ${x},${y}`}
-                stroke={`url(#line-grad-${i})`}
-                strokeWidth={aee ? 4 : isInfantil ? 3 : 2}
-                fill="none"
-                strokeLinecap="round"
-              />
-            );
-          })}
-        </g>
-      </svg>
+      {/* Branch cards */}
+      {layout.map((item, i) => {
+        const isLeft = item.col === 'left';
+        const x = isLeft
+          ? centerX - gap - centerNodeSize / 2 - cardWidth
+          : centerX + gap + centerNodeSize / 2;
+        const y = startY + item.row * rowHeight;
 
-      {branches.map((branch, i) => {
-        const angle = (360 / total) * i - 90;
-        const rad = (angle * Math.PI) / 180;
-        const x = Math.cos(rad) * radius;
-        const y = Math.sin(rad) * radius;
-        return <BranchNode key={i} branch={branch} x={x} y={y} mode={mode} aee={aee} />;
+        return (
+          <div
+            key={i}
+            className="absolute z-10"
+            style={{
+              left: x,
+              top: y,
+              width: cardWidth,
+            }}
+          >
+            <BranchCard branch={item.branch} mode={mode} aee={aee} />
+          </div>
+        );
       })}
     </div>
   );
