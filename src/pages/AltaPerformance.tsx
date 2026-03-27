@@ -1,4 +1,5 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
 import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
@@ -314,6 +315,33 @@ export default function AltaPerformance() {
   const [qrOpen, setQrOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
 
+  // Restore background generation on mount
+  useEffect(() => {
+    const bg = getGeneration('alta_performance');
+    if (bg.status === 'running') {
+      setLoading(true);
+      const interval = setInterval(() => {
+        const c = getGeneration('alta_performance');
+        if (c.status === 'done') {
+          const parsed = Array.isArray(c.result) ? c.result : c.result?.questions || [];
+          setQuestions(parsed); setLoading(false); clearGeneration('alta_performance');
+          if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
+          clearInterval(interval);
+        } else if (c.status === 'error') {
+          setLoading(false); clearGeneration('alta_performance');
+          toast({ title: 'Erro ao gerar simulado', description: c.error || '', variant: 'destructive' }); clearInterval(interval);
+        }
+      }, 500);
+      return () => clearInterval(interval);
+    } else if (bg.status === 'done') {
+      const parsed = Array.isArray(bg.result) ? bg.result : bg.result?.questions || [];
+      setQuestions(parsed); clearGeneration('alta_performance');
+    } else if (bg.status === 'error') {
+      toast({ title: 'Erro ao gerar simulado', description: bg.error || '', variant: 'destructive' });
+      clearGeneration('alta_performance');
+    }
+  }, []);
+
   // Persist state to sessionStorage on changes
   useEffect(() => {
     const state = { rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode };
@@ -360,41 +388,52 @@ export default function AltaPerformance() {
     }
     setLoading(true);
     setQuestions([]);
-    try {
-      const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
+
+    const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
+    const currentParams = {
+      examType: isMulti ? 'simulado_semanal' : 'alta_performance',
+      subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
+      grade: serie,
+      count: isMulti ? 10 : totalQuestoes,
+      specificTopic: isMulti ? (topicos || 'Simulado Semanal Integrado: distribua equilibradamente entre Português (3), Matemática (3), Ciências (2) e Humanas (2), cobrindo temas trabalhados na semana para a série selecionada') : topicos,
+      isMultidisciplinar: isMulti,
+      activeDna: rede,
+      activeSpecialty: `alta_performance_${rede}`,
+      isDiscursiva,
+      difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente, ${niveis.avancado}% Avançado (interdisciplinar, raciocínio lógico profundo, nível Fuvest/Unicamp/ITA)`,
+      examModel: redeInfo?.label || rede,
+      matrizReferencia: matrizRef,
+      matrizLabel: matrizInfo?.label || 'Padrão BNCC',
+    };
+
+    startGeneration('alta_performance', async () => {
       const { data, error } = await supabase.functions.invoke('generate-simulator-questions', {
-          body: {
-          examType: isMulti ? 'simulado_semanal' : 'alta_performance',
-          subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
-          grade: serie,
-          count: isMulti ? 10 : totalQuestoes,
-          specificTopic: isMulti ? (topicos || 'Simulado Semanal Integrado: distribua equilibradamente entre Português (3), Matemática (3), Ciências (2) e Humanas (2), cobrindo temas trabalhados na semana para a série selecionada') : topicos,
-          isMultidisciplinar: isMulti,
-          activeDna: rede,
-          activeSpecialty: `alta_performance_${rede}`,
-          isDiscursiva,
-          difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente, ${niveis.avancado}% Avançado (interdisciplinar, raciocínio lógico profundo, nível Fuvest/Unicamp/ITA)`,
-          examModel: redeInfo?.label || rede,
-          matrizReferencia: matrizRef,
-          matrizLabel: matrizInfo?.label || 'Padrão BNCC',
-        },
+        body: currentParams,
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      const parsed = Array.isArray(data) ? data : data?.questions || [];
-      setQuestions(parsed);
-      if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
-    } catch (e: any) {
-      const msg = e.message || 'Erro ao gerar simulado';
-      const isFriendly = msg.includes('processando') || msg.includes('Tente novamente');
-      toast({
-        title: isFriendly ? '⏳ Processando...' : 'Erro ao gerar simulado',
-        description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento. Por favor, tente novamente ou reduza o número de questões.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+      return data;
+    });
+
+    const interval = setInterval(() => {
+      const c = getGeneration('alta_performance');
+      if (c.status === 'done') {
+        const parsed = Array.isArray(c.result) ? c.result : c.result?.questions || [];
+        setQuestions(parsed); setLoading(false); clearGeneration('alta_performance');
+        if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
+        clearInterval(interval);
+      } else if (c.status === 'error') {
+        setLoading(false); clearGeneration('alta_performance');
+        const msg = c.error || 'Erro ao gerar simulado';
+        const isFriendly = msg.includes('processando') || msg.includes('Tente novamente');
+        toast({
+          title: isFriendly ? '⏳ Processando...' : 'Erro ao gerar simulado',
+          description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento.',
+          variant: 'destructive',
+        });
+        clearInterval(interval);
+      }
+    }, 500);
   };
 
   const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '');
