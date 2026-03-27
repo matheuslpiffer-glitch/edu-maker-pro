@@ -589,9 +589,88 @@ export default function BussolaVocacional() {
         </CardContent>
       </Card>
 
+      {/* ── Cursos Regionais (Limeira/SP) ── */}
+      {parecer && (() => {
+        const regional = CURSOS_REGIONAIS[parecer.top[0]];
+        if (!regional) return null;
+        return (
+          <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" /> Cursos Recomendados — Região Limeira/SP
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Baseado no seu perfil {parecer.topLabel}</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-primary" /> Graduações
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {regional.cursos.map(c => (
+                    <Badge key={c} variant="secondary" className="text-xs">{c}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground">🏛️ Universidades Próximas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {regional.universidades.map(u => (
+                    <Badge key={u} className="bg-primary/10 text-primary border-primary/30 text-xs">{u}</Badge>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground">🔧 Cursos Técnicos</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {regional.tecnicos.map(t => (
+                    <Badge key={t} variant="outline" className="text-xs">{t}</Badge>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+      {/* ── Integração EduCreator ── */}
+      {parecer && (() => {
+        const suggestions = getEduCreatorSuggestions(parecer.top[0]);
+        if (suggestions.length === 0) return null;
+        return (
+          <Card className="border-primary/20 bg-card/90 backdrop-blur-sm">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" /> Ferramentas EduCreator para Você
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">Sugestões personalizadas baseadas no seu perfil {parecer.topLabel}</p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {suggestions.map(s => (
+                  <button
+                    key={s.label}
+                    onClick={() => window.location.href = s.route}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border/50 bg-muted/30 hover:bg-muted/60 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <s.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{s.label}</p>
+                      <p className="text-xs text-muted-foreground">{s.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       <div className="flex flex-col sm:flex-row justify-center gap-3">
         <Button onClick={handleExportPDF} className="gap-2">
-          <Download className="w-4 h-4" /> Gerar Laudo PDF
+          <Download className="w-4 h-4" /> Baixar meu Plano de Carreira (PDF)
         </Button>
         <Button onClick={handleShare} variant="secondary" className="gap-2">
           <Share2 className="w-4 h-4" /> Compartilhar com meu Coordenador
