@@ -115,6 +115,57 @@ REGRAS:
 Formato:
 { "tema": "...", "contextualizacao": "...", "textos_apoio": [...], "perguntas_debate": [...], "estrutura_sugerida": {...}, "palavras_chave": [...], "armadilhas": [...] }`;
 
+    } else if (tool === "scriptlab") {
+      const { topic, grade, subject, duration, methodology } = params || {};
+
+      const methodLabels: Record<string, string> = {
+        'expositiva-dialogada': 'Expositiva Dialogada (professor apresenta e dialoga com a turma)',
+        'sala-invertida': 'Sala de Aula Invertida (alunos estudam antes, aula é para prática)',
+        'gamificacao': 'Gamificação (elementos de jogos, pontuação, desafios)',
+        'maker': 'Cultura Maker / Mão na Massa (construção e experimentação prática)',
+        'problematizacao': 'Aprendizagem Baseada em Problemas (situação-problema como ponto de partida)',
+      };
+
+      const methodDesc = methodLabels[methodology || 'expositiva-dialogada'] || methodology || 'Expositiva Dialogada';
+
+      prompt = `Você é um especialista em planejamento pedagógico e design instrucional para a Educação Básica brasileira.
+
+Crie um ROTEIRO DE AULA completo e detalhado com as seguintes especificações:
+- Tema: "${topic || 'Tema livre'}"
+- Disciplina: ${subject || 'Interdisciplinar'}
+- Série/Ano: ${grade || '9º Ano'}
+- Duração total: ${duration || '50'} minutos
+- Metodologia principal: ${methodDesc}
+
+O roteiro deve conter EXATAMENTE estes campos no JSON:
+1. "titulo": Título criativo e engajador para a aula
+2. "disciplina": A disciplina
+3. "serie": A série/ano
+4. "duracao_minutos": Duração em número
+5. "metodologia": Código da metodologia ("${methodology || 'expositiva-dialogada'}")
+6. "objetivo": Objetivo de aprendizagem claro e mensurável (1-2 frases, começando com verbo no infinitivo)
+7. "competencias_bncc": Array com 2-3 códigos de habilidades BNCC relacionadas (ex: "EF09MA01")
+8. "recursos": Array de recursos necessários (quadro, projetor, materiais, etc.)
+9. "momentos": Array de 4-6 objetos representando os momentos da aula, cada um com:
+   - "titulo": Nome do momento (ex: "Abertura e Acolhimento", "Desenvolvimento", "Prática Guiada")
+   - "duracao": Tempo estimado (ex: "10 minutos")
+   - "descricao": Descrição detalhada do que o professor deve fazer, incluindo falas sugeridas e ações dos alunos
+   - "dica_professor": Uma dica prática para o professor conduzir melhor este momento
+10. "avaliacao": Como verificar se os alunos atingiram o objetivo (avaliação formativa)
+11. "tarefa_casa": Sugestão de atividade para casa (opcional mas recomendada)
+12. "reflexao_final": Uma pergunta reflexiva para encerrar a aula (estilo socrático)
+
+REGRAS:
+- A soma das durações dos momentos deve ser igual à duração total da aula
+- Use linguagem profissional mas acessível
+- As descrições devem ser detalhadas o suficiente para que qualquer professor consiga aplicar
+- Inclua sugestões de perguntas que o professor pode fazer aos alunos
+- NUNCA use LaTeX, HTML ou Markdown. Apenas texto puro e Unicode
+- Retorne JSON PURO (sem crases de markdown)
+
+Formato:
+{ "titulo": "...", "disciplina": "...", "serie": "...", "duracao_minutos": 50, "metodologia": "...", "objetivo": "...", "competencias_bncc": [...], "recursos": [...], "momentos": [...], "avaliacao": "...", "tarefa_casa": "...", "reflexao_final": "..." }`;
+
     } else {
       return new Response(JSON.stringify({ error: "Ferramenta desconhecida: " + tool }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }

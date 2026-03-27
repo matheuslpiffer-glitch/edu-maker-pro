@@ -22,6 +22,7 @@ const tools: ToolConfig[] = [
   { id: 'simulados', title: 'IA de Simulados', desc: 'Questões inéditas alinhadas ao SARESP/Mackenzie com gabarito e AEE', icon: GraduationCap, gradient: 'from-amber-500 to-orange-600', glow: 'shadow-amber-500/30' },
   { id: 'atividades', title: 'Atividades Maker', desc: 'Roteiros práticos para atividades autônomas em sala', icon: Wrench, gradient: 'from-emerald-500 to-teal-600', glow: 'shadow-emerald-500/30' },
   { id: 'redacao', title: 'Dossiê de Redação', desc: 'Guia de leitura com textos de apoio e estrutura argumentativa', icon: PenLine, gradient: 'from-violet-600 to-fuchsia-600', glow: 'shadow-violet-500/30' },
+  { id: 'scriptlab', title: 'ScriptLab', desc: 'Roteiros de aula completos com objetivos, momentos pedagógicos e avaliação', icon: FileText, gradient: 'from-yellow-500 to-amber-600', glow: 'shadow-yellow-500/30' },
 ];
 
 const GRADES = ['6º Ano', '7º Ano', '8º Ano', '9º Ano', '1ª Série EM', '2ª Série EM', '3ª Série EM'];
@@ -50,6 +51,13 @@ export default function EduStudio() {
   const [redTema, setRedTema] = useState('');
   const [redGrade, setRedGrade] = useState('Ensino Médio');
 
+  // ScriptLab params
+  const [slTopic, setSlTopic] = useState('');
+  const [slGrade, setSlGrade] = useState('9º Ano');
+  const [slSubject, setSlSubject] = useState('Matemática');
+  const [slDuration, setSlDuration] = useState('50');
+  const [slMethodology, setSlMethodology] = useState('expositiva-dialogada');
+
   const generate = async () => {
     if (!activeTool) return;
     setLoading(true);
@@ -64,6 +72,9 @@ export default function EduStudio() {
     } else if (activeTool === 'redacao') {
       if (!redTema.trim()) { toast({ title: 'Informe o tema da redação', variant: 'destructive' }); setLoading(false); return; }
       params = { tema: redTema.trim(), grade: redGrade };
+    } else if (activeTool === 'scriptlab') {
+      if (!slTopic.trim()) { toast({ title: 'Informe o tema da aula', variant: 'destructive' }); setLoading(false); return; }
+      params = { topic: slTopic.trim(), grade: slGrade, subject: slSubject, duration: slDuration, methodology: slMethodology };
     }
 
     try {
@@ -276,6 +287,51 @@ export default function EduStudio() {
                 </div>
               )}
 
+              {activeTool === 'scriptlab' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                  <div className="space-y-2 sm:col-span-2 lg:col-span-2">
+                    <Label>Tema da Aula *</Label>
+                    <Input placeholder="Ex: Equações do 2º Grau" value={slTopic} onChange={e => setSlTopic(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Disciplina</Label>
+                    <Select value={slSubject} onValueChange={setSlSubject}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Série</Label>
+                    <Select value={slGrade} onValueChange={setSlGrade}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>{GRADES.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Duração</Label>
+                    <Select value={slDuration} onValueChange={setSlDuration}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {['30', '40', '50', '60', '90', '120'].map(d => <SelectItem key={d} value={d}>{d} min</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label>Metodologia</Label>
+                    <Select value={slMethodology} onValueChange={setSlMethodology}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="expositiva-dialogada">Expositiva Dialogada</SelectItem>
+                        <SelectItem value="sala-invertida">Sala de Aula Invertida</SelectItem>
+                        <SelectItem value="gamificacao">Gamificação</SelectItem>
+                        <SelectItem value="maker">Cultura Maker / Mão na Massa</SelectItem>
+                        <SelectItem value="problematizacao">Aprendizagem Baseada em Problemas</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
+
               <Button onClick={generate} disabled={loading} className="w-full sm:w-auto gap-2">
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
                 {loading ? 'A IA está pensando...' : 'Gerar com IA'}
@@ -307,6 +363,7 @@ export default function EduStudio() {
               {activeTool === 'simulados' && <SimuladosResult data={result} />}
               {activeTool === 'atividades' && <AtividadesResult data={result} />}
               {activeTool === 'redacao' && <RedacaoResult data={result} />}
+              {activeTool === 'scriptlab' && <ScriptLabResult data={result} />}
             </div>
           )}
         </div>
@@ -476,6 +533,103 @@ function RedacaoResult({ data }: { data: any }) {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function ScriptLabResult({ data }: { data: any }) {
+  const METHODOLOGY_LABELS: Record<string, string> = {
+    'expositiva-dialogada': 'Expositiva Dialogada',
+    'sala-invertida': 'Sala de Aula Invertida',
+    'gamificacao': 'Gamificação',
+    'maker': 'Cultura Maker',
+    'problematizacao': 'ABP',
+  };
+  return (
+    <Card>
+      <CardContent className="pt-6 space-y-6">
+        <div>
+          <Badge className="mb-2 bg-gradient-to-r from-yellow-500 to-amber-600 text-white border-0">Roteiro de Aula</Badge>
+          <h2 className="text-xl font-bold">{data.titulo}</h2>
+          <div className="flex flex-wrap gap-2 mt-2">
+            <Badge variant="secondary">{data.disciplina}</Badge>
+            <Badge variant="secondary">{data.serie}</Badge>
+            <Badge variant="secondary">{data.duracao_minutos} min</Badge>
+            {data.metodologia && <Badge variant="outline">{METHODOLOGY_LABELS[data.metodologia] || data.metodologia}</Badge>}
+          </div>
+        </div>
+
+        {data.objetivo && (
+          <div className="rounded-xl bg-primary/5 border border-primary/20 p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-primary mb-1">Objetivo de Aprendizagem</p>
+            <p className="text-sm">{data.objetivo}</p>
+          </div>
+        )}
+
+        {data.competencias_bncc && (
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Competências / Habilidades BNCC</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(Array.isArray(data.competencias_bncc) ? data.competencias_bncc : [data.competencias_bncc]).map((c: string, i: number) => (
+                <Badge key={i} variant="secondary" className="text-xs">{c}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {data.recursos && data.recursos.length > 0 && (
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Recursos Necessários</p>
+            <div className="flex flex-wrap gap-1.5">
+              {data.recursos.map((r: string, i: number) => (
+                <Badge key={i} variant="outline" className="text-xs">{r}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Momentos da Aula</p>
+          {(data.momentos || []).map((m: any, i: number) => (
+            <div key={i} className="rounded-xl border p-4 space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center text-sm font-bold text-white shadow">
+                  {i + 1}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold">{m.titulo}</p>
+                  <p className="text-[10px] text-muted-foreground">{m.duracao}</p>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">{m.descricao}</p>
+              {m.dica_professor && (
+                <p className="text-xs text-amber-500">💡 Dica: {m.dica_professor}</p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {data.avaliacao && (
+          <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/20 p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Avaliação / Verificação</p>
+            <p className="text-sm">{data.avaliacao}</p>
+          </div>
+        )}
+
+        {data.tarefa_casa && (
+          <div className="rounded-xl bg-blue-500/5 border border-blue-500/20 p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Tarefa de Casa</p>
+            <p className="text-sm">{data.tarefa_casa}</p>
+          </div>
+        )}
+
+        {data.reflexao_final && (
+          <div className="rounded-xl bg-violet-500/5 border border-violet-500/20 p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-violet-600 mb-1">Reflexão Final</p>
+            <p className="text-sm italic">"{data.reflexao_final}"</p>
           </div>
         )}
       </CardContent>
