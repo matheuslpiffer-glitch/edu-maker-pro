@@ -15,6 +15,7 @@ interface GenerationEntry {
 }
 
 const STORAGE_KEY = 'bg_generation_cache';
+const FORM_STORAGE_KEY = 'bg_generation_forms';
 const store = new Map<string, GenerationEntry>();
 
 function loadFromStorage(): void {
@@ -23,7 +24,6 @@ function loadFromStorage(): void {
     if (!raw) return;
     const entries: Record<string, GenerationEntry> = JSON.parse(raw);
     for (const [key, entry] of Object.entries(entries)) {
-      // Only restore completed/error entries (running ones are dead after reload)
       if (entry.status === 'done' || entry.status === 'error') {
         store.set(key, { ...entry, promise: undefined });
       }
@@ -83,4 +83,30 @@ export function clearGeneration(key: string): void {
 
 export function isGenerating(key: string): boolean {
   return store.get(key)?.status === 'running';
+}
+
+/** Persist form state for a generation module so it survives unmount */
+export function saveFormState(key: string, state: any): void {
+  try {
+    const all = JSON.parse(localStorage.getItem(FORM_STORAGE_KEY) || '{}');
+    all[key] = state;
+    localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(all));
+  } catch { /* ignore */ }
+}
+
+/** Restore form state for a generation module */
+export function loadFormState<T = any>(key: string): T | null {
+  try {
+    const all = JSON.parse(localStorage.getItem(FORM_STORAGE_KEY) || '{}');
+    return all[key] ?? null;
+  } catch { return null; }
+}
+
+/** Clear form state when no longer needed */
+export function clearFormState(key: string): void {
+  try {
+    const all = JSON.parse(localStorage.getItem(FORM_STORAGE_KEY) || '{}');
+    delete all[key];
+    localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(all));
+  } catch { /* ignore */ }
 }
