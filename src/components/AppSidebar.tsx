@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
@@ -20,6 +20,7 @@ const teacherLinks = [
   { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', section: 'Estúdios de Criação' },
   { to: '/edustudio', icon: Camera, label: 'EduStudio', section: 'Estúdios de Criação' },
   { to: '/mapas-mentais', icon: Brain, label: 'Mapas Mentais Maker', section: 'Estúdios de Criação' },
+  { to: '/hub-360', icon: Sparkles, label: 'Hub Planejamento 360º', section: 'Estúdios de Criação' },
   { to: '/resultados-alunos', icon: BarChart3, label: 'Resultados e Desempenho', section: 'Ferramentas de Gestão' },
   { to: '/redacao/corretor', icon: Camera, label: 'Corretor IA Redação', section: 'Ferramentas de Gestão' },
   { to: '/corretor-visao', icon: ScanEye, label: 'Corretor de Visão', section: 'Ferramentas de Gestão' },

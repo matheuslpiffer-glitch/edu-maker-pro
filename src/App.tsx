@@ -53,6 +53,7 @@ const BussolaVocacional = lazy(() => import("@/pages/BussolaVocacional"));
 const Inclusao = lazy(() => import("@/pages/Inclusao"));
 const EduStudio = lazy(() => import("@/pages/EduStudio"));
 const MindMapGenerator = lazy(() => import("@/pages/MindMapGenerator"));
+const HubPlanejamento = lazy(() => import("@/pages/HubPlanejamento"));
 const ReferenciasBibliograficas = lazy(() => import("@/pages/ReferenciasBibliograficas"));
 const StudentActivityResponse = lazy(() => import("@/pages/StudentActivityResponse"));
 const StudentSimulatorView = lazy(() => import("@/pages/StudentSimulatorView"));
@@ -146,6 +147,7 @@ function AppRoutes() {
           <Route path="/inclusao" element={<Inclusao />} />
           <Route path="/edustudio" element={<EduStudio />} />
           <Route path="/mapas-mentais" element={<MindMapGenerator />} />
+          <Route path="/hub-360" element={<HubPlanejamento />} />
           <Route path="/alta-performance" element={<AltaPerformance />} />
           <Route path="/vestibulares" element={<Vestibulares />} />
           <Route path="/tecnicos" element={<Tecnicos />} />
