@@ -65,6 +65,7 @@ export default function AppSidebar({ open, onClose }: Props) {
   const { isSuperAdmin, isTeacher } = useRole();
   const { isStudentMode, toggleStudentMode, studentLevel, studentXP } = useStudentMode();
   const { canInstall, install } = usePWAInstall();
+  const { isRouteGenerating } = useBackgroundGeneration();
 
   const handleToggleMode = () => {
     const wasStudent = isStudentMode;
