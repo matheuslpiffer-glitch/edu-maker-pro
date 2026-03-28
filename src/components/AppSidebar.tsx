@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useBackgroundGeneration } from '@/hooks/useBackgroundGeneration';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 
@@ -64,6 +65,7 @@ export default function AppSidebar({ open, onClose }: Props) {
   const { isSuperAdmin, isTeacher } = useRole();
   const { isStudentMode, toggleStudentMode, studentLevel, studentXP } = useStudentMode();
   const { canInstall, install } = usePWAInstall();
+  const { isRouteGenerating } = useBackgroundGeneration();
 
   const handleToggleMode = () => {
     const wasStudent = isStudentMode;
@@ -211,7 +213,10 @@ export default function AppSidebar({ open, onClose }: Props) {
                 )}
               >
                 <link.icon size={18} />
-                {!collapsed && <span>{link.label}</span>}
+                {!collapsed && <span className="flex-1">{link.label}</span>}
+                {isRouteGenerating(link.to) && (
+                  <Loader2 size={14} className="animate-spin text-amber-400 shrink-0" />
+                )}
               </Link>
             </div>
           );
