@@ -213,7 +213,10 @@ export default function AppSidebar({ open, onClose }: Props) {
                 )}
               >
                 <link.icon size={18} />
-                {!collapsed && <span>{link.label}</span>}
+                {!collapsed && <span className="flex-1">{link.label}</span>}
+                {isRouteGenerating(link.to) && (
+                  <Loader2 size={14} className="animate-spin text-amber-400 shrink-0" />
+                )}
               </Link>
             </div>
           );
