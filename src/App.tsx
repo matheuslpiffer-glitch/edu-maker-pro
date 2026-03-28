@@ -191,25 +191,27 @@ const App = () => (
       <SavedQuestionsBankProvider>
         <AuthProvider>
           <StudentModeProvider>
-            <BrowserRouter>
-              <WwwRedirect />
-              <PinAutoRedirect>
-                <Suspense fallback={<LazyFallback />}>
-                  <Routes>
-                    <Route path="/install" element={<Install />} />
-                    <Route path="/professor" element={<LandingProfessor />} />
-                    <Route path="/estudo" element={<LandingEstudo />} />
-                    <Route path="/assinar/:id" element={<SignAttendance />} />
-                    <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
-                    <Route path="/atividade/:id" element={<StudentActivityResponse />} />
-                    <Route path="/simulado/:id" element={<StudentSimulatorView />} />
-                    <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
-                    <Route path="/s/:code" element={<ShortLinkRedirect />} />
-                    <Route path="/*" element={<AppRoutes />} />
-                  </Routes>
-                </Suspense>
-              </PinAutoRedirect>
-            </BrowserRouter>
+            <BackgroundGenerationProvider>
+              <BrowserRouter>
+                <WwwRedirect />
+                <PinAutoRedirect>
+                  <Suspense fallback={<LazyFallback />}>
+                    <Routes>
+                      <Route path="/install" element={<Install />} />
+                      <Route path="/professor" element={<LandingProfessor />} />
+                      <Route path="/estudo" element={<LandingEstudo />} />
+                      <Route path="/assinar/:id" element={<SignAttendance />} />
+                      <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
+                      <Route path="/atividade/:id" element={<StudentActivityResponse />} />
+                      <Route path="/simulado/:id" element={<StudentSimulatorView />} />
+                      <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
+                      <Route path="/s/:code" element={<ShortLinkRedirect />} />
+                      <Route path="/*" element={<AppRoutes />} />
+                    </Routes>
+                  </Suspense>
+                </PinAutoRedirect>
+              </BrowserRouter>
+            </BackgroundGenerationProvider>
           </StudentModeProvider>
         </AuthProvider>
       </SavedQuestionsBankProvider>
