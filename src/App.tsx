@@ -62,6 +62,8 @@ const MinhaBiblioteca = lazy(() => import("@/pages/MinhaBiblioteca"));
 const ShortLinkRedirect = lazy(() => import("@/pages/ShortLinkRedirect"));
 const Install = lazy(() => import("@/pages/Install"));
 const SignAttendance = lazy(() => import("@/pages/SignAttendance"));
+const EscutaAtiva = lazy(() => import("@/pages/EscutaAtiva"));
+const PausaPedagogica = lazy(() => import("@/pages/PausaPedagogica"));
 
 const queryClient = new QueryClient();
 
@@ -153,6 +155,8 @@ function AppRoutes() {
           <Route path="/tecnicos" element={<Tecnicos />} />
           <Route path="/jogos" element={<GameFactory />} />
           <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
+          <Route path="/escuta-ativa" element={<EscutaAtiva />} />
+          <Route path="/pausa-pedagogica" element={<PausaPedagogica />} />
           <Route path="/pisa" element={<PisaSimulators />} />
           <Route path="/biblioteca" element={<BibliotecaAvaliacoes />} />
           <Route path="/resultados-alunos" element={<ResultadosAlunos />} />
