@@ -57,6 +57,18 @@ export const SUBJECT_CATEGORIES: SubjectCategory[] = [
       { name: 'Protagonismo Juvenil', icon: '🌟', color: 'amber', bnccPrefix: '' },
     ],
   },
+  {
+    label: '🙏 Ensino Religioso',
+    subjects: [
+      { name: 'Ensino Religioso', icon: '🕊️', color: 'amber', bnccPrefix: 'EF – ER' },
+    ],
+  },
+  {
+    label: '🎵 Educação Musical',
+    subjects: [
+      { name: 'Educação Musical', icon: '🎵', color: 'rose', bnccPrefix: '' },
+    ],
+  },
 ];
 
 export const ALL_DEFAULT_SUBJECTS = SUBJECT_CATEGORIES.flatMap(c => c.subjects);
