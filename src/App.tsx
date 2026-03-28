@@ -9,6 +9,7 @@ import { SavedQuestionsBankProvider } from "@/hooks/useSavedQuestionsBank";
 import { StudentModeProvider } from "@/hooks/useStudentMode";
 import MatChatbot from "@/components/MatChatbot";
 import WwwRedirect from "@/components/WwwRedirect";
+import { BackgroundGenerationProvider } from "@/hooks/useBackgroundGeneration";
 import PinAutoRedirect from "@/components/PinAutoRedirect";
 import AppLayout from "@/components/AppLayout";
 import LandingPage from "@/pages/LandingPage";
