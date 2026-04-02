@@ -505,6 +505,7 @@ function TeacherPanel() {
 // ── Student Editor ──
 function StudentEditor({ accessCode }: { accessCode: string }) {
   const [submission, setSubmission] = useState<Submission | null>(null);
+  const [proposalContent, setProposalContent] = useState<{ textos_motivadores?: { tipo: string; conteudo: string }[]; comando?: string; area?: string } | null>(null);
   const [essayText, setEssayText] = useState('');
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
@@ -514,6 +515,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
   const [rewriting, setRewriting] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const lsKey = `eduflow_draft_redacao_${accessCode}`;
+  const ssKey = `eduflow_session_redacao_${accessCode}`;
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
   const dbSyncTimer = useRef<ReturnType<typeof setInterval>>();
   const lastSyncedText = useRef('');
@@ -530,7 +532,14 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
       if (!data) { setNotFound(true); setLoading(false); return; }
       const sub = data as unknown as Submission;
       setSubmission(sub);
-      const draft = localStorage.getItem(lsKey);
+      // Load proposal content (motivational texts)
+      const pc = (data as any).proposal_content;
+      if (pc && typeof pc === 'object' && pc.textos_motivadores) {
+        setProposalContent(pc);
+      }
+      // Restore draft: sessionStorage > localStorage > DB
+      const sessionDraft = sessionStorage.getItem(ssKey);
+      const draft = sessionDraft || localStorage.getItem(lsKey);
       if (draft) {
         try {
           const d = JSON.parse(draft);
