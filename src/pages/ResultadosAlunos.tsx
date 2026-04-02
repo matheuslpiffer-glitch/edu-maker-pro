@@ -402,10 +402,20 @@ export default function ResultadosAlunos() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-foreground line-clamp-2">{cleanText}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Habilidade Faltante: <strong>{e.skill}</strong></p>
                       </div>
-                      {(e as any).skill && (
-                        <Badge variant="secondary" className="text-[10px] shrink-0">{(e as any).skill}</Badge>
-                      )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant="secondary" className="text-[10px]">{e.skill}</Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-xs gap-1"
+                          onClick={() => navigate('/jogos', { state: { topic: e.skill } })}
+                          title="Criar jogo sobre este tema"
+                        >
+                          <Gamepad2 className="h-3 w-3" /> Jogo
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}
