@@ -643,6 +643,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
     } : null);
 
     localStorage.removeItem(lsKey);
+    sessionStorage.removeItem(ssKey);
     setRewriting(false);
     toast({ title: '✅ Redação corrigida!', description: `Nota total: ${totalScore}` });
     setCorrecting(false);
