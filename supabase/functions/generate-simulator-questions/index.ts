@@ -264,7 +264,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode } = await req.json();
+    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
     if (isInclusao) {
