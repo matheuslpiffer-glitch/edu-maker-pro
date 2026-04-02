@@ -861,7 +861,7 @@ Responda em JSON:
     const leanFormattingInstruction = `\nFORMATAÇÃO ENXUTA: priorize conteúdo pedagógico e estrutura simples. Use apenas HTML básico necessário (parágrafos, listas, tabelas simples). Não adicione estilos inline longos, introduções extensas nem blocos decorativos.\nRESUMO NO CABEÇALHO: Se incluir um resumo ou descrição do simulado, ele deve ter NO MÁXIMO 500 caracteres. Seja direto, objetivo e conciso para que caiba perfeitamente no cabeçalho da prova sem estourar o layout.`;
 
     const systemPrompt = `Você cria avaliações brasileiras alinhadas ao formato ${examLabel}.
-${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${compactInstruction}${leanFormattingInstruction}
+${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${senaiInstruction}${compactInstruction}${leanFormattingInstruction}
 ${questionFormatInstruction}
 Responda APENAS com JSON válido, sem markdown.`;
 
