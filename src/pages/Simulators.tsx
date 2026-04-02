@@ -87,6 +87,12 @@ const SENAI_EIXOS = [
   { id: 'manutencao', label: 'Manutenção Industrial', icon: '🔧' },
   { id: 'soldagem', label: 'Soldagem', icon: '🔥' },
   { id: 'seguranca', label: 'Segurança do Trabalho', icon: '🦺' },
+  { id: 'refrigeracao', label: 'Refrigeração e Climatização', icon: '❄️' },
+  { id: 'eletronica', label: 'Eletrônica Industrial', icon: '📟' },
+  { id: 'construcao', label: 'Construção Civil', icon: '🏗️' },
+  { id: 'logistica', label: 'Logística Industrial', icon: '📦' },
+  { id: 'quimica', label: 'Química Industrial', icon: '🧪' },
+  { id: 'metalurgia', label: 'Metalurgia e Siderurgia', icon: '🔩' },
 ];
 
 // DNA categories for Técnicos mode (kept for compatibility)
