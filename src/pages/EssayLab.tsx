@@ -373,15 +373,101 @@ function TeacherPanel() {
     setGeneratingSummary(false);
   };
 
+  // Filter + sort submissions
+  const uniqueClasses = useMemo(() => {
+    const classes = new Set(submissions.map(s => s.student_class).filter(Boolean));
+    return Array.from(classes).sort();
+  }, [submissions]);
+
+  const filteredSubmissions = useMemo(() => {
+    let list = [...submissions];
+    if (filterMode === 'pending') list = list.filter(s => s.status !== 'corrected');
+    else if (filterMode === 'lowest') list = list.filter(s => s.status === 'corrected').sort((a, b) => (a.total_score || 0) - (b.total_score || 0));
+    else if (filterMode === 'by_class' && filterClass) list = list.filter(s => s.student_class === filterClass);
+    return list;
+  }, [submissions, filterMode, filterClass]);
+
   const grouped = useMemo(() => {
     const map = new Map<string, Submission[]>();
-    submissions.forEach(s => {
+    filteredSubmissions.forEach(s => {
       const key = `${s.proposal_theme}__${s.banca}__${s.access_code}`;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(s);
     });
     return map;
-  }, [submissions]);
+  }, [filteredSubmissions]);
+
+  // Generate motivational feedback for student
+  const generateStudentFeedback = async (sub: Submission) => {
+    setGeneratingFeedback(true);
+    setFeedbackText('');
+    const compSummary = sub.scores?.competencies
+      ? sub.scores.competencies.map(c => `${c.name}: ${c.score}/${c.max}`).join(', ')
+      : `Nota: ${sub.total_score}`;
+    const { data, error } = await supabase.functions.invoke('pedagogical-insights', {
+      body: {
+        prompt: `Escreva uma mensagem de feedback motivadora e técnica para um aluno de redação (banca ${sub.banca}). Dados da correção: ${compSummary}. Sugestões: ${sub.suggestions || 'nenhuma'}. A mensagem deve: 1) Elogiar os pontos fortes, 2) Indicar de forma construtiva 2-3 áreas de melhoria, 3) Terminar com uma frase motivacional. Máximo 150 palavras. Tom: profissional mas acolhedor.`,
+      },
+    });
+    if (!error && data?.tips) setFeedbackText(data.tips);
+    else setFeedbackText(`Parabéns pelo esforço! Sua nota foi ${sub.total_score}. Continue praticando para melhorar nas competências indicadas.`);
+    setGeneratingFeedback(false);
+  };
+
+  // Print audit PDF
+  const printAuditPdf = async (sub: Submission) => {
+    setPrintingPdf(true);
+    try {
+      const { default: html2pdf } = await import('html2pdf.js');
+      const container = document.createElement('div');
+      container.style.width = '794px';
+      container.style.padding = '30px';
+      container.style.fontFamily = 'serif';
+      container.style.fontSize = '12px';
+      container.style.lineHeight = '1.6';
+
+      const compRows = sub.scores?.competencies
+        ? sub.scores.competencies.map(c =>
+          `<tr><td style="padding:6px;border:1px solid #ccc;font-weight:600">${c.name}</td><td style="padding:6px;border:1px solid #ccc;text-align:center">${c.score}/${c.max}</td><td style="padding:6px;border:1px solid #ccc;font-size:11px">${c.justification}</td></tr>`
+        ).join('')
+        : '';
+
+      container.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:16px">
+          <div><h1 style="margin:0;font-size:18px">LAUDO DE CORREÇÃO — IA DOUTORA</h1><p style="margin:4px 0 0;font-size:12px;color:#666">Banca: ${sub.banca} | Tema: ${sub.proposal_theme}</p></div>
+          <div style="text-align:right;font-size:11px;color:#666"><p style="margin:0">Aluno: <strong>${sub.student_name || 'N/I'}</strong></p><p style="margin:0">Turma: ${sub.student_class || 'N/I'}</p><p style="margin:0">Data: ${sub.corrected_at ? new Date(sub.corrected_at).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')}</p></div>
+        </div>
+        <div style="columns:2;column-gap:24px">
+          <div style="break-inside:avoid;margin-bottom:16px">
+            <h3 style="margin:0 0 8px;font-size:13px;border-bottom:1px solid #ddd;padding-bottom:4px">📝 TEXTO DO ALUNO</h3>
+            <div style="white-space:pre-wrap;font-size:11px;line-height:1.7;background:#f9f9f9;padding:12px;border-radius:4px">${sub.essay_text || 'Texto não disponível.'}</div>
+          </div>
+          <div style="break-inside:avoid">
+            <h3 style="margin:0 0 8px;font-size:13px;border-bottom:1px solid #ddd;padding-bottom:4px">📊 CHECKLIST DA IA DOUTORA</h3>
+            <table style="width:100%;border-collapse:collapse;font-size:11px">${compRows || '<tr><td style="padding:6px;border:1px solid #ccc">Sem dados de competência</td></tr>'}</table>
+            <div style="text-align:center;margin:12px 0;padding:10px;background:#e8f5e9;border-radius:6px"><strong style="font-size:20px">${sub.total_score}</strong><br/><span style="font-size:11px;color:#666">Nota Total</span></div>
+            ${sub.suggestions ? `<div style="break-inside:avoid;margin-top:12px"><h4 style="margin:0 0 4px;font-size:12px">💡 Sugestões</h4><p style="font-size:11px;color:#444">${sub.suggestions}</p></div>` : ''}
+            ${sub.repertoire_analysis ? `<div style="break-inside:avoid;margin-top:12px"><h4 style="margin:0 0 4px;font-size:12px">📚 Repertório</h4><p style="font-size:11px;color:#444">${sub.repertoire_analysis}</p></div>` : ''}
+          </div>
+        </div>
+        <div style="margin-top:24px;border-top:1px solid #ddd;padding-top:12px;font-size:10px;color:#999;text-align:center">Laudo gerado por EduCreator Pro — IA Doutora | ${new Date().toLocaleDateString('pt-BR')}</div>
+      `;
+
+      document.body.appendChild(container);
+      await html2pdf().set({
+        margin: [10, 10, 10, 10],
+        filename: `laudo_redacao_${sub.student_name || 'aluno'}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      }).from(container).save();
+      document.body.removeChild(container);
+      toast({ title: '📄 PDF gerado!', description: 'Laudo de correção baixado com sucesso.' });
+    } catch (e) {
+      toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
+    }
+    setPrintingPdf(false);
+  };
 
   return (
     <div className="space-y-6">
