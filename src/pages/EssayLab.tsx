@@ -759,16 +759,28 @@ function TeacherPanel() {
                   </>
                 )}
 
-                {/* Teacher notes + validation */}
+                {/* Teacher notes + mediation controls */}
                 <div className="space-y-2 border-t pt-3">
-                  <label className="text-sm font-medium">Notas do Professor</label>
-                  <Textarea value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} placeholder="Observações, ajustes de nota..." rows={3} />
+                  <label className="text-sm font-medium">Notas do Professor (editável)</label>
+                  <Textarea value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} placeholder="Edite o feedback da IA ou adicione observações manuais..." rows={3} />
+                  
+                  {detailSub.status === 'corrected' && !detailSub.teacher_validated && (
+                    <Badge variant="secondary" className="w-full justify-center py-1 mb-2">
+                      ⚠️ Rascunho da IA — o aluno ainda NÃO vê esta nota
+                    </Badge>
+                  )}
+                  {detailSub.teacher_validated && (
+                    <Badge className="w-full justify-center py-1 mb-2 bg-primary/10 text-primary">
+                      ✅ Correção já liberada para o aluno
+                    </Badge>
+                  )}
+                  
                   <div className="flex gap-2">
-                    <Button onClick={() => validateCorrection(detailSub, true)} className="flex-1">
-                      <CheckCircle className="h-4 w-4 mr-1" /> Validar
+                    <Button onClick={() => validateCorrection(detailSub, true)} className="flex-1 bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-700 text-primary-foreground font-bold">
+                      <CheckCircle className="h-4 w-4 mr-1" /> 📤 Liberar para o Aluno
                     </Button>
                     <Button variant="outline" onClick={() => validateCorrection(detailSub, false)} className="flex-1">
-                      <XCircle className="h-4 w-4 mr-1" /> Ajustar
+                      <XCircle className="h-4 w-4 mr-1" /> Salvar Rascunho
                     </Button>
                   </div>
                 </div>
