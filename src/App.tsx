@@ -65,6 +65,7 @@ const Install = lazy(() => import("@/pages/Install"));
 const SignAttendance = lazy(() => import("@/pages/SignAttendance"));
 const EscutaAtiva = lazy(() => import("@/pages/EscutaAtiva"));
 const PausaPedagogica = lazy(() => import("@/pages/PausaPedagogica"));
+const ExtraActivity = lazy(() => import("@/pages/ExtraActivity"));
 
 const queryClient = new QueryClient();
 
@@ -155,6 +156,7 @@ function AppRoutes() {
           <Route path="/vestibulares" element={<Vestibulares />} />
           <Route path="/tecnicos" element={<Tecnicos />} />
           <Route path="/jogos" element={<GameFactory />} />
+          <Route path="/atividade-extra" element={<ExtraActivity />} />
           <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
           <Route path="/escuta-ativa" element={<EscutaAtiva />} />
           <Route path="/pausa-pedagogica" element={<PausaPedagogica />} />
