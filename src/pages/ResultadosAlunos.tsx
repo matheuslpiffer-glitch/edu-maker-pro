@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -55,6 +56,7 @@ interface EssayInfo {
 
 export default function ResultadosAlunos() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [actResults, setActResults] = useState<ActivityResult[]>([]);
   const [simResults, setSimResults] = useState<SimulatorResult[]>([]);
   const [essayResults, setEssayResults] = useState<EssayInfo[]>([]);
@@ -157,22 +159,46 @@ export default function ResultadosAlunos() {
     });
   }, [allResults, search, filterClass, activeTab]);
 
-  // Compute common errors from corrections
+  // Compute common errors from corrections with skill detection
   const commonErrors = useMemo(() => {
-    const errorMap: Record<string, number> = {};
+    const errorMap: Record<string, { count: number; skill: string }> = {};
+    const skillKeywords: [string, string][] = [
+      ['conjunto', 'Teoria dos Conjuntos'], ['subconjunto', 'Teoria dos Conjuntos'],
+      ['fração', 'Números Racionais'], ['dízima', 'Números Racionais'], ['racional', 'Números Racionais'],
+      ['potência', 'Potenciação'], ['expoente', 'Potenciação'], ['potenciação', 'Potenciação'],
+      ['equação', 'Equações'], ['inequação', 'Inequações'],
+      ['geometria', 'Geometria'], ['ângulo', 'Geometria'], ['triângulo', 'Geometria'],
+      ['área', 'Geometria Plana'], ['perímetro', 'Geometria Plana'],
+      ['probabilidade', 'Probabilidade'], ['estatística', 'Estatística'],
+      ['porcentagem', 'Porcentagem'], ['juros', 'Matemática Financeira'],
+      ['função', 'Funções'], ['gráfico', 'Análise Gráfica'],
+      ['logaritmo', 'Logaritmos'], ['raiz', 'Radiciação'],
+      ['matriz', 'Matrizes'], ['determinante', 'Matrizes'],
+      ['progressão', 'Progressões'], ['PA', 'Progressão Aritmética'], ['PG', 'Progressão Geométrica'],
+    ];
+
+    const detectSkill = (text: string): string => {
+      const lower = text.toLowerCase();
+      for (const [kw, skill] of skillKeywords) {
+        if (lower.includes(kw.toLowerCase())) return skill;
+      }
+      return 'Conteúdo Geral';
+    };
+
     actResults.forEach(r => {
       if (!r.corrections || !Array.isArray(r.corrections)) return;
       (r.corrections as any[]).forEach((c: any) => {
         if (!c.isCorrect && c.content) {
           const key = c.content.slice(0, 80);
-          errorMap[key] = (errorMap[key] || 0) + 1;
+          if (!errorMap[key]) errorMap[key] = { count: 0, skill: detectSkill(c.content) };
+          errorMap[key].count++;
         }
       });
     });
     return Object.entries(errorMap)
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
-      .map(([q, count]) => ({ question: q, count }));
+      .map(([q, data]) => ({ question: q, count: data.count, skill: data.skill }));
   }, [actResults]);
 
   // Essay averages
@@ -376,10 +402,20 @@ export default function ResultadosAlunos() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-foreground line-clamp-2">{cleanText}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Habilidade Faltante: <strong>{e.skill}</strong></p>
                       </div>
-                      {(e as any).skill && (
-                        <Badge variant="secondary" className="text-[10px] shrink-0">{(e as any).skill}</Badge>
-                      )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant="secondary" className="text-[10px]">{e.skill}</Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-xs gap-1"
+                          onClick={() => navigate('/jogos', { state: { topic: e.skill } })}
+                          title="Criar jogo sobre este tema"
+                        >
+                          <Gamepad2 className="h-3 w-3" /> Jogo
+                        </Button>
+                      </div>
                     </div>
                   );
                 })}
