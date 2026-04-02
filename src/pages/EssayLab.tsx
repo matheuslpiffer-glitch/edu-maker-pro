@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, Fragment } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -8,20 +8,40 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import QRCodeModal from '@/components/QRCodeModal';
 import { buildPublicAppUrl } from '@/lib/public-links';
-import { Loader2, PenLine, Send, QrCode, CheckCircle, XCircle, Eye, Gem, Copy, Users, FileText, Link as LinkIcon } from 'lucide-react';
+import { Loader2, PenLine, QrCode, CheckCircle, XCircle, Eye, Gem, Copy, Users, RefreshCw, AlertTriangle, ShieldAlert } from 'lucide-react';
 
-const BANCAS = ['ENEM', 'FUVEST', 'UNESP', 'UNICAMP'] as const;
+const BANCAS = ['ENEM', 'FUVEST', 'VUNESP', 'UNICAMP'] as const;
+
+interface Annotation {
+  start: number;
+  end: number;
+  type: 'error' | 'weak' | 'good';
+  comment: string;
+}
+
+interface Originality {
+  score: number;
+  flags: string[];
+  ai_generated_probability: number;
+}
 
 interface Competency {
   name: string;
   score: number;
   max: number;
   justification: string;
+}
+
+interface Scores {
+  competencies?: Competency[];
+  total_score?: number;
+  annotations?: Annotation[];
+  originality?: Originality;
 }
 
 interface Submission {
@@ -32,7 +52,7 @@ interface Submission {
   student_class: string;
   essay_text: string;
   status: string;
-  scores: { competencies?: Competency[]; total_score?: number };
+  scores: Scores;
   suggestions: string;
   repertoire_analysis: string;
   total_score: number;
@@ -43,7 +63,86 @@ interface Submission {
   created_at: string;
 }
 
-// ── Teacher: Create proposals & review corrections ──
+// ── Annotated text renderer ──
+function AnnotatedText({ text, annotations }: { text: string; annotations: Annotation[] }) {
+  if (!annotations || annotations.length === 0) return <span>{text}</span>;
+
+  const sorted = [...annotations]
+    .filter(a => a.start >= 0 && a.end <= text.length && a.start < a.end)
+    .sort((a, b) => a.start - b.start);
+
+  const parts: React.ReactNode[] = [];
+  let cursor = 0;
+
+  sorted.forEach((ann, idx) => {
+    if (ann.start > cursor) {
+      parts.push(<span key={`t-${idx}`}>{text.slice(cursor, ann.start)}</span>);
+    }
+    const colorClass = ann.type === 'error'
+      ? 'bg-destructive/20 border-b-2 border-destructive'
+      : ann.type === 'weak'
+        ? 'bg-yellow-200/40 dark:bg-yellow-800/30 border-b-2 border-yellow-500'
+        : 'bg-emerald-200/40 dark:bg-emerald-800/30 border-b-2 border-emerald-500';
+
+    parts.push(
+      <Tooltip key={`a-${idx}`}>
+        <TooltipTrigger asChild>
+          <span className={`${colorClass} cursor-help rounded-sm px-0.5`}>
+            {text.slice(ann.start, ann.end)}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs text-xs">
+          <span className="font-semibold">{ann.type === 'error' ? '❌ Erro' : ann.type === 'weak' ? '⚠️ Ponto fraco' : '✅ Destaque'}:</span> {ann.comment}
+        </TooltipContent>
+      </Tooltip>
+    );
+    cursor = ann.end;
+  });
+
+  if (cursor < text.length) {
+    parts.push(<span key="tail">{text.slice(cursor)}</span>);
+  }
+
+  return <>{parts}</>;
+}
+
+// ── Originality Badge ──
+function OriginalityBadge({ originality }: { originality?: Originality }) {
+  if (!originality) return null;
+  const { score, ai_generated_probability, flags } = originality;
+
+  let color = 'bg-emerald-500/20 text-emerald-700';
+  let label = 'Original';
+  if (score <= 30) { color = 'bg-destructive/20 text-destructive'; label = 'Suspeito de Plágio/IA'; }
+  else if (score <= 60) { color = 'bg-yellow-500/20 text-yellow-700'; label = 'Atenção'; }
+
+  return (
+    <Card className="border-muted">
+      <CardContent className="pt-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <ShieldAlert className="h-5 w-5 text-muted-foreground" />
+          <h4 className="font-semibold text-sm">Análise de Originalidade</h4>
+        </div>
+        <div className="flex items-center gap-3">
+          <Badge className={color}>{label} ({score}%)</Badge>
+          {ai_generated_probability > 50 && (
+            <Badge variant="destructive" className="text-xs">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              {ai_generated_probability}% chance IA externa
+            </Badge>
+          )}
+        </div>
+        {flags.length > 0 && (
+          <ul className="text-xs text-muted-foreground list-disc pl-4">
+            {flags.map((f, i) => <li key={i}>{f}</li>)}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── Teacher Panel ──
 function TeacherPanel() {
   const { user } = useAuth();
   const [theme, setTheme] = useState('');
@@ -90,14 +189,12 @@ function TeacherPanel() {
   };
 
   const openQR = (code: string) => {
-    const url = buildPublicAppUrl(`/redacao-online/${code}`);
-    setQrUrl(url);
+    setQrUrl(buildPublicAppUrl(`/redacao-online/${code}`));
     setQrOpen(true);
   };
 
   const copyLink = (code: string) => {
-    const url = buildPublicAppUrl(`/redacao-online/${code}`);
-    navigator.clipboard.writeText(url);
+    navigator.clipboard.writeText(buildPublicAppUrl(`/redacao-online/${code}`));
     toast({ title: '📋 Link copiado!' });
   };
 
@@ -123,7 +220,6 @@ function TeacherPanel() {
 
   return (
     <div className="space-y-6">
-      {/* Create Proposal */}
       <Card className="border-primary/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -145,7 +241,6 @@ function TeacherPanel() {
         </CardContent>
       </Card>
 
-      {/* Submissions Dashboard */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
@@ -185,25 +280,34 @@ function TeacherPanel() {
                     </div>
                     {answered.length > 0 && (
                       <div className="space-y-2">
-                        {answered.map(s => (
-                          <div key={s.id} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
-                            <div className="flex items-center gap-3">
-                              <span className="font-medium text-sm">{s.student_name || 'Anônimo'}</span>
-                              {s.student_class && <Badge variant="outline" className="text-xs">{s.student_class}</Badge>}
-                              {s.status === 'corrected' ? (
-                                <Badge className="bg-emerald-500/20 text-emerald-700">
-                                  Nota: {s.total_score}
-                                  {s.teacher_validated && <CheckCircle className="h-3 w-3 ml-1" />}
-                                </Badge>
-                              ) : (
-                                <Badge variant="secondary">Pendente</Badge>
-                              )}
+                        {answered.map(s => {
+                          const hasPlagiarismAlert = s.scores?.originality && (s.scores.originality.score <= 30 || s.scores.originality.ai_generated_probability > 70);
+                          return (
+                            <div key={s.id} className="flex items-center justify-between bg-muted/50 rounded-md px-3 py-2">
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <span className="font-medium text-sm">{s.student_name || 'Anônimo'}</span>
+                                {s.student_class && <Badge variant="outline" className="text-xs">{s.student_class}</Badge>}
+                                {s.status === 'corrected' ? (
+                                  <Badge className="bg-primary/20 text-primary">
+                                    Nota: {s.total_score}
+                                    {s.teacher_validated && <CheckCircle className="h-3 w-3 ml-1" />}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="secondary">Pendente</Badge>
+                                )}
+                                {hasPlagiarismAlert && (
+                                  <Badge variant="destructive" className="text-xs">
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    Plágio/IA detectado
+                                  </Badge>
+                                )}
+                              </div>
+                              <Button size="sm" variant="ghost" onClick={() => { setDetailSub(s); setTeacherNotes(s.teacher_notes || ''); }}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
                             </div>
-                            <Button size="sm" variant="ghost" onClick={() => { setDetailSub(s); setTeacherNotes(s.teacher_notes || ''); }}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -224,9 +328,27 @@ function TeacherPanel() {
           </DialogHeader>
           {detailSub && (
             <div className="space-y-4">
-              <div className="bg-muted/50 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-60 overflow-y-auto">
-                {detailSub.essay_text || 'Nenhum texto enviado.'}
+              {/* Annotated text */}
+              <div className="bg-muted/50 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-72 overflow-y-auto leading-relaxed font-serif">
+                {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 ? (
+                  <AnnotatedText text={detailSub.essay_text} annotations={detailSub.scores.annotations} />
+                ) : (
+                  detailSub.essay_text || 'Nenhum texto enviado.'
+                )}
               </div>
+
+              {/* Legend */}
+              {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 && (
+                <div className="flex gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-destructive/30 border border-destructive" /> Erro</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-300/50 border border-yellow-500" /> Ponto fraco</span>
+                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-300/50 border border-emerald-500" /> Destaque</span>
+                </div>
+              )}
+
+              {/* Originality */}
+              <OriginalityBadge originality={detailSub.scores?.originality} />
+
               {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
                 <>
                   <div className="space-y-2">
@@ -243,13 +365,13 @@ function TeacherPanel() {
                   </div>
                   <div className="font-bold text-lg text-center">Nota Total: {detailSub.total_score}</div>
                   {detailSub.suggestions && (
-                    <div className="bg-amber-50 dark:bg-amber-950/30 rounded-lg p-3">
+                    <div className="bg-muted/50 rounded-lg p-3">
                       <h4 className="font-semibold text-sm mb-1">💡 Sugestões de Melhoria</h4>
                       <p className="text-sm">{detailSub.suggestions}</p>
                     </div>
                   )}
                   {detailSub.repertoire_analysis && (
-                    <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
+                    <div className="bg-muted/30 rounded-lg p-3">
                       <h4 className="font-semibold text-sm mb-1">📚 Análise de Repertório</h4>
                       <p className="text-sm">{detailSub.repertoire_analysis}</p>
                     </div>
@@ -276,7 +398,7 @@ function TeacherPanel() {
   );
 }
 
-// ── Student: Write essay & submit ──
+// ── Student Editor ──
 function StudentEditor({ accessCode }: { accessCode: string }) {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [essayText, setEssayText] = useState('');
@@ -285,6 +407,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
   const [loading, setLoading] = useState(true);
   const [correcting, setCorrecting] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [rewriting, setRewriting] = useState(false);
   const lsKey = `essay_draft_${accessCode}`;
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
 
@@ -300,7 +423,6 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
       if (!data) { setNotFound(true); setLoading(false); return; }
       const sub = data as unknown as Submission;
       setSubmission(sub);
-      // Restore draft from localStorage
       const draft = localStorage.getItem(lsKey);
       if (draft) {
         try {
@@ -318,7 +440,6 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
     })();
   }, [accessCode]);
 
-  // Auto-save draft
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
@@ -332,6 +453,11 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
     return essayText.split('\n').length;
   }, [essayText]);
 
+  const handleRewrite = () => {
+    setRewriting(true);
+    setSubmission(prev => prev ? { ...prev, status: 'pending' } : null);
+  };
+
   const submitForCorrection = async () => {
     if (!submission) return;
     if (essayText.trim().length < 50) {
@@ -343,12 +469,10 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
       return;
     }
     setCorrecting(true);
-    // Save text first
     await supabase.from('essay_submissions').update({
       essay_text: essayText, student_name: studentName.trim(), student_class: studentClass.trim(), status: 'correcting'
     } as any).eq('id', submission.id);
 
-    // Call AI correction
     const { data: fnData, error: fnError } = await supabase.functions.invoke('correct-essay-text', {
       body: { essayText, banca: submission.banca, theme: submission.proposal_theme },
     });
@@ -359,7 +483,6 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
       return;
     }
 
-    // Save correction
     const totalScore = fnData.total_score || 0;
     await supabase.from('essay_submissions').update({
       scores: fnData,
@@ -380,6 +503,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
     } : null);
 
     localStorage.removeItem(lsKey);
+    setRewriting(false);
     toast({ title: '✅ Redação corrigida!', description: `Nota total: ${totalScore}` });
     setCorrecting(false);
   };
@@ -395,12 +519,11 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
     </div>
   );
 
-  const isCorrected = submission?.status === 'corrected';
+  const isCorrected = submission?.status === 'corrected' && !rewriting;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4">
-        {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold flex items-center justify-center gap-2">
             <Gem className="h-6 w-6 text-primary" />
@@ -413,41 +536,64 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
           </div>
         </div>
 
-        {/* Student ID */}
         <div className="grid gap-3 sm:grid-cols-2">
           <Input placeholder="Seu nome completo *" value={studentName} onChange={e => setStudentName(e.target.value)} disabled={isCorrected} />
           <Input placeholder="Turma (ex: 3ºA)" value={studentClass} onChange={e => setStudentClass(e.target.value)} disabled={isCorrected} />
         </div>
 
-        {/* Editor */}
-        <Card className="border-2 border-primary/10">
-          <CardContent className="p-0">
-            <div className="relative">
-              {/* Line numbers */}
-              <div className="absolute left-0 top-0 bottom-0 w-10 bg-muted/30 border-r flex flex-col items-end pr-2 pt-3 text-xs text-muted-foreground font-mono overflow-hidden pointer-events-none" style={{ lineHeight: '1.625rem' }}>
-                {Array.from({ length: Math.max(30, lineCount + 5) }, (_, i) => (
-                  <div key={i} className={i + 1 < 7 || i + 1 > 30 ? 'text-destructive/50' : ''}>{i + 1}</div>
-                ))}
+        {/* Editor or Annotated view */}
+        {isCorrected && submission.scores?.annotations && submission.scores.annotations.length > 0 ? (
+          <Card className="border-2 border-primary/10">
+            <CardContent className="p-4">
+              <div className="whitespace-pre-wrap text-sm font-serif leading-relaxed min-h-[300px]">
+                <AnnotatedText text={submission.essay_text} annotations={submission.scores.annotations} />
               </div>
-              <textarea
-                className="w-full min-h-[500px] pl-12 pr-4 py-3 bg-transparent resize-none focus:outline-none text-sm font-serif"
-                style={{ lineHeight: '1.625rem' }}
-                placeholder="Comece a escrever sua redação aqui..."
-                value={essayText}
-                onChange={e => setEssayText(e.target.value)}
-                disabled={isCorrected || correcting}
-              />
-            </div>
-            <div className="flex items-center justify-between px-4 py-2 border-t bg-muted/20 text-xs text-muted-foreground">
-              <span>Linhas: <strong className={lineCount < 7 || lineCount > 30 ? 'text-destructive' : 'text-foreground'}>{lineCount}</strong> (min 7, máx 30)</span>
-              <span>{essayText.length} caracteres</span>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex gap-4 mt-3 text-xs text-muted-foreground border-t pt-2">
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-destructive/30 border border-destructive" /> Erro</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-300/50 border border-yellow-500" /> Ponto fraco</span>
+                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-300/50 border border-emerald-500" /> Destaque</span>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-2 border-primary/10">
+            <CardContent className="p-0">
+              <div className="relative">
+                <div className="absolute left-0 top-0 bottom-0 w-10 bg-muted/30 border-r flex flex-col items-end pr-2 pt-3 text-xs text-muted-foreground font-mono overflow-hidden pointer-events-none" style={{ lineHeight: '1.625rem' }}>
+                  {Array.from({ length: Math.max(30, lineCount + 5) }, (_, i) => (
+                    <div key={i} className={i + 1 < 7 || i + 1 > 30 ? 'text-destructive/50' : ''}>{i + 1}</div>
+                  ))}
+                </div>
+                <textarea
+                  className="w-full min-h-[500px] pl-12 pr-4 py-3 bg-transparent resize-none focus:outline-none text-sm font-serif"
+                  style={{ lineHeight: '1.625rem' }}
+                  placeholder="Comece a escrever sua redação aqui..."
+                  value={essayText}
+                  onChange={e => setEssayText(e.target.value)}
+                  disabled={correcting}
+                />
+              </div>
+              <div className="flex items-center justify-between px-4 py-2 border-t bg-muted/20 text-xs text-muted-foreground">
+                <span>Linhas: <strong className={lineCount < 7 || lineCount > 30 ? 'text-destructive' : 'text-foreground'}>{lineCount}</strong> (min 7, máx 30)</span>
+                <span>{essayText.length} caracteres</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Submit */}
+        {/* Suggestions sidebar when rewriting */}
+        {rewriting && submission?.suggestions && (
+          <Card className="border-primary/20">
+            <CardContent className="pt-4">
+              <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><RefreshCw className="h-4 w-4" /> Dicas para reescrita</h4>
+              <p className="text-sm text-muted-foreground">{submission.suggestions}</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Submit button */}
         {!isCorrected && (
-          <Button onClick={submitForCorrection} disabled={correcting || essayText.trim().length < 50} className="w-full text-base py-6 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700" size="lg">
+          <Button onClick={submitForCorrection} disabled={correcting || essayText.trim().length < 50} className="w-full text-base py-6" size="lg">
             {correcting ? (
               <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Corrigindo com IA Doutora...</>
             ) : (
@@ -456,12 +602,12 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
           </Button>
         )}
 
-        {/* Correction Results */}
+        {/* Results */}
         {isCorrected && submission.scores?.competencies && (
           <div className="space-y-4">
-            <Card className="border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20">
+            <Card className="border-primary/20">
               <CardContent className="pt-6 text-center">
-                <h2 className="text-3xl font-bold text-emerald-600">{submission.total_score}</h2>
+                <h2 className="text-3xl font-bold text-primary">{submission.total_score}</h2>
                 <p className="text-sm text-muted-foreground">Nota Total ({submission.banca})</p>
               </CardContent>
             </Card>
@@ -482,7 +628,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
             </div>
 
             {submission.suggestions && (
-              <Card className="border-amber-300/50">
+              <Card className="border-muted">
                 <CardContent className="pt-4">
                   <h4 className="font-semibold text-sm mb-2">💡 Sugestões de Melhoria</h4>
                   <p className="text-sm text-muted-foreground">{submission.suggestions}</p>
@@ -491,13 +637,18 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
             )}
 
             {submission.repertoire_analysis && (
-              <Card className="border-blue-300/50">
+              <Card className="border-muted">
                 <CardContent className="pt-4">
                   <h4 className="font-semibold text-sm mb-2">📚 Análise de Repertório</h4>
                   <p className="text-sm text-muted-foreground">{submission.repertoire_analysis}</p>
                 </CardContent>
               </Card>
             )}
+
+            {/* Rewrite button */}
+            <Button onClick={handleRewrite} variant="outline" className="w-full" size="lg">
+              <RefreshCw className="h-5 w-5 mr-2" /> 🔄 REESCREVER COM AS DICAS
+            </Button>
           </div>
         )}
       </div>
@@ -510,7 +661,7 @@ export default function EssayLab() {
   return (
     <div className="container max-w-5xl mx-auto py-6 px-4 space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent flex items-center justify-center gap-2">
+        <h1 className="text-3xl font-bold text-primary flex items-center justify-center gap-2">
           <Gem className="h-7 w-7 text-primary" />
           Redação Elite: Laboratório de Escrita Online
         </h1>
@@ -521,7 +672,6 @@ export default function EssayLab() {
   );
 }
 
-// ── Student Route Component ──
 export function EssayLabStudent({ accessCode }: { accessCode: string }) {
   return <StudentEditor accessCode={accessCode} />;
 }
