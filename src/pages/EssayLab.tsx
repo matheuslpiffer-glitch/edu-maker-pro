@@ -546,13 +546,10 @@ function TeacherPanel() {
             )}
             <Badge variant="secondary" className="ml-auto">{filteredSubmissions.length} resultados</Badge>
           </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
           {loading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-          ) : submissions.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhuma proposta criada ainda.</p>
+          ) : filteredSubmissions.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Nenhuma redação encontrada com esse filtro.</p>
           ) : (
             <div className="space-y-6">
               {Array.from(grouped.entries()).map(([key, subs]) => {
