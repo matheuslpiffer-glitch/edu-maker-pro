@@ -11,7 +11,7 @@ import Auth from './Auth';
 const features = [
   { icon: ClipboardCheck, title: 'EduAtas', desc: 'Assinaturas digitais e gestão de reuniões com IA.' },
   { icon: Presentation, title: 'EduSlides', desc: 'Roteiros de aula alinhados à BNCC gerados por IA.' },
-  { icon: ClipboardList, title: 'Simuladores Elite', desc: 'Provas padrão SARESP/SAEB com gabarito automático.' },
+  { icon: ClipboardList, title: 'Simuladores Elite', desc: 'Provas padrão BNCC/SAEB com gabarito automático.' },
   { icon: BarChart3, title: 'Analytics', desc: 'Mapas de calor e metas IDESP para decisões pedagógicas.' },
 ];
 

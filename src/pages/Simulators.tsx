@@ -227,7 +227,7 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
   padrao: {
     label: 'SEDUC-SP',
     formats: [
-      { id: 'seduc_saresp', label: 'SARESP', icon: '📊', subjects: [] },
+      { id: 'seduc_saresp', label: 'Avaliação Paulista', icon: '📊', subjects: [] },
       { id: 'seduc_prova_paulista', label: 'Prova Paulista', icon: '📝', subjects: [] },
       { id: 'seduc_ade', label: 'Avaliação Diagnóstica (ADE)', icon: '🔍', subjects: [] },
     ],

@@ -25,7 +25,7 @@ const sections = [
   },
   {
     icon: ClipboardList,
-    title: 'Simuladores Elite — Provas Padrão SARESP/SAEB',
+    title: 'Simuladores Elite — Provas Padrão BNCC/SAEB',
     steps: [
       'Escolha a área de conhecimento, série e tipo de prova.',
       'Selecione as habilidades que deseja avaliar.',
