@@ -426,6 +426,8 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [tecnicoMode, setTecnicoMode] = useState<'' | 'completo' | 'por_area'>('');
   const [tecnicoSubjects, setTecnicoSubjects] = useState<string[]>(['Matemática', 'Português', 'Ciências da Natureza', 'Humanas / Atualidades']);
   const [tecnicoQuestionCount, setTecnicoQuestionCount] = useState(20);
+  const [senaiEixo, setSenaiEixo] = useState('mecanica');
+  const [senaiTopic, setSenaiTopic] = useState('');
 
   const [history, setHistory] = useState<SavedSimulator[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
