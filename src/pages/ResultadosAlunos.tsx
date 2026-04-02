@@ -56,6 +56,7 @@ interface EssayInfo {
 
 export default function ResultadosAlunos() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [actResults, setActResults] = useState<ActivityResult[]>([]);
   const [simResults, setSimResults] = useState<SimulatorResult[]>([]);
   const [essayResults, setEssayResults] = useState<EssayInfo[]>([]);
