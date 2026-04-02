@@ -83,6 +83,9 @@ export default function RedacaoView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'used'>('recent');
   const [loadingThemes, setLoadingThemes] = useState(true);
+  const [sendingToLab, setSendingToLab] = useState(false);
+  const [labLink, setLabLink] = useState('');
+  const [qrOpen, setQrOpen] = useState(false);
 
   useEffect(() => { loadThemes(); }, []);
 
