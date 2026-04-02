@@ -69,6 +69,7 @@ const ExtraActivity = lazy(() => import("@/pages/ExtraActivity"));
 const EssayLab = lazy(() => import("@/pages/EssayLab"));
 const EssayLabStudentPage = lazy(() => import("@/pages/EssayLabStudentPage"));
 const StudentEssayPortal = lazy(() => import("@/pages/StudentEssayPortal"));
+const CoordView = lazy(() => import("@/pages/CoordView"));
 
 const queryClient = new QueryClient();
 
@@ -174,6 +175,7 @@ function AppRoutes() {
           <Route path="/manual-aluno" element={<ManualAluno />} />
           <Route path="/corretor-visao" element={<VisionCorrector />} />
           <Route path="/referencias" element={<ReferenciasBibliograficas />} />
+          <Route path="/coordenacao" element={<CoordView />} />
           <Route path="/portal-aluno" element={<StudentDashboard />} />
           <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
           <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
