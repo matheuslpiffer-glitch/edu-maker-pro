@@ -161,7 +161,10 @@ export default function CoordView() {
 
   // Load data
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     (async () => {
       setLoading(true);
       const [essayRes, simRes] = await Promise.all([
