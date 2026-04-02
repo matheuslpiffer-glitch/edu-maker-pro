@@ -498,9 +498,10 @@ export default function StudentEssayPortal() {
               <h2 className="text-xl font-bold">📨 Redação Entregue!</h2>
               <p className="text-muted-foreground max-w-md mx-auto">
                 Sua redação foi enviada ao professor e está na fila de correção. 
-                Você receberá o feedback assim que o professor liberar a correção.
+                Você receberá o feedback automaticamente assim que o professor liberar a correção.
               </p>
               <Badge variant="secondary" className="text-sm">Status: Aguardando Professor</Badge>
+              <p className="text-xs text-muted-foreground">⚡ Esta página atualiza em tempo real — você não precisa recarregar.</p>
             </CardContent>
           </Card>
         )}
