@@ -391,11 +391,26 @@ export default function ResultadosAlunos() {
               <div ref={extrasRef} className="space-y-3 mt-2">
                 <div className="border-2 border-dashed border-primary/30 rounded-xl p-5 space-y-3 bg-primary/5">
                   <h3 className="text-sm font-bold text-primary text-center">📋 Atividades Extras — Reforço Pós-Simulado</h3>
-                  {aiTips.map((tip, i) => (
-                    <div key={i} className="border border-border rounded-lg p-3 bg-card text-sm text-foreground">
-                      <p className="whitespace-pre-wrap">{tip}</p>
-                    </div>
-                  ))}
+                  {aiTips.map((tip, i) => {
+                    const cleanTip = (tip || '').replace(/<[^>]*>/g, '').trim();
+                    return (
+                      <div key={i} className="border border-border rounded-lg p-3 bg-card text-sm text-foreground">
+                        <p className="whitespace-pre-wrap">{cleanTip}</p>
+                      </div>
+                    );
+                  })}
+
+                  {/* Plano de Ação Sugerido */}
+                  <div className="rounded-lg border border-primary/30 bg-primary/10 p-4 mt-3">
+                    <h4 className="text-sm font-bold text-primary mb-2">📌 Plano de Ação Sugerido</h4>
+                    <ul className="list-disc list-inside text-sm text-foreground space-y-1">
+                      <li>Aplicar atividade de reforço focada nos erros mais frequentes na próxima aula.</li>
+                      <li>Utilizar dinâmicas lúdicas (Caça-Erros, Nuvem de Palavras) para fixação.</li>
+                      <li>Revisar individualmente os alunos com desempenho abaixo de 50%.</li>
+                      <li>Reaplicar questões similares em simulado de revisão.</li>
+                    </ul>
+                  </div>
+
                   <div className="pt-4 border-t border-dashed border-border mt-4 flex justify-between items-end">
                     <div className="text-xs text-muted-foreground">
                       <p>Data: ____/____/________</p>
