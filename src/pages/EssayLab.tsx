@@ -520,7 +520,32 @@ function TeacherPanel() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Users className="h-5 w-5 text-primary" />
-            Redações Recebidas
+            Biblioteca de Redações
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={filterMode} onValueChange={(v: any) => setFilterMode(v)}>
+              <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="pending">Pendentes de correção</SelectItem>
+                <SelectItem value="lowest">Notas mais baixas</SelectItem>
+                <SelectItem value="by_class">Por Turma</SelectItem>
+              </SelectContent>
+            </Select>
+            {filterMode === 'by_class' && (
+              <Select value={filterClass} onValueChange={setFilterClass}>
+                <SelectTrigger className="w-32"><SelectValue placeholder="Turma" /></SelectTrigger>
+                <SelectContent>
+                  {uniqueClasses.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Badge variant="secondary" className="ml-auto">{filteredSubmissions.length} resultados</Badge>
+          </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
