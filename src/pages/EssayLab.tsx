@@ -372,6 +372,27 @@ function TeacherPanel() {
       {/* Heatmap */}
       <CompetencyHeatmap submissions={submissions} />
 
+      {/* AI Turma Summary */}
+      <Card className="border-primary/20">
+        <CardContent className="pt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Dashboard de Habilidades — Resumo IA
+            </h3>
+            <Button size="sm" variant="outline" onClick={generateTurmaSummary} disabled={generatingSummary}>
+              {generatingSummary ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <BarChart3 className="h-4 w-4 mr-1" />}
+              Gerar Análise
+            </Button>
+          </div>
+          {aiTurmaSummary && (
+            <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground leading-relaxed">
+              {aiTurmaSummary}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
