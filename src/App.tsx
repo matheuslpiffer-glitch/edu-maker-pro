@@ -66,6 +66,8 @@ const SignAttendance = lazy(() => import("@/pages/SignAttendance"));
 const EscutaAtiva = lazy(() => import("@/pages/EscutaAtiva"));
 const PausaPedagogica = lazy(() => import("@/pages/PausaPedagogica"));
 const ExtraActivity = lazy(() => import("@/pages/ExtraActivity"));
+const EssayLab = lazy(() => import("@/pages/EssayLab"));
+const EssayLabStudentPage = lazy(() => import("@/pages/EssayLabStudentPage"));
 
 const queryClient = new QueryClient();
 
@@ -157,6 +159,7 @@ function AppRoutes() {
           <Route path="/tecnicos" element={<Tecnicos />} />
           <Route path="/jogos" element={<GameFactory />} />
           <Route path="/atividade-extra" element={<ExtraActivity />} />
+          <Route path="/redacao-lab" element={<EssayLab />} />
           <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
           <Route path="/escuta-ativa" element={<EscutaAtiva />} />
           <Route path="/pausa-pedagogica" element={<PausaPedagogica />} />
@@ -205,6 +208,7 @@ const App = () => (
                       <Route path="/assinar/:id" element={<SignAttendance />} />
                       <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
                       <Route path="/atividade/:id" element={<StudentActivityResponse />} />
+                      <Route path="/redacao-online/:code" element={<EssayLabStudentPage />} />
                       <Route path="/simulado/:id" element={<StudentSimulatorView />} />
                       <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
                       <Route path="/s/:code" element={<ShortLinkRedirect />} />

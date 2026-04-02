@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2, Dices } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2, Dices, Gem } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
@@ -21,6 +21,7 @@ const teacherLinks = [
   { to: '/pausa-pedagogica', icon: Coffee, label: 'Pausa Pedagógica', section: '🏫 Sala de Aula' },
   { to: '/edustudio', icon: Camera, label: 'EduStudio', section: '🏫 Sala de Aula' },
   { to: '/redacao', icon: PenLine, label: 'Redação Elite', section: '🏫 Sala de Aula' },
+  { to: '/redacao-lab', icon: Gem, label: '💎 Laboratório de Escrita', section: '🏫 Sala de Aula' },
   { to: '/literatura', icon: BookText, label: 'Dossiê Literário', section: '🏫 Sala de Aula' },
   { to: '/alta-performance', icon: Trophy, label: 'Módulo Alta Performance', section: '📊 Avaliação' },
   { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & ENEM', section: '📊 Avaliação' },
