@@ -935,6 +935,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
         questions={questions}
         isDiscursiva={isDiscursiva}
         columns={columns}
+        isSenaiMode={isSenaiMode}
       />
       {!isDiscursiva && (
         <AnswerSheet questionCount={questions.length} simulatorId={currentId} title={title} institutionName={institutionName} />
