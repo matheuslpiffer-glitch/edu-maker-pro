@@ -561,10 +561,12 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      localStorage.setItem(lsKey, JSON.stringify({ text: essayText, name: studentName, cls: studentClass }));
+      const payload = JSON.stringify({ text: essayText, name: studentName, cls: studentClass });
+      localStorage.setItem(lsKey, payload);
+      sessionStorage.setItem(ssKey, payload);
     }, 500);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [essayText, studentName, studentClass, lsKey]);
+  }, [essayText, studentName, studentClass, lsKey, ssKey]);
 
   // DB sync every 10 seconds
   useEffect(() => {
