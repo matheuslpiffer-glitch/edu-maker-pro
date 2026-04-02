@@ -296,11 +296,12 @@ function TeacherPanel() {
   };
 
   const validateCorrection = async (sub: Submission, validated: boolean) => {
+    const source = validated ? (sub.teacher_validated ? 'teacher_edited' : 'teacher_released') : 'teacher_adjusted';
     await supabase
       .from('essay_submissions')
-      .update({ teacher_validated: validated, teacher_notes: teacherNotes } as any)
+      .update({ teacher_validated: validated, teacher_notes: teacherNotes, correction_source: source } as any)
       .eq('id', sub.id);
-    toast({ title: validated ? '✅ Correção validada!' : '📝 Nota ajustada' });
+    toast({ title: validated ? '📤 Correção liberada para o aluno!' : '📝 Nota ajustada (rascunho)' });
     setDetailSub(null);
     loadSubmissions();
   };
@@ -341,9 +342,11 @@ function TeacherPanel() {
       total_score: totalScore,
       status: 'corrected',
       corrected_at: new Date().toISOString(),
+      teacher_validated: false,
+      correction_source: 'ai_draft',
     } as any).eq('id', sub.id);
-    setDetailSub({ ...sub, scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '', total_score: totalScore, status: 'corrected' });
-    toast({ title: '✅ Correção Doutora concluída!', description: `Nota: ${totalScore}` });
+    setDetailSub({ ...sub, scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '', total_score: totalScore, status: 'corrected', teacher_validated: false });
+    toast({ title: '✅ Rascunho da IA pronto!', description: `Nota sugerida: ${totalScore}. Revise e libere para o aluno.` });
     loadSubmissions();
     setCorrectingFromTeacher(false);
   };
@@ -584,13 +587,19 @@ function TeacherPanel() {
                               <div className="flex items-center gap-3 flex-wrap">
                                 <span className="font-medium text-sm">{s.student_name || 'Anônimo'}</span>
                                 {s.student_class && <Badge variant="outline" className="text-xs">{s.student_class}</Badge>}
-                                {s.status === 'corrected' ? (
+                                {s.status === 'corrected' && s.teacher_validated ? (
                                   <Badge className="bg-primary/20 text-primary">
                                     Nota: {s.total_score}
-                                    {s.teacher_validated && <CheckCircle className="h-3 w-3 ml-1" />}
+                                    <CheckCircle className="h-3 w-3 ml-1" />
                                   </Badge>
+                                ) : s.status === 'corrected' && !s.teacher_validated ? (
+                                  <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                    IA: {s.total_score} (Rascunho)
+                                  </Badge>
+                                ) : s.status === 'submitted' ? (
+                                  <Badge variant="secondary">Aguardando Professor</Badge>
                                 ) : (
-                                  <Badge variant="secondary">Pendente</Badge>
+                                  <Badge variant="secondary">Pendente de Envio</Badge>
                                 )}
                                 {hasPlagiarismAlert && (
                                   <Badge variant="destructive" className="text-xs">
@@ -659,18 +668,23 @@ function TeacherPanel() {
               <div className="space-y-4">
                 {/* Teacher correction trigger for pending essays */}
                 {detailSub.status !== 'corrected' && detailSub.essay_text && detailSub.essay_text.length > 20 && (
-                  <Button
-                    onClick={() => correctFromTeacher(detailSub)}
-                    disabled={correctingFromTeacher}
-                    className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold py-5"
-                    size="lg"
-                  >
-                    {correctingFromTeacher ? (
-                      <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando Correção Doutora...</>
-                    ) : (
-                      <><Gem className="h-5 w-5 mr-2" /> ⚖️ EXECUTAR CORREÇÃO DOUTORA</>
-                    )}
-                  </Button>
+                  <div className="space-y-2">
+                    <Badge variant="secondary" className="w-full justify-center py-1">
+                      {detailSub.status === 'submitted' ? '📨 Aguardando Correção' : '⏳ Aluno ainda não enviou'}
+                    </Badge>
+                    <Button
+                      onClick={() => correctFromTeacher(detailSub)}
+                      disabled={correctingFromTeacher}
+                      className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold py-5"
+                      size="lg"
+                    >
+                      {correctingFromTeacher ? (
+                        <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando IA Doutora...</>
+                      ) : (
+                        <><Gem className="h-5 w-5 mr-2" /> 💡 Consultar IA Doutora</>
+                      )}
+                    </Button>
+                  </div>
                 )}
 
                 {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
@@ -745,16 +759,28 @@ function TeacherPanel() {
                   </>
                 )}
 
-                {/* Teacher notes + validation */}
+                {/* Teacher notes + mediation controls */}
                 <div className="space-y-2 border-t pt-3">
-                  <label className="text-sm font-medium">Notas do Professor</label>
-                  <Textarea value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} placeholder="Observações, ajustes de nota..." rows={3} />
+                  <label className="text-sm font-medium">Notas do Professor (editável)</label>
+                  <Textarea value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} placeholder="Edite o feedback da IA ou adicione observações manuais..." rows={3} />
+                  
+                  {detailSub.status === 'corrected' && !detailSub.teacher_validated && (
+                    <Badge variant="secondary" className="w-full justify-center py-1 mb-2">
+                      ⚠️ Rascunho da IA — o aluno ainda NÃO vê esta nota
+                    </Badge>
+                  )}
+                  {detailSub.teacher_validated && (
+                    <Badge className="w-full justify-center py-1 mb-2 bg-primary/10 text-primary">
+                      ✅ Correção já liberada para o aluno
+                    </Badge>
+                  )}
+                  
                   <div className="flex gap-2">
-                    <Button onClick={() => validateCorrection(detailSub, true)} className="flex-1">
-                      <CheckCircle className="h-4 w-4 mr-1" /> Validar
+                    <Button onClick={() => validateCorrection(detailSub, true)} className="flex-1 bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-700 text-primary-foreground font-bold">
+                      <CheckCircle className="h-4 w-4 mr-1" /> 📤 Liberar para o Aluno
                     </Button>
                     <Button variant="outline" onClick={() => validateCorrection(detailSub, false)} className="flex-1">
-                      <XCircle className="h-4 w-4 mr-1" /> Ajustar
+                      <XCircle className="h-4 w-4 mr-1" /> Salvar Rascunho
                     </Button>
                   </div>
                 </div>

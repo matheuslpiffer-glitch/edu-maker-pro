@@ -326,7 +326,7 @@ export default function StudentEssayPortal() {
     setRewriteText(localStorage.getItem(rwKey) || '');
   };
 
-  const submitForCorrection = async (textToSubmit?: string) => {
+  const submitEssay = async (textToSubmit?: string) => {
     if (!submission) return;
     const txt = textToSubmit || essayText;
     if (txt.trim().length < 50) {
@@ -339,33 +339,17 @@ export default function StudentEssayPortal() {
     }
     setCorrecting(true);
     await supabase.from('essay_submissions').update({
-      essay_text: txt, student_name: studentName.trim(), student_class: studentClass.trim(), status: 'correcting',
+      essay_text: txt, student_name: studentName.trim(), student_class: studentClass.trim(), status: 'submitted',
     } as any).eq('id', submission.id);
 
-    const { data: fnData, error: fnError } = await supabase.functions.invoke('correct-essay-text', {
-      body: { essayText: txt, banca: submission.banca, theme: submission.proposal_theme },
-    });
-
-    if (fnError || fnData?.error) {
-      toast({ title: 'Erro na correção', description: fnData?.error || fnError?.message, variant: 'destructive' });
-      setCorrecting(false);
-      return;
-    }
-
-    const totalScore = fnData.total_score || 0;
-    await supabase.from('essay_submissions').update({
-      scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '',
-      total_score: totalScore, status: 'corrected', corrected_at: new Date().toISOString(),
-    } as any).eq('id', submission.id);
-
-    setSubmission(prev => prev ? { ...prev, scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '', total_score: totalScore, status: 'corrected', essay_text: txt } : null);
+    setSubmission(prev => prev ? { ...prev, status: 'submitted', essay_text: txt } : null);
     setEssayText(txt);
     localStorage.removeItem(lsKey);
     sessionStorage.removeItem(lsKey);
     localStorage.removeItem(rwKey);
     setRewriting(false);
     setRewriteText('');
-    toast({ title: '✅ Redação corrigida!', description: `Nota total: ${totalScore}` });
+    toast({ title: '📨 Redação entregue!', description: 'Sua redação foi enviada ao professor e está na fila de correção.' });
     setCorrecting(false);
   };
 
@@ -381,7 +365,9 @@ export default function StudentEssayPortal() {
     </div>
   );
 
-  const isCorrected = submission?.status === 'corrected' && !rewriting;
+  const isReleased = submission?.status === 'corrected' && submission?.teacher_validated === true;
+  const isAwaitingTeacher = submission?.status === 'submitted' || (submission?.status === 'corrected' && !submission?.teacher_validated);
+  const isCorrected = isReleased && !rewriting;
 
   return (
     <div className="min-h-screen bg-background">
@@ -462,16 +448,33 @@ export default function StudentEssayPortal() {
                   <span>Palavras: {rewriteText.trim() ? rewriteText.trim().split(/\s+/).length : 0}</span>
                   <span className="text-primary text-[10px]">● Salvando rascunho</span>
                 </div>
-                <Button onClick={() => submitForCorrection(rewriteText)} disabled={correcting || rewriteText.trim().length < 50} className="w-full mt-3">
-                  {correcting ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Corrigindo...</> : <><Gem className="h-4 w-4 mr-1" /> Enviar Reescrita</>}
+                <Button onClick={() => submitEssay(rewriteText)} disabled={correcting || rewriteText.trim().length < 50} className="w-full mt-3">
+                  {correcting ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Enviando...</> : <><Gem className="h-4 w-4 mr-1" /> Enviar Reescrita</>}
                 </Button>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* ─── EDITOR (pre-correction) ─── */}
-        {!isCorrected && !rewriting && (
+        {/* ─── AWAITING TEACHER MESSAGE ─── */}
+        {isAwaitingTeacher && !rewriting && (
+          <Card className="border-2 border-primary/20 bg-primary/5">
+            <CardContent className="pt-6 text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              </div>
+              <h2 className="text-xl font-bold">📨 Redação Entregue!</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Sua redação foi enviada ao professor e está na fila de correção. 
+                Você receberá o feedback assim que o professor liberar a correção.
+              </p>
+              <Badge variant="secondary" className="text-sm">Status: Aguardando Professor</Badge>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ─── EDITOR (pre-submission) ─── */}
+        {!isCorrected && !isAwaitingTeacher && !rewriting && (
           <>
             <Card className="border-2 border-primary/10">
               <CardContent className="p-0">
@@ -499,8 +502,8 @@ export default function StudentEssayPortal() {
                 </div>
               </CardContent>
             </Card>
-            <Button onClick={() => submitForCorrection()} disabled={correcting || essayText.trim().length < 50} className="w-full text-base py-6" size="lg">
-              {correcting ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Corrigindo com IA Doutora...</> : <><Gem className="h-5 w-5 mr-2" /> 💎 ENVIAR PARA CORREÇÃO DOUTORA</>}
+            <Button onClick={() => submitEssay()} disabled={correcting || essayText.trim().length < 50} className="w-full text-base py-6" size="lg">
+              {correcting ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Enviando...</> : <><Gem className="h-5 w-5 mr-2" /> 📨 ENTREGAR REDAÇÃO AO PROFESSOR</>}
             </Button>
           </>
         )}
