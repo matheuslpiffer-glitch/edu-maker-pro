@@ -350,9 +350,9 @@ export default function ResultadosAlunos() {
                 Dicas da IA Doutora — Pós-Simulado
               </CardTitle>
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleGenerateTips} disabled={loadingTips} className="gap-1.5">
+                <Button size="sm" onClick={handleGenerateTips} disabled={loadingTips} className={`gap-1.5 ${loadingTips ? 'animate-pulse bg-primary/80' : ''}`}>
                   {loadingTips ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  {loadingTips ? 'Gerando...' : 'Gerar Dicas'}
+                  {loadingTips ? 'Analisando erros...' : '💡 Gerar Dicas'}
                 </Button>
                 {aiTips.length > 0 && (
                   <Button size="sm" variant="outline" onClick={handlePrintExtras} className="gap-1.5">
