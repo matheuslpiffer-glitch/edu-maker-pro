@@ -1,0 +1,1 @@
+ALTER TABLE public.essay_submissions ADD COLUMN IF NOT EXISTS proposal_content jsonb DEFAULT '{}'::jsonb;

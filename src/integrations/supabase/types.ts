@@ -244,6 +244,7 @@ export type Database = {
           created_at: string
           essay_text: string
           id: string
+          proposal_content: Json | null
           proposal_theme: string
           repertoire_analysis: string | null
           scores: Json | null
@@ -264,6 +265,7 @@ export type Database = {
           created_at?: string
           essay_text?: string
           id?: string
+          proposal_content?: Json | null
           proposal_theme?: string
           repertoire_analysis?: string | null
           scores?: Json | null
@@ -284,6 +286,7 @@ export type Database = {
           created_at?: string
           essay_text?: string
           id?: string
+          proposal_content?: Json | null
           proposal_theme?: string
           repertoire_analysis?: string | null
           scores?: Json | null
