@@ -17,8 +17,9 @@ const STORAGE_KEY = 'eduFlow_extra_activity';
 const ACTIVITY_TYPES = [
   { id: 'nuvem_palavras', label: 'Nuvem de Palavras', icon: Cloud, desc: 'Termos-chave em destaque visual para fixação' },
   { id: 'labirinto_decisao', label: 'Labirinto de Decisão', icon: Route, desc: 'Caminhos com escolhas técnicas certas e erradas' },
-  { id: 'caca_erros', label: 'Caça-Erros Técnico', icon: Bug, desc: 'Encontre os erros em um procedimento ou código' },
+  { id: 'caca_erros', label: 'Detetive de Falhas', icon: Bug, desc: 'Encontre os 3 erros ocultos em um procedimento técnico' },
   { id: 'cruzadinha_termos', label: 'Cruzadinha de Termos', icon: Wrench, desc: 'Termos técnicos com dicas contextualizadas' },
+  { id: 'stop_industrial', label: 'Stop Industrial', icon: Wrench, desc: 'Tabela com Componente, Ferramenta, Norma NR e Ação' },
 ];
 
 const DISCIPLINE_MAP: Record<string, { defaultType: string; label: string }> = {
