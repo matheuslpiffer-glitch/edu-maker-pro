@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
@@ -12,7 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Sparkles, Download, Printer, Eye, Save, Trash2, FileText, GraduationCap, Wrench, BookOpen, School, Infinity, Calculator, Shapes, Trophy, PenTool, Brain, Building2, Award, Columns2, AlignJustify, Globe, Zap, PenLine, BookText, ListChecks, Mic, Palette, Gamepad2, Library, CheckCircle2, Accessibility, RefreshCw, BookMarked, Cpu, Target, Share2, Link, QrCode } from 'lucide-react';
+import { Loader2, Sparkles, Download, Printer, Eye, Save, Trash2, FileText, GraduationCap, Wrench, BookOpen, School, Infinity, Calculator, Shapes, Trophy, PenTool, Brain, Building2, Award, Columns2, AlignJustify, Globe, Zap, PenLine, BookText, ListChecks, Mic, Palette, Gamepad2, Library, CheckCircle2, Accessibility, RefreshCw, BookMarked, Cpu, Target, Share2, Link, QrCode, Clock } from 'lucide-react';
 import { buildPublicAppUrl } from '@/lib/public-links';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
@@ -93,7 +93,18 @@ const SENAI_EIXOS = [
   { id: 'logistica', label: 'Logística Industrial', icon: '📦' },
   { id: 'quimica', label: 'Química Industrial', icon: '🧪' },
   { id: 'metalurgia', label: 'Metalurgia e Siderurgia', icon: '🔩' },
+  { id: 'logistica_sp', label: 'Logística (SP)', icon: '🚛' },
+  { id: 'administracao', label: 'Administração', icon: '📊' },
+  { id: 'solda_sp', label: 'Solda (Desenho Técnico)', icon: '🔧' },
+  { id: 'desenvolvimento', label: 'Desenvolvimento de Sistemas', icon: '💻' },
 ];
+
+const SENAI_SP_MATRIX: Record<string, string> = {
+  logistica_sp: 'Cubagem, modais de transporte rodoviário/ferroviário/hidroviário paulistas, rotas logísticas do estado de SP, armazenagem, picking, packing, gestão de estoques e WMS.',
+  administracao: 'Fluxogramas de processos industriais, organogramas, planejamento estratégico, indicadores de produtividade (OEE), PDCA, ferramentas de qualidade (Ishikawa, 5W2H), gestão de pessoas.',
+  solda_sp: 'Leitura de desenho técnico mecânico, tipos de juntas soldadas (topo, ângulo, sobreposição), processos MIG/MAG, TIG e eletrodo revestido, simbologia de soldagem AWS, normas ABNT de tolerância dimensional.',
+  desenvolvimento: 'Lógica de programação orientada a objetos (POO), classes, herança, polimorfismo, integração com banco de dados relacional (SQL), modelagem ER, CRUD, APIs REST, versionamento Git.',
+};
 
 // DNA categories for Técnicos mode (kept for compatibility)
 const TECNICOS_DNA: DNACategory[] = [
@@ -435,6 +446,53 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [tecnicoQuestionCount, setTecnicoQuestionCount] = useState(20);
   const [senaiEixo, setSenaiEixo] = useState('mecanica');
   const [senaiTopic, setSenaiTopic] = useState('');
+  const [senaiVestibulinho, setSenaiVestibulinho] = useState(false);
+  const [senaiTimerSeconds, setSenaiTimerSeconds] = useState(0);
+  const senaiTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Persist SENAI state in sessionStorage
+  useEffect(() => {
+    if (isTecnicosMode) {
+      const saved = sessionStorage.getItem('senai_progress');
+      if (saved) {
+        try {
+          const s = JSON.parse(saved);
+          if (s.senaiEixo) setSenaiEixo(s.senaiEixo);
+          if (s.senaiTopic) setSenaiTopic(s.senaiTopic);
+          if (s.senaiVestibulinho) setSenaiVestibulinho(s.senaiVestibulinho);
+          if (s.questions?.length) setQuestions(s.questions);
+          if (s.title) setTitle(s.title);
+          if (s.institutionName) setInstitutionName(s.institutionName);
+        } catch {}
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isTecnicosMode && (senaiEixo || senaiTopic || questions.length)) {
+      sessionStorage.setItem('senai_progress', JSON.stringify({
+        senaiEixo, senaiTopic, senaiVestibulinho, questions, title, institutionName,
+      }));
+    }
+  }, [senaiEixo, senaiTopic, senaiVestibulinho, questions, title, institutionName]);
+
+  // 120-min countdown for SENAI vestibulinho
+  const startSenaiTimer = useCallback(() => {
+    if (senaiTimerRef.current) return;
+    setSenaiTimerSeconds(120 * 60);
+    senaiTimerRef.current = setInterval(() => {
+      setSenaiTimerSeconds(prev => {
+        if (prev <= 1) {
+          clearInterval(senaiTimerRef.current!);
+          senaiTimerRef.current = null;
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => () => { if (senaiTimerRef.current) clearInterval(senaiTimerRef.current); }, []);
 
   const [history, setHistory] = useState<SavedSimulator[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -552,7 +610,10 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     const allQuestions: SimQuestion[] = [];
 
     const senaiEixoLabel = SENAI_EIXOS.find(e => e.id === senaiEixo)?.label || senaiEixo;
-    const tecnicoCount = isSenaiMode ? 10 : isFastTrackVestibulinho ? 50 : isTecnicosPorArea ? tecnicoQuestionCount : 0;
+    const senaiSpMatrix = SENAI_SP_MATRIX[senaiEixo] || '';
+    const tecnicoCount = isSenaiMode
+      ? (senaiVestibulinho ? 60 : 10)
+      : isFastTrackVestibulinho ? 50 : isTecnicosPorArea ? tecnicoQuestionCount : 0;
     const tecnicoSubs = isSenaiMode
       ? [senaiEixoLabel]
       : isFastTrackVestibulinho
@@ -644,6 +705,8 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
             isSenaiMode: isSenaiMode || undefined,
             senaiEixo: isSenaiMode ? senaiEixoLabel : undefined,
+            senaiSpMatrix: isSenaiMode ? senaiSpMatrix : undefined,
+            senaiVestibulinho: isSenaiMode ? senaiVestibulinho : undefined,
           },
         });
 
@@ -1360,8 +1423,17 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                           Simulado Técnico<br />Industrial SENAI
                         </h2>
                         <p className="text-sm text-slate-300 mt-3 max-w-md leading-relaxed">
-                          10 questões técnicas com verificação automática de normas de segurança (NR-12, NR-35). Inclui Relatório de Manutenção e Ordem de Serviço.
+                          Questões técnicas com verificação automática de normas de segurança (NR-12, NR-35). Matriz Regional SP. Inclui Relatório de Manutenção e OS.
                         </p>
+                        {senaiTimerSeconds > 0 && (
+                          <div className="mt-3 flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2 w-fit">
+                            <Clock className="h-4 w-4 text-yellow-300" />
+                            <span className="text-yellow-200 font-mono font-bold text-sm">
+                              {Math.floor(senaiTimerSeconds / 60)}:{String(senaiTimerSeconds % 60).padStart(2, '0')}
+                            </span>
+                            <span className="text-slate-400 text-xs">restantes</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1404,25 +1476,39 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       />
                     </div>
 
+                    {/* Vestibulinho toggle */}
+                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                      <input
+                        type="checkbox"
+                        checked={senaiVestibulinho}
+                        onChange={e => setSenaiVestibulinho(e.target.checked)}
+                        className="h-5 w-5 rounded accent-[#0a1f3d]"
+                      />
+                      <div>
+                        <p className="text-sm font-bold text-slate-700">Modo Vestibulinho SENAI-SP (60 questões)</p>
+                        <p className="text-xs text-slate-500">20 Português + 20 Matemática + 20 Ciências aplicadas ao contexto técnico • Cronômetro de 120 min</p>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-slate-500">Nome da Instituição</Label>
-                        <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="SENAI — Unidade" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+                        <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="SENAI — Unidade SP" className="bg-slate-50 border-slate-200 rounded-[20px]" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-slate-500">Título do Simulado</Label>
-                        <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Simulado Técnico Industrial" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+                        <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Avaliação de Desempenho Técnico — Matriz SP" className="bg-slate-50 border-slate-200 rounded-[20px]" />
                       </div>
                     </div>
 
                     <Button
-                      onClick={() => generateQuestions(false)}
+                      onClick={() => { generateQuestions(false); if (senaiVestibulinho) startSenaiTimer(); }}
                       disabled={generating}
                       size="lg"
                       className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
                     >
                       {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Wrench className="h-5 w-5 mr-2" />}
-                      {generating ? 'GERANDO SIMULADO SENAI...' : '⚙️ GERAR SIMULADO PADRÃO SENAI'}
+                      {generating ? 'GERANDO SIMULADO SENAI-SP...' : senaiVestibulinho ? '⚙️ GERAR VESTIBULINHO SENAI-SP (60Q)' : '⚙️ GERAR SIMULADO PADRÃO SENAI'}
                     </Button>
                   </>
                 )}
