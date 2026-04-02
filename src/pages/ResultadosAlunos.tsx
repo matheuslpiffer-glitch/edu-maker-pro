@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
