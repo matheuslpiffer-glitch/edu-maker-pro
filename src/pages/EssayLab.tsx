@@ -587,13 +587,19 @@ function TeacherPanel() {
                               <div className="flex items-center gap-3 flex-wrap">
                                 <span className="font-medium text-sm">{s.student_name || 'Anônimo'}</span>
                                 {s.student_class && <Badge variant="outline" className="text-xs">{s.student_class}</Badge>}
-                                {s.status === 'corrected' ? (
+                                {s.status === 'corrected' && s.teacher_validated ? (
                                   <Badge className="bg-primary/20 text-primary">
                                     Nota: {s.total_score}
-                                    {s.teacher_validated && <CheckCircle className="h-3 w-3 ml-1" />}
+                                    <CheckCircle className="h-3 w-3 ml-1" />
                                   </Badge>
+                                ) : s.status === 'corrected' && !s.teacher_validated ? (
+                                  <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                    IA: {s.total_score} (Rascunho)
+                                  </Badge>
+                                ) : s.status === 'submitted' ? (
+                                  <Badge variant="secondary">Aguardando Professor</Badge>
                                 ) : (
-                                  <Badge variant="secondary">Pendente</Badge>
+                                  <Badge variant="secondary">Pendente de Envio</Badge>
                                 )}
                                 {hasPlagiarismAlert && (
                                   <Badge variant="destructive" className="text-xs">
