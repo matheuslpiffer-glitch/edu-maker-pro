@@ -241,6 +241,7 @@ export type Database = {
           access_code: string | null
           banca: string
           corrected_at: string | null
+          correction_source: string
           created_at: string
           essay_text: string
           id: string
@@ -262,6 +263,7 @@ export type Database = {
           access_code?: string | null
           banca?: string
           corrected_at?: string | null
+          correction_source?: string
           created_at?: string
           essay_text?: string
           id?: string
@@ -283,6 +285,7 @@ export type Database = {
           access_code?: string | null
           banca?: string
           corrected_at?: string | null
+          correction_source?: string
           created_at?: string
           essay_text?: string
           id?: string

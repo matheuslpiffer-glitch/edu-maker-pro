@@ -1,0 +1,1 @@
+ALTER TABLE public.essay_submissions ADD COLUMN IF NOT EXISTS correction_source text NOT NULL DEFAULT '';
