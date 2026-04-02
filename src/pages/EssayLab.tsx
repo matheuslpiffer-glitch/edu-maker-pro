@@ -668,18 +668,23 @@ function TeacherPanel() {
               <div className="space-y-4">
                 {/* Teacher correction trigger for pending essays */}
                 {detailSub.status !== 'corrected' && detailSub.essay_text && detailSub.essay_text.length > 20 && (
-                  <Button
-                    onClick={() => correctFromTeacher(detailSub)}
-                    disabled={correctingFromTeacher}
-                    className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold py-5"
-                    size="lg"
-                  >
-                    {correctingFromTeacher ? (
-                      <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando Correção Doutora...</>
-                    ) : (
-                      <><Gem className="h-5 w-5 mr-2" /> ⚖️ EXECUTAR CORREÇÃO DOUTORA</>
-                    )}
-                  </Button>
+                  <div className="space-y-2">
+                    <Badge variant="secondary" className="w-full justify-center py-1">
+                      {detailSub.status === 'submitted' ? '📨 Aguardando Correção' : '⏳ Aluno ainda não enviou'}
+                    </Badge>
+                    <Button
+                      onClick={() => correctFromTeacher(detailSub)}
+                      disabled={correctingFromTeacher}
+                      className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold py-5"
+                      size="lg"
+                    >
+                      {correctingFromTeacher ? (
+                        <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando IA Doutora...</>
+                      ) : (
+                        <><Gem className="h-5 w-5 mr-2" /> 💡 Consultar IA Doutora</>
+                      )}
+                    </Button>
+                  </div>
                 )}
 
                 {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
