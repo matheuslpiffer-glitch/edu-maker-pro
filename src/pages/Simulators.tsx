@@ -491,9 +491,10 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const isInclusao = currentFlow === 'inclusao';
   const isObmep = examModel === 'obmep';
   const isTecnicosMode = mode === 'tecnicos';
+  const isSenaiMode = isTecnicosMode && tecnicoInstitution === 'senai';
   const isFastTrackVestibulinho = isTecnicosMode && tecnicoMode === 'completo' && !!tecnicoInstitution;
   const isTecnicosPorArea = isTecnicosMode && tecnicoMode === 'por_area' && !!tecnicoInstitution;
-  const isTecnicosAny = isFastTrackVestibulinho || isTecnicosPorArea;
+  const isTecnicosAny = isFastTrackVestibulinho || isTecnicosPorArea || isSenaiMode;
   const isVestibularesMode = mode === 'vestibulares';
   const isConcurso = examModel === 'concurso_publico';
   const showSerieStep = (activeMotor === 'simulado' || !!mode) && !isObmep && !isTecnicosMode && !isVestibularesMode && !isConcurso;
