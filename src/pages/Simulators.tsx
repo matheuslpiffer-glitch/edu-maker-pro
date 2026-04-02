@@ -1423,8 +1423,17 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                           Simulado Técnico<br />Industrial SENAI
                         </h2>
                         <p className="text-sm text-slate-300 mt-3 max-w-md leading-relaxed">
-                          10 questões técnicas com verificação automática de normas de segurança (NR-12, NR-35). Inclui Relatório de Manutenção e Ordem de Serviço.
+                          Questões técnicas com verificação automática de normas de segurança (NR-12, NR-35). Matriz Regional SP. Inclui Relatório de Manutenção e OS.
                         </p>
+                        {senaiTimerSeconds > 0 && (
+                          <div className="mt-3 flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2 w-fit">
+                            <Clock className="h-4 w-4 text-yellow-300" />
+                            <span className="text-yellow-200 font-mono font-bold text-sm">
+                              {Math.floor(senaiTimerSeconds / 60)}:{String(senaiTimerSeconds % 60).padStart(2, '0')}
+                            </span>
+                            <span className="text-slate-400 text-xs">restantes</span>
+                          </div>
+                        )
                       </div>
                     </div>
 
