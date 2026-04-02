@@ -68,6 +68,11 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
             </p>
           </div>
         </div>
+        {isSenaiMode && (
+          <p className="text-xs font-bold mt-2 tracking-[0.2em] uppercase" style={{ color: '#0a1f3d' }}>
+            AVALIAÇÃO DE DESEMPENHO TÉCNICO — MATRIZ SP
+          </p>
+        )}
         <h1 className="text-lg font-bold uppercase">{institutionName || 'Instituição de Ensino'}</h1>
         <h2 className="text-base font-semibold mt-1">{title || 'Simulado'}</h2>
         <p className="text-xs mt-1 text-gray-600 uppercase">{EXAM_LABELS[examType] || examType}</p>

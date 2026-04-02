@@ -1476,25 +1476,39 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       />
                     </div>
 
+                    {/* Vestibulinho toggle */}
+                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                      <input
+                        type="checkbox"
+                        checked={senaiVestibulinho}
+                        onChange={e => setSenaiVestibulinho(e.target.checked)}
+                        className="h-5 w-5 rounded accent-[#0a1f3d]"
+                      />
+                      <div>
+                        <p className="text-sm font-bold text-slate-700">Modo Vestibulinho SENAI-SP (60 questões)</p>
+                        <p className="text-xs text-slate-500">20 Português + 20 Matemática + 20 Ciências aplicadas ao contexto técnico • Cronômetro de 120 min</p>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-slate-500">Nome da Instituição</Label>
-                        <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="SENAI — Unidade" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+                        <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="SENAI — Unidade SP" className="bg-slate-50 border-slate-200 rounded-[20px]" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-slate-500">Título do Simulado</Label>
-                        <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Simulado Técnico Industrial" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+                        <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Avaliação de Desempenho Técnico — Matriz SP" className="bg-slate-50 border-slate-200 rounded-[20px]" />
                       </div>
                     </div>
 
                     <Button
-                      onClick={() => generateQuestions(false)}
+                      onClick={() => { generateQuestions(false); if (senaiVestibulinho) startSenaiTimer(); }}
                       disabled={generating}
                       size="lg"
                       className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
                     >
                       {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Wrench className="h-5 w-5 mr-2" />}
-                      {generating ? 'GERANDO SIMULADO SENAI...' : '⚙️ GERAR SIMULADO PADRÃO SENAI'}
+                      {generating ? 'GERANDO SIMULADO SENAI-SP...' : senaiVestibulinho ? '⚙️ GERAR VESTIBULINHO SENAI-SP (60Q)' : '⚙️ GERAR SIMULADO PADRÃO SENAI'}
                     </Button>
                   </>
                 )}
