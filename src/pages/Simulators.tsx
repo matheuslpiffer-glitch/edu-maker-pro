@@ -544,8 +544,11 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
 
     const allQuestions: SimQuestion[] = [];
 
-    const tecnicoCount = isFastTrackVestibulinho ? 50 : isTecnicosPorArea ? tecnicoQuestionCount : 0;
-    const tecnicoSubs = isFastTrackVestibulinho
+    const senaiEixoLabel = SENAI_EIXOS.find(e => e.id === senaiEixo)?.label || senaiEixo;
+    const tecnicoCount = isSenaiMode ? 10 : isFastTrackVestibulinho ? 50 : isTecnicosPorArea ? tecnicoQuestionCount : 0;
+    const tecnicoSubs = isSenaiMode
+      ? [senaiEixoLabel]
+      : isFastTrackVestibulinho
       ? ['Língua Portuguesa', 'Matemática', 'Ciências da Natureza', 'Ciências Humanas']
       : isTecnicosPorArea
         ? tecnicoSubjects.map(s => s === 'Português' ? 'Língua Portuguesa' : s === 'Humanas / Atualidades' ? 'Ciências Humanas' : s)
