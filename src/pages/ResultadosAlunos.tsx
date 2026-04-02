@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
-import { BarChart3, Users, Search, Loader2, Trash2, Download } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -19,6 +20,7 @@ interface ActivityResult {
   percentage: number;
   status: string;
   created_at: string;
+  corrections: any[];
   _type: 'activity';
 }
 
@@ -40,16 +42,31 @@ type UnifiedResult = ActivityResult | SimulatorResult;
 interface BankInfo { id: string; subject: string; topic: string; grade: string; }
 interface SimInfo { id: string; title: string; subject_area: string; grade: string; }
 
+interface EssayInfo {
+  id: string;
+  student_name: string;
+  student_class: string;
+  total_score: number | null;
+  banca: string;
+  scores: any;
+  status: string;
+  created_at: string;
+}
+
 export default function ResultadosAlunos() {
   const { toast } = useToast();
   const [actResults, setActResults] = useState<ActivityResult[]>([]);
   const [simResults, setSimResults] = useState<SimulatorResult[]>([]);
+  const [essayResults, setEssayResults] = useState<EssayInfo[]>([]);
   const [banks, setBanks] = useState<BankInfo[]>([]);
   const [sims, setSims] = useState<SimInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterClass, setFilterClass] = useState('all');
   const [activeTab, setActiveTab] = useState('todos');
+  const [aiTips, setAiTips] = useState<string[]>([]);
+  const [loadingTips, setLoadingTips] = useState(false);
+  const extrasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -59,17 +76,19 @@ export default function ResultadosAlunos() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const [actRes, simRes, bankRes, simInfoRes] = await Promise.all([
+      const [actRes, simRes, bankRes, simInfoRes, essayRes] = await Promise.all([
         supabase.from('student_activity_results').select('*').eq('teacher_user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('student_results').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('question_banks').select('id, subject, topic, grade').eq('user_id', user.id),
         supabase.from('simulators').select('id, title, subject_area, grade').eq('user_id', user.id),
+        supabase.from('essay_submissions').select('id, student_name, student_class, total_score, banca, scores, status, created_at').eq('teacher_user_id', user.id).order('created_at', { ascending: false }),
       ]);
 
       setActResults((actRes.data || []).map((r: any) => ({ ...r, _type: 'activity' as const })));
       setSimResults((simRes.data || []).map((r: any) => ({ ...r, _type: 'simulator' as const })));
       setBanks((bankRes.data as any[]) || []);
       setSims((simInfoRes.data as any[]) || []);
+      setEssayResults((essayRes.data as any[]) || []);
     } catch {
       toast({ title: 'Erro ao carregar resultados', variant: 'destructive' });
     } finally {
@@ -138,6 +157,93 @@ export default function ResultadosAlunos() {
     });
   }, [allResults, search, filterClass, activeTab]);
 
+  // Compute common errors from corrections
+  const commonErrors = useMemo(() => {
+    const errorMap: Record<string, number> = {};
+    actResults.forEach(r => {
+      if (!r.corrections || !Array.isArray(r.corrections)) return;
+      (r.corrections as any[]).forEach((c: any) => {
+        if (!c.isCorrect && c.content) {
+          const key = c.content.slice(0, 80);
+          errorMap[key] = (errorMap[key] || 0) + 1;
+        }
+      });
+    });
+    return Object.entries(errorMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([q, count]) => ({ question: q, count }));
+  }, [actResults]);
+
+  // Essay averages
+  const essayAvg = useMemo(() => {
+    const corrected = essayResults.filter(e => e.total_score != null && e.total_score > 0);
+    if (corrected.length === 0) return null;
+    const avg = Math.round(corrected.reduce((s, e) => s + (e.total_score || 0), 0) / corrected.length);
+    return { avg, count: corrected.length };
+  }, [essayResults]);
+
+  // Generate AI tips based on errors
+  const handleGenerateTips = async () => {
+    setLoadingTips(true);
+    try {
+      const errorsText = commonErrors.map(e => `"${e.question}" (${e.count} erros)`).join('; ');
+      const simAvg = simResults.length > 0
+        ? Math.round(simResults.reduce((s, r) => s + Number(r.percentage), 0) / simResults.length)
+        : null;
+      const essayText = essayAvg ? `Média de redações: ${essayAvg.avg} pontos (${essayAvg.count} corrigidas).` : '';
+
+      const { data, error } = await supabase.functions.invoke('pedagogical-insights', {
+        body: {
+          examType: 'Relatório Integrado',
+          subjectArea: 'Geral',
+          grade: '',
+          totalStudents: allResults.length,
+          averageScore: simAvg || 0,
+          distribution: {},
+          additionalContext: `Erros mais comuns em atividades: ${errorsText}. ${essayText}. Sugira 5 dinâmicas lúdicas de alta fixação (Nuvem de Palavras, Caça-Erros, Labirinto de Decisão, Cruzadinha, Stop) contextualizadas para corrigir esses erros.`,
+        },
+      });
+
+      if (error) throw error;
+      const insights = data as any;
+      const tips: string[] = [];
+      if (insights?.general_analysis) tips.push(insights.general_analysis);
+      if (insights?.suggestions?.length) tips.push(...insights.suggestions);
+      if (insights?.ludic_activities?.length) tips.push(...insights.ludic_activities);
+      if (tips.length === 0 && typeof data === 'object') {
+        // fallback: extract any string values
+        Object.values(data).forEach(v => {
+          if (typeof v === 'string' && v.length > 10) tips.push(v);
+          if (Array.isArray(v)) v.forEach(x => { if (typeof x === 'string') tips.push(x); });
+        });
+      }
+      setAiTips(tips.length > 0 ? tips : ['Nenhuma sugestão disponível no momento. Tente novamente com mais dados.']);
+      toast({ title: '🤖 Dicas da IA Doutora geradas!' });
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: 'Erro ao gerar dicas', description: e.message, variant: 'destructive' });
+    } finally {
+      setLoadingTips(false);
+    }
+  };
+
+  // Print extras with signature fields
+  const handlePrintExtras = async () => {
+    const el = extrasRef.current;
+    if (!el) {
+      toast({ title: 'Nenhuma dica gerada ainda.', variant: 'destructive' });
+      return;
+    }
+    try {
+      const { generatePdfFromElement } = await import('@/lib/pdf-utils');
+      await generatePdfFromElement(el, 'atividades-extras-pos-simulado', { margins: [10, 10, 10, 10] });
+      toast({ title: '📄 PDF gerado com sucesso!' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
+    }
+  };
+
   // CSV export
   const handleExportCSV = () => {
     const header = 'Nome do Aluno,Turma,Atividade,Nota,Porcentagem,Status,Data\n';
@@ -202,7 +308,7 @@ export default function ResultadosAlunos() {
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-foreground">Resultados e Desempenho</h1>
-            <p className="text-sm text-muted-foreground">Acompanhe as respostas dos alunos em tempo real</p>
+            <p className="text-sm text-muted-foreground">Relatório integrado: Simulados SENAI + Redação Elite + Atividades</p>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={filtered.length === 0} className="gap-2">
@@ -210,8 +316,8 @@ export default function ResultadosAlunos() {
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Stats with essay integration */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="rounded-xl border border-border bg-card p-4 text-center">
           <p className="text-2xl font-black text-primary">{allResults.length}</p>
           <p className="text-xs text-muted-foreground">Respostas Recebidas</p>
@@ -228,7 +334,76 @@ export default function ResultadosAlunos() {
           <p className="text-2xl font-black text-primary">{simResults.length}</p>
           <p className="text-xs text-muted-foreground">Simulados</p>
         </div>
+        <div className="rounded-xl border border-border bg-card p-4 text-center">
+          <p className="text-2xl font-black text-primary">{essayAvg ? essayAvg.avg : '—'}</p>
+          <p className="text-xs text-muted-foreground">Média Redação {essayAvg ? `(${essayAvg.count})` : ''}</p>
+        </div>
       </div>
+
+      {/* Common Errors + AI Tips */}
+      {(commonErrors.length > 0 || essayAvg) && (
+        <Card className="border-primary/20">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Sparkles size={18} className="text-primary" />
+                Dicas da IA Doutora — Pós-Simulado
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleGenerateTips} disabled={loadingTips} className="gap-1.5">
+                  {loadingTips ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  {loadingTips ? 'Gerando...' : 'Gerar Dicas'}
+                </Button>
+                {aiTips.length > 0 && (
+                  <Button size="sm" variant="outline" onClick={handlePrintExtras} className="gap-1.5">
+                    <Printer size={14} /> Imprimir Extras
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Top errors */}
+            {commonErrors.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Erros Mais Frequentes</p>
+                {commonErrors.map((e, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <Badge variant="destructive" className="text-[10px] shrink-0">{e.count}x</Badge>
+                    <span className="text-muted-foreground line-clamp-2">{e.question}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* AI generated tips */}
+            {aiTips.length > 0 && (
+              <div ref={extrasRef} className="space-y-3 mt-2">
+                <div className="border-2 border-dashed border-primary/30 rounded-xl p-5 space-y-3 bg-primary/5">
+                  <h3 className="text-sm font-bold text-primary text-center">📋 Atividades Extras — Reforço Pós-Simulado</h3>
+                  {aiTips.map((tip, i) => (
+                    <div key={i} className="border border-border rounded-lg p-3 bg-card text-sm text-foreground">
+                      <p className="whitespace-pre-wrap">{tip}</p>
+                    </div>
+                  ))}
+                  <div className="pt-4 border-t border-dashed border-border mt-4 flex justify-between items-end">
+                    <div className="text-xs text-muted-foreground">
+                      <p>Data: ____/____/________</p>
+                      <p className="mt-2">Assinatura do Professor: _________________________________</p>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      <p>Assinatura do Coordenador: _________________________________</p>
+                    </div>
+                  </div>
+                  <p className="text-center text-[9px] text-muted-foreground mt-2">
+                    EDUFLOW INDUSTRIAL | Relatório Pós-Simulado | Coord. Matheus Lima Piffer
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Chart */}
       {chartData.length > 0 && (
