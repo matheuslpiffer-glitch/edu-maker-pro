@@ -2276,7 +2276,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       <div className="print-only">
         {questions.length > 0 && (
           <>
-            <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions} isDiscursiva={isDiscursiva} columns={columns} />
+            <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions} isDiscursiva={isDiscursiva} columns={columns} isSenaiMode={isSenaiMode} />
             {!isDiscursiva && <AnswerSheet questionCount={questions.length} simulatorId={currentId} title={title} institutionName={institutionName} />}
             {!isDiscursiva && showGabarito && <GabaritoOficial questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />}
             {isDiscursiva && <EspelhoCorrecao questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} />}
