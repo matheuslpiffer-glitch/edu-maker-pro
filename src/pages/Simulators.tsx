@@ -630,11 +630,13 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             tecnicoMode: isTecnicosAny ? tecnicoMode : undefined,
             customMaterial: customMaterial.trim() || undefined,
             bloomLevel,
-            specificTopic: specificTopic.trim() || undefined,
+            specificTopic: isSenaiMode ? (senaiTopic.trim() || senaiEixoLabel) : (specificTopic.trim() || undefined),
             serie: showSerieStep ? activeSerie : undefined,
             includeImages: includeImages && requestedQuestionCount <= 5,
             technicalDiscipline: technicalDiscipline || undefined,
             provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
+            isSenaiMode: isSenaiMode || undefined,
+            senaiEixo: isSenaiMode ? senaiEixoLabel : undefined,
           },
         });
 
