@@ -445,6 +445,8 @@ export default function RedacaoView() {
           </div>
         )}
       </div>
+
+      <QRCodeModal open={qrOpen} onOpenChange={setQrOpen} url={labLink} title="Link do Laboratório de Redação" />
     </div>
   );
 }
