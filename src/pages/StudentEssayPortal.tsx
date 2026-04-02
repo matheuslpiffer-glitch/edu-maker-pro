@@ -448,8 +448,8 @@ export default function StudentEssayPortal() {
                   <span>Palavras: {rewriteText.trim() ? rewriteText.trim().split(/\s+/).length : 0}</span>
                   <span className="text-primary text-[10px]">● Salvando rascunho</span>
                 </div>
-                <Button onClick={() => submitForCorrection(rewriteText)} disabled={correcting || rewriteText.trim().length < 50} className="w-full mt-3">
-                  {correcting ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Corrigindo...</> : <><Gem className="h-4 w-4 mr-1" /> Enviar Reescrita</>}
+                <Button onClick={() => submitEssay(rewriteText)} disabled={correcting || rewriteText.trim().length < 50} className="w-full mt-3">
+                  {correcting ? <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Enviando...</> : <><Gem className="h-4 w-4 mr-1" /> Enviar Reescrita</>}
                 </Button>
               </CardContent>
             </Card>
