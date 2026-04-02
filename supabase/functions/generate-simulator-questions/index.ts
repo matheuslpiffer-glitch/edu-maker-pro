@@ -685,7 +685,7 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
     // Redação, Aula, Concurso and Vestibulares modes don't strictly require subjects/grade
     const isConcursoMode = examModel === 'concurso_publico';
     const isVestibularesMode = examModel === 'vest_publicos' || examModel === 'vest_privados';
-    if (!isRedacao && !isAula && !isConcursoMode && !isVestibularesMode && !isFastTrackVestibulinho && (subjectList.length === 0 || !grade || !count)) {
+    if (!isRedacao && !isAula && !isConcursoMode && !isVestibularesMode && !isFastTrackVestibulinho && !isSenaiMode && (subjectList.length === 0 || !grade || !count)) {
       return new Response(JSON.stringify({ error: "Disciplina(s), série e quantidade são obrigatórios." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
