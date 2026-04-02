@@ -69,6 +69,7 @@ const TECNICOS_INSTITUTIONS = [
   { id: 'ifs', label: 'Instituto Federal (IFs)', desc: 'Exame de Seleção Nacional', icon: Building2, gradient: 'from-emerald-600 to-green-700' },
   { id: 'etec', label: 'ETEC / CPS', desc: 'Vestibulinho Centro Paula Souza', icon: Cpu, gradient: 'from-teal-500 to-emerald-600' },
   { id: 'cotuca', label: 'Técnicos Unicamp', desc: 'Cotuca / Cotil — Seleção Unicamp', icon: Target, gradient: 'from-green-500 to-teal-600' },
+  { id: 'senai', label: 'SENAI Industrial', desc: 'Simulado Técnico Padrão SENAI', icon: Wrench, gradient: 'from-[#0a1f3d] to-[#1a3a6b]' },
 ];
 
 const TECNICOS_AREA_SUBJECTS = [
