@@ -79,6 +79,8 @@ export default function StudentDashboard() {
   const [accessCode, setAccessCode] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
 
+  const [meritNotification, setMeritNotification] = useState<{ studentName: string; theme: string; score: number } | null>(null);
+
   // First-visit welcome modal + toast
   useEffect(() => {
     if (!user) return;
@@ -94,6 +96,39 @@ export default function StudentDashboard() {
         description: 'Clique nos cards abaixo para acessar seus simulados e o Dossiê Literário. Bons estudos!',
       });
     }, 1000);
+  }, [user, toast]);
+
+  // Check for merit certificates (validated essays with high scores)
+  useEffect(() => {
+    if (!user) return;
+    const seenKey = `educreator_merit_seen_${user.id}`;
+    const seenIds: string[] = JSON.parse(localStorage.getItem(seenKey) || '[]');
+
+    supabase
+      .from('essay_submissions')
+      .select('id, student_name, proposal_theme, total_score, teacher_validated, status')
+      .eq('status', 'corrected')
+      .eq('teacher_validated', true)
+      .then(({ data }) => {
+        if (!data || data.length === 0) return;
+        const newMerit = data.find(
+          (e: any) => !seenIds.includes(e.id) && (e.total_score ?? 0) > 0
+        );
+        if (newMerit) {
+          setMeritNotification({
+            studentName: newMerit.student_name || 'Estudante',
+            theme: newMerit.proposal_theme || 'Redação',
+            score: newMerit.total_score ?? 0,
+          });
+          localStorage.setItem(seenKey, JSON.stringify([...seenIds, newMerit.id]));
+          setTimeout(() => {
+            toast({
+              title: '👑 CONQUISTA DESBLOQUEADA!',
+              description: `Parabéns! Sua redação "${newMerit.proposal_theme}" foi validada pelo professor. Nota: ${newMerit.total_score}`,
+            });
+          }, 2000);
+        }
+      });
   }, [user, toast]);
 
   // Load latest available simulator (most recent from any teacher)
