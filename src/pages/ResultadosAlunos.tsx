@@ -363,16 +363,26 @@ export default function ResultadosAlunos() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Top errors */}
+            {/* Top errors - Card design */}
             {commonErrors.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Erros Mais Frequentes</p>
-                {commonErrors.map((e, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <Badge variant="destructive" className="text-[10px] shrink-0">{e.count}x</Badge>
-                    <span className="text-muted-foreground line-clamp-2">{e.question}</span>
-                  </div>
-                ))}
+                {commonErrors.map((e, i) => {
+                  const cleanText = (e.question || '').replace(/<[^>]*>/g, '').trim();
+                  return (
+                    <div key={i} className="flex items-center gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs font-bold">
+                        {e.count}x
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-foreground line-clamp-2">{cleanText}</p>
+                      </div>
+                      {(e as any).skill && (
+                        <Badge variant="secondary" className="text-[10px] shrink-0">{(e as any).skill}</Badge>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
