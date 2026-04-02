@@ -350,9 +350,9 @@ export default function ResultadosAlunos() {
                 Dicas da IA Doutora — Pós-Simulado
               </CardTitle>
               <div className="flex gap-2">
-                <Button size="sm" onClick={handleGenerateTips} disabled={loadingTips} className="gap-1.5">
+                <Button size="sm" onClick={handleGenerateTips} disabled={loadingTips} className={`gap-1.5 ${loadingTips ? 'animate-pulse bg-primary/80' : ''}`}>
                   {loadingTips ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  {loadingTips ? 'Gerando...' : 'Gerar Dicas'}
+                  {loadingTips ? 'Analisando erros...' : '💡 Gerar Dicas'}
                 </Button>
                 {aiTips.length > 0 && (
                   <Button size="sm" variant="outline" onClick={handlePrintExtras} className="gap-1.5">
@@ -363,16 +363,26 @@ export default function ResultadosAlunos() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Top errors */}
+            {/* Top errors - Card design */}
             {commonErrors.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Erros Mais Frequentes</p>
-                {commonErrors.map((e, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <Badge variant="destructive" className="text-[10px] shrink-0">{e.count}x</Badge>
-                    <span className="text-muted-foreground line-clamp-2">{e.question}</span>
-                  </div>
-                ))}
+                {commonErrors.map((e, i) => {
+                  const cleanText = (e.question || '').replace(/<[^>]*>/g, '').trim();
+                  return (
+                    <div key={i} className="flex items-center gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-3">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs font-bold">
+                        {e.count}x
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-foreground line-clamp-2">{cleanText}</p>
+                      </div>
+                      {(e as any).skill && (
+                        <Badge variant="secondary" className="text-[10px] shrink-0">{(e as any).skill}</Badge>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -381,11 +391,26 @@ export default function ResultadosAlunos() {
               <div ref={extrasRef} className="space-y-3 mt-2">
                 <div className="border-2 border-dashed border-primary/30 rounded-xl p-5 space-y-3 bg-primary/5">
                   <h3 className="text-sm font-bold text-primary text-center">📋 Atividades Extras — Reforço Pós-Simulado</h3>
-                  {aiTips.map((tip, i) => (
-                    <div key={i} className="border border-border rounded-lg p-3 bg-card text-sm text-foreground">
-                      <p className="whitespace-pre-wrap">{tip}</p>
-                    </div>
-                  ))}
+                  {aiTips.map((tip, i) => {
+                    const cleanTip = (tip || '').replace(/<[^>]*>/g, '').trim();
+                    return (
+                      <div key={i} className="border border-border rounded-lg p-3 bg-card text-sm text-foreground">
+                        <p className="whitespace-pre-wrap">{cleanTip}</p>
+                      </div>
+                    );
+                  })}
+
+                  {/* Plano de Ação Sugerido */}
+                  <div className="rounded-lg border border-primary/30 bg-primary/10 p-4 mt-3">
+                    <h4 className="text-sm font-bold text-primary mb-2">📌 Plano de Ação Sugerido</h4>
+                    <ul className="list-disc list-inside text-sm text-foreground space-y-1">
+                      <li>Aplicar atividade de reforço focada nos erros mais frequentes na próxima aula.</li>
+                      <li>Utilizar dinâmicas lúdicas (Caça-Erros, Nuvem de Palavras) para fixação.</li>
+                      <li>Revisar individualmente os alunos com desempenho abaixo de 50%.</li>
+                      <li>Reaplicar questões similares em simulado de revisão.</li>
+                    </ul>
+                  </div>
+
                   <div className="pt-4 border-t border-dashed border-border mt-4 flex justify-between items-end">
                     <div className="text-xs text-muted-foreground">
                       <p>Data: ____/____/________</p>
