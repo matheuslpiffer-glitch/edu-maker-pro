@@ -211,6 +211,9 @@ function TeacherPanel() {
   const [teacherNotes, setTeacherNotes] = useState('');
   const [generatingRewrite, setGeneratingRewrite] = useState(false);
   const [rewriteResult, setRewriteResult] = useState<{ rewritten_text: string; changes_summary: string; key_improvements: string[] } | null>(null);
+  const [correctingFromTeacher, setCorrectingFromTeacher] = useState(false);
+  const [aiTurmaSummary, setAiTurmaSummary] = useState('');
+  const [generatingSummary, setGeneratingSummary] = useState(false);
 
   const loadSubmissions = useCallback(async () => {
     if (!user) return;
