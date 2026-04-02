@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, Fragment } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -13,7 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import QRCodeModal from '@/components/QRCodeModal';
 import { buildPublicAppUrl } from '@/lib/public-links';
-import { Loader2, PenLine, QrCode, CheckCircle, XCircle, Eye, Gem, Copy, Users, RefreshCw, AlertTriangle, ShieldAlert } from 'lucide-react';
+import { Loader2, PenLine, QrCode, CheckCircle, XCircle, Eye, Gem, Copy, Users, RefreshCw, AlertTriangle, ShieldAlert, Sparkles, BarChart3 } from 'lucide-react';
 
 const BANCAS = ['ENEM', 'FUVEST', 'VUNESP', 'UNICAMP'] as const;
 
@@ -111,10 +111,10 @@ function OriginalityBadge({ originality }: { originality?: Originality }) {
   if (!originality) return null;
   const { score, ai_generated_probability, flags } = originality;
 
-  let color = 'bg-emerald-500/20 text-emerald-700';
+  let color = 'bg-primary/10 text-primary';
   let label = 'Original';
   if (score <= 30) { color = 'bg-destructive/20 text-destructive'; label = 'Suspeito de Plágio/IA'; }
-  else if (score <= 60) { color = 'bg-yellow-500/20 text-yellow-700'; label = 'Atenção'; }
+  else if (score <= 60) { color = 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400'; label = 'Atenção'; }
 
   return (
     <Card className="border-muted">
@@ -142,6 +142,61 @@ function OriginalityBadge({ originality }: { originality?: Originality }) {
   );
 }
 
+// ── Competency Heatmap ──
+function CompetencyHeatmap({ submissions }: { submissions: Submission[] }) {
+  const corrected = submissions.filter(s => s.status === 'corrected' && s.scores?.competencies);
+  if (corrected.length < 2) return null;
+
+  // Aggregate: for each competency name, calculate average percentage
+  const compMap = new Map<string, { total: number; count: number }>();
+  corrected.forEach(s => {
+    s.scores.competencies!.forEach(c => {
+      const existing = compMap.get(c.name) || { total: 0, count: 0 };
+      existing.total += (c.score / c.max) * 100;
+      existing.count += 1;
+      compMap.set(c.name, existing);
+    });
+  });
+
+  const compStats = Array.from(compMap.entries()).map(([name, { total, count }]) => ({
+    name,
+    avg: Math.round(total / count),
+    count,
+  })).sort((a, b) => a.avg - b.avg);
+
+  return (
+    <Card className="border-muted">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <BarChart3 className="h-5 w-5 text-primary" />
+          Mapa de Calor — Dificuldades da Turma
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {compStats.map((c, i) => {
+          const heatColor = c.avg < 40 ? 'bg-destructive' : c.avg < 60 ? 'bg-yellow-500' : c.avg < 80 ? 'bg-primary' : 'bg-emerald-500';
+          const failPct = 100 - c.avg;
+          return (
+            <div key={i} className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">{c.name}</span>
+                <span className="text-muted-foreground text-xs">
+                  {failPct > 50 && <span className="text-destructive font-semibold">{failPct}% dos alunos falharam • </span>}
+                  Média: {c.avg}%
+                </span>
+              </div>
+              <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
+                <div className={`h-full ${heatColor} rounded-full transition-all`} style={{ width: `${c.avg}%` }} />
+              </div>
+            </div>
+          );
+        })}
+        <p className="text-xs text-muted-foreground mt-2">Baseado em {corrected.length} redações corrigidas</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Teacher Panel ──
 function TeacherPanel() {
   const { user } = useAuth();
@@ -154,6 +209,8 @@ function TeacherPanel() {
   const [qrUrl, setQrUrl] = useState('');
   const [detailSub, setDetailSub] = useState<Submission | null>(null);
   const [teacherNotes, setTeacherNotes] = useState('');
+  const [generatingRewrite, setGeneratingRewrite] = useState(false);
+  const [rewriteResult, setRewriteResult] = useState<{ rewritten_text: string; changes_summary: string; key_improvements: string[] } | null>(null);
 
   const loadSubmissions = useCallback(async () => {
     if (!user) return;
@@ -208,6 +265,20 @@ function TeacherPanel() {
     loadSubmissions();
   };
 
+  const generateRewrite = async (sub: Submission) => {
+    setGeneratingRewrite(true);
+    setRewriteResult(null);
+    const { data, error } = await supabase.functions.invoke('rewrite-essay', {
+      body: { essayText: sub.essay_text, banca: sub.banca, theme: sub.proposal_theme, suggestions: sub.suggestions },
+    });
+    if (error || data?.error) {
+      toast({ title: 'Erro', description: data?.error || error?.message || 'Falha ao gerar reescrita', variant: 'destructive' });
+    } else {
+      setRewriteResult(data);
+    }
+    setGeneratingRewrite(false);
+  };
+
   const grouped = useMemo(() => {
     const map = new Map<string, Submission[]>();
     submissions.forEach(s => {
@@ -240,6 +311,9 @@ function TeacherPanel() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Heatmap */}
+      <CompetencyHeatmap submissions={submissions} />
 
       <Card>
         <CardHeader>
@@ -302,7 +376,7 @@ function TeacherPanel() {
                                   </Badge>
                                 )}
                               </div>
-                              <Button size="sm" variant="ghost" onClick={() => { setDetailSub(s); setTeacherNotes(s.teacher_notes || ''); }}>
+                              <Button size="sm" variant="ghost" onClick={() => { setDetailSub(s); setTeacherNotes(s.teacher_notes || ''); setRewriteResult(null); }}>
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </div>
@@ -322,13 +396,12 @@ function TeacherPanel() {
 
       {/* Detail Dialog */}
       <Dialog open={!!detailSub} onOpenChange={() => setDetailSub(null)}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Redação de {detailSub?.student_name || 'Aluno'}</DialogTitle>
           </DialogHeader>
           {detailSub && (
             <div className="space-y-4">
-              {/* Annotated text */}
               <div className="bg-muted/50 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-72 overflow-y-auto leading-relaxed font-serif">
                 {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 ? (
                   <AnnotatedText text={detailSub.essay_text} annotations={detailSub.scores.annotations} />
@@ -337,7 +410,6 @@ function TeacherPanel() {
                 )}
               </div>
 
-              {/* Legend */}
               {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 && (
                 <div className="flex gap-4 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-destructive/30 border border-destructive" /> Erro</span>
@@ -346,7 +418,6 @@ function TeacherPanel() {
                 </div>
               )}
 
-              {/* Originality */}
               <OriginalityBadge originality={detailSub.scores?.originality} />
 
               {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
@@ -375,6 +446,39 @@ function TeacherPanel() {
                       <h4 className="font-semibold text-sm mb-1">📚 Análise de Repertório</h4>
                       <p className="text-sm">{detailSub.repertoire_analysis}</p>
                     </div>
+                  )}
+
+                  {/* Rewrite button */}
+                  <Button onClick={() => generateRewrite(detailSub)} disabled={generatingRewrite} variant="outline" className="w-full">
+                    {generatingRewrite ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Gerando Reescrita Inteligente...</>
+                    ) : (
+                      <><Sparkles className="h-4 w-4 mr-2" /> ✨ Gerar Reescrita Inteligente (Nota Máxima)</>
+                    )}
+                  </Button>
+
+                  {/* Rewrite result */}
+                  {rewriteResult && (
+                    <Card className="border-primary/30">
+                      <CardContent className="pt-4 space-y-3">
+                        <h4 className="font-semibold flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Versão Nota Máxima (Comparação Pedagógica)</h4>
+                        <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-60 overflow-y-auto leading-relaxed font-serif">
+                          {rewriteResult.rewritten_text}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">Resumo das alterações:</p>
+                          <p className="text-sm text-muted-foreground">{rewriteResult.changes_summary}</p>
+                        </div>
+                        {rewriteResult.key_improvements?.length > 0 && (
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium">Melhorias principais:</p>
+                            <ul className="text-sm text-muted-foreground list-disc pl-4">
+                              {rewriteResult.key_improvements.map((imp, i) => <li key={i}>{imp}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
                   )}
                 </>
               )}
@@ -408,8 +512,11 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
   const [correcting, setCorrecting] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [rewriting, setRewriting] = useState(false);
+  const [wordCount, setWordCount] = useState(0);
   const lsKey = `essay_draft_${accessCode}`;
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const dbSyncTimer = useRef<ReturnType<typeof setInterval>>();
+  const lastSyncedText = useRef('');
 
   useEffect(() => {
     (async () => {
@@ -436,10 +543,12 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
         setStudentName(sub.student_name || '');
         setStudentClass(sub.student_class || '');
       }
+      lastSyncedText.current = sub.essay_text || '';
       setLoading(false);
     })();
   }, [accessCode]);
 
+  // localStorage auto-save (500ms debounce)
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
@@ -448,9 +557,29 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [essayText, studentName, studentClass, lsKey]);
 
+  // DB sync every 10 seconds
+  useEffect(() => {
+    if (!submission || submission.status === 'corrected') return;
+    dbSyncTimer.current = setInterval(async () => {
+      if (essayText !== lastSyncedText.current && essayText.length > 0 && submission) {
+        await supabase.from('essay_submissions').update({
+          essay_text: essayText,
+          student_name: studentName.trim(),
+          student_class: studentClass.trim(),
+        } as any).eq('id', submission.id);
+        lastSyncedText.current = essayText;
+      }
+    }, 10000);
+    return () => { if (dbSyncTimer.current) clearInterval(dbSyncTimer.current); };
+  }, [submission, essayText, studentName, studentClass]);
+
   const lineCount = useMemo(() => {
     if (!essayText) return 0;
     return essayText.split('\n').length;
+  }, [essayText]);
+
+  useEffect(() => {
+    setWordCount(essayText.trim() ? essayText.trim().split(/\s+/).length : 0);
   }, [essayText]);
 
   const handleRewrite = () => {
@@ -574,14 +703,16 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
                 />
               </div>
               <div className="flex items-center justify-between px-4 py-2 border-t bg-muted/20 text-xs text-muted-foreground">
-                <span>Linhas: <strong className={lineCount < 7 || lineCount > 30 ? 'text-destructive' : 'text-foreground'}>{lineCount}</strong> (min 7, máx 30)</span>
-                <span>{essayText.length} caracteres</span>
+                <div className="flex gap-4">
+                  <span>Linhas: <strong className={lineCount < 7 || lineCount > 30 ? 'text-destructive' : 'text-foreground'}>{lineCount}</strong> (7-30)</span>
+                  <span>Palavras: <strong className="text-foreground">{wordCount}</strong></span>
+                </div>
+                <span className="flex items-center gap-1">{essayText.length} chars • <span className="text-primary text-[10px]">● Sincronizando</span></span>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Suggestions sidebar when rewriting */}
         {rewriting && submission?.suggestions && (
           <Card className="border-primary/20">
             <CardContent className="pt-4">
@@ -591,7 +722,6 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
           </Card>
         )}
 
-        {/* Submit button */}
         {!isCorrected && (
           <Button onClick={submitForCorrection} disabled={correcting || essayText.trim().length < 50} className="w-full text-base py-6" size="lg">
             {correcting ? (
@@ -602,7 +732,6 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
           </Button>
         )}
 
-        {/* Results */}
         {isCorrected && submission.scores?.competencies && (
           <div className="space-y-4">
             <Card className="border-primary/20">
@@ -645,7 +774,6 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
               </Card>
             )}
 
-            {/* Rewrite button */}
             <Button onClick={handleRewrite} variant="outline" className="w-full" size="lg">
               <RefreshCw className="h-5 w-5 mr-2" /> 🔄 REESCREVER COM AS DICAS
             </Button>
