@@ -610,7 +610,10 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     const allQuestions: SimQuestion[] = [];
 
     const senaiEixoLabel = SENAI_EIXOS.find(e => e.id === senaiEixo)?.label || senaiEixo;
-    const tecnicoCount = isSenaiMode ? 10 : isFastTrackVestibulinho ? 50 : isTecnicosPorArea ? tecnicoQuestionCount : 0;
+    const senaiSpMatrix = SENAI_SP_MATRIX[senaiEixo] || '';
+    const tecnicoCount = isSenaiMode
+      ? (senaiVestibulinho ? 60 : 10)
+      : isFastTrackVestibulinho ? 50 : isTecnicosPorArea ? tecnicoQuestionCount : 0;
     const tecnicoSubs = isSenaiMode
       ? [senaiEixoLabel]
       : isFastTrackVestibulinho
