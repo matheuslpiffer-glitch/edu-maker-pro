@@ -365,7 +365,9 @@ export default function StudentEssayPortal() {
     </div>
   );
 
-  const isCorrected = submission?.status === 'corrected' && !rewriting;
+  const isReleased = submission?.status === 'corrected' && submission?.teacher_validated === true;
+  const isAwaitingTeacher = submission?.status === 'submitted' || (submission?.status === 'corrected' && !submission?.teacher_validated);
+  const isCorrected = isReleased && !rewriting;
 
   return (
     <div className="min-h-screen bg-background">
