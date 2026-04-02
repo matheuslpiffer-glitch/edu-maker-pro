@@ -705,6 +705,8 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
             isSenaiMode: isSenaiMode || undefined,
             senaiEixo: isSenaiMode ? senaiEixoLabel : undefined,
+            senaiSpMatrix: isSenaiMode ? senaiSpMatrix : undefined,
+            senaiVestibulinho: isSenaiMode ? senaiVestibulinho : undefined,
           },
         });
 
