@@ -159,6 +159,7 @@ function AppRoutes() {
           <Route path="/tecnicos" element={<Tecnicos />} />
           <Route path="/jogos" element={<GameFactory />} />
           <Route path="/atividade-extra" element={<ExtraActivity />} />
+          <Route path="/redacao-lab" element={<EssayLab />} />
           <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
           <Route path="/escuta-ativa" element={<EscutaAtiva />} />
           <Route path="/pausa-pedagogica" element={<PausaPedagogica />} />
