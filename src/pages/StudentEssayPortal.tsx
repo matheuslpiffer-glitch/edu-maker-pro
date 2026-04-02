@@ -456,8 +456,25 @@ export default function StudentEssayPortal() {
           </div>
         )}
 
-        {/* ─── EDITOR (pre-correction) ─── */}
-        {!isCorrected && !rewriting && (
+        {/* ─── AWAITING TEACHER MESSAGE ─── */}
+        {isAwaitingTeacher && !rewriting && (
+          <Card className="border-2 border-primary/20 bg-primary/5">
+            <CardContent className="pt-6 text-center space-y-4">
+              <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+              </div>
+              <h2 className="text-xl font-bold">📨 Redação Entregue!</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Sua redação foi enviada ao professor e está na fila de correção. 
+                Você receberá o feedback assim que o professor liberar a correção.
+              </p>
+              <Badge variant="secondary" className="text-sm">Status: Aguardando Professor</Badge>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ─── EDITOR (pre-submission) ─── */}
+        {!isCorrected && !isAwaitingTeacher && !rewriting && (
           <>
             <Card className="border-2 border-primary/10">
               <CardContent className="p-0">
@@ -485,8 +502,8 @@ export default function StudentEssayPortal() {
                 </div>
               </CardContent>
             </Card>
-            <Button onClick={() => submitForCorrection()} disabled={correcting || essayText.trim().length < 50} className="w-full text-base py-6" size="lg">
-              {correcting ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Corrigindo com IA Doutora...</> : <><Gem className="h-5 w-5 mr-2" /> 💎 ENVIAR PARA CORREÇÃO DOUTORA</>}
+            <Button onClick={() => submitEssay()} disabled={correcting || essayText.trim().length < 50} className="w-full text-base py-6" size="lg">
+              {correcting ? <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Enviando...</> : <><Gem className="h-5 w-5 mr-2" /> 📨 ENTREGAR REDAÇÃO AO PROFESSOR</>}
             </Button>
           </>
         )}
