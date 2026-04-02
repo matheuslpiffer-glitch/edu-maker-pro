@@ -157,22 +157,46 @@ export default function ResultadosAlunos() {
     });
   }, [allResults, search, filterClass, activeTab]);
 
-  // Compute common errors from corrections
+  // Compute common errors from corrections with skill detection
   const commonErrors = useMemo(() => {
-    const errorMap: Record<string, number> = {};
+    const errorMap: Record<string, { count: number; skill: string }> = {};
+    const skillKeywords: [string, string][] = [
+      ['conjunto', 'Teoria dos Conjuntos'], ['subconjunto', 'Teoria dos Conjuntos'],
+      ['fração', 'Números Racionais'], ['dízima', 'Números Racionais'], ['racional', 'Números Racionais'],
+      ['potência', 'Potenciação'], ['expoente', 'Potenciação'], ['potenciação', 'Potenciação'],
+      ['equação', 'Equações'], ['inequação', 'Inequações'],
+      ['geometria', 'Geometria'], ['ângulo', 'Geometria'], ['triângulo', 'Geometria'],
+      ['área', 'Geometria Plana'], ['perímetro', 'Geometria Plana'],
+      ['probabilidade', 'Probabilidade'], ['estatística', 'Estatística'],
+      ['porcentagem', 'Porcentagem'], ['juros', 'Matemática Financeira'],
+      ['função', 'Funções'], ['gráfico', 'Análise Gráfica'],
+      ['logaritmo', 'Logaritmos'], ['raiz', 'Radiciação'],
+      ['matriz', 'Matrizes'], ['determinante', 'Matrizes'],
+      ['progressão', 'Progressões'], ['PA', 'Progressão Aritmética'], ['PG', 'Progressão Geométrica'],
+    ];
+
+    const detectSkill = (text: string): string => {
+      const lower = text.toLowerCase();
+      for (const [kw, skill] of skillKeywords) {
+        if (lower.includes(kw.toLowerCase())) return skill;
+      }
+      return 'Conteúdo Geral';
+    };
+
     actResults.forEach(r => {
       if (!r.corrections || !Array.isArray(r.corrections)) return;
       (r.corrections as any[]).forEach((c: any) => {
         if (!c.isCorrect && c.content) {
           const key = c.content.slice(0, 80);
-          errorMap[key] = (errorMap[key] || 0) + 1;
+          if (!errorMap[key]) errorMap[key] = { count: 0, skill: detectSkill(c.content) };
+          errorMap[key].count++;
         }
       });
     });
     return Object.entries(errorMap)
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 5)
-      .map(([q, count]) => ({ question: q, count }));
+      .map(([q, data]) => ({ question: q, count: data.count, skill: data.skill }));
   }, [actResults]);
 
   // Essay averages
