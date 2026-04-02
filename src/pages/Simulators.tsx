@@ -22,6 +22,7 @@ import SimulatorPreview from '@/components/SimulatorPreview';
 import AnswerSheet from '@/components/AnswerSheet';
 import GabaritoOficial from '@/components/GabaritoOficial';
 import EspelhoCorrecao from '@/components/EspelhoCorrecao';
+import SenaiIndustrialTemplates from '@/components/SenaiIndustrialTemplates';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
