@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Search, Sparkles, Download, Save, BookOpen, Lightbulb, Target, GraduationCap, Accessibility, Wrench, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,13 +63,18 @@ interface LessonPlan {
 const allSubjects = SUBJECT_CATEGORIES.flatMap(c => c.subjects);
 
 export default function HubPlanejamento() {
-  const [theme, setTheme] = useState('');
-  const [grade, setGrade] = useState('');
-  const [subject, setSubject] = useState('');
-  const [aee, setAee] = useState(false);
-  const [tecnoMaker, setTecnoMaker] = useState(false);
+  // Restore persisted state
+  const stored = (() => {
+    try { const r = localStorage.getItem('hub360_state'); return r ? JSON.parse(r) : null; } catch { return null; }
+  })();
+
+  const [theme, setTheme] = useState(stored?.theme || '');
+  const [grade, setGrade] = useState(stored?.grade || '');
+  const [subject, setSubject] = useState(stored?.subject || '');
+  const [aee, setAee] = useState(stored?.aee || false);
+  const [tecnoMaker, setTecnoMaker] = useState(stored?.tecnoMaker || false);
   const [loading, setLoading] = useState(false);
-  const [plan, setPlan] = useState<LessonPlan | null>(null);
+  const [plan, setPlan] = useState<LessonPlan | null>(stored?.plan || null);
   const [saving, setSaving] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     objective: true, methodology: true, development: true, caseStudy: true, assessment: true, tecnoMaker: true, aee: true
@@ -77,6 +82,33 @@ export default function HubPlanejamento() {
   const planRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+
+  // Persist state
+  useEffect(() => {
+    const state = { theme, grade, subject, aee, tecnoMaker, plan };
+    localStorage.setItem('hub360_state', JSON.stringify(state));
+  }, [theme, grade, subject, aee, tecnoMaker, plan]);
+
+  // Recovery toast
+  useEffect(() => {
+    if (stored?.plan) {
+      const key = 'recovery_shown_hub360';
+      const last = localStorage.getItem(key);
+      if (!last || Date.now() - Number(last) > 60000) {
+        localStorage.setItem(key, String(Date.now()));
+        toast({ title: '🔄 Sessão recuperada', description: 'Recuperamos seu último plano de aula!' });
+      }
+    }
+  }, []);
+
+  // Warn on exit
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (plan) { e.preventDefault(); e.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [plan]);
 
   const toggleSection = (key: string) => setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
 

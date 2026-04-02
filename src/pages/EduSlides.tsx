@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -36,26 +36,59 @@ const TEMAS: { id: Tema; label: string; desc: string; preview: string; bg: strin
 
 export default function EduSlides() {
   const { user } = useAuth();
-  const [topic, setTopic] = useState('');
-  const [grade, setGrade] = useState('');
-  const [objective, setObjective] = useState('');
-  const [skillCode, setSkillCode] = useState('');
-  const [skillDescription, setSkillDescription] = useState('');
-  const [slides, setSlides] = useState<Slide[]>([]);
+
+  // Restore persisted state
+  const stored = (() => {
+    try { const r = localStorage.getItem('eduslides_state'); return r ? JSON.parse(r) : null; } catch { return null; }
+  })();
+
+  const [topic, setTopic] = useState(stored?.topic || '');
+  const [grade, setGrade] = useState(stored?.grade || '');
+  const [objective, setObjective] = useState(stored?.objective || '');
+  const [skillCode, setSkillCode] = useState(stored?.skillCode || '');
+  const [skillDescription, setSkillDescription] = useState(stored?.skillDescription || '');
+  const [slides, setSlides] = useState<Slide[]>(stored?.slides || []);
   const [generating, setGenerating] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [presenting, setPresenting] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [meetingId, setMeetingId] = useState<string | null>(null);
+  const [meetingId, setMeetingId] = useState<string | null>(stored?.meetingId || null);
   const [showAttendance, setShowAttendance] = useState(false);
 
   // New studio states
-  const [formato, setFormato] = useState<Formato | ''>('');
-  const [tema, setTema] = useState<Tema>('minimalista');
-  const [includeAiImages, setIncludeAiImages] = useState(true);
-  const [slideCount, setSlideCount] = useState(8);
-  const [htmlSlides, setHtmlSlides] = useState<string[]>([]);
+  const [formato, setFormato] = useState<Formato | ''>(stored?.formato || '');
+  const [tema, setTema] = useState<Tema>(stored?.tema || 'minimalista');
+  const [includeAiImages, setIncludeAiImages] = useState(stored?.includeAiImages ?? true);
+  const [slideCount, setSlideCount] = useState(stored?.slideCount || 8);
+  const [htmlSlides, setHtmlSlides] = useState<string[]>(stored?.htmlSlides || []);
+
+  // Persist state
+  useEffect(() => {
+    const state = { topic, grade, objective, skillCode, skillDescription, slides, meetingId, formato, tema, includeAiImages, slideCount, htmlSlides };
+    localStorage.setItem('eduslides_state', JSON.stringify(state));
+  }, [topic, grade, objective, skillCode, skillDescription, slides, meetingId, formato, tema, includeAiImages, slideCount, htmlSlides]);
+
+  // Recovery toast
+  useEffect(() => {
+    if (stored && (stored.slides?.length > 0 || stored.htmlSlides?.length > 0)) {
+      const key = 'recovery_shown_eduslides';
+      const last = localStorage.getItem(key);
+      if (!last || Date.now() - Number(last) > 60000) {
+        localStorage.setItem(key, String(Date.now()));
+        toast({ title: '🔄 Sessão recuperada', description: 'Recuperamos sua última sessão do EduSlides!' });
+      }
+    }
+  }, []);
+
+  // Warn on exit
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (slides.length > 0 || htmlSlides.length > 0) { e.preventDefault(); e.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [slides, htmlSlides]);
 
   const generate = async () => {
     if (!topic.trim()) {
