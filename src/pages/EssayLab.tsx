@@ -13,7 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import QRCodeModal from '@/components/QRCodeModal';
 import { buildPublicAppUrl } from '@/lib/public-links';
-import { Loader2, PenLine, QrCode, CheckCircle, XCircle, Eye, Gem, Copy, Users, RefreshCw, AlertTriangle, ShieldAlert, Sparkles, BarChart3 } from 'lucide-react';
+import { Loader2, PenLine, QrCode, CheckCircle, XCircle, Eye, Gem, Copy, Users, RefreshCw, AlertTriangle, ShieldAlert, Sparkles, BarChart3, MessageSquareHeart, Printer, Filter, SortAsc } from 'lucide-react';
 
 const BANCAS = ['ENEM', 'FUVEST', 'VUNESP', 'UNICAMP'] as const;
 
@@ -197,6 +197,38 @@ function CompetencyHeatmap({ submissions }: { submissions: Submission[] }) {
   );
 }
 
+// ── Banca-aware Scorecard ──
+function BancaScorecard({ banca, competencies }: { banca: string; competencies: Competency[] }) {
+  return (
+    <Card className="border-primary/20">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-primary" />
+          Scorecard — {banca}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {competencies.map((c, i) => {
+          const pct = (c.score / c.max) * 100;
+          const color = pct < 40 ? 'bg-destructive' : pct < 60 ? 'bg-yellow-500' : pct < 80 ? 'bg-primary' : 'bg-emerald-500';
+          return (
+            <div key={i} className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">{c.name}</span>
+                <Badge variant="outline" className="text-xs">{c.score}/{c.max}</Badge>
+              </div>
+              <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
+                <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+              </div>
+              <p className="text-xs text-muted-foreground">{c.justification}</p>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Teacher Panel ──
 function TeacherPanel() {
   const { user } = useAuth();
@@ -214,6 +246,11 @@ function TeacherPanel() {
   const [correctingFromTeacher, setCorrectingFromTeacher] = useState(false);
   const [aiTurmaSummary, setAiTurmaSummary] = useState('');
   const [generatingSummary, setGeneratingSummary] = useState(false);
+  const [filterMode, setFilterMode] = useState<'all' | 'pending' | 'lowest' | 'by_class'>('all');
+  const [filterClass, setFilterClass] = useState('');
+  const [generatingFeedback, setGeneratingFeedback] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [printingPdf, setPrintingPdf] = useState(false);
 
   const loadSubmissions = useCallback(async () => {
     if (!user) return;
@@ -336,15 +373,101 @@ function TeacherPanel() {
     setGeneratingSummary(false);
   };
 
+  // Filter + sort submissions
+  const uniqueClasses = useMemo(() => {
+    const classes = new Set(submissions.map(s => s.student_class).filter(Boolean));
+    return Array.from(classes).sort();
+  }, [submissions]);
+
+  const filteredSubmissions = useMemo(() => {
+    let list = [...submissions];
+    if (filterMode === 'pending') list = list.filter(s => s.status !== 'corrected');
+    else if (filterMode === 'lowest') list = list.filter(s => s.status === 'corrected').sort((a, b) => (a.total_score || 0) - (b.total_score || 0));
+    else if (filterMode === 'by_class' && filterClass) list = list.filter(s => s.student_class === filterClass);
+    return list;
+  }, [submissions, filterMode, filterClass]);
+
   const grouped = useMemo(() => {
     const map = new Map<string, Submission[]>();
-    submissions.forEach(s => {
+    filteredSubmissions.forEach(s => {
       const key = `${s.proposal_theme}__${s.banca}__${s.access_code}`;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(s);
     });
     return map;
-  }, [submissions]);
+  }, [filteredSubmissions]);
+
+  // Generate motivational feedback for student
+  const generateStudentFeedback = async (sub: Submission) => {
+    setGeneratingFeedback(true);
+    setFeedbackText('');
+    const compSummary = sub.scores?.competencies
+      ? sub.scores.competencies.map(c => `${c.name}: ${c.score}/${c.max}`).join(', ')
+      : `Nota: ${sub.total_score}`;
+    const { data, error } = await supabase.functions.invoke('pedagogical-insights', {
+      body: {
+        prompt: `Escreva uma mensagem de feedback motivadora e técnica para um aluno de redação (banca ${sub.banca}). Dados da correção: ${compSummary}. Sugestões: ${sub.suggestions || 'nenhuma'}. A mensagem deve: 1) Elogiar os pontos fortes, 2) Indicar de forma construtiva 2-3 áreas de melhoria, 3) Terminar com uma frase motivacional. Máximo 150 palavras. Tom: profissional mas acolhedor.`,
+      },
+    });
+    if (!error && data?.tips) setFeedbackText(data.tips);
+    else setFeedbackText(`Parabéns pelo esforço! Sua nota foi ${sub.total_score}. Continue praticando para melhorar nas competências indicadas.`);
+    setGeneratingFeedback(false);
+  };
+
+  // Print audit PDF
+  const printAuditPdf = async (sub: Submission) => {
+    setPrintingPdf(true);
+    try {
+      const { default: html2pdf } = await import('html2pdf.js');
+      const container = document.createElement('div');
+      container.style.width = '794px';
+      container.style.padding = '30px';
+      container.style.fontFamily = 'serif';
+      container.style.fontSize = '12px';
+      container.style.lineHeight = '1.6';
+
+      const compRows = sub.scores?.competencies
+        ? sub.scores.competencies.map(c =>
+          `<tr><td style="padding:6px;border:1px solid #ccc;font-weight:600">${c.name}</td><td style="padding:6px;border:1px solid #ccc;text-align:center">${c.score}/${c.max}</td><td style="padding:6px;border:1px solid #ccc;font-size:11px">${c.justification}</td></tr>`
+        ).join('')
+        : '';
+
+      container.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:16px">
+          <div><h1 style="margin:0;font-size:18px">LAUDO DE CORREÇÃO — IA DOUTORA</h1><p style="margin:4px 0 0;font-size:12px;color:#666">Banca: ${sub.banca} | Tema: ${sub.proposal_theme}</p></div>
+          <div style="text-align:right;font-size:11px;color:#666"><p style="margin:0">Aluno: <strong>${sub.student_name || 'N/I'}</strong></p><p style="margin:0">Turma: ${sub.student_class || 'N/I'}</p><p style="margin:0">Data: ${sub.corrected_at ? new Date(sub.corrected_at).toLocaleDateString('pt-BR') : new Date().toLocaleDateString('pt-BR')}</p></div>
+        </div>
+        <div style="columns:2;column-gap:24px">
+          <div style="break-inside:avoid;margin-bottom:16px">
+            <h3 style="margin:0 0 8px;font-size:13px;border-bottom:1px solid #ddd;padding-bottom:4px">📝 TEXTO DO ALUNO</h3>
+            <div style="white-space:pre-wrap;font-size:11px;line-height:1.7;background:#f9f9f9;padding:12px;border-radius:4px">${sub.essay_text || 'Texto não disponível.'}</div>
+          </div>
+          <div style="break-inside:avoid">
+            <h3 style="margin:0 0 8px;font-size:13px;border-bottom:1px solid #ddd;padding-bottom:4px">📊 CHECKLIST DA IA DOUTORA</h3>
+            <table style="width:100%;border-collapse:collapse;font-size:11px">${compRows || '<tr><td style="padding:6px;border:1px solid #ccc">Sem dados de competência</td></tr>'}</table>
+            <div style="text-align:center;margin:12px 0;padding:10px;background:#e8f5e9;border-radius:6px"><strong style="font-size:20px">${sub.total_score}</strong><br/><span style="font-size:11px;color:#666">Nota Total</span></div>
+            ${sub.suggestions ? `<div style="break-inside:avoid;margin-top:12px"><h4 style="margin:0 0 4px;font-size:12px">💡 Sugestões</h4><p style="font-size:11px;color:#444">${sub.suggestions}</p></div>` : ''}
+            ${sub.repertoire_analysis ? `<div style="break-inside:avoid;margin-top:12px"><h4 style="margin:0 0 4px;font-size:12px">📚 Repertório</h4><p style="font-size:11px;color:#444">${sub.repertoire_analysis}</p></div>` : ''}
+          </div>
+        </div>
+        <div style="margin-top:24px;border-top:1px solid #ddd;padding-top:12px;font-size:10px;color:#999;text-align:center">Laudo gerado por EduCreator Pro — IA Doutora | ${new Date().toLocaleDateString('pt-BR')}</div>
+      `;
+
+      document.body.appendChild(container);
+      await html2pdf().set({
+        margin: [10, 10, 10, 10],
+        filename: `laudo_redacao_${sub.student_name || 'aluno'}.pdf`,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      }).from(container).save();
+      document.body.removeChild(container);
+      toast({ title: '📄 PDF gerado!', description: 'Laudo de correção baixado com sucesso.' });
+    } catch (e) {
+      toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
+    }
+    setPrintingPdf(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -397,14 +520,36 @@ function TeacherPanel() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Users className="h-5 w-5 text-primary" />
-            Redações Recebidas
+            Biblioteca de Redações
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={filterMode} onValueChange={(v: any) => setFilterMode(v)}>
+              <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar por..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="pending">Pendentes de correção</SelectItem>
+                <SelectItem value="lowest">Notas mais baixas</SelectItem>
+                <SelectItem value="by_class">Por Turma</SelectItem>
+              </SelectContent>
+            </Select>
+            {filterMode === 'by_class' && (
+              <Select value={filterClass} onValueChange={setFilterClass}>
+                <SelectTrigger className="w-32"><SelectValue placeholder="Turma" /></SelectTrigger>
+                <SelectContent>
+                  {uniqueClasses.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Badge variant="secondary" className="ml-auto">{filteredSubmissions.length} resultados</Badge>
+          </div>
           {loading ? (
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-          ) : submissions.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">Nenhuma proposta criada ainda.</p>
+          ) : filteredSubmissions.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">Nenhuma redação encontrada com esse filtro.</p>
           ) : (
             <div className="space-y-6">
               {Array.from(grouped.entries()).map(([key, subs]) => {
@@ -472,120 +617,146 @@ function TeacherPanel() {
 
       <QRCodeModal open={qrOpen} onOpenChange={setQrOpen} url={qrUrl} title="Link da Redação Online" />
 
-      {/* Detail Dialog */}
-      <Dialog open={!!detailSub} onOpenChange={() => setDetailSub(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      {/* Detail Dialog — Audit Interface */}
+      <Dialog open={!!detailSub} onOpenChange={() => { setDetailSub(null); setFeedbackText(''); }}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Redação de {detailSub?.student_name || 'Aluno'}</DialogTitle>
-          </DialogHeader>
-          {detailSub && (
-            <div className="space-y-4">
-              <div className="bg-muted/50 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-72 overflow-y-auto leading-relaxed font-serif">
-                {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 ? (
-                  <AnnotatedText text={detailSub.essay_text} annotations={detailSub.scores.annotations} />
-                ) : (
-                  detailSub.essay_text || 'Nenhum texto enviado.'
+            <DialogTitle className="flex items-center justify-between">
+              <span>Auditoria — {detailSub?.student_name || 'Aluno'}</span>
+              <div className="flex items-center gap-2">
+                {detailSub?.status === 'corrected' && (
+                  <Button size="sm" variant="outline" onClick={() => detailSub && printAuditPdf(detailSub)} disabled={printingPdf}>
+                    {printingPdf ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Printer className="h-4 w-4 mr-1" />}
+                    Imprimir Laudo
+                  </Button>
                 )}
               </div>
-
-              {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 && (
-                <div className="flex gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-destructive/30 border border-destructive" /> Erro</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-300/50 border border-yellow-500" /> Ponto fraco</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-300/50 border border-emerald-500" /> Destaque</span>
-                </div>
-              )}
-
-              <OriginalityBadge originality={detailSub.scores?.originality} />
-
-              {/* Teacher correction trigger for pending essays */}
-              {detailSub.status !== 'corrected' && detailSub.essay_text && detailSub.essay_text.length > 20 && (
-                <Button
-                  onClick={() => correctFromTeacher(detailSub)}
-                  disabled={correctingFromTeacher}
-                  className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-700 text-primary-foreground font-bold py-5"
-                  size="lg"
-                >
-                  {correctingFromTeacher ? (
-                    <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando Correção Doutora...</>
+            </DialogTitle>
+          </DialogHeader>
+          {detailSub && (
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+              {/* Left: Annotated text */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">📝 Texto do Aluno</h3>
+                <div className="bg-muted/50 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-[60vh] overflow-y-auto leading-relaxed font-serif border">
+                  {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 ? (
+                    <AnnotatedText text={detailSub.essay_text} annotations={detailSub.scores.annotations} />
                   ) : (
-                    <><Gem className="h-5 w-5 mr-2" /> ⚖️ EXECUTAR CORREÇÃO DOUTORA</>
+                    detailSub.essay_text || 'Nenhum texto enviado.'
                   )}
-                </Button>
-              )}
-
-              {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
-                <>
-                  <div className="space-y-2">
-                    {detailSub.scores.competencies.map((c, i) => (
-                      <div key={i} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="font-medium">{c.name}</span>
-                          <span>{c.score}/{c.max}</span>
-                        </div>
-                        <Progress value={(c.score / c.max) * 100} className="h-2" />
-                        <p className="text-xs text-muted-foreground">{c.justification}</p>
-                      </div>
-                    ))}
+                </div>
+                {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 && (
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-destructive/30 border border-destructive" /> Gramática</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-300/50 border border-yellow-500" /> Coesão</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-300/50 border border-emerald-500" /> Repertório</span>
                   </div>
-                  <div className="font-bold text-lg text-center">Nota Total: {detailSub.total_score}</div>
-                  {detailSub.suggestions && (
-                    <div className="bg-muted/50 rounded-lg p-3">
-                      <h4 className="font-semibold text-sm mb-1">💡 Sugestões de Melhoria</h4>
-                      <p className="text-sm">{detailSub.suggestions}</p>
-                    </div>
-                  )}
-                  {detailSub.repertoire_analysis && (
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <h4 className="font-semibold text-sm mb-1">📚 Análise de Repertório</h4>
-                      <p className="text-sm">{detailSub.repertoire_analysis}</p>
-                    </div>
-                  )}
+                )}
+                <OriginalityBadge originality={detailSub.scores?.originality} />
+              </div>
 
-                  {/* Rewrite button */}
-                  <Button onClick={() => generateRewrite(detailSub)} disabled={generatingRewrite} variant="outline" className="w-full">
-                    {generatingRewrite ? (
-                      <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Gerando Reescrita Inteligente...</>
+              {/* Right: Scorecard + Actions */}
+              <div className="space-y-4">
+                {/* Teacher correction trigger for pending essays */}
+                {detailSub.status !== 'corrected' && detailSub.essay_text && detailSub.essay_text.length > 20 && (
+                  <Button
+                    onClick={() => correctFromTeacher(detailSub)}
+                    disabled={correctingFromTeacher}
+                    className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold py-5"
+                    size="lg"
+                  >
+                    {correctingFromTeacher ? (
+                      <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando Correção Doutora...</>
                     ) : (
-                      <><Sparkles className="h-4 w-4 mr-2" /> ✨ Gerar Reescrita Inteligente (Nota Máxima)</>
+                      <><Gem className="h-5 w-5 mr-2" /> ⚖️ EXECUTAR CORREÇÃO DOUTORA</>
                     )}
                   </Button>
+                )}
 
-                  {/* Rewrite result */}
-                  {rewriteResult && (
-                    <Card className="border-primary/30">
-                      <CardContent className="pt-4 space-y-3">
-                        <h4 className="font-semibold flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Versão Nota Máxima (Comparação Pedagógica)</h4>
-                        <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-60 overflow-y-auto leading-relaxed font-serif">
-                          {rewriteResult.rewritten_text}
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Resumo das alterações:</p>
-                          <p className="text-sm text-muted-foreground">{rewriteResult.changes_summary}</p>
-                        </div>
-                        {rewriteResult.key_improvements?.length > 0 && (
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium">Melhorias principais:</p>
+                {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
+                  <>
+                    {/* Banca-aware Scorecard */}
+                    <BancaScorecard banca={detailSub.banca} competencies={detailSub.scores.competencies} />
+
+                    <div className="font-bold text-xl text-center p-3 bg-primary/10 rounded-lg">
+                      Nota Total: {detailSub.total_score}
+                    </div>
+
+                    {detailSub.suggestions && (
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <h4 className="font-semibold text-sm mb-1">💡 Sugestões de Melhoria</h4>
+                        <p className="text-sm">{detailSub.suggestions}</p>
+                      </div>
+                    )}
+                    {detailSub.repertoire_analysis && (
+                      <div className="bg-muted/30 rounded-lg p-3">
+                        <h4 className="font-semibold text-sm mb-1">📚 Análise de Repertório</h4>
+                        <p className="text-sm">{detailSub.repertoire_analysis}</p>
+                      </div>
+                    )}
+
+                    {/* Feedback Generator */}
+                    <Button onClick={() => generateStudentFeedback(detailSub)} disabled={generatingFeedback} variant="outline" className="w-full">
+                      {generatingFeedback ? (
+                        <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Gerando Comentário...</>
+                      ) : (
+                        <><MessageSquareHeart className="h-4 w-4 mr-2" /> 💎 GERAR COMENTÁRIO PARA O ALUNO</>
+                      )}
+                    </Button>
+
+                    {feedbackText && (
+                      <Card className="border-primary/20">
+                        <CardContent className="pt-4 space-y-2">
+                          <h4 className="font-semibold text-sm flex items-center gap-2">
+                            <MessageSquareHeart className="h-4 w-4 text-primary" /> Feedback para o Aluno
+                          </h4>
+                          <Textarea value={feedbackText} onChange={e => setFeedbackText(e.target.value)} rows={5} className="text-sm" />
+                          <Button size="sm" variant="secondary" onClick={() => { navigator.clipboard.writeText(feedbackText); toast({ title: '📋 Feedback copiado!' }); }}>
+                            <Copy className="h-3 w-3 mr-1" /> Copiar Feedback
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Rewrite button */}
+                    <Button onClick={() => generateRewrite(detailSub)} disabled={generatingRewrite} variant="outline" className="w-full">
+                      {generatingRewrite ? (
+                        <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Gerando Reescrita...</>
+                      ) : (
+                        <><Sparkles className="h-4 w-4 mr-2" /> ✨ Reescrita Inteligente (Nota Máxima)</>
+                      )}
+                    </Button>
+
+                    {rewriteResult && (
+                      <Card className="border-primary/30">
+                        <CardContent className="pt-4 space-y-3">
+                          <h4 className="font-semibold flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Versão Nota Máxima</h4>
+                          <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-48 overflow-y-auto leading-relaxed font-serif">
+                            {rewriteResult.rewritten_text}
+                          </div>
+                          {rewriteResult.key_improvements?.length > 0 && (
                             <ul className="text-sm text-muted-foreground list-disc pl-4">
                               {rewriteResult.key_improvements.map((imp, i) => <li key={i}>{imp}</li>)}
                             </ul>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-                </>
-              )}
-              <div className="space-y-2 border-t pt-3">
-                <label className="text-sm font-medium">Notas do Professor</label>
-                <Textarea value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} placeholder="Observações, ajustes de nota..." rows={3} />
-                <div className="flex gap-2">
-                  <Button onClick={() => validateCorrection(detailSub, true)} className="flex-1">
-                    <CheckCircle className="h-4 w-4 mr-1" /> Validar Correção
-                  </Button>
-                  <Button variant="outline" onClick={() => validateCorrection(detailSub, false)} className="flex-1">
-                    <XCircle className="h-4 w-4 mr-1" /> Ajustar
-                  </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                )}
+
+                {/* Teacher notes + validation */}
+                <div className="space-y-2 border-t pt-3">
+                  <label className="text-sm font-medium">Notas do Professor</label>
+                  <Textarea value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} placeholder="Observações, ajustes de nota..." rows={3} />
+                  <div className="flex gap-2">
+                    <Button onClick={() => validateCorrection(detailSub, true)} className="flex-1">
+                      <CheckCircle className="h-4 w-4 mr-1" /> Validar
+                    </Button>
+                    <Button variant="outline" onClick={() => validateCorrection(detailSub, false)} className="flex-1">
+                      <XCircle className="h-4 w-4 mr-1" /> Ajustar
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
