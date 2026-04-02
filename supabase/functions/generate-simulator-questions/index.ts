@@ -33,6 +33,16 @@ function repairAndParse(json: string): unknown {
     .replace(/"\s*\n\s*/g, '" ')
     .replace(/\t/g, " ");
 
+  // Fix truncated strings: if we end mid-string, close it
+  const quoteCount = (cleaned.match(/(?<!\\)"/g) || []).length;
+  if (quoteCount % 2 !== 0) {
+    // Remove the last partial key-value and close
+    cleaned = cleaned.replace(/,?\s*"[^"]*$/, "");
+  }
+
+  // Remove trailing commas again after truncation fix
+  cleaned = cleaned.replace(/,\s*$/g, "");
+
   const openBraces = (cleaned.match(/{/g) || []).length;
   const closeBraces = (cleaned.match(/}/g) || []).length;
   const openBrackets = (cleaned.match(/\[/g) || []).length;
