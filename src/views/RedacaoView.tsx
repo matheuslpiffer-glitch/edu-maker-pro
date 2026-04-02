@@ -10,9 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Sparkles, Loader2, Printer, Search, FolderOpen, Calendar, CheckCircle2, PenLine, BookOpen, GraduationCap, Globe, FileText } from 'lucide-react';
+import { ArrowLeft, Sparkles, Loader2, Printer, Search, FolderOpen, Calendar, CheckCircle2, PenLine, BookOpen, GraduationCap, Globe, FileText, Rocket, Copy, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EssaySheet from '@/components/EssaySheet';
+import QRCodeModal from '@/components/QRCodeModal';
+import { buildPublicAppUrl } from '@/lib/public-links';
 import { cn } from '@/lib/utils';
 
 interface TextoMotivador {
@@ -81,6 +83,9 @@ export default function RedacaoView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'used'>('recent');
   const [loadingThemes, setLoadingThemes] = useState(true);
+  const [sendingToLab, setSendingToLab] = useState(false);
+  const [labLink, setLabLink] = useState('');
+  const [qrOpen, setQrOpen] = useState(false);
 
   useEffect(() => { loadThemes(); }, []);
 
@@ -147,6 +152,37 @@ export default function RedacaoView() {
   };
 
   const handlePrint = () => window.print();
+
+  const handleSendToLab = async () => {
+    if (!user || !proposta) return;
+    setSendingToLab(true);
+    try {
+      const bancaId = selectedBanca.toUpperCase() || 'ENEM';
+      const { data, error } = await supabase
+        .from('essay_submissions')
+        .insert({
+          teacher_user_id: user.id,
+          proposal_theme: proposta.tema,
+          banca: bancaId,
+          proposal_content: {
+            textos_motivadores: proposta.textos_motivadores,
+            comando: proposta.comando,
+            area: proposta.area,
+          },
+        } as any)
+        .select()
+        .single();
+      if (error) throw error;
+      const code = (data as any).access_code;
+      const url = buildPublicAppUrl(`/redacao-online/${code}`);
+      setLabLink(url);
+      toast({ title: '🚀 Proposta enviada ao Laboratório!', description: `Código: ${code}` });
+    } catch (e: any) {
+      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+    } finally {
+      setSendingToLab(false);
+    }
+  };
 
   const filteredThemes = savedThemes
     .filter(t => !searchQuery || t.tema.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -326,12 +362,31 @@ export default function RedacaoView() {
       {/* Preview */}
       {proposta && (
         <>
-          <div className="flex justify-end mt-4 no-print">
+          <div className="flex flex-wrap justify-end gap-2 mt-4 no-print">
+            <Button onClick={handleSendToLab} disabled={sendingToLab} className="bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-700 text-primary-foreground font-bold">
+              {sendingToLab ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
+              🚀 ENVIAR PARA LABORATÓRIO ONLINE
+            </Button>
             <Button onClick={handlePrint} variant="outline">
               <Printer className="mr-2 h-4 w-4" />
               🖨️ Imprimir Folha de Redação
             </Button>
           </div>
+
+          {labLink && (
+            <Card className="mt-3 border-primary/30 no-print">
+              <CardContent className="py-3 px-4 flex flex-wrap items-center gap-3">
+                <span className="text-sm font-medium">Link do Laboratório:</span>
+                <code className="text-xs bg-muted px-2 py-1 rounded flex-1 min-w-0 truncate">{labLink}</code>
+                <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(labLink); toast({ title: '📋 Link copiado!' }); }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setQrOpen(true)}>
+                  <QrCode className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          )}
           <div className="mt-4 no-print">
             <Card className="overflow-hidden">
               <CardContent className="p-0">
@@ -390,6 +445,8 @@ export default function RedacaoView() {
           </div>
         )}
       </div>
+
+      <QRCodeModal open={qrOpen} onOpenChange={setQrOpen} url={labLink} title="Link do Laboratório de Redação" />
     </div>
   );
 }

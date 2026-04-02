@@ -211,6 +211,9 @@ function TeacherPanel() {
   const [teacherNotes, setTeacherNotes] = useState('');
   const [generatingRewrite, setGeneratingRewrite] = useState(false);
   const [rewriteResult, setRewriteResult] = useState<{ rewritten_text: string; changes_summary: string; key_improvements: string[] } | null>(null);
+  const [correctingFromTeacher, setCorrectingFromTeacher] = useState(false);
+  const [aiTurmaSummary, setAiTurmaSummary] = useState('');
+  const [generatingSummary, setGeneratingSummary] = useState(false);
 
   const loadSubmissions = useCallback(async () => {
     if (!user) return;
@@ -279,6 +282,60 @@ function TeacherPanel() {
     setGeneratingRewrite(false);
   };
 
+  const correctFromTeacher = async (sub: Submission) => {
+    if (!sub.essay_text || sub.essay_text.trim().length < 20) {
+      toast({ title: 'Texto insuficiente', description: 'O aluno ainda não escreveu o suficiente.', variant: 'destructive' });
+      return;
+    }
+    setCorrectingFromTeacher(true);
+    const { data: fnData, error: fnError } = await supabase.functions.invoke('correct-essay-text', {
+      body: { essayText: sub.essay_text, banca: sub.banca, theme: sub.proposal_theme },
+    });
+    if (fnError || fnData?.error) {
+      toast({ title: 'Erro na correção', description: fnData?.error || fnError?.message, variant: 'destructive' });
+      setCorrectingFromTeacher(false);
+      return;
+    }
+    const totalScore = fnData.total_score || 0;
+    await supabase.from('essay_submissions').update({
+      scores: fnData,
+      suggestions: fnData.suggestions || '',
+      repertoire_analysis: fnData.repertoire_analysis || '',
+      total_score: totalScore,
+      status: 'corrected',
+      corrected_at: new Date().toISOString(),
+    } as any).eq('id', sub.id);
+    setDetailSub({ ...sub, scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '', total_score: totalScore, status: 'corrected' });
+    toast({ title: '✅ Correção Doutora concluída!', description: `Nota: ${totalScore}` });
+    loadSubmissions();
+    setCorrectingFromTeacher(false);
+  };
+
+  const generateTurmaSummary = async () => {
+    const corrected = submissions.filter(s => s.status === 'corrected' && s.scores?.competencies);
+    if (corrected.length < 2) {
+      toast({ title: 'Dados insuficientes', description: 'Corrija ao menos 2 redações para gerar o resumo.', variant: 'destructive' });
+      return;
+    }
+    setGeneratingSummary(true);
+    const compMap = new Map<string, { total: number; count: number }>();
+    corrected.forEach(s => {
+      s.scores.competencies!.forEach(c => {
+        const e = compMap.get(c.name) || { total: 0, count: 0 };
+        e.total += (c.score / c.max) * 100;
+        e.count++;
+        compMap.set(c.name, e);
+      });
+    });
+    const stats = Array.from(compMap.entries()).map(([name, { total, count }]) => `${name}: média ${Math.round(total / count)}%`).join(', ');
+    const { data, error } = await supabase.functions.invoke('pedagogical-insights', {
+      body: { prompt: `Com base em ${corrected.length} redações corrigidas, as médias por competência são: ${stats}. Gere um resumo de 3 linhas para o professor com: 1) a principal dificuldade da turma, 2) a competência que precisa de reforço, 3) uma sugestão de atividade.` },
+    });
+    if (!error && data?.tips) setAiTurmaSummary(data.tips);
+    else setAiTurmaSummary(`Análise: ${stats}. Reforce as competências com menor média.`);
+    setGeneratingSummary(false);
+  };
+
   const grouped = useMemo(() => {
     const map = new Map<string, Submission[]>();
     submissions.forEach(s => {
@@ -314,6 +371,27 @@ function TeacherPanel() {
 
       {/* Heatmap */}
       <CompetencyHeatmap submissions={submissions} />
+
+      {/* AI Turma Summary */}
+      <Card className="border-primary/20">
+        <CardContent className="pt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Dashboard de Habilidades — Resumo IA
+            </h3>
+            <Button size="sm" variant="outline" onClick={generateTurmaSummary} disabled={generatingSummary}>
+              {generatingSummary ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <BarChart3 className="h-4 w-4 mr-1" />}
+              Gerar Análise
+            </Button>
+          </div>
+          {aiTurmaSummary && (
+            <div className="bg-muted/50 rounded-lg p-3 text-sm text-foreground leading-relaxed">
+              {aiTurmaSummary}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -420,6 +498,22 @@ function TeacherPanel() {
 
               <OriginalityBadge originality={detailSub.scores?.originality} />
 
+              {/* Teacher correction trigger for pending essays */}
+              {detailSub.status !== 'corrected' && detailSub.essay_text && detailSub.essay_text.length > 20 && (
+                <Button
+                  onClick={() => correctFromTeacher(detailSub)}
+                  disabled={correctingFromTeacher}
+                  className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-700 text-primary-foreground font-bold py-5"
+                  size="lg"
+                >
+                  {correctingFromTeacher ? (
+                    <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando Correção Doutora...</>
+                  ) : (
+                    <><Gem className="h-5 w-5 mr-2" /> ⚖️ EXECUTAR CORREÇÃO DOUTORA</>
+                  )}
+                </Button>
+              )}
+
               {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
                 <>
                   <div className="space-y-2">
@@ -505,6 +599,7 @@ function TeacherPanel() {
 // ── Student Editor ──
 function StudentEditor({ accessCode }: { accessCode: string }) {
   const [submission, setSubmission] = useState<Submission | null>(null);
+  const [proposalContent, setProposalContent] = useState<{ textos_motivadores?: { tipo: string; conteudo: string }[]; comando?: string; area?: string } | null>(null);
   const [essayText, setEssayText] = useState('');
   const [studentName, setStudentName] = useState('');
   const [studentClass, setStudentClass] = useState('');
@@ -514,6 +609,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
   const [rewriting, setRewriting] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const lsKey = `eduflow_draft_redacao_${accessCode}`;
+  const ssKey = `eduflow_session_redacao_${accessCode}`;
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
   const dbSyncTimer = useRef<ReturnType<typeof setInterval>>();
   const lastSyncedText = useRef('');
@@ -530,7 +626,14 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
       if (!data) { setNotFound(true); setLoading(false); return; }
       const sub = data as unknown as Submission;
       setSubmission(sub);
-      const draft = localStorage.getItem(lsKey);
+      // Load proposal content (motivational texts)
+      const pc = (data as any).proposal_content;
+      if (pc && typeof pc === 'object' && pc.textos_motivadores) {
+        setProposalContent(pc);
+      }
+      // Restore draft: sessionStorage > localStorage > DB
+      const sessionDraft = sessionStorage.getItem(ssKey);
+      const draft = sessionDraft || localStorage.getItem(lsKey);
       if (draft) {
         try {
           const d = JSON.parse(draft);
@@ -552,10 +655,12 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      localStorage.setItem(lsKey, JSON.stringify({ text: essayText, name: studentName, cls: studentClass }));
+      const payload = JSON.stringify({ text: essayText, name: studentName, cls: studentClass });
+      localStorage.setItem(lsKey, payload);
+      sessionStorage.setItem(ssKey, payload);
     }, 500);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [essayText, studentName, studentClass, lsKey]);
+  }, [essayText, studentName, studentClass, lsKey, ssKey]);
 
   // DB sync every 10 seconds
   useEffect(() => {
@@ -632,6 +737,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
     } : null);
 
     localStorage.removeItem(lsKey);
+    sessionStorage.removeItem(ssKey);
     setRewriting(false);
     toast({ title: '✅ Redação corrigida!', description: `Nota total: ${totalScore}` });
     setCorrecting(false);
@@ -669,6 +775,26 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
           <Input placeholder="Seu nome completo *" value={studentName} onChange={e => setStudentName(e.target.value)} disabled={isCorrected} />
           <Input placeholder="Turma (ex: 3ºA)" value={studentClass} onChange={e => setStudentClass(e.target.value)} disabled={isCorrected} />
         </div>
+
+        {/* Proposal content (motivational texts) for student reference */}
+        {proposalContent?.textos_motivadores && proposalContent.textos_motivadores.length > 0 && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-4 space-y-3">
+              <h3 className="font-bold text-sm uppercase tracking-wider text-primary">📄 Textos de Apoio — Proposta de Redação</h3>
+              {proposalContent.textos_motivadores.map((t, i) => (
+                <div key={i} className="border-l-2 border-primary/30 pl-3">
+                  <p className="font-semibold text-xs uppercase text-muted-foreground mb-0.5">{t.tipo}</p>
+                  <p className="text-sm leading-relaxed">{t.conteudo}</p>
+                </div>
+              ))}
+              {proposalContent.comando && (
+                <div className="bg-muted/50 rounded-lg p-3 mt-2">
+                  <p className="text-sm leading-relaxed">{proposalContent.comando.replace('[TEMA]', submission?.proposal_theme || '')}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Editor or Annotated view */}
         {isCorrected && submission.scores?.annotations && submission.scores.annotations.length > 0 ? (
