@@ -640,7 +640,7 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
     }
 
     const examLabels: Record<string, string> = {
-      saresp: "SARESP (Sistema de Avaliação de Rendimento Escolar do Estado de São Paulo)",
+      saresp: "Avaliação Paulista (baseada nos descritores de proficiência do Estado de São Paulo)",
       prova_paulista: "Prova Paulista",
       ade: "Avaliação Diagnóstica Estadual (ADE)",
       saeb: "SAEB (Sistema de Avaliação da Educação Básica)",
