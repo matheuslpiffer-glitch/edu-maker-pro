@@ -268,6 +268,32 @@ export default function StudentDashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* Merit Certificate Notification Modal */}
+      <Dialog open={!!meritNotification} onOpenChange={() => setMeritNotification(null)}>
+        <DialogContent className="max-w-md text-center">
+          <div className="space-y-4 py-4">
+            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center animate-bounce">
+              <Trophy className="text-white" size={36} />
+            </div>
+            <h2 className="text-2xl font-extrabold text-foreground">
+              👑 CONQUISTA DESBLOQUEADA!
+            </h2>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Parabéns, <strong>{meritNotification?.studentName}</strong>! Sua redação sobre <em>"{meritNotification?.theme}"</em> foi corrigida e validada pelo professor.
+            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold text-lg">
+              <Award size={20} /> Nota: {meritNotification?.score}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Você subiu de nível! Continue evoluindo na Arena de Redação. 🚀
+            </p>
+            <Button onClick={() => setMeritNotification(null)} className="w-full gap-2" size="lg">
+              <Sparkles size={16} /> Continuar Treinando
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Branding Header */}
       <p className="text-center text-xs text-muted-foreground font-medium tracking-wide">
         Portal de Estudos — EduCreator Pro | Direção Pedagógica: Matheus Lima Piffer
