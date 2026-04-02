@@ -326,7 +326,7 @@ export default function StudentEssayPortal() {
     setRewriteText(localStorage.getItem(rwKey) || '');
   };
 
-  const submitForCorrection = async (textToSubmit?: string) => {
+  const submitEssay = async (textToSubmit?: string) => {
     if (!submission) return;
     const txt = textToSubmit || essayText;
     if (txt.trim().length < 50) {
@@ -339,33 +339,17 @@ export default function StudentEssayPortal() {
     }
     setCorrecting(true);
     await supabase.from('essay_submissions').update({
-      essay_text: txt, student_name: studentName.trim(), student_class: studentClass.trim(), status: 'correcting',
+      essay_text: txt, student_name: studentName.trim(), student_class: studentClass.trim(), status: 'submitted',
     } as any).eq('id', submission.id);
 
-    const { data: fnData, error: fnError } = await supabase.functions.invoke('correct-essay-text', {
-      body: { essayText: txt, banca: submission.banca, theme: submission.proposal_theme },
-    });
-
-    if (fnError || fnData?.error) {
-      toast({ title: 'Erro na correção', description: fnData?.error || fnError?.message, variant: 'destructive' });
-      setCorrecting(false);
-      return;
-    }
-
-    const totalScore = fnData.total_score || 0;
-    await supabase.from('essay_submissions').update({
-      scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '',
-      total_score: totalScore, status: 'corrected', corrected_at: new Date().toISOString(),
-    } as any).eq('id', submission.id);
-
-    setSubmission(prev => prev ? { ...prev, scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '', total_score: totalScore, status: 'corrected', essay_text: txt } : null);
+    setSubmission(prev => prev ? { ...prev, status: 'submitted', essay_text: txt } : null);
     setEssayText(txt);
     localStorage.removeItem(lsKey);
     sessionStorage.removeItem(lsKey);
     localStorage.removeItem(rwKey);
     setRewriting(false);
     setRewriteText('');
-    toast({ title: '✅ Redação corrigida!', description: `Nota total: ${totalScore}` });
+    toast({ title: '📨 Redação entregue!', description: 'Sua redação foi enviada ao professor e está na fila de correção.' });
     setCorrecting(false);
   };
 
