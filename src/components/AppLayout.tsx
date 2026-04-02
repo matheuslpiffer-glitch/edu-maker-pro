@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Eye, ArrowLeft, ArrowLeftRight } from 'lucide-react';
 import AppSidebar from './AppSidebar';
+import HelpFab from './HelpFab';
 import SaveStatusIndicator from './SaveStatusIndicator';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { useRole } from '@/hooks/useRole';
@@ -67,6 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <SaveStatusIndicator className="ml-auto" />
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto min-h-[60vh]">{children}</main>
+        <HelpFab />
         <footer className="text-center text-xs text-muted-foreground py-3 border-t no-print">
           EduCreator Pro | Estabilidade de Sistema por Matheus Lima Piffer
         </footer>
