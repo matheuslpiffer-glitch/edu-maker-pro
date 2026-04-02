@@ -21,7 +21,7 @@ const modules = [
     icon: ClipboardList,
     title: 'Simulados Elite',
     badge: 'IA',
-    description: 'Cadernos de prova padrão SARESP, SAEB, Prova Paulista e ADE com 5 alternativas (A-E), Folha de Respostas com bolinhas e QR Code de autenticação.',
+    description: 'Cadernos de prova padrão BNCC, SAEB, Prova Paulista e ADE com 5 alternativas (A-E), Folha de Respostas com bolinhas e QR Code de autenticação.',
     steps: ['Escolha o tipo de avaliação e habilidades', 'A IA gera as questões e o gabarito', 'Exporte o caderno de prova + folha de respostas'],
   },
   {

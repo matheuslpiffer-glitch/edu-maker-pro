@@ -22,7 +22,7 @@ serve(async (req) => {
       const isAEE = level === "aee";
       const matrixDesc = matrix === "mackenzie"
         ? "diretrizes do Sistema Mackenzie para escolas da Rede Gustavo Franco (RGF)"
-        : "descritores do SARESP (Sistema de Avaliação de Rendimento Escolar do Estado de São Paulo)";
+        : "descritores da Avaliação Paulista (proficiência do Estado de São Paulo)";
 
       prompt = `Você é um especialista em avaliação educacional brasileira.
 
@@ -43,7 +43,7 @@ Para CADA questão inclua:
 - "alternativas": array de objetos { "letra": "A", "texto": "...", "correta": true/false }
 - "gabarito": letra da alternativa correta
 - "justificativa": explicação detalhada de por que a resposta está correta e por que as outras estão erradas
-- "habilidade": código e descrição da habilidade BNCC/SARESP avaliada
+- "habilidade": código e descrição da habilidade BNCC avaliada
 ${isAEE ? '- "suporte_visual": descrição de imagem de apoio para o professor' : ''}
 
 REGRAS:

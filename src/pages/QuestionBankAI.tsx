@@ -303,7 +303,7 @@ export default function QuestionBankAI() {
                   <Input type="number" min={0} max={10} value={mediumCount} onChange={e => setMediumCount(+e.target.value)} className="text-center text-lg font-bold" />
                 </div>
                 <div className="space-y-2 text-center p-3 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20">
-                  <Label className="text-red-700 dark:text-red-400 font-semibold text-xs uppercase">🔴 Difícil (Avançado/SARESP)</Label>
+                  <Label className="text-red-700 dark:text-red-400 font-semibold text-xs uppercase">🔴 Difícil (Avançado)</Label>
                   <Input type="number" min={0} max={10} value={hardCount} onChange={e => setHardCount(+e.target.value)} className="text-center text-lg font-bold" />
                 </div>
               </div>

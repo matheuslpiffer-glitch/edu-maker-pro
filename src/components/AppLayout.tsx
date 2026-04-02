@@ -64,7 +64,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
           <span className="ml-3 font-bold text-lg text-slate-900">EduCreator</span>
         </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto min-h-[60vh]">{children}</main>
         <footer className="text-center text-xs text-muted-foreground py-3 border-t no-print">
           EduCreator Pro | Estabilidade de Sistema por Matheus Lima Piffer
         </footer>

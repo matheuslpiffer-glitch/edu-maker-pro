@@ -26,7 +26,7 @@ interface Props {
 }
 
 const EXAM_LABELS: Record<string, string> = {
-  saresp: 'SARESP',
+  saresp: 'Avaliação Paulista',
   prova_paulista: 'Prova Paulista',
   ade: 'Avaliação Diagnóstica (ADE)',
   saeb: 'SAEB',

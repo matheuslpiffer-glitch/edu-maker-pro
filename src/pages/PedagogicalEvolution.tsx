@@ -49,7 +49,7 @@ interface TimePoint {
 }
 
 const EXAM_LABELS: Record<string, string> = {
-  saresp: 'SARESP', prova_paulista: 'Prova Paulista',
+  saresp: 'Avaliação Paulista', prova_paulista: 'Prova Paulista',
   ade: 'ADE', saeb: 'SAEB',
 };
 
