@@ -1433,7 +1433,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                             </span>
                             <span className="text-slate-400 text-xs">restantes</span>
                           </div>
-                        )
+                        )}
                       </div>
                     </div>
 
