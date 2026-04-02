@@ -944,7 +944,12 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       {isDiscursiva && (
         <EspelhoCorrecao questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} />
       )}
+      {isSenaiMode && (
+        <SenaiIndustrialTemplates institutionName={institutionName} title={title} />
+      )}
       </div>
+    </div>
+  );
     </div>
   );
 
