@@ -79,6 +79,8 @@ export default function StudentDashboard() {
   const [accessCode, setAccessCode] = useState('');
   const [codeLoading, setCodeLoading] = useState(false);
 
+  const [meritNotification, setMeritNotification] = useState<{ studentName: string; theme: string; score: number } | null>(null);
+
   // First-visit welcome modal + toast
   useEffect(() => {
     if (!user) return;
@@ -94,6 +96,39 @@ export default function StudentDashboard() {
         description: 'Clique nos cards abaixo para acessar seus simulados e o Dossiê Literário. Bons estudos!',
       });
     }, 1000);
+  }, [user, toast]);
+
+  // Check for merit certificates (validated essays with high scores)
+  useEffect(() => {
+    if (!user) return;
+    const seenKey = `educreator_merit_seen_${user.id}`;
+    const seenIds: string[] = JSON.parse(localStorage.getItem(seenKey) || '[]');
+
+    supabase
+      .from('essay_submissions')
+      .select('id, student_name, proposal_theme, total_score, teacher_validated, status')
+      .eq('status', 'corrected')
+      .eq('teacher_validated', true)
+      .then(({ data }) => {
+        if (!data || data.length === 0) return;
+        const newMerit = data.find(
+          (e: any) => !seenIds.includes(e.id) && (e.total_score ?? 0) > 0
+        );
+        if (newMerit) {
+          setMeritNotification({
+            studentName: newMerit.student_name || 'Estudante',
+            theme: newMerit.proposal_theme || 'Redação',
+            score: newMerit.total_score ?? 0,
+          });
+          localStorage.setItem(seenKey, JSON.stringify([...seenIds, newMerit.id]));
+          setTimeout(() => {
+            toast({
+              title: '👑 CONQUISTA DESBLOQUEADA!',
+              description: `Parabéns! Sua redação "${newMerit.proposal_theme}" foi validada pelo professor. Nota: ${newMerit.total_score}`,
+            });
+          }, 2000);
+        }
+      });
   }, [user, toast]);
 
   // Load latest available simulator (most recent from any teacher)
@@ -228,6 +263,32 @@ export default function StudentDashboard() {
             </p>
             <Button onClick={() => { setShowWelcome(false); }} className="w-full gap-2" size="lg">
               <Eye size={16} /> Ver meus Simulados
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Merit Certificate Notification Modal */}
+      <Dialog open={!!meritNotification} onOpenChange={() => setMeritNotification(null)}>
+        <DialogContent className="max-w-md text-center">
+          <div className="space-y-4 py-4">
+            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center animate-bounce">
+              <Trophy className="text-white" size={36} />
+            </div>
+            <h2 className="text-2xl font-extrabold text-foreground">
+              👑 CONQUISTA DESBLOQUEADA!
+            </h2>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Parabéns, <strong>{meritNotification?.studentName}</strong>! Sua redação sobre <em>"{meritNotification?.theme}"</em> foi corrigida e validada pelo professor.
+            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-yellow-400 to-amber-500 text-white font-bold text-lg">
+              <Award size={20} /> Nota: {meritNotification?.score}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Você subiu de nível! Continue evoluindo na Arena de Redação. 🚀
+            </p>
+            <Button onClick={() => setMeritNotification(null)} className="w-full gap-2" size="lg">
+              <Sparkles size={16} /> Continuar Treinando
             </Button>
           </div>
         </DialogContent>
