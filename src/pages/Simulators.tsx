@@ -93,7 +93,18 @@ const SENAI_EIXOS = [
   { id: 'logistica', label: 'Logística Industrial', icon: '📦' },
   { id: 'quimica', label: 'Química Industrial', icon: '🧪' },
   { id: 'metalurgia', label: 'Metalurgia e Siderurgia', icon: '🔩' },
+  { id: 'logistica_sp', label: 'Logística (SP)', icon: '🚛' },
+  { id: 'administracao', label: 'Administração', icon: '📊' },
+  { id: 'solda_sp', label: 'Solda (Desenho Técnico)', icon: '🔧' },
+  { id: 'desenvolvimento', label: 'Desenvolvimento de Sistemas', icon: '💻' },
 ];
+
+const SENAI_SP_MATRIX: Record<string, string> = {
+  logistica_sp: 'Cubagem, modais de transporte rodoviário/ferroviário/hidroviário paulistas, rotas logísticas do estado de SP, armazenagem, picking, packing, gestão de estoques e WMS.',
+  administracao: 'Fluxogramas de processos industriais, organogramas, planejamento estratégico, indicadores de produtividade (OEE), PDCA, ferramentas de qualidade (Ishikawa, 5W2H), gestão de pessoas.',
+  solda_sp: 'Leitura de desenho técnico mecânico, tipos de juntas soldadas (topo, ângulo, sobreposição), processos MIG/MAG, TIG e eletrodo revestido, simbologia de soldagem AWS, normas ABNT de tolerância dimensional.',
+  desenvolvimento: 'Lógica de programação orientada a objetos (POO), classes, herança, polimorfismo, integração com banco de dados relacional (SQL), modelagem ER, CRUD, APIs REST, versionamento Git.',
+};
 
 // DNA categories for Técnicos mode (kept for compatibility)
 const TECNICOS_DNA: DNACategory[] = [
