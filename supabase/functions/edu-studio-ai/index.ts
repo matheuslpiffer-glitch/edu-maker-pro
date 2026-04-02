@@ -22,7 +22,7 @@ serve(async (req) => {
       const isAEE = level === "aee";
       const matrixDesc = matrix === "mackenzie"
         ? "diretrizes do Sistema Mackenzie para escolas da Rede Gustavo Franco (RGF)"
-        : "descritores do SARESP (Sistema de Avaliação de Rendimento Escolar do Estado de São Paulo)";
+        : "descritores da Avaliação Paulista (proficiência do Estado de São Paulo)";
 
       prompt = `Você é um especialista em avaliação educacional brasileira.
 
