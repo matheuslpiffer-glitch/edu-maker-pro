@@ -153,6 +153,37 @@ export default function RedacaoView() {
 
   const handlePrint = () => window.print();
 
+  const handleSendToLab = async () => {
+    if (!user || !proposta) return;
+    setSendingToLab(true);
+    try {
+      const bancaId = selectedBanca.toUpperCase() || 'ENEM';
+      const { data, error } = await supabase
+        .from('essay_submissions')
+        .insert({
+          teacher_user_id: user.id,
+          proposal_theme: proposta.tema,
+          banca: bancaId,
+          proposal_content: {
+            textos_motivadores: proposta.textos_motivadores,
+            comando: proposta.comando,
+            area: proposta.area,
+          },
+        } as any)
+        .select()
+        .single();
+      if (error) throw error;
+      const code = (data as any).access_code;
+      const url = buildPublicAppUrl(`/redacao-online/${code}`);
+      setLabLink(url);
+      toast({ title: '🚀 Proposta enviada ao Laboratório!', description: `Código: ${code}` });
+    } catch (e: any) {
+      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
+    } finally {
+      setSendingToLab(false);
+    }
+  };
+
   const filteredThemes = savedThemes
     .filter(t => !searchQuery || t.tema.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => {
