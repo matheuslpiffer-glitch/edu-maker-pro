@@ -23,6 +23,7 @@ interface Props {
   questions: SimQuestion[];
   isDiscursiva?: boolean;
   columns?: 1 | 2;
+  isSenaiMode?: boolean;
 }
 
 const EXAM_LABELS: Record<string, string> = {
