@@ -68,6 +68,7 @@ const PausaPedagogica = lazy(() => import("@/pages/PausaPedagogica"));
 const ExtraActivity = lazy(() => import("@/pages/ExtraActivity"));
 const EssayLab = lazy(() => import("@/pages/EssayLab"));
 const EssayLabStudentPage = lazy(() => import("@/pages/EssayLabStudentPage"));
+const StudentEssayPortal = lazy(() => import("@/pages/StudentEssayPortal"));
 
 const queryClient = new QueryClient();
 
@@ -208,7 +209,7 @@ const App = () => (
                       <Route path="/assinar/:id" element={<SignAttendance />} />
                       <Route path="/pisa-aluno/:id" element={<PisaStudentView />} />
                       <Route path="/atividade/:id" element={<StudentActivityResponse />} />
-                      <Route path="/redacao-online/:code" element={<EssayLabStudentPage />} />
+                      <Route path="/redacao-online/:code" element={<StudentEssayPortal />} />
                       <Route path="/simulado/:id" element={<StudentSimulatorView />} />
                       <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
                       <Route path="/s/:code" element={<ShortLinkRedirect />} />
