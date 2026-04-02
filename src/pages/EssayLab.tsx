@@ -282,6 +282,60 @@ function TeacherPanel() {
     setGeneratingRewrite(false);
   };
 
+  const correctFromTeacher = async (sub: Submission) => {
+    if (!sub.essay_text || sub.essay_text.trim().length < 20) {
+      toast({ title: 'Texto insuficiente', description: 'O aluno ainda não escreveu o suficiente.', variant: 'destructive' });
+      return;
+    }
+    setCorrectingFromTeacher(true);
+    const { data: fnData, error: fnError } = await supabase.functions.invoke('correct-essay-text', {
+      body: { essayText: sub.essay_text, banca: sub.banca, theme: sub.proposal_theme },
+    });
+    if (fnError || fnData?.error) {
+      toast({ title: 'Erro na correção', description: fnData?.error || fnError?.message, variant: 'destructive' });
+      setCorrectingFromTeacher(false);
+      return;
+    }
+    const totalScore = fnData.total_score || 0;
+    await supabase.from('essay_submissions').update({
+      scores: fnData,
+      suggestions: fnData.suggestions || '',
+      repertoire_analysis: fnData.repertoire_analysis || '',
+      total_score: totalScore,
+      status: 'corrected',
+      corrected_at: new Date().toISOString(),
+    } as any).eq('id', sub.id);
+    setDetailSub({ ...sub, scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '', total_score: totalScore, status: 'corrected' });
+    toast({ title: '✅ Correção Doutora concluída!', description: `Nota: ${totalScore}` });
+    loadSubmissions();
+    setCorrectingFromTeacher(false);
+  };
+
+  const generateTurmaSummary = async () => {
+    const corrected = submissions.filter(s => s.status === 'corrected' && s.scores?.competencies);
+    if (corrected.length < 2) {
+      toast({ title: 'Dados insuficientes', description: 'Corrija ao menos 2 redações para gerar o resumo.', variant: 'destructive' });
+      return;
+    }
+    setGeneratingSummary(true);
+    const compMap = new Map<string, { total: number; count: number }>();
+    corrected.forEach(s => {
+      s.scores.competencies!.forEach(c => {
+        const e = compMap.get(c.name) || { total: 0, count: 0 };
+        e.total += (c.score / c.max) * 100;
+        e.count++;
+        compMap.set(c.name, e);
+      });
+    });
+    const stats = Array.from(compMap.entries()).map(([name, { total, count }]) => `${name}: média ${Math.round(total / count)}%`).join(', ');
+    const { data, error } = await supabase.functions.invoke('pedagogical-insights', {
+      body: { prompt: `Com base em ${corrected.length} redações corrigidas, as médias por competência são: ${stats}. Gere um resumo de 3 linhas para o professor com: 1) a principal dificuldade da turma, 2) a competência que precisa de reforço, 3) uma sugestão de atividade.` },
+    });
+    if (!error && data?.tips) setAiTurmaSummary(data.tips);
+    else setAiTurmaSummary(`Análise: ${stats}. Reforce as competências com menor média.`);
+    setGeneratingSummary(false);
+  };
+
   const grouped = useMemo(() => {
     const map = new Map<string, Submission[]>();
     submissions.forEach(s => {
