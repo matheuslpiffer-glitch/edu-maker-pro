@@ -79,6 +79,15 @@ const TECNICOS_AREA_SUBJECTS = [
   { id: 'humanas', label: 'Humanas / Atualidades', icon: '🌎' },
 ];
 
+const SENAI_EIXOS = [
+  { id: 'mecanica', label: 'Mecânica Industrial', icon: '⚙️' },
+  { id: 'eletrica', label: 'Elétrica / Eletrotécnica', icon: '⚡' },
+  { id: 'automacao', label: 'Automação / Mecatrônica', icon: '🤖' },
+  { id: 'manutencao', label: 'Manutenção Industrial', icon: '🔧' },
+  { id: 'soldagem', label: 'Soldagem', icon: '🔥' },
+  { id: 'seguranca', label: 'Segurança do Trabalho', icon: '🦺' },
+];
+
 // DNA categories for Técnicos mode (kept for compatibility)
 const TECNICOS_DNA: DNACategory[] = [
   {
