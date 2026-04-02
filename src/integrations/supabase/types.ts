@@ -236,6 +236,69 @@ export type Database = {
         }
         Relationships: []
       }
+      essay_submissions: {
+        Row: {
+          access_code: string | null
+          banca: string
+          corrected_at: string | null
+          created_at: string
+          essay_text: string
+          id: string
+          proposal_theme: string
+          repertoire_analysis: string | null
+          scores: Json | null
+          status: string
+          student_class: string
+          student_name: string
+          suggestions: string | null
+          teacher_notes: string | null
+          teacher_user_id: string
+          teacher_validated: boolean | null
+          total_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          access_code?: string | null
+          banca?: string
+          corrected_at?: string | null
+          created_at?: string
+          essay_text?: string
+          id?: string
+          proposal_theme?: string
+          repertoire_analysis?: string | null
+          scores?: Json | null
+          status?: string
+          student_class?: string
+          student_name?: string
+          suggestions?: string | null
+          teacher_notes?: string | null
+          teacher_user_id: string
+          teacher_validated?: boolean | null
+          total_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string | null
+          banca?: string
+          corrected_at?: string | null
+          created_at?: string
+          essay_text?: string
+          id?: string
+          proposal_theme?: string
+          repertoire_analysis?: string | null
+          scores?: Json | null
+          status?: string
+          student_class?: string
+          student_name?: string
+          suggestions?: string | null
+          teacher_notes?: string | null
+          teacher_user_id?: string
+          teacher_validated?: boolean | null
+          total_score?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       essay_themes: {
         Row: {
           area: string
