@@ -617,120 +617,146 @@ function TeacherPanel() {
 
       <QRCodeModal open={qrOpen} onOpenChange={setQrOpen} url={qrUrl} title="Link da Redação Online" />
 
-      {/* Detail Dialog */}
-      <Dialog open={!!detailSub} onOpenChange={() => setDetailSub(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+      {/* Detail Dialog — Audit Interface */}
+      <Dialog open={!!detailSub} onOpenChange={() => { setDetailSub(null); setFeedbackText(''); }}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Redação de {detailSub?.student_name || 'Aluno'}</DialogTitle>
-          </DialogHeader>
-          {detailSub && (
-            <div className="space-y-4">
-              <div className="bg-muted/50 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-72 overflow-y-auto leading-relaxed font-serif">
-                {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 ? (
-                  <AnnotatedText text={detailSub.essay_text} annotations={detailSub.scores.annotations} />
-                ) : (
-                  detailSub.essay_text || 'Nenhum texto enviado.'
+            <DialogTitle className="flex items-center justify-between">
+              <span>Auditoria — {detailSub?.student_name || 'Aluno'}</span>
+              <div className="flex items-center gap-2">
+                {detailSub?.status === 'corrected' && (
+                  <Button size="sm" variant="outline" onClick={() => detailSub && printAuditPdf(detailSub)} disabled={printingPdf}>
+                    {printingPdf ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Printer className="h-4 w-4 mr-1" />}
+                    Imprimir Laudo
+                  </Button>
                 )}
               </div>
-
-              {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 && (
-                <div className="flex gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-destructive/30 border border-destructive" /> Erro</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-300/50 border border-yellow-500" /> Ponto fraco</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-300/50 border border-emerald-500" /> Destaque</span>
-                </div>
-              )}
-
-              <OriginalityBadge originality={detailSub.scores?.originality} />
-
-              {/* Teacher correction trigger for pending essays */}
-              {detailSub.status !== 'corrected' && detailSub.essay_text && detailSub.essay_text.length > 20 && (
-                <Button
-                  onClick={() => correctFromTeacher(detailSub)}
-                  disabled={correctingFromTeacher}
-                  className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-700 text-primary-foreground font-bold py-5"
-                  size="lg"
-                >
-                  {correctingFromTeacher ? (
-                    <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando Correção Doutora...</>
+            </DialogTitle>
+          </DialogHeader>
+          {detailSub && (
+            <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
+              {/* Left: Annotated text */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">📝 Texto do Aluno</h3>
+                <div className="bg-muted/50 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-[60vh] overflow-y-auto leading-relaxed font-serif border">
+                  {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 ? (
+                    <AnnotatedText text={detailSub.essay_text} annotations={detailSub.scores.annotations} />
                   ) : (
-                    <><Gem className="h-5 w-5 mr-2" /> ⚖️ EXECUTAR CORREÇÃO DOUTORA</>
+                    detailSub.essay_text || 'Nenhum texto enviado.'
                   )}
-                </Button>
-              )}
-
-              {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
-                <>
-                  <div className="space-y-2">
-                    {detailSub.scores.competencies.map((c, i) => (
-                      <div key={i} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="font-medium">{c.name}</span>
-                          <span>{c.score}/{c.max}</span>
-                        </div>
-                        <Progress value={(c.score / c.max) * 100} className="h-2" />
-                        <p className="text-xs text-muted-foreground">{c.justification}</p>
-                      </div>
-                    ))}
+                </div>
+                {detailSub.scores?.annotations && detailSub.scores.annotations.length > 0 && (
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-destructive/30 border border-destructive" /> Gramática</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-yellow-300/50 border border-yellow-500" /> Coesão</span>
+                    <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-300/50 border border-emerald-500" /> Repertório</span>
                   </div>
-                  <div className="font-bold text-lg text-center">Nota Total: {detailSub.total_score}</div>
-                  {detailSub.suggestions && (
-                    <div className="bg-muted/50 rounded-lg p-3">
-                      <h4 className="font-semibold text-sm mb-1">💡 Sugestões de Melhoria</h4>
-                      <p className="text-sm">{detailSub.suggestions}</p>
-                    </div>
-                  )}
-                  {detailSub.repertoire_analysis && (
-                    <div className="bg-muted/30 rounded-lg p-3">
-                      <h4 className="font-semibold text-sm mb-1">📚 Análise de Repertório</h4>
-                      <p className="text-sm">{detailSub.repertoire_analysis}</p>
-                    </div>
-                  )}
+                )}
+                <OriginalityBadge originality={detailSub.scores?.originality} />
+              </div>
 
-                  {/* Rewrite button */}
-                  <Button onClick={() => generateRewrite(detailSub)} disabled={generatingRewrite} variant="outline" className="w-full">
-                    {generatingRewrite ? (
-                      <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Gerando Reescrita Inteligente...</>
+              {/* Right: Scorecard + Actions */}
+              <div className="space-y-4">
+                {/* Teacher correction trigger for pending essays */}
+                {detailSub.status !== 'corrected' && detailSub.essay_text && detailSub.essay_text.length > 20 && (
+                  <Button
+                    onClick={() => correctFromTeacher(detailSub)}
+                    disabled={correctingFromTeacher}
+                    className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold py-5"
+                    size="lg"
+                  >
+                    {correctingFromTeacher ? (
+                      <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando Correção Doutora...</>
                     ) : (
-                      <><Sparkles className="h-4 w-4 mr-2" /> ✨ Gerar Reescrita Inteligente (Nota Máxima)</>
+                      <><Gem className="h-5 w-5 mr-2" /> ⚖️ EXECUTAR CORREÇÃO DOUTORA</>
                     )}
                   </Button>
+                )}
 
-                  {/* Rewrite result */}
-                  {rewriteResult && (
-                    <Card className="border-primary/30">
-                      <CardContent className="pt-4 space-y-3">
-                        <h4 className="font-semibold flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Versão Nota Máxima (Comparação Pedagógica)</h4>
-                        <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-60 overflow-y-auto leading-relaxed font-serif">
-                          {rewriteResult.rewritten_text}
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Resumo das alterações:</p>
-                          <p className="text-sm text-muted-foreground">{rewriteResult.changes_summary}</p>
-                        </div>
-                        {rewriteResult.key_improvements?.length > 0 && (
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium">Melhorias principais:</p>
+                {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
+                  <>
+                    {/* Banca-aware Scorecard */}
+                    <BancaScorecard banca={detailSub.banca} competencies={detailSub.scores.competencies} />
+
+                    <div className="font-bold text-xl text-center p-3 bg-primary/10 rounded-lg">
+                      Nota Total: {detailSub.total_score}
+                    </div>
+
+                    {detailSub.suggestions && (
+                      <div className="bg-muted/50 rounded-lg p-3">
+                        <h4 className="font-semibold text-sm mb-1">💡 Sugestões de Melhoria</h4>
+                        <p className="text-sm">{detailSub.suggestions}</p>
+                      </div>
+                    )}
+                    {detailSub.repertoire_analysis && (
+                      <div className="bg-muted/30 rounded-lg p-3">
+                        <h4 className="font-semibold text-sm mb-1">📚 Análise de Repertório</h4>
+                        <p className="text-sm">{detailSub.repertoire_analysis}</p>
+                      </div>
+                    )}
+
+                    {/* Feedback Generator */}
+                    <Button onClick={() => generateStudentFeedback(detailSub)} disabled={generatingFeedback} variant="outline" className="w-full">
+                      {generatingFeedback ? (
+                        <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Gerando Comentário...</>
+                      ) : (
+                        <><MessageSquareHeart className="h-4 w-4 mr-2" /> 💎 GERAR COMENTÁRIO PARA O ALUNO</>
+                      )}
+                    </Button>
+
+                    {feedbackText && (
+                      <Card className="border-primary/20">
+                        <CardContent className="pt-4 space-y-2">
+                          <h4 className="font-semibold text-sm flex items-center gap-2">
+                            <MessageSquareHeart className="h-4 w-4 text-primary" /> Feedback para o Aluno
+                          </h4>
+                          <Textarea value={feedbackText} onChange={e => setFeedbackText(e.target.value)} rows={5} className="text-sm" />
+                          <Button size="sm" variant="secondary" onClick={() => { navigator.clipboard.writeText(feedbackText); toast({ title: '📋 Feedback copiado!' }); }}>
+                            <Copy className="h-3 w-3 mr-1" /> Copiar Feedback
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Rewrite button */}
+                    <Button onClick={() => generateRewrite(detailSub)} disabled={generatingRewrite} variant="outline" className="w-full">
+                      {generatingRewrite ? (
+                        <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Gerando Reescrita...</>
+                      ) : (
+                        <><Sparkles className="h-4 w-4 mr-2" /> ✨ Reescrita Inteligente (Nota Máxima)</>
+                      )}
+                    </Button>
+
+                    {rewriteResult && (
+                      <Card className="border-primary/30">
+                        <CardContent className="pt-4 space-y-3">
+                          <h4 className="font-semibold flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> Versão Nota Máxima</h4>
+                          <div className="bg-muted/30 rounded-lg p-4 text-sm whitespace-pre-wrap max-h-48 overflow-y-auto leading-relaxed font-serif">
+                            {rewriteResult.rewritten_text}
+                          </div>
+                          {rewriteResult.key_improvements?.length > 0 && (
                             <ul className="text-sm text-muted-foreground list-disc pl-4">
                               {rewriteResult.key_improvements.map((imp, i) => <li key={i}>{imp}</li>)}
                             </ul>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-                </>
-              )}
-              <div className="space-y-2 border-t pt-3">
-                <label className="text-sm font-medium">Notas do Professor</label>
-                <Textarea value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} placeholder="Observações, ajustes de nota..." rows={3} />
-                <div className="flex gap-2">
-                  <Button onClick={() => validateCorrection(detailSub, true)} className="flex-1">
-                    <CheckCircle className="h-4 w-4 mr-1" /> Validar Correção
-                  </Button>
-                  <Button variant="outline" onClick={() => validateCorrection(detailSub, false)} className="flex-1">
-                    <XCircle className="h-4 w-4 mr-1" /> Ajustar
-                  </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                )}
+
+                {/* Teacher notes + validation */}
+                <div className="space-y-2 border-t pt-3">
+                  <label className="text-sm font-medium">Notas do Professor</label>
+                  <Textarea value={teacherNotes} onChange={e => setTeacherNotes(e.target.value)} placeholder="Observações, ajustes de nota..." rows={3} />
+                  <div className="flex gap-2">
+                    <Button onClick={() => validateCorrection(detailSub, true)} className="flex-1">
+                      <CheckCircle className="h-4 w-4 mr-1" /> Validar
+                    </Button>
+                    <Button variant="outline" onClick={() => validateCorrection(detailSub, false)} className="flex-1">
+                      <XCircle className="h-4 w-4 mr-1" /> Ajustar
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
