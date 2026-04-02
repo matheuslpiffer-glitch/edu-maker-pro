@@ -438,6 +438,11 @@ Responda em JSON:
         caca_palavras: 'Caça-Palavras (grade de letras com palavras escondidas)',
         sudoku: 'Sudoku Educativo (grade 4x4 ou 6x6 com conceitos em vez de números)',
         memoria: 'Jogo da Memória (pares de conceito + definição/imagem)',
+        nuvem_palavras: 'Nuvem de Palavras (15 termos essenciais em destaque visual)',
+        labirinto_decisao: 'Labirinto de Decisão (3 perguntas Se/Então que levam ao sucesso)',
+        caca_erros: 'Detetive de Falhas / Caça-Erros (parágrafo com 3 erros ocultos)',
+        cruzadinha_termos: 'Cruzadinha de Termos Técnicos (termos com dicas contextualizadas)',
+        stop_industrial: 'Stop Industrial (tabela com categorias técnicas)',
       };
 
       const gameFormat: Record<string, string> = {
@@ -458,29 +463,72 @@ Responda em JSON:
 - CARTA A: O conceito/termo
 - CARTA B: A definição ou imagem correspondente
 - Formate como cards HTML em grid (grid 4 colunas), cada card com borda arredondada e fundo colorido`,
+        nuvem_palavras: `Gere uma NUVEM DE PALAVRAS com ${count || 15} termos essenciais da aula.
+- Liste os termos em uma <div> estilizada com font-size variado (os mais importantes maiores: 2em, médios: 1.4em, menores: 1em)
+- Use cores variadas (inline style) e disposição visual rica (display:inline-block com padding e margin variados)
+- Abaixo, inclua um GLOSSÁRIO TÉCNICO: cada termo com definição curta de 1 linha
+- Inclua campo "Nome do Agente: ___________" e "Assinatura do Instrutor: ___________" no rodapé`,
+        labirinto_decisao: `Gere um LABIRINTO DE DECISÃO com 3 perguntas tipo "Se/Então".
+- Apresente como uma "Missão Técnica" ou "Ordem de Serviço" com tom desafiador (ex: "Agente, detectamos um gargalo...")
+- Cada pergunta tem 2 caminhos: o CORRETO leva à próxima etapa, o ERRADO leva a uma "falha de missão" com explicação do erro
+- Use <div> com bordas, setas (→) e cores: verde para caminho correto, vermelho para falha
+- Ao final do caminho correto, exiba "✅ MISSÃO CONCLUÍDA — Procedimento executado com segurança"
+- Inclua campo "Assinatura do Instrutor: ___________" no rodapé
+- Se envolver procedimento perigoso, SEMPRE cite o EPI correspondente`,
+        caca_erros: `Gere um DETETIVE DE FALHAS (Caça-Erros Técnico).
+- Escreva um parágrafo de 8-12 linhas descrevendo um procedimento técnico da área com EXATAMENTE 3 ERROS OCULTOS
+- Os erros devem ser técnicos e sutis (nomenclatura errada, passo fora de ordem, ferramenta inadequada, EPI faltando)
+- Abaixo do texto, inclua 3 campos numerados: "Erro 1: ___________", "Erro 2: ___________", "Erro 3: ___________"
+- Em uma seção de GABARITO (em <details><summary>Ver Gabarito</summary>...) revele os 3 erros com a correção
+- Use tom de "Engenheiro, inspecione o procedimento abaixo..." 
+- Inclua campo "Assinatura do Instrutor: ___________" no rodapé`,
+        cruzadinha_termos: `Gere uma CRUZADINHA DE TERMOS TÉCNICOS com ${count || 8} palavras.
+- Uma tabela HTML <table> representando a grade (células vazias para preencher e células pretas com background:#1e293b)
+- Lista de "HORIZONTAIS" com dicas contextualizadas ao curso técnico
+- Lista de "VERTICAIS" com dicas contextualizadas ao curso técnico
+- GABARITO com as respostas no final
+- Inclua campo "Assinatura do Instrutor: ___________" no rodapé`,
+        stop_industrial: `Gere uma tabela de STOP INDUSTRIAL.
+- Crie uma tabela HTML <table> com as colunas: Componente | Ferramenta | Norma NR | Ação Técnica | EPI Obrigatório
+- Preencha a PRIMEIRA linha como exemplo e deixe ${count || 8} linhas em branco para o aluno preencher
+- Abaixo, inclua um BANCO DE PALAVRAS com 20 termos técnicos da área para auxiliar o preenchimento
+- Use tom de "Ordem de Serviço" no cabeçalho
+- Inclua campo "Assinatura do Instrutor: ___________" no rodapé`,
       };
 
-      const systemPromptJogos = `Você é um Game Designer Educacional especialista em criar jogos pedagógicos envolventes e visualmente ricos em HTML. Seus jogos devem ser prontos para impressão em folha A4.${NO_IMG_RULE}\nResponda APENAS com JSON válido, sem markdown.`;
+      const isLudicaTecnica = ['nuvem_palavras', 'labirinto_decisao', 'caca_erros', 'cruzadinha_termos', 'stop_industrial'].includes(gameType);
 
-      const userPromptJogos = `Crie um jogo do tipo: ${gameLabels[gameType] || gameLabels.cruzadinha}
+      const systemPromptJogos = isLudicaTecnica
+        ? `Aja como um Designer Instrucional Sênior da RGF Maker Space. Sua tarefa é gerar uma Atividade Lúdica Extra baseada no conteúdo técnico fornecido.
+
+DIRETRIZES DE GERAÇÃO:
+1. CONTEXTUALIZAÇÃO TOTAL: A atividade deve usar os termos técnicos e o cenário da aula (ex: se a aula é de Solda, use termos como 'Arco' e 'Eletrodo').
+2. ESTÉTICA INDUSTRIAL: O tom deve ser de 'Missão' ou 'Ordem de Serviço'. Use linguagem que desafie o aluno (ex: 'Agente, detectamos um gargalo...', 'Engenheiro, inspecione a junta...').
+3. DIAGRAMAÇÃO PARA IMPRESSÃO: O conteúdo deve ser conciso para caber em meia folha A4. Inclua sempre campo de 'Assinatura do Instrutor' no final.
+4. REGRAS DE SEGURANÇA: Nunca sugira procedimentos perigosos sem citar o EPI correspondente. Se o curso for SENAI, siga rigorosamente a nomenclatura da Matriz Técnica de SP.
+${NO_IMG_RULE}
+Responda APENAS com JSON válido, sem markdown.`
+        : `Você é um Game Designer Educacional especialista em criar jogos pedagógicos envolventes e visualmente ricos em HTML. Seus jogos devem ser prontos para impressão em folha A4.${NO_IMG_RULE}\nResponda APENAS com JSON válido, sem markdown.`;
+
+      const userPromptJogos = `Crie um jogo/atividade do tipo: ${gameLabels[gameType] || gameLabels.cruzadinha}
 
 Tema: "${specificTopic || 'tema geral'}"
 Série: ${serie || 'Ensino Fundamental'}
-${customMaterial ? `\nMATERIAL DE REFERÊNCIA:\n${customMaterial.slice(0, 6000)}\n` : ''}
+${customMaterial ? `\nCONTEXTO / DISCIPLINA TÉCNICA:\n${customMaterial.slice(0, 6000)}\n` : ''}
 
 ${gameFormat[gameType] || gameFormat.cruzadinha}
 
-Use HTML rico com estilos inline: tabelas com bordas, cores de fundo, fonte legível.
-Formate para impressão A4.
+Use HTML rico com estilos inline: tabelas com bordas, cores de fundo (#1e293b para cabeçalhos, #f8fafc para corpo), fonte legível (font-family: system-ui).
+Formate para impressão ${isLudicaTecnica ? 'em MEIA FOLHA A4 (layout compacto)' : 'A4'}.
 
 Responda em JSON:
 {
   "questions": [
     {
-      "content": "<HTML completo do jogo>",
+      "content": "<HTML completo do jogo/atividade>",
       "options": [],
-      "skillCode": "JOGO-${(gameType || '').toUpperCase()}",
-      "descriptor": "${specificTopic || 'Jogo Educativo'}"
+      "skillCode": "${isLudicaTecnica ? 'LUDICA' : 'JOGO'}-${(gameType || '').toUpperCase()}",
+      "descriptor": "${specificTopic || 'Atividade Educativa'}"
     }
   ]
 }`;
