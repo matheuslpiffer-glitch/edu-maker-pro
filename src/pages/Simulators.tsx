@@ -950,8 +950,6 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       </div>
     </div>
   );
-    </div>
-  );
 
   const modeConfig = mode === 'vestibulares'
     ? { gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20', label: 'Vestibulares & ENEM', subtitle: 'Federais, UFSCar, PUC, Mackenzie, FGV, Medicina' }
