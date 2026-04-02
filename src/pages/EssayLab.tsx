@@ -681,6 +681,26 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
           <Input placeholder="Turma (ex: 3ºA)" value={studentClass} onChange={e => setStudentClass(e.target.value)} disabled={isCorrected} />
         </div>
 
+        {/* Proposal content (motivational texts) for student reference */}
+        {proposalContent?.textos_motivadores && proposalContent.textos_motivadores.length > 0 && (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="pt-4 space-y-3">
+              <h3 className="font-bold text-sm uppercase tracking-wider text-primary">📄 Textos de Apoio — Proposta de Redação</h3>
+              {proposalContent.textos_motivadores.map((t, i) => (
+                <div key={i} className="border-l-2 border-primary/30 pl-3">
+                  <p className="font-semibold text-xs uppercase text-muted-foreground mb-0.5">{t.tipo}</p>
+                  <p className="text-sm leading-relaxed">{t.conteudo}</p>
+                </div>
+              ))}
+              {proposalContent.comando && (
+                <div className="bg-muted/50 rounded-lg p-3 mt-2">
+                  <p className="text-sm leading-relaxed">{proposalContent.comando.replace('[TEMA]', submission?.proposal_theme || '')}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Editor or Annotated view */}
         {isCorrected && submission.scores?.annotations && submission.scores.annotations.length > 0 ? (
           <Card className="border-2 border-primary/10">
