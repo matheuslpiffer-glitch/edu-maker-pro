@@ -264,7 +264,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode } = await req.json();
+    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
     if (isInclusao) {
@@ -623,6 +623,25 @@ DIRETRIZES: Use linguagem acessível com frases curtas. Vocabulário adequado pa
         : `\nMODO FAST-TRACK VESTIBULINHO COMPLETO (${tecnicoInstLabel}): Ignore COMPLETAMENTE filtros de disciplina individual. Gere exatamente 20 questões de múltipla escolha (A a E) distribuídas equilibradamente entre as matérias principais da banca: Língua Portuguesa (interpretação, gramática — ~5 questões), Matemática (aritmética, geometria, álgebra — ~5 questões), Ciências da Natureza (~5 questões) e Ciências Humanas (~5 questões). Respeite RIGOROSAMENTE o estilo de enunciado, o nível de dificuldade oficial e a contextualização típica de vestibulinhos de ${tecnicoInstLabel}. As questões devem ser interdisciplinares com situações-problema do cotidiano.\n`
       : "";
 
+    // SENAI Industrial Mode
+    const senaiInstruction = isSenaiMode
+      ? `\nMODO SIMULADO TÉCNICO INDUSTRIAL — PADRÃO SENAI:
+Você é um Engenheiro de Segurança do Trabalho e Instrutor SENAI especializado no eixo "${senaiEixo || 'Mecânica Industrial'}".
+
+ESTILO DAS QUESTÕES:
+- Gere EXATAMENTE ${count || 10} questões de múltipla escolha (A a E) no nível de cursos técnicos SENAI.
+- As questões devem abordar: cálculos técnicos (módulo de engrenagens, relação de transmissão, dimensionamento), leitura de diagramas e esquemas, procedimentos de montagem/desmontagem, nomenclatura técnica industrial.
+- Contextualize com situações reais de chão de fábrica, linha de produção ou manutenção industrial.
+
+VERIFICAÇÃO DE NORMAS DE SEGURANÇA (NR-12, NR-35, NR-10):
+- Para CADA questão que envolva operação com máquinas, motores, eletricidade ou trabalho em altura, INCLUA obrigatoriamente no enunciado ou nas alternativas referências a EPIs (óculos de proteção, luvas, protetor auricular, calçado de segurança).
+- Se o texto da questão mencionar montagem com motores sem citar óculos de proteção, CORRIJA incluindo este item.
+- Inclua pelo menos 2 questões específicas sobre segurança do trabalho e normas regulamentadoras.
+
+CAMPO "skillCode": Use códigos como "NR-12", "NR-35", "SENAI-MEC", "SENAI-ELE", "SENAI-AUT" conforme o eixo.
+CAMPO "descriptor": Descreva brevemente a competência técnica avaliada.\n`
+      : "";
+
     let techDisciplineInstruction = "";
     if (technicalDiscipline && examModel === 'vest_publicos') {
       const bancaMap: Record<string, string> = {
@@ -666,7 +685,7 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
     // Redação, Aula, Concurso and Vestibulares modes don't strictly require subjects/grade
     const isConcursoMode = examModel === 'concurso_publico';
     const isVestibularesMode = examModel === 'vest_publicos' || examModel === 'vest_privados';
-    if (!isRedacao && !isAula && !isConcursoMode && !isVestibularesMode && !isFastTrackVestibulinho && (subjectList.length === 0 || !grade || !count)) {
+    if (!isRedacao && !isAula && !isConcursoMode && !isVestibularesMode && !isFastTrackVestibulinho && !isSenaiMode && (subjectList.length === 0 || !grade || !count)) {
       return new Response(JSON.stringify({ error: "Disciplina(s), série e quantidade são obrigatórios." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -842,7 +861,7 @@ Responda em JSON:
     const leanFormattingInstruction = `\nFORMATAÇÃO ENXUTA: priorize conteúdo pedagógico e estrutura simples. Use apenas HTML básico necessário (parágrafos, listas, tabelas simples). Não adicione estilos inline longos, introduções extensas nem blocos decorativos.\nRESUMO NO CABEÇALHO: Se incluir um resumo ou descrição do simulado, ele deve ter NO MÁXIMO 500 caracteres. Seja direto, objetivo e conciso para que caiba perfeitamente no cabeçalho da prova sem estourar o layout.`;
 
     const systemPrompt = `Você cria avaliações brasileiras alinhadas ao formato ${examLabel}.
-${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${compactInstruction}${leanFormattingInstruction}
+${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${senaiInstruction}${compactInstruction}${leanFormattingInstruction}
 ${questionFormatInstruction}
 Responda APENAS com JSON válido, sem markdown.`;
 

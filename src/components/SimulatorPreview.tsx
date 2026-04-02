@@ -23,6 +23,7 @@ interface Props {
   questions: SimQuestion[];
   isDiscursiva?: boolean;
   columns?: 1 | 2;
+  isSenaiMode?: boolean;
 }
 
 const EXAM_LABELS: Record<string, string> = {
@@ -32,7 +33,7 @@ const EXAM_LABELS: Record<string, string> = {
   saeb: 'SAEB',
 };
 
-const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institutionName, examType, questions, isDiscursiva, columns = 1 }, ref) => {
+const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institutionName, examType, questions, isDiscursiva, columns = 1, isSenaiMode = false }, ref) => {
   return (
     <div
       ref={ref}
@@ -129,8 +130,11 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
 
       {/* Watermark footer */}
       <div className="mt-8 pt-4 border-t border-gray-200 text-center">
-        <p style={{ fontSize: '8pt', color: '#c0c0c0', letterSpacing: '0.05em' }}>
-          EduCreator Pro • Matheus Lima Piffer
+        <p style={{ fontSize: '8pt', color: isSenaiMode ? '#0a1f3d' : '#c0c0c0', letterSpacing: '0.05em', fontWeight: isSenaiMode ? 700 : 400 }}>
+          {isSenaiMode
+            ? 'EDUFLOW INDUSTRIAL | CURRÍCULO TÉCNICO SENAI | Coord. Matheus Lima Piffer'
+            : 'EduCreator Pro • Matheus Lima Piffer'
+          }
         </p>
       </div>
     </div>

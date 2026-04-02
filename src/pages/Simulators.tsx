@@ -22,6 +22,7 @@ import SimulatorPreview from '@/components/SimulatorPreview';
 import AnswerSheet from '@/components/AnswerSheet';
 import GabaritoOficial from '@/components/GabaritoOficial';
 import EspelhoCorrecao from '@/components/EspelhoCorrecao';
+import SenaiIndustrialTemplates from '@/components/SenaiIndustrialTemplates';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
@@ -69,6 +70,7 @@ const TECNICOS_INSTITUTIONS = [
   { id: 'ifs', label: 'Instituto Federal (IFs)', desc: 'Exame de Seleção Nacional', icon: Building2, gradient: 'from-emerald-600 to-green-700' },
   { id: 'etec', label: 'ETEC / CPS', desc: 'Vestibulinho Centro Paula Souza', icon: Cpu, gradient: 'from-teal-500 to-emerald-600' },
   { id: 'cotuca', label: 'Técnicos Unicamp', desc: 'Cotuca / Cotil — Seleção Unicamp', icon: Target, gradient: 'from-green-500 to-teal-600' },
+  { id: 'senai', label: 'SENAI Industrial', desc: 'Simulado Técnico Padrão SENAI', icon: Wrench, gradient: 'from-[#0a1f3d] to-[#1a3a6b]' },
 ];
 
 const TECNICOS_AREA_SUBJECTS = [
@@ -76,6 +78,15 @@ const TECNICOS_AREA_SUBJECTS = [
   { id: 'port', label: 'Português', icon: '📝' },
   { id: 'natureza', label: 'Ciências da Natureza', icon: '🧪' },
   { id: 'humanas', label: 'Humanas / Atualidades', icon: '🌎' },
+];
+
+const SENAI_EIXOS = [
+  { id: 'mecanica', label: 'Mecânica Industrial', icon: '⚙️' },
+  { id: 'eletrica', label: 'Elétrica / Eletrotécnica', icon: '⚡' },
+  { id: 'automacao', label: 'Automação / Mecatrônica', icon: '🤖' },
+  { id: 'manutencao', label: 'Manutenção Industrial', icon: '🔧' },
+  { id: 'soldagem', label: 'Soldagem', icon: '🔥' },
+  { id: 'seguranca', label: 'Segurança do Trabalho', icon: '🦺' },
 ];
 
 // DNA categories for Técnicos mode (kept for compatibility)
@@ -416,6 +427,8 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [tecnicoMode, setTecnicoMode] = useState<'' | 'completo' | 'por_area'>('');
   const [tecnicoSubjects, setTecnicoSubjects] = useState<string[]>(['Matemática', 'Português', 'Ciências da Natureza', 'Humanas / Atualidades']);
   const [tecnicoQuestionCount, setTecnicoQuestionCount] = useState(20);
+  const [senaiEixo, setSenaiEixo] = useState('mecanica');
+  const [senaiTopic, setSenaiTopic] = useState('');
 
   const [history, setHistory] = useState<SavedSimulator[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
@@ -479,9 +492,10 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const isInclusao = currentFlow === 'inclusao';
   const isObmep = examModel === 'obmep';
   const isTecnicosMode = mode === 'tecnicos';
+  const isSenaiMode = isTecnicosMode && tecnicoInstitution === 'senai';
   const isFastTrackVestibulinho = isTecnicosMode && tecnicoMode === 'completo' && !!tecnicoInstitution;
   const isTecnicosPorArea = isTecnicosMode && tecnicoMode === 'por_area' && !!tecnicoInstitution;
-  const isTecnicosAny = isFastTrackVestibulinho || isTecnicosPorArea;
+  const isTecnicosAny = isFastTrackVestibulinho || isTecnicosPorArea || isSenaiMode;
   const isVestibularesMode = mode === 'vestibulares';
   const isConcurso = examModel === 'concurso_publico';
   const showSerieStep = (activeMotor === 'simulado' || !!mode) && !isObmep && !isTecnicosMode && !isVestibularesMode && !isConcurso;
@@ -531,8 +545,11 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
 
     const allQuestions: SimQuestion[] = [];
 
-    const tecnicoCount = isFastTrackVestibulinho ? 50 : isTecnicosPorArea ? tecnicoQuestionCount : 0;
-    const tecnicoSubs = isFastTrackVestibulinho
+    const senaiEixoLabel = SENAI_EIXOS.find(e => e.id === senaiEixo)?.label || senaiEixo;
+    const tecnicoCount = isSenaiMode ? 10 : isFastTrackVestibulinho ? 50 : isTecnicosPorArea ? tecnicoQuestionCount : 0;
+    const tecnicoSubs = isSenaiMode
+      ? [senaiEixoLabel]
+      : isFastTrackVestibulinho
       ? ['Língua Portuguesa', 'Matemática', 'Ciências da Natureza', 'Ciências Humanas']
       : isTecnicosPorArea
         ? tecnicoSubjects.map(s => s === 'Português' ? 'Língua Portuguesa' : s === 'Humanas / Atualidades' ? 'Ciências Humanas' : s)
@@ -614,11 +631,13 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             tecnicoMode: isTecnicosAny ? tecnicoMode : undefined,
             customMaterial: customMaterial.trim() || undefined,
             bloomLevel,
-            specificTopic: specificTopic.trim() || undefined,
+            specificTopic: isSenaiMode ? (senaiTopic.trim() || senaiEixoLabel) : (specificTopic.trim() || undefined),
             serie: showSerieStep ? activeSerie : undefined,
             includeImages: includeImages && requestedQuestionCount <= 5,
             technicalDiscipline: technicalDiscipline || undefined,
             provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
+            isSenaiMode: isSenaiMode || undefined,
+            senaiEixo: isSenaiMode ? senaiEixoLabel : undefined,
           },
         });
 
@@ -916,6 +935,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
         questions={questions}
         isDiscursiva={isDiscursiva}
         columns={columns}
+        isSenaiMode={isSenaiMode}
       />
       {!isDiscursiva && (
         <AnswerSheet questionCount={questions.length} simulatorId={currentId} title={title} institutionName={institutionName} />
@@ -925,6 +945,9 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       )}
       {isDiscursiva && (
         <EspelhoCorrecao questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} />
+      )}
+      {isSenaiMode && (
+        <SenaiIndustrialTemplates institutionName={institutionName} title={title} />
       )}
       </div>
     </div>
@@ -1261,7 +1284,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                 </div>
 
                 {/* ══════ TÉCNICOS: PASSO 2 — Modelo de Simulado ══════ */}
-                {isTecnicosMode && tecnicoInstitution && (
+                {isTecnicosMode && tecnicoInstitution && !isSenaiMode && (
                   <>
                     <div className="border-t border-emerald-100" />
                     <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
@@ -1311,7 +1334,93 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   </>
                 )}
 
-                {/* ══════ TÉCNICOS: PASSO 3 — Configuração por Área (condicional) ══════ */}
+                {/* ══════ SENAI: PASSO 2 — Eixo Técnico + Tema ══════ */}
+                {isSenaiMode && (
+                  <>
+                    <div className="border-t border-[#0a1f3d]/20" />
+                    {/* Hero SENAI */}
+                    <div className="bg-[#0a1f3d] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
+                      <div className="relative z-10">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center shadow-lg">
+                            <Wrench className="h-6 w-6 text-white" />
+                          </div>
+                          <Badge className="bg-white/10 text-white/90 border-white/20 text-[10px] uppercase tracking-widest font-bold">
+                            ⚙️ Padrão SENAI
+                          </Badge>
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-black leading-tight">
+                          Simulado Técnico<br />Industrial SENAI
+                        </h2>
+                        <p className="text-sm text-slate-300 mt-3 max-w-md leading-relaxed">
+                          10 questões técnicas com verificação automática de normas de segurança (NR-12, NR-35). Inclui Relatório de Manutenção e Ordem de Serviço.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
+                      <div className="flex items-center gap-3">
+                        <div className="h-7 w-7 rounded-full bg-[#0a1f3d] text-white flex items-center justify-center text-xs font-bold shadow-sm">2</div>
+                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Selecione o Eixo Técnico</h3>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {SENAI_EIXOS.map(eixo => {
+                          const isActive = senaiEixo === eixo.id;
+                          return (
+                            <button
+                              key={eixo.id}
+                              onClick={() => setSenaiEixo(eixo.id)}
+                              className={`px-4 py-3 rounded-2xl text-sm font-bold border-2 transition-all duration-200 flex items-center gap-2 ${
+                                isActive
+                                  ? 'bg-[#0a1f3d] text-white border-[#0a1f3d] shadow-md shadow-blue-900/20'
+                                  : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:shadow-sm'
+                              }`}
+                            >
+                              <span>{eixo.icon}</span>
+                              <span className="text-xs">{eixo.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
+                      <div className="flex items-center gap-3">
+                        <div className="h-7 w-7 rounded-full bg-[#0a1f3d] text-white flex items-center justify-center text-xs font-bold shadow-sm">3</div>
+                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Tema Específico (Opcional)</h3>
+                      </div>
+                      <Input
+                        value={senaiTopic}
+                        onChange={e => setSenaiTopic(e.target.value)}
+                        placeholder="Ex: Engrenagens cilíndricas, Relação de transmissão, Circuitos em série..."
+                        className="bg-slate-50 border-slate-200 rounded-[20px] focus:ring-4 focus:ring-blue-500/20"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-slate-500">Nome da Instituição</Label>
+                        <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="SENAI — Unidade" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold text-slate-500">Título do Simulado</Label>
+                        <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Simulado Técnico Industrial" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={() => generateQuestions(false)}
+                      disabled={generating}
+                      size="lg"
+                      className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
+                    >
+                      {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Wrench className="h-5 w-5 mr-2" />}
+                      {generating ? 'GERANDO SIMULADO SENAI...' : '⚙️ GERAR SIMULADO PADRÃO SENAI'}
+                    </Button>
+                  </>
+                )}
+
                 {isTecnicosPorArea && (
                   <>
                     <div className="border-t border-teal-100" />
@@ -2167,7 +2276,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       <div className="print-only">
         {questions.length > 0 && (
           <>
-            <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions} isDiscursiva={isDiscursiva} columns={columns} />
+            <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions} isDiscursiva={isDiscursiva} columns={columns} isSenaiMode={isSenaiMode} />
             {!isDiscursiva && <AnswerSheet questionCount={questions.length} simulatorId={currentId} title={title} institutionName={institutionName} />}
             {!isDiscursiva && showGabarito && <GabaritoOficial questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />}
             {isDiscursiva && <EspelhoCorrecao questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} />}
