@@ -13,7 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import QRCodeModal from '@/components/QRCodeModal';
 import { buildPublicAppUrl } from '@/lib/public-links';
-import { Loader2, PenLine, QrCode, CheckCircle, XCircle, Eye, Gem, Copy, Users, RefreshCw, AlertTriangle, ShieldAlert, Sparkles, BarChart3 } from 'lucide-react';
+import { Loader2, PenLine, QrCode, CheckCircle, XCircle, Eye, Gem, Copy, Users, RefreshCw, AlertTriangle, ShieldAlert, Sparkles, BarChart3, MessageSquareHeart, Printer, Filter, SortAsc } from 'lucide-react';
 
 const BANCAS = ['ENEM', 'FUVEST', 'VUNESP', 'UNICAMP'] as const;
 
