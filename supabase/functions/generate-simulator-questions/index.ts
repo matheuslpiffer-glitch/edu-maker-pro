@@ -33,6 +33,16 @@ function repairAndParse(json: string): unknown {
     .replace(/"\s*\n\s*/g, '" ')
     .replace(/\t/g, " ");
 
+  // Fix truncated strings: if we end mid-string, close it
+  const quoteCount = (cleaned.match(/(?<!\\)"/g) || []).length;
+  if (quoteCount % 2 !== 0) {
+    // Remove the last partial key-value and close
+    cleaned = cleaned.replace(/,?\s*"[^"]*$/, "");
+  }
+
+  // Remove trailing commas again after truncation fix
+  cleaned = cleaned.replace(/,\s*$/g, "");
+
   const openBraces = (cleaned.match(/{/g) || []).length;
   const closeBraces = (cleaned.match(/}/g) || []).length;
   const openBrackets = (cleaned.match(/\[/g) || []).length;
@@ -66,7 +76,30 @@ function extractJsonFromMixedResponse(response: string): unknown {
       try {
         return repairAndParse(candidate);
       } catch {
-        // fall through
+        // Try to extract complete question objects from truncated response
+        try {
+          const questionsMatch = candidate.match(/"questions"\s*:\s*\[/);
+          if (questionsMatch) {
+            const arrStart = candidate.indexOf("[", candidate.indexOf('"questions"'));
+            const sub = candidate.slice(arrStart);
+            // Find last complete object (ending with })
+            const lastComplete = sub.lastIndexOf("}");
+            if (lastComplete > 0) {
+              const partial = sub.slice(0, lastComplete + 1) + "]";
+              const repaired = '{"questions":' + partial + "}";
+              const parsed = repairAndParse(repaired);
+              if (parsed && typeof parsed === "object" && "questions" in (parsed as any)) {
+                const qs = (parsed as any).questions;
+                if (Array.isArray(qs) && qs.length > 0) {
+                  console.warn(`Recovered ${qs.length} questions from truncated response`);
+                  return parsed;
+                }
+              }
+            }
+          }
+        } catch {
+          // fall through
+        }
       }
     }
   }
