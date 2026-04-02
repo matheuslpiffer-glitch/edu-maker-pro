@@ -623,6 +623,25 @@ DIRETRIZES: Use linguagem acessível com frases curtas. Vocabulário adequado pa
         : `\nMODO FAST-TRACK VESTIBULINHO COMPLETO (${tecnicoInstLabel}): Ignore COMPLETAMENTE filtros de disciplina individual. Gere exatamente 20 questões de múltipla escolha (A a E) distribuídas equilibradamente entre as matérias principais da banca: Língua Portuguesa (interpretação, gramática — ~5 questões), Matemática (aritmética, geometria, álgebra — ~5 questões), Ciências da Natureza (~5 questões) e Ciências Humanas (~5 questões). Respeite RIGOROSAMENTE o estilo de enunciado, o nível de dificuldade oficial e a contextualização típica de vestibulinhos de ${tecnicoInstLabel}. As questões devem ser interdisciplinares com situações-problema do cotidiano.\n`
       : "";
 
+    // SENAI Industrial Mode
+    const senaiInstruction = isSenaiMode
+      ? `\nMODO SIMULADO TÉCNICO INDUSTRIAL — PADRÃO SENAI:
+Você é um Engenheiro de Segurança do Trabalho e Instrutor SENAI especializado no eixo "${senaiEixo || 'Mecânica Industrial'}".
+
+ESTILO DAS QUESTÕES:
+- Gere EXATAMENTE ${count || 10} questões de múltipla escolha (A a E) no nível de cursos técnicos SENAI.
+- As questões devem abordar: cálculos técnicos (módulo de engrenagens, relação de transmissão, dimensionamento), leitura de diagramas e esquemas, procedimentos de montagem/desmontagem, nomenclatura técnica industrial.
+- Contextualize com situações reais de chão de fábrica, linha de produção ou manutenção industrial.
+
+VERIFICAÇÃO DE NORMAS DE SEGURANÇA (NR-12, NR-35, NR-10):
+- Para CADA questão que envolva operação com máquinas, motores, eletricidade ou trabalho em altura, INCLUA obrigatoriamente no enunciado ou nas alternativas referências a EPIs (óculos de proteção, luvas, protetor auricular, calçado de segurança).
+- Se o texto da questão mencionar montagem com motores sem citar óculos de proteção, CORRIJA incluindo este item.
+- Inclua pelo menos 2 questões específicas sobre segurança do trabalho e normas regulamentadoras.
+
+CAMPO "skillCode": Use códigos como "NR-12", "NR-35", "SENAI-MEC", "SENAI-ELE", "SENAI-AUT" conforme o eixo.
+CAMPO "descriptor": Descreva brevemente a competência técnica avaliada.\n`
+      : "";
+
     let techDisciplineInstruction = "";
     if (technicalDiscipline && examModel === 'vest_publicos') {
       const bancaMap: Record<string, string> = {
