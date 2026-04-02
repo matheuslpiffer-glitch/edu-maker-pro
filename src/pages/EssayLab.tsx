@@ -477,6 +477,22 @@ function TeacherPanel() {
 
               <OriginalityBadge originality={detailSub.scores?.originality} />
 
+              {/* Teacher correction trigger for pending essays */}
+              {detailSub.status !== 'corrected' && detailSub.essay_text && detailSub.essay_text.length > 20 && (
+                <Button
+                  onClick={() => correctFromTeacher(detailSub)}
+                  disabled={correctingFromTeacher}
+                  className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-700 text-primary-foreground font-bold py-5"
+                  size="lg"
+                >
+                  {correctingFromTeacher ? (
+                    <><Loader2 className="h-5 w-5 animate-spin mr-2" /> Executando Correção Doutora...</>
+                  ) : (
+                    <><Gem className="h-5 w-5 mr-2" /> ⚖️ EXECUTAR CORREÇÃO DOUTORA</>
+                  )}
+                </Button>
+              )}
+
               {detailSub.status === 'corrected' && detailSub.scores?.competencies && (
                 <>
                   <div className="space-y-2">
