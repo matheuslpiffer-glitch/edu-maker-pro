@@ -513,7 +513,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
   const [notFound, setNotFound] = useState(false);
   const [rewriting, setRewriting] = useState(false);
   const [wordCount, setWordCount] = useState(0);
-  const lsKey = `essay_draft_${accessCode}`;
+  const lsKey = `eduflow_draft_redacao_${accessCode}`;
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
   const dbSyncTimer = useRef<ReturnType<typeof setInterval>>();
   const lastSyncedText = useRef('');

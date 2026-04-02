@@ -5,6 +5,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const COURSE_BONUS_INSTRUCTIONS = `
+5. BONIFICAÇÃO POR ÁREA TÉCNICA:
+   - Se o tema envolver SOLDAGEM/SOLDA: pontue +10% se o aluno mencionar corretamente processos (TIG, MIG, MAG, SMAW, Eletrodo Revestido), normas de qualidade (ISO 3834, ISO 9606) ou termos técnicos (junta, chanfro, escória, ZTA). Destaque como "good" annotation.
+   - Se o tema envolver DESENVOLVIMENTO DE SISTEMAS/PROGRAMAÇÃO: pontue +10% se o aluno usar corretamente termos como "Backend", "Frontend", "Fullstack", "User Experience (UX)", "API", "banco de dados", "DevOps", "microsserviços". Destaque como "good" annotation.
+   - Se nenhum termo técnico relevante for usado em tema técnico, registre isso nas sugestões.
+`;
+
 const COMMON_INSTRUCTIONS = `
 INSTRUÇÕES ADICIONAIS OBRIGATÓRIAS:
 
@@ -22,6 +29,8 @@ INSTRUÇÕES ADICIONAIS OBRIGATÓRIAS:
 3. SUGESTÕES: Retorne "suggestions" como texto detalhado com dicas numeradas de melhoria.
 
 4. REPERTÓRIO: Retorne "repertoire_analysis" analisando referências culturais, filosóficas e sociológicas usadas.
+
+${COURSE_BONUS_INSTRUCTIONS}
 `;
 
 const BANCA_PROMPTS: Record<string, string> = {
