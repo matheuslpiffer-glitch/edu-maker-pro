@@ -20,7 +20,7 @@ export default function SaveStatusIndicator({ className }: Props) {
   if (!show) return null;
 
   return (
-    <div className={cn('inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 animate-in fade-in duration-300', className)}>
+    <div className={cn('inline-flex items-center gap-1.5 text-xs font-medium text-primary animate-in fade-in duration-300', className)}>
       <Cloud size={14} className="animate-pulse" />
       <Check size={12} />
       <span>Alterações salvas</span>
