@@ -625,20 +625,28 @@ DIRETRIZES: Use linguagem acessível com frases curtas. Vocabulário adequado pa
 
     // SENAI Industrial Mode
     const senaiInstruction = isSenaiMode
-      ? `\nMODO SIMULADO TÉCNICO INDUSTRIAL — PADRÃO SENAI:
+      ? `\nMODO SIMULADO TÉCNICO INDUSTRIAL — PADRÃO SENAI (MATRIZ REGIONAL SÃO PAULO):
 Você é um Engenheiro de Segurança do Trabalho e Instrutor SENAI especializado no eixo "${senaiEixo || 'Mecânica Industrial'}".
-
+${senaiSpMatrix ? `\nMATRIZ CURRICULAR SP — CONTEÚDO OBRIGATÓRIO PARA ESTE EIXO:\n${senaiSpMatrix}\nTodas as questões DEVEM abordar os tópicos acima com exemplos do contexto industrial paulista.\n` : ''}
+${senaiVestibulinho ? `\nMODO VESTIBULINHO SENAI-SP (60 QUESTÕES):
+A prova deve seguir o peso oficial:
+- 20 questões de LÍNGUA PORTUGUESA (interpretação de texto técnico, gramática aplicada, comunicação empresarial)
+- 20 questões de MATEMÁTICA (cálculos industriais, medidas, proporções, estatística aplicada ao chão de fábrica)
+- 20 questões de CIÊNCIAS (Física aplicada: mecânica, eletricidade; Química: materiais, reações industriais; Biologia: saúde ocupacional, ergonomia)
+Todas contextualizadas no universo técnico-industrial do eixo "${senaiEixo}".
+Numere as questões de 1 a ${count || 60} sequencialmente.
+O cabeçalho conceitual é: "AVALIAÇÃO DE DESEMPENHO TÉCNICO — MATRIZ SP".\n` : `
 ESTILO DAS QUESTÕES:
 - Gere EXATAMENTE ${count || 10} questões de múltipla escolha (A a E) no nível de cursos técnicos SENAI.
 - As questões devem abordar: cálculos técnicos (módulo de engrenagens, relação de transmissão, dimensionamento), leitura de diagramas e esquemas, procedimentos de montagem/desmontagem, nomenclatura técnica industrial.
-- Contextualize com situações reais de chão de fábrica, linha de produção ou manutenção industrial.
+- Contextualize com situações reais de chão de fábrica, linha de produção ou manutenção industrial.`}
 
 VERIFICAÇÃO DE NORMAS DE SEGURANÇA (NR-12, NR-35, NR-10):
 - Para CADA questão que envolva operação com máquinas, motores, eletricidade ou trabalho em altura, INCLUA obrigatoriamente no enunciado ou nas alternativas referências a EPIs (óculos de proteção, luvas, protetor auricular, calçado de segurança).
 - Se o texto da questão mencionar montagem com motores sem citar óculos de proteção, CORRIJA incluindo este item.
 - Inclua pelo menos 2 questões específicas sobre segurança do trabalho e normas regulamentadoras.
 
-CAMPO "skillCode": Use códigos como "NR-12", "NR-35", "SENAI-MEC", "SENAI-ELE", "SENAI-AUT" conforme o eixo.
+CAMPO "skillCode": Use códigos como "NR-12", "NR-35", "SENAI-MEC", "SENAI-ELE", "SENAI-AUT", "SENAI-LOG", "SENAI-ADM", "SENAI-SOL", "SENAI-DEV" conforme o eixo.
 CAMPO "descriptor": Descreva brevemente a competência técnica avaliada.\n`
       : "";
 
