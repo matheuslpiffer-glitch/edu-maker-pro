@@ -342,9 +342,11 @@ function TeacherPanel() {
       total_score: totalScore,
       status: 'corrected',
       corrected_at: new Date().toISOString(),
+      teacher_validated: false,
+      correction_source: 'ai_draft',
     } as any).eq('id', sub.id);
-    setDetailSub({ ...sub, scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '', total_score: totalScore, status: 'corrected' });
-    toast({ title: '✅ Correção Doutora concluída!', description: `Nota: ${totalScore}` });
+    setDetailSub({ ...sub, scores: fnData, suggestions: fnData.suggestions || '', repertoire_analysis: fnData.repertoire_analysis || '', total_score: totalScore, status: 'corrected', teacher_validated: false });
+    toast({ title: '✅ Rascunho da IA pronto!', description: `Nota sugerida: ${totalScore}. Revise e libere para o aluno.` });
     loadSubmissions();
     setCorrectingFromTeacher(false);
   };
