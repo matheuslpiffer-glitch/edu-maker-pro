@@ -17,6 +17,7 @@ const teacherLinks = [
   { to: '/mapas-mentais', icon: Brain, label: 'Mapas Mentais Maker', section: '🏫 Sala de Aula' },
   { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', section: '🏫 Sala de Aula' },
   { to: '/jogos', icon: Puzzle, label: 'Fábrica de Jogos', section: '🏫 Sala de Aula' },
+  { to: '/atividade-extra', icon: Dices, label: '🎲 Atividade Extra', section: '🏫 Sala de Aula' },
   { to: '/pausa-pedagogica', icon: Coffee, label: 'Pausa Pedagógica', section: '🏫 Sala de Aula' },
   { to: '/edustudio', icon: Camera, label: 'EduStudio', section: '🏫 Sala de Aula' },
   { to: '/redacao', icon: PenLine, label: 'Redação Elite', section: '🏫 Sala de Aula' },
