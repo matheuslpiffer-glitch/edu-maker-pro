@@ -70,6 +70,7 @@ const EssayLab = lazy(() => import("@/pages/EssayLab"));
 const EssayLabStudentPage = lazy(() => import("@/pages/EssayLabStudentPage"));
 const StudentEssayPortal = lazy(() => import("@/pages/StudentEssayPortal"));
 const CoordView = lazy(() => import("@/pages/CoordView"));
+const StudentEssayArena = lazy(() => import("@/pages/StudentEssayArena"));
 
 const queryClient = new QueryClient();
 
