@@ -10,9 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Sparkles, Loader2, Printer, Search, FolderOpen, Calendar, CheckCircle2, PenLine, BookOpen, GraduationCap, Globe, FileText } from 'lucide-react';
+import { ArrowLeft, Sparkles, Loader2, Printer, Search, FolderOpen, Calendar, CheckCircle2, PenLine, BookOpen, GraduationCap, Globe, FileText, Rocket, Copy, QrCode } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EssaySheet from '@/components/EssaySheet';
+import QRCodeModal from '@/components/QRCodeModal';
+import { buildPublicAppUrl } from '@/lib/public-links';
 import { cn } from '@/lib/utils';
 
 interface TextoMotivador {
