@@ -21,6 +21,7 @@ const teacherLinks = [
   { to: '/pausa-pedagogica', icon: Coffee, label: 'Pausa Pedagógica', section: '🏫 Sala de Aula' },
   { to: '/edustudio', icon: Camera, label: 'EduStudio', section: '🏫 Sala de Aula' },
   { to: '/redacao', icon: PenLine, label: 'Redação Elite', section: '🏫 Sala de Aula' },
+  { to: '/redacao-lab', icon: Gem, label: '💎 Laboratório de Escrita', section: '🏫 Sala de Aula' },
   { to: '/literatura', icon: BookText, label: 'Dossiê Literário', section: '🏫 Sala de Aula' },
   { to: '/alta-performance', icon: Trophy, label: 'Módulo Alta Performance', section: '📊 Avaliação' },
   { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & ENEM', section: '📊 Avaliação' },
