@@ -362,12 +362,31 @@ export default function RedacaoView() {
       {/* Preview */}
       {proposta && (
         <>
-          <div className="flex justify-end mt-4 no-print">
+          <div className="flex flex-wrap justify-end gap-2 mt-4 no-print">
+            <Button onClick={handleSendToLab} disabled={sendingToLab} className="bg-gradient-to-r from-primary to-emerald-600 hover:from-primary/90 hover:to-emerald-700 text-primary-foreground font-bold">
+              {sendingToLab ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Rocket className="mr-2 h-4 w-4" />}
+              🚀 ENVIAR PARA LABORATÓRIO ONLINE
+            </Button>
             <Button onClick={handlePrint} variant="outline">
               <Printer className="mr-2 h-4 w-4" />
               🖨️ Imprimir Folha de Redação
             </Button>
           </div>
+
+          {labLink && (
+            <Card className="mt-3 border-primary/30 no-print">
+              <CardContent className="py-3 px-4 flex flex-wrap items-center gap-3">
+                <span className="text-sm font-medium">Link do Laboratório:</span>
+                <code className="text-xs bg-muted px-2 py-1 rounded flex-1 min-w-0 truncate">{labLink}</code>
+                <Button size="sm" variant="ghost" onClick={() => { navigator.clipboard.writeText(labLink); toast({ title: '📋 Link copiado!' }); }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setQrOpen(true)}>
+                  <QrCode className="h-4 w-4" />
+                </Button>
+              </CardContent>
+            </Card>
+          )}
           <div className="mt-4 no-print">
             <Card className="overflow-hidden">
               <CardContent className="p-0">
