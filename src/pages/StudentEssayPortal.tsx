@@ -288,38 +288,6 @@ export default function StudentEssayPortal() {
     })();
   }, [code]);
 
-  // ── Realtime: listen for teacher releasing correction ──
-  useEffect(() => {
-    if (!submission?.id) return;
-    const channel = supabase
-      .channel(`essay-${submission.id}`)
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'essay_submissions',
-        filter: `id=eq.${submission.id}`,
-      }, (payload) => {
-        const updated = payload.new as any;
-        if (updated.teacher_validated === true && !submission.teacher_validated) {
-          // Teacher just released the correction!
-          toast({ title: '🎉 Correção liberada!', description: `Seu professor revisou sua redação. Nota: ${updated.total_score}` });
-          setSubmission(prev => prev ? {
-            ...prev,
-            status: updated.status,
-            scores: updated.scores,
-            total_score: updated.total_score,
-            suggestions: updated.suggestions || '',
-            repertoire_analysis: updated.repertoire_analysis || '',
-            teacher_validated: true,
-            teacher_notes: updated.teacher_notes || '',
-            corrected_at: updated.corrected_at,
-          } : null);
-        }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [submission?.id, submission?.teacher_validated]);
-
   // Auto-save draft
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -498,10 +466,9 @@ export default function StudentEssayPortal() {
               <h2 className="text-xl font-bold">📨 Redação Entregue!</h2>
               <p className="text-muted-foreground max-w-md mx-auto">
                 Sua redação foi enviada ao professor e está na fila de correção. 
-                Você receberá o feedback automaticamente assim que o professor liberar a correção.
+                Você receberá o feedback assim que o professor liberar a correção.
               </p>
               <Badge variant="secondary" className="text-sm">Status: Aguardando Professor</Badge>
-              <p className="text-xs text-muted-foreground">⚡ Esta página atualiza em tempo real — você não precisa recarregar.</p>
             </CardContent>
           </Card>
         )}
@@ -544,25 +511,12 @@ export default function StudentEssayPortal() {
         {/* ─── FEEDBACK VIEW (post-correction) ─── */}
         {isCorrected && submission?.scores?.competencies && (
           <div className="space-y-4">
-            {/* Teacher message */}
-            {submission.teacher_notes && (
-              <Card className="border-2 border-primary/30 bg-primary/5">
-                <CardContent className="pt-5 space-y-2">
-                  <h3 className="font-bold text-sm flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4 text-primary" /> Comentário do Professor
-                  </h3>
-                  <p className="text-sm leading-relaxed italic text-foreground">"{submission.teacher_notes}"</p>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Score + Radar */}
             <div className="grid md:grid-cols-2 gap-4">
               <Card className="border-primary/20">
                 <CardContent className="pt-6 text-center space-y-3">
                   <h2 className="text-4xl font-bold text-primary">{submission.total_score}</h2>
                   <p className="text-sm text-muted-foreground">Nota Total ({submission.banca})</p>
-                  <Badge className="bg-primary/10 text-primary text-xs">Correção validada pelo Professor ✅</Badge>
                   <EssayBadges competencies={submission.scores.competencies} />
                 </CardContent>
               </Card>

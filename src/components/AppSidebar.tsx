@@ -29,7 +29,7 @@ const teacherLinks = [
   { to: '/simuladores', icon: ClipboardList, label: 'Simuladores Elite', section: '📊 Avaliação' },
   { to: '/pisa', icon: Globe, label: 'Simulados PISA', section: '📊 Avaliação' },
   { to: '/resultados-alunos', icon: BarChart3, label: 'Resultados e Desempenho', section: '📊 Avaliação' },
-  { to: '/coordenacao', icon: Eye, label: '📈 Painel do Coordenador', section: '📊 Avaliação' },
+  { to: '/coordenacao', icon: Trophy, label: '🏆 Painel Coordenação', section: '📊 Avaliação' },
   { to: '/redacao/corretor', icon: Camera, label: 'Corretor IA Redação', section: '📊 Avaliação' },
   { to: '/corretor-visao', icon: ScanEye, label: 'Corretor de Visão', section: '📊 Avaliação' },
   { to: '/banco-ia', icon: BookOpen, label: 'Banco de Questões IA', section: '📊 Avaliação' },

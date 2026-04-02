@@ -168,6 +168,7 @@ function AppRoutes() {
           <Route path="/pisa" element={<PisaSimulators />} />
           <Route path="/biblioteca" element={<BibliotecaAvaliacoes />} />
           <Route path="/resultados-alunos" element={<ResultadosAlunos />} />
+          <Route path="/coordenacao" element={<CoordView />} />
           <Route path="/minha-biblioteca" element={<MinhaBiblioteca />} />
           <Route path="/banco-ia" element={<QuestionBankAI />} />
           <Route path="/guia" element={<SystemGuide />} />
@@ -175,7 +176,6 @@ function AppRoutes() {
           <Route path="/manual-aluno" element={<ManualAluno />} />
           <Route path="/corretor-visao" element={<VisionCorrector />} />
           <Route path="/referencias" element={<ReferenciasBibliograficas />} />
-          <Route path="/coordenacao" element={<CoordView />} />
           <Route path="/portal-aluno" element={<StudentDashboard />} />
           <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
           <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
