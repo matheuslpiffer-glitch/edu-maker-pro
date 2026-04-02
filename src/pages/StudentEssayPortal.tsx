@@ -544,12 +544,25 @@ export default function StudentEssayPortal() {
         {/* ─── FEEDBACK VIEW (post-correction) ─── */}
         {isCorrected && submission?.scores?.competencies && (
           <div className="space-y-4">
+            {/* Teacher message */}
+            {submission.teacher_notes && (
+              <Card className="border-2 border-primary/30 bg-primary/5">
+                <CardContent className="pt-5 space-y-2">
+                  <h3 className="font-bold text-sm flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-primary" /> Comentário do Professor
+                  </h3>
+                  <p className="text-sm leading-relaxed italic text-foreground">"{submission.teacher_notes}"</p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Score + Radar */}
             <div className="grid md:grid-cols-2 gap-4">
               <Card className="border-primary/20">
                 <CardContent className="pt-6 text-center space-y-3">
                   <h2 className="text-4xl font-bold text-primary">{submission.total_score}</h2>
                   <p className="text-sm text-muted-foreground">Nota Total ({submission.banca})</p>
+                  <Badge className="bg-primary/10 text-primary text-xs">Correção validada pelo Professor ✅</Badge>
                   <EssayBadges competencies={submission.scores.competencies} />
                 </CardContent>
               </Card>
