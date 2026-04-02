@@ -34,7 +34,7 @@ interface SimQuestion { content: string; options: SimOption[]; skillCode?: strin
 interface SavedSimulator { id: string; title: string; exam_type: string; subject_area: string; grade: string; questions: SimQuestion[]; created_at: string; }
 
 const EXAM_TYPES = [
-  { value: 'saresp', label: 'SARESP' },
+  { value: 'saresp', label: 'Avaliação Paulista' },
   { value: 'prova_paulista', label: 'Prova Paulista' },
   { value: 'ade', label: 'Avaliação Diagnóstica (ADE)' },
   { value: 'saeb', label: 'SAEB' },
