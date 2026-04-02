@@ -1283,7 +1283,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                 </div>
 
                 {/* ══════ TÉCNICOS: PASSO 2 — Modelo de Simulado ══════ */}
-                {isTecnicosMode && tecnicoInstitution && (
+                {isTecnicosMode && tecnicoInstitution && !isSenaiMode && (
                   <>
                     <div className="border-t border-emerald-100" />
                     <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
