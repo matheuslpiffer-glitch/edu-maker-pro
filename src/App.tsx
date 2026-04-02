@@ -120,6 +120,7 @@ function AppRoutes() {
             <Route path="/" element={<Navigate to="/portal-aluno" replace />} />
             <Route path="/portal-aluno" element={<StudentDashboard />} />
             <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
+            <Route path="/portal-aluno/arena-redacao" element={<StudentEssayArena />} />
             <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
             <Route path="/portal-aluno/literatura" element={<LiteraturaView />} />
             <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
