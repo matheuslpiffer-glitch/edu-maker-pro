@@ -296,11 +296,12 @@ function TeacherPanel() {
   };
 
   const validateCorrection = async (sub: Submission, validated: boolean) => {
+    const source = validated ? (sub.teacher_validated ? 'teacher_edited' : 'teacher_released') : 'teacher_adjusted';
     await supabase
       .from('essay_submissions')
-      .update({ teacher_validated: validated, teacher_notes: teacherNotes } as any)
+      .update({ teacher_validated: validated, teacher_notes: teacherNotes, correction_source: source } as any)
       .eq('id', sub.id);
-    toast({ title: validated ? '✅ Correção validada!' : '📝 Nota ajustada' });
+    toast({ title: validated ? '📤 Correção liberada para o aluno!' : '📝 Nota ajustada (rascunho)' });
     setDetailSub(null);
     loadSubmissions();
   };
