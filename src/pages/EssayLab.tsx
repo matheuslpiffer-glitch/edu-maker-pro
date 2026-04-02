@@ -197,6 +197,38 @@ function CompetencyHeatmap({ submissions }: { submissions: Submission[] }) {
   );
 }
 
+// ── Banca-aware Scorecard ──
+function BancaScorecard({ banca, competencies }: { banca: string; competencies: Competency[] }) {
+  return (
+    <Card className="border-primary/20">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-primary" />
+          Scorecard — {banca}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {competencies.map((c, i) => {
+          const pct = (c.score / c.max) * 100;
+          const color = pct < 40 ? 'bg-destructive' : pct < 60 ? 'bg-yellow-500' : pct < 80 ? 'bg-primary' : 'bg-emerald-500';
+          return (
+            <div key={i} className="space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">{c.name}</span>
+                <Badge variant="outline" className="text-xs">{c.score}/{c.max}</Badge>
+              </div>
+              <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
+                <div className={`h-full ${color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+              </div>
+              <p className="text-xs text-muted-foreground">{c.justification}</p>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── Teacher Panel ──
 function TeacherPanel() {
   const { user } = useAuth();
@@ -214,6 +246,11 @@ function TeacherPanel() {
   const [correctingFromTeacher, setCorrectingFromTeacher] = useState(false);
   const [aiTurmaSummary, setAiTurmaSummary] = useState('');
   const [generatingSummary, setGeneratingSummary] = useState(false);
+  const [filterMode, setFilterMode] = useState<'all' | 'pending' | 'lowest' | 'by_class'>('all');
+  const [filterClass, setFilterClass] = useState('');
+  const [generatingFeedback, setGeneratingFeedback] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [printingPdf, setPrintingPdf] = useState(false);
 
   const loadSubmissions = useCallback(async () => {
     if (!user) return;
