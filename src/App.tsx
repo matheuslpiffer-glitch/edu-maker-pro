@@ -68,6 +68,7 @@ const PausaPedagogica = lazy(() => import("@/pages/PausaPedagogica"));
 const ExtraActivity = lazy(() => import("@/pages/ExtraActivity"));
 const EssayLab = lazy(() => import("@/pages/EssayLab"));
 const EssayLabStudentPage = lazy(() => import("@/pages/EssayLabStudentPage"));
+const StudentEssayPortal = lazy(() => import("@/pages/StudentEssayPortal"));
 
 const queryClient = new QueryClient();
 
