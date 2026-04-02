@@ -288,6 +288,38 @@ export default function StudentEssayPortal() {
     })();
   }, [code]);
 
+  // ── Realtime: listen for teacher releasing correction ──
+  useEffect(() => {
+    if (!submission?.id) return;
+    const channel = supabase
+      .channel(`essay-${submission.id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'essay_submissions',
+        filter: `id=eq.${submission.id}`,
+      }, (payload) => {
+        const updated = payload.new as any;
+        if (updated.teacher_validated === true && !submission.teacher_validated) {
+          // Teacher just released the correction!
+          toast({ title: '🎉 Correção liberada!', description: `Seu professor revisou sua redação. Nota: ${updated.total_score}` });
+          setSubmission(prev => prev ? {
+            ...prev,
+            status: updated.status,
+            scores: updated.scores,
+            total_score: updated.total_score,
+            suggestions: updated.suggestions || '',
+            repertoire_analysis: updated.repertoire_analysis || '',
+            teacher_validated: true,
+            teacher_notes: updated.teacher_notes || '',
+            corrected_at: updated.corrected_at,
+          } : null);
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [submission?.id, submission?.teacher_validated]);
+
   // Auto-save draft
   useEffect(() => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
