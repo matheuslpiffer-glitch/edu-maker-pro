@@ -33,7 +33,7 @@ const EXAM_LABELS: Record<string, string> = {
   saeb: 'SAEB',
 };
 
-const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institutionName, examType, questions, isDiscursiva, columns = 1 }, ref) => {
+const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institutionName, examType, questions, isDiscursiva, columns = 1, isSenaiMode = false }, ref) => {
   return (
     <div
       ref={ref}
