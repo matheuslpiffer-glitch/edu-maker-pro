@@ -47,6 +47,10 @@ const BADGES = [
   { id: 'maratonista', label: 'Maratonista', desc: 'Completou 20 quizzes no total', icon: Trophy, color: 'from-yellow-500 to-orange-500', totalQuizzes: 20 },
   { id: 'iniciante', label: 'Desbravador', desc: 'Completou seu primeiro quiz', icon: Star, color: 'from-purple-500 to-pink-500', totalQuizzes: 1 },
   { id: 'escudo', label: 'Escudo de Ferro', desc: '3 dias de sequência de estudos', icon: Shield, color: 'from-gray-500 to-slate-600', streakDays: 3 },
+  { id: 'primeiro_rascunho', label: '✍️ Primeiro Rascunho', desc: 'Completou a primeira redação na Arena', icon: Award, color: 'from-pink-500 to-rose-600', totalQuizzes: 0 },
+  { id: 'mestre_fuvest', label: '🏛️ Mestre da FUVEST', desc: 'Nota acima de 40 em 3 redações da USP', icon: Landmark, color: 'from-violet-500 to-purple-700', totalQuizzes: 0 },
+  { id: 'fenix', label: '🔄 Fênix Acadêmica', desc: 'Subiu 200+ pts entre redação e reescrita', icon: Flame, color: 'from-orange-500 to-red-600', totalQuizzes: 0 },
+  { id: 'ludico_pro', label: '🧩 Lúdico Pro', desc: 'Completou 10 jogos didáticos sem erros', icon: Gamepad2, color: 'from-cyan-500 to-blue-600', totalQuizzes: 0 },
 ];
 
 const DAILY_MISSIONS = [
