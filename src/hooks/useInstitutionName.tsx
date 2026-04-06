@@ -1,18 +1,27 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useBroadcastSync } from '@/hooks/useBroadcastSync';
 
 const LS_KEY = 'educreator_institution_name';
 
 /**
  * Persists institution name in localStorage AND profiles table.
- * Cross-device sync: on mount, compares local vs remote and uses the latest.
+ * Cross-device sync via Supabase. Cross-tab sync via BroadcastChannel.
  */
 export function useInstitutionName() {
   const { user } = useAuth();
   const [name, setNameState] = useState(() => localStorage.getItem(LS_KEY) || '');
   const [loading, setLoading] = useState(true);
   const [remotePrompt, setRemotePrompt] = useState<string | null>(null);
+
+  // Cross-tab sync
+  const handleRemoteTabUpdate = useCallback((value: string) => {
+    setNameState(value);
+    localStorage.setItem(LS_KEY, value);
+  }, []);
+
+  useBroadcastSync('institution_name', name, handleRemoteTabUpdate);
 
   // Sync from Supabase on mount
   useEffect(() => {
@@ -31,10 +40,8 @@ export function useInstitutionName() {
           const remoteVal = (data as any).institution_name as string;
 
           if (remoteVal && remoteVal !== local && local) {
-            // Remote differs — prompt user
             setRemotePrompt(remoteVal);
           } else if (remoteVal && !local) {
-            // No local — use remote
             setNameState(remoteVal);
             localStorage.setItem(LS_KEY, remoteVal);
           }
