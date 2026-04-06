@@ -58,6 +58,53 @@ Retorne JSON PURO (sem markdown):
       return new Response(JSON.stringify(parsed), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Schedule generation mode
+    if (mode === 'schedule' && questionPrompt) {
+      const sPrompt = `Você é a Dra. IA Doutora, especialista em Planejamento Pedagógico e Gestão de Estudos.
+
+${questionPrompt}
+
+REGRAS:
+- Gere exatamente 5 dias (SEGUNDA a SEXTA).
+- Cada missão deve ser curta, objetiva e prática (1-2 frases).
+- Tempo sugerido entre 10 e 30 minutos.
+- TUDO EM MAIÚSCULAS.
+- Adapte o nível para: ${grade || 'Ensino Médio'}${subject ? `, disciplina: ${subject}` : ''}.
+
+Retorne JSON PURO (sem markdown):
+{
+  "schedule": [
+    { "day": "SEGUNDA", "mission": "MISSÃO EM MAIÚSCULAS", "time": "15 MINUTOS" },
+    { "day": "TERÇA", "mission": "MISSÃO EM MAIÚSCULAS", "time": "20 MINUTOS" },
+    { "day": "QUARTA", "mission": "MISSÃO EM MAIÚSCULAS", "time": "10 MINUTOS" },
+    { "day": "QUINTA", "mission": "MISSÃO EM MAIÚSCULAS", "time": "15 MINUTOS" },
+    { "day": "SEXTA", "mission": "MISSÃO EM MAIÚSCULAS", "time": "30 MINUTOS" }
+  ]
+}`;
+
+      const sRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "user", content: sPrompt }],
+          temperature: 0.6,
+        }),
+      });
+
+      if (!sRes.ok) {
+        const errText = await sRes.text();
+        throw new Error(`AI error ${sRes.status}: ${errText}`);
+      }
+
+      const sData = await sRes.json();
+      let sRaw = sData.choices?.[0]?.message?.content || "";
+      sRaw = sRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+      const sParsed = JSON.parse(sRaw);
+
+      return new Response(JSON.stringify(sParsed), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const aeeOverlay = aee ? `
 
 AJUSTE AEE OBRIGATÓRIO (sobreponha qualquer estilo):
