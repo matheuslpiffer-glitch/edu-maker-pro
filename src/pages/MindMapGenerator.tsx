@@ -486,6 +486,21 @@ TUDO EM MAIÚSCULAS.`;
                 />
               </div>
             )}
+
+            {/* Teacher guide section */}
+            {showGuide && (
+              <div className="rounded-2xl overflow-hidden mt-4" style={{ border: '1px solid #E5E7EB' }}>
+                <TeacherGuide
+                  theme={theme}
+                  subject={subject}
+                  grade={grade}
+                  mode={mode}
+                  institutionName={institutionName}
+                  hasQuestions={questions.length > 0}
+                  hasSchedule={schedule.length > 0}
+                />
+              </div>
+            )}
           </div>
         </>
       )}
