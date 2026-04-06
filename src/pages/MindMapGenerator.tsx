@@ -7,12 +7,14 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Download, Brain, Sparkles, Palette, FileDown, Save, Accessibility } from 'lucide-react';
+import { Loader2, Download, Brain, Sparkles, Palette, FileDown, Save, Accessibility, Gem } from 'lucide-react';
 import { ALL_DEFAULT_SUBJECTS } from '@/lib/subjects-data';
 import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import MindMapVisual from '@/components/mindmap/MindMapVisual';
-import type { MindMapData } from '@/components/mindmap/MindMapVisual';
-import { startGeneration, getGeneration, clearGeneration, isGenerating } from '@/lib/background-generation';
+import MindMapQuestions from '@/components/mindmap/MindMapQuestions';
+import type { MindMapData, MindMapQuestion } from '@/components/mindmap/MindMapVisual';
+import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
+import { useInstitutionName } from '@/hooks/useInstitutionName';
 
 function getAutoMode(grade: string): string {
   const iniciais = ['ano_1', 'ano_2', 'ano_3', 'ano_4', 'ano_5', 'bercario', 'maternal_1', 'maternal_2'];
@@ -29,10 +31,12 @@ const MODES = [
 ];
 
 const GEN_KEY = 'mindmap';
+const GEN_KEY_QUESTIONS = 'mindmap_questions';
 
 export default function MindMapGenerator() {
   const { toast } = useToast();
   const mapRef = useRef<HTMLDivElement>(null);
+  const { name: institutionName } = useInstitutionName();
 
   const [theme, setTheme] = useState('');
   const [mode, setMode] = useState('medio');
@@ -42,13 +46,14 @@ export default function MindMapGenerator() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [mapData, setMapData] = useState<MindMapData | null>(null);
+  const [questions, setQuestions] = useState<MindMapQuestion[]>([]);
+  const [generatingQuestions, setGeneratingQuestions] = useState(false);
 
   // Restore background generation result on mount
   useEffect(() => {
     const bg = getGeneration(GEN_KEY);
     if (bg.status === 'running') {
       setLoading(true);
-      // Poll until done
       const interval = setInterval(() => {
         const current = getGeneration(GEN_KEY);
         if (current.status === 'done') {
@@ -84,6 +89,7 @@ export default function MindMapGenerator() {
     if (!theme.trim()) { toast({ title: 'Informe o tema central', variant: 'destructive' }); return; }
     if (!grade) { toast({ title: 'Selecione a série/ano', variant: 'destructive' }); return; }
     setLoading(true);
+    setQuestions([]);
 
     const currentTheme = theme.trim();
     const currentMode = mode;
@@ -100,7 +106,6 @@ export default function MindMapGenerator() {
       return data;
     });
 
-    // Poll for result
     const interval = setInterval(() => {
       const current = getGeneration(GEN_KEY);
       if (current.status === 'done') {
@@ -118,13 +123,54 @@ export default function MindMapGenerator() {
     }, 500);
   };
 
+  const generateQuestions = async () => {
+    if (!mapData) return;
+    setGeneratingQuestions(true);
+
+    try {
+      const branchSummary = mapData.branches.map(b =>
+        `${b.label}: ${b.summary}${b.children?.length ? ' (' + b.children.map(c => c.label).join(', ') + ')' : ''}`
+      ).join('\n');
+
+      const prompt = `Analise o infográfico pedagógico sobre "${mapData.center.label}" com os seguintes tópicos:\n${branchSummary}\n\nGere exatamente 5 perguntas de análise e interpretação que exijam que o aluno observe as conexões visuais do infográfico. Cada pergunta deve ser sobre a relação entre os tópicos, não apenas definições.`;
+
+      const { data, error } = await supabase.functions.invoke('generate-mind-map', {
+        body: {
+          theme: mapData.center.label,
+          mode: 'questions',
+          subject: subject,
+          grade: grade,
+          aee: aee,
+          questionPrompt: prompt,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.questions && Array.isArray(data.questions)) {
+        setQuestions(data.questions.map((q: any, i: number) => ({
+          number: i + 1,
+          question: q.question || q,
+          answer: q.answer || '',
+        })));
+        toast({ title: 'Questões de análise geradas! 💎' });
+      } else {
+        throw new Error('Formato de resposta inválido');
+      }
+    } catch (e: any) {
+      toast({ title: 'Erro ao gerar questões', description: e.message, variant: 'destructive' });
+    } finally {
+      setGeneratingQuestions(false);
+    }
+  };
+
   const exportImage = async () => {
     if (!mapRef.current) return;
     try {
       const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(mapRef.current, { scale: 3, useCORS: true, backgroundColor: '#0f172a' });
+      const canvas = await html2canvas(mapRef.current, { scale: 3, useCORS: true, backgroundColor: '#FFFFFF' });
       const link = document.createElement('a');
-      link.download = `mapa-mental-${theme.replace(/\s+/g, '-')}.png`;
+      link.download = `infografico-${theme.replace(/\s+/g, '-')}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
       toast({ title: 'PNG exportado em alta definição! 📸' });
@@ -137,7 +183,7 @@ export default function MindMapGenerator() {
     if (!mapRef.current) return;
     try {
       const { generatePdfFromElement } = await import('@/lib/pdf-utils');
-      await generatePdfFromElement(mapRef.current, `mapa-mental-${theme.replace(/\s+/g, '-')}`, { orientation: 'landscape' });
+      await generatePdfFromElement(mapRef.current, `infografico-${theme.replace(/\s+/g, '-')}`, { orientation: 'landscape' });
       toast({ title: 'PDF exportado! 📄' });
     } catch (e: any) {
       toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
@@ -150,6 +196,18 @@ export default function MindMapGenerator() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Faça login para salvar');
+      const payload = {
+        ...mapData,
+        _meta: {
+          questions,
+          mode,
+          aee,
+          grade,
+          subject,
+          institutionName,
+          savedAt: new Date().toISOString(),
+        },
+      };
       const { error } = await supabase.from('question_banks').insert({
         user_id: user.id,
         subject: subject || 'Mapa Mental',
@@ -157,11 +215,11 @@ export default function MindMapGenerator() {
         grade: grade,
         purpose: 'multidisciplinar',
         question_type: 'mind-map',
-        institution_name: '',
-        questions: mapData as any,
+        institution_name: institutionName || '',
+        questions: payload as any,
       });
       if (error) throw error;
-      toast({ title: 'Mapa salvo na Biblioteca! 📚' });
+      toast({ title: 'Infográfico salvo na Biblioteca! 📚' });
     } catch (e: any) {
       toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     } finally {
@@ -177,10 +235,10 @@ export default function MindMapGenerator() {
         <div className="flex items-center justify-center gap-2">
           <Brain className="h-8 w-8 text-primary" />
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-            Gerador de Mapas Mentais Maker
+            Infográfico Pedagógico Maker
           </h1>
         </div>
-        <p className="text-muted-foreground">Dra. Mapa Mental · Neuroeducação & Visual Thinking por IA</p>
+        <p className="text-muted-foreground">Dra. IA · Neuroeducação & Design Instrucional Visual</p>
       </div>
 
       <Card>
@@ -253,7 +311,7 @@ export default function MindMapGenerator() {
 
           <Button onClick={generate} disabled={loading} className="w-full md:w-auto">
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Brain className="h-4 w-4 mr-2" />}
-            {loading ? 'Gerando Mapa Mental...' : 'Gerar Mapa Mental com IA'}
+            {loading ? 'Gerando Infográfico...' : 'Gerar Infográfico com IA'}
           </Button>
         </CardContent>
       </Card>
@@ -271,26 +329,63 @@ export default function MindMapGenerator() {
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
               Salvar na Biblioteca
             </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={generateQuestions}
+              disabled={generatingQuestions}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+            >
+              {generatingQuestions ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Gem className="h-4 w-4 mr-1" />}
+              💎 Gerar Questões de Análise
+            </Button>
           </div>
 
           <div
             ref={mapRef}
             className="rounded-2xl p-8 md:p-12 overflow-auto"
             style={{
-              background: aee
-                ? 'linear-gradient(145deg, #000000 0%, #1a1a2e 50%, #000000 100%)'
-                : 'linear-gradient(145deg, #0c1222 0%, #162032 50%, #0f1729 100%)',
+              background: '#FFFFFF',
               minHeight: 560,
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 20px 60px rgba(0,0,0,0.5)',
+              border: '1px solid #E5E7EB',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
             }}
           >
-            <MindMapVisual data={mapData} mode={mode} aee={aee} />
+            <MindMapVisual data={mapData} mode={mode} aee={aee} institutionName={institutionName} />
           </div>
+
+          {/* Interpretation questions section */}
+          {questions.length > 0 && (
+            <div className="rounded-2xl overflow-hidden border" style={{ border: '1px solid #E5E7EB' }}>
+              <MindMapQuestions
+                questions={questions}
+                institutionName={institutionName}
+                theme={theme}
+              />
+
+              {/* Answer key */}
+              <div className="bg-white text-black p-8 max-w-[210mm] mx-auto border-t-2 border-dashed" style={{
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                fontSize: '10pt',
+              }}>
+                <p className="font-bold uppercase text-xs mb-3">📋 GABARITO — QUESTÕES DE ANÁLISE DO INFOGRÁFICO</p>
+                <div className="space-y-2">
+                  {questions.map(q => (
+                    <div key={q.number} style={{ breakInside: 'avoid' }}>
+                      <p style={{ fontWeight: 700, fontSize: '10pt', textTransform: 'uppercase' }}>
+                        {q.number}. {q.answer || 'Resposta aberta — a critério do professor.'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
 
       <p className="text-center text-xs text-muted-foreground">
-        Mapas Mentais Maker · Neuroeducação & Visual Thinking por Matheus Lima Piffer
+        Infográfico Pedagógico Maker · Neuroeducação & Visual Thinking por Matheus Lima Piffer
       </p>
     </div>
   );

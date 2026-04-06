@@ -12,8 +12,51 @@ serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
 
-    const { theme, mode, subject, grade, aee } = await req.json();
+    const { theme, mode, subject, grade, aee, questionPrompt } = await req.json();
     if (!theme) return new Response(JSON.stringify({ error: "Tema obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    // Question generation mode
+    if (mode === 'questions' && questionPrompt) {
+      const qPrompt = `Você é a Dra. IA Doutora, especialista em Pedagogia e Interpretação de Infográficos.
+
+${questionPrompt}
+
+REGRAS:
+- Gere exatamente 5 perguntas de análise e interpretação.
+- As perguntas devem exigir observação do infográfico (conexões, setas, hierarquia).
+- Inclua uma resposta esperada para cada pergunta.
+- Padrão: FONTE ARIAL 11, TUDO EM MAIÚSCULAS, ENUNCIADOS EM NEGRITO.
+- Adapte o nível para: ${grade || 'Ensino Médio'}${subject ? `, disciplina: ${subject}` : ''}.
+
+Retorne JSON PURO (sem markdown):
+{
+  "questions": [
+    { "question": "PERGUNTA EM MAIÚSCULAS", "answer": "RESPOSTA ESPERADA EM MAIÚSCULAS" }
+  ]
+}`;
+
+      const qRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "user", content: qPrompt }],
+          temperature: 0.6,
+        }),
+      });
+
+      if (!qRes.ok) {
+        const errText = await qRes.text();
+        throw new Error(`AI error ${qRes.status}: ${errText}`);
+      }
+
+      const qData = await qRes.json();
+      let qRaw = qData.choices?.[0]?.message?.content || "";
+      qRaw = qRaw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+      const parsed = JSON.parse(qRaw);
+
+      return new Response(JSON.stringify(parsed), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     const aeeOverlay = aee ? `
 
