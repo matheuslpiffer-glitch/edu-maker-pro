@@ -23,11 +23,28 @@ export interface MindMapData {
   branches: MindMapBranch[];
 }
 
-/* ─── Layout engine: place branches in a grid-like vertical list to avoid all overlaps ─── */
+/* ─── Color palette for branches (print-friendly, high contrast on white) ─── */
+const BRANCH_PALETTE = [
+  { bg: '#EEF2FF', border: '#6366F1', text: '#312E81' },
+  { bg: '#FEF3C7', border: '#F59E0B', text: '#78350F' },
+  { bg: '#ECFDF5', border: '#10B981', text: '#064E3B' },
+  { bg: '#FFF1F2', border: '#F43F5E', text: '#881337' },
+  { bg: '#F0F9FF', border: '#0EA5E9', text: '#0C4A6E' },
+  { bg: '#FDF4FF', border: '#A855F7', text: '#581C87' },
+  { bg: '#FFF7ED', border: '#F97316', text: '#7C2D12' },
+  { bg: '#F0FDF4', border: '#22C55E', text: '#14532D' },
+];
+
+function getPalette(i: number) {
+  return BRANCH_PALETTE[i % BRANCH_PALETTE.length];
+}
+
+/* ─── Layout engine ─── */
 interface PlacedBranch {
   branch: MindMapBranch;
   col: 'left' | 'right';
   row: number;
+  palette: typeof BRANCH_PALETTE[number];
 }
 
 function computeLayout(branches: MindMapBranch[]): PlacedBranch[] {
@@ -35,41 +52,38 @@ function computeLayout(branches: MindMapBranch[]): PlacedBranch[] {
   let leftRow = 0;
   let rightRow = 0;
   branches.forEach((branch, i) => {
-    // Alternate left/right columns
     if (i % 2 === 0) {
-      placed.push({ branch, col: 'left', row: leftRow });
+      placed.push({ branch, col: 'left', row: leftRow, palette: getPalette(i) });
       leftRow++;
     } else {
-      placed.push({ branch, col: 'right', row: rightRow });
+      placed.push({ branch, col: 'right', row: rightRow, palette: getPalette(i) });
       rightRow++;
     }
   });
   return placed;
 }
 
-/* ─── Branch Card ─── */
-function BranchCard({ branch, mode, aee }: { branch: MindMapBranch; mode: string; aee: boolean }) {
+/* ─── Infographic Branch Card ─── */
+function BranchCard({ branch, mode, aee, palette }: {
+  branch: MindMapBranch; mode: string; aee: boolean;
+  palette: typeof BRANCH_PALETTE[number];
+}) {
   const [hovered, setHovered] = useState(false);
   const isInfantil = mode === 'infantil';
   const isMedio = mode === 'medio';
 
-  const borderColor = hovered ? branch.color : `${branch.color}66`;
-  const bgGrad = aee
-    ? `linear-gradient(135deg, ${branch.color}28 0%, ${branch.color}40 100%)`
-    : `linear-gradient(135deg, ${branch.color}12 0%, ${branch.color}22 100%)`;
-
   return (
     <div
-      className="rounded-xl border-2 backdrop-blur-sm transition-all duration-300 cursor-default"
+      className="rounded-xl transition-all duration-300 cursor-default"
       style={{
-        background: bgGrad,
-        borderColor,
-        borderWidth: aee ? 3 : 2,
+        background: '#FFFFFF',
+        border: `2px solid ${palette.border}`,
+        borderLeft: `6px solid ${palette.border}`,
         boxShadow: hovered
-          ? `0 6px 24px ${branch.color}35`
-          : `0 2px 8px ${branch.color}15`,
+          ? `0 8px 24px ${palette.border}30`
+          : `0 2px 8px rgba(0,0,0,0.06)`,
         transform: hovered ? 'translateY(-2px)' : 'none',
-        padding: isInfantil ? '16px' : '12px 14px',
+        padding: isInfantil ? '14px 16px' : '10px 14px',
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -78,38 +92,45 @@ function BranchCard({ branch, mode, aee }: { branch: MindMapBranch; mode: string
       {branch.connector && !isInfantil && (
         <Badge
           variant="outline"
-          className="mb-2 text-[10px] font-bold tracking-wider uppercase"
+          className="mb-2 font-bold tracking-wider"
           style={{
-            borderColor: `${branch.color}55`,
-            color: `${branch.color}cc`,
-            background: `${branch.color}10`,
+            borderColor: palette.border,
+            color: palette.text,
+            background: palette.bg,
+            fontSize: '9px',
+            textTransform: 'uppercase',
+            fontFamily: 'Arial, Helvetica, sans-serif',
           }}
         >
           {branch.connector}
         </Badge>
       )}
 
-      {/* Header: emoji + label */}
+      {/* Header */}
       <div className="flex items-start gap-2">
         <span className={aee ? 'text-3xl' : isInfantil ? 'text-3xl' : 'text-xl'} style={{ lineHeight: 1 }}>
           {branch.emoji}
         </span>
         <div className="flex-1 min-w-0">
-          <p
-            className="font-bold leading-tight"
-            style={{
-              color: aee ? '#ffffff' : '#e2e8f0',
-              fontSize: aee ? '15px' : isInfantil ? '14px' : '13px',
-              letterSpacing: aee ? '0.5px' : undefined,
-            }}
-          >
+          <p style={{
+            color: palette.text,
+            fontFamily: 'Arial, Helvetica, sans-serif',
+            fontSize: aee ? '14px' : isInfantil ? '13px' : '11pt',
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            lineHeight: '1.15',
+            letterSpacing: aee ? '0.5px' : undefined,
+          }}>
             {branch.label}
           </p>
           {!isInfantil && branch.summary && (
-            <p className="mt-1 leading-snug" style={{
-              color: aee ? '#cbd5e1' : '#94a3b8',
-              fontSize: aee ? '12px' : '11px',
-              lineHeight: '1.5',
+            <p style={{
+              color: '#374151',
+              fontFamily: 'Arial, Helvetica, sans-serif',
+              fontSize: '10px',
+              lineHeight: '1.4',
+              marginTop: '4px',
+              textTransform: 'uppercase',
             }}>
               {branch.summary}
             </p>
@@ -119,14 +140,27 @@ function BranchCard({ branch, mode, aee }: { branch: MindMapBranch; mode: string
 
       {/* Memory trick */}
       {branch.memory_trick && (
-        <p className="mt-2 italic text-amber-400" style={{ fontSize: '10px', lineHeight: '1.4' }}>
+        <p style={{
+          color: '#92400E',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontSize: '9px',
+          fontStyle: 'italic',
+          marginTop: '6px',
+          lineHeight: '1.3',
+        }}>
           💡 {branch.memory_trick}
         </p>
       )}
 
       {/* AEE hint */}
       {aee && branch.aee_hint && (
-        <p className="mt-1 font-semibold text-blue-400" style={{ fontSize: '10px' }}>
+        <p style={{
+          color: '#1E40AF',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontSize: '10px',
+          fontWeight: 600,
+          marginTop: '4px',
+        }}>
           👁 {branch.aee_hint}
         </p>
       )}
@@ -137,16 +171,20 @@ function BranchCard({ branch, mode, aee }: { branch: MindMapBranch; mode: string
           {branch.children.slice(0, isMedio ? 4 : 3).map((child, ci) => (
             <div
               key={ci}
-              className="rounded-md px-2 py-1 text-xs border"
+              className="rounded-md px-2 py-1 border"
               style={{
-                background: `${branch.color}0a`,
-                borderColor: `${branch.color}20`,
-                color: aee ? '#e2e8f0' : '#cbd5e1',
+                background: palette.bg,
+                borderColor: `${palette.border}40`,
+                color: palette.text,
+                fontFamily: 'Arial, Helvetica, sans-serif',
+                fontSize: '9px',
+                textTransform: 'uppercase',
+                fontWeight: 600,
               }}
             >
               {child.label}
               {child.detail && isMedio && (
-                <span className="block mt-0.5" style={{ color: '#64748b', fontSize: '9px' }}>
+                <span className="block mt-0.5" style={{ color: '#6B7280', fontSize: '8px', fontWeight: 400 }}>
                   {child.detail}
                 </span>
               )}
@@ -157,7 +195,12 @@ function BranchCard({ branch, mode, aee }: { branch: MindMapBranch; mode: string
 
       {/* Cross-link */}
       {branch.cross_link && isMedio && (
-        <p className="mt-1.5 text-purple-400" style={{ fontSize: '9px' }}>
+        <p style={{
+          color: '#7C3AED',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontSize: '9px',
+          marginTop: '6px',
+        }}>
           🔗 {branch.cross_link}
         </p>
       )}
@@ -167,55 +210,31 @@ function BranchCard({ branch, mode, aee }: { branch: MindMapBranch; mode: string
 
 /* ─── SVG connector lines ─── */
 function ConnectorLines({
-  layout,
-  centerX,
-  centerY,
-  cardWidth,
-  rowHeight,
-  startY,
-  aee,
-  mode,
+  layout, centerX, centerY, cardWidth, rowHeight, startY, aee, mode,
 }: {
-  layout: PlacedBranch[];
-  centerX: number;
-  centerY: number;
-  cardWidth: number;
-  rowHeight: number;
-  startY: number;
-  aee: boolean;
-  mode: string;
+  layout: PlacedBranch[]; centerX: number; centerY: number;
+  cardWidth: number; rowHeight: number; startY: number; aee: boolean; mode: string;
 }) {
   const gap = 24;
   return (
     <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
-      <defs>
-        {layout.map((item, i) => (
-          <linearGradient key={`lg-${i}`} id={`mg-${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={aee ? '#fbbf24' : '#6366f1'} stopOpacity="0.5" />
-            <stop offset="100%" stopColor={item.branch.color} stopOpacity="0.7" />
-          </linearGradient>
-        ))}
-      </defs>
       {layout.map((item, i) => {
         const cardY = startY + item.row * rowHeight + rowHeight / 2;
         const isLeft = item.col === 'left';
-        const cardEdgeX = isLeft
-          ? centerX - gap - cardWidth + cardWidth  // right edge of left card = centerX - gap
-          : centerX + gap; // left edge of right card
         const endX = isLeft ? centerX - gap : centerX + gap;
         const cx1 = centerX + (isLeft ? -gap * 0.3 : gap * 0.3);
-        const cy1 = centerY;
         const cx2 = endX + (isLeft ? gap * 0.3 : -gap * 0.3);
-        const cy2 = cardY;
 
         return (
           <path
             key={i}
-            d={`M ${centerX},${centerY} C ${cx1},${cy1} ${cx2},${cy2} ${endX},${cardY}`}
-            stroke={`url(#mg-${i})`}
+            d={`M ${centerX},${centerY} C ${cx1},${centerY} ${cx2},${cardY} ${endX},${cardY}`}
+            stroke={item.palette.border}
             strokeWidth={aee ? 4 : mode === 'infantil' ? 3 : 2}
             fill="none"
             strokeLinecap="round"
+            strokeDasharray={mode === 'infantil' ? '6 4' : 'none'}
+            opacity={0.6}
           />
         );
       })}
@@ -245,17 +264,15 @@ export default function MindMapVisual({ data, mode, aee = false }: { data: MindM
   const startY = (totalHeight - maxRows * rowHeight) / 2;
 
   return (
-    <div className="relative mx-auto" style={{ width: totalWidth, minHeight: totalHeight }}>
+    <div
+      className="relative mx-auto infographic-mindmap"
+      style={{ width: totalWidth, minHeight: totalHeight, background: '#FFFFFF' }}
+    >
       {/* Connector lines */}
       <ConnectorLines
-        layout={layout}
-        centerX={centerX}
-        centerY={centerY}
-        cardWidth={cardWidth}
-        rowHeight={rowHeight}
-        startY={startY}
-        aee={aee}
-        mode={mode}
+        layout={layout} centerX={centerX} centerY={centerY}
+        cardWidth={cardWidth} rowHeight={rowHeight} startY={startY}
+        aee={aee} mode={mode}
       />
 
       {/* Center node */}
@@ -267,22 +284,23 @@ export default function MindMapVisual({ data, mode, aee = false }: { data: MindM
           left: centerX - centerNodeSize / 2,
           top: centerY - centerNodeSize / 2,
           background: aee
-            ? 'radial-gradient(circle at 30% 30%, #f59e0b 0%, #d97706 60%, #92400e 100%)'
-            : 'radial-gradient(circle at 30% 30%, #818cf8 0%, #4f46e5 60%, #3730a3 100%)',
-          border: aee ? '4px solid #fbbf24' : '3px solid rgba(255,255,255,0.15)',
-          boxShadow: aee
-            ? '0 0 40px rgba(245,158,11,0.5)'
-            : '0 0 40px rgba(99,102,241,0.4), inset 0 -4px 12px rgba(0,0,0,0.2)',
+            ? '#F59E0B'
+            : '#6366F1',
+          border: `4px solid ${aee ? '#D97706' : '#4F46E5'}`,
+          boxShadow: `0 4px 20px ${aee ? 'rgba(245,158,11,0.3)' : 'rgba(99,102,241,0.3)'}`,
         }}
       >
         <span className="text-3xl">{data.center.emoji}</span>
-        <span
-          className="text-white font-extrabold text-center px-3 leading-tight mt-1"
-          style={{
-            fontSize: '12px',
-            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-          }}
-        >
+        <span style={{
+          color: '#FFFFFF',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontWeight: 800,
+          fontSize: '11px',
+          textTransform: 'uppercase',
+          textAlign: 'center',
+          padding: '0 10px',
+          lineHeight: '1.15',
+        }}>
           {data.center.label}
         </span>
       </div>
@@ -296,19 +314,24 @@ export default function MindMapVisual({ data, mode, aee = false }: { data: MindM
         const y = startY + item.row * rowHeight;
 
         return (
-          <div
-            key={i}
-            className="absolute z-10"
-            style={{
-              left: x,
-              top: y,
-              width: cardWidth,
-            }}
-          >
-            <BranchCard branch={item.branch} mode={mode} aee={aee} />
+          <div key={i} className="absolute z-10" style={{ left: x, top: y, width: cardWidth }}>
+            <BranchCard branch={item.branch} mode={mode} aee={aee} palette={item.palette} />
           </div>
         );
       })}
+
+      {/* Footer watermark — print only */}
+      <div className="hidden print:block" style={{
+        position: 'absolute',
+        bottom: 4,
+        right: 8,
+        fontFamily: 'Arial, Helvetica, sans-serif',
+        fontSize: '7pt',
+        color: '#9CA3AF',
+        textTransform: 'uppercase',
+      }}>
+        INFOGRÁFICO PEDAGÓGICO — EDUCREATOR PRO
+      </div>
     </div>
   );
 }
