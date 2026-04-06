@@ -1,5 +1,9 @@
 import { Badge } from '@/components/ui/badge';
 import { useState, useMemo } from 'react';
+import {
+  BookOpen, Beaker, Calculator, Globe, Music, Palette as PaletteIcon,
+  Leaf, Cpu, Heart, Scale, Landmark, Atom, Dna, Languages, PenTool, Lightbulb
+} from 'lucide-react';
 
 export interface MindMapChild {
   label: string;
@@ -23,20 +27,51 @@ export interface MindMapData {
   branches: MindMapBranch[];
 }
 
-/* ─── Color palette for branches (print-friendly, high contrast on white) ─── */
+export interface MindMapQuestion {
+  number: number;
+  question: string;
+  answer: string;
+}
+
+/* ─── Pastel palette (print-friendly, high contrast on white) ─── */
 const BRANCH_PALETTE = [
-  { bg: '#EEF2FF', border: '#6366F1', text: '#312E81' },
-  { bg: '#FEF3C7', border: '#F59E0B', text: '#78350F' },
-  { bg: '#ECFDF5', border: '#10B981', text: '#064E3B' },
-  { bg: '#FFF1F2', border: '#F43F5E', text: '#881337' },
-  { bg: '#F0F9FF', border: '#0EA5E9', text: '#0C4A6E' },
-  { bg: '#FDF4FF', border: '#A855F7', text: '#581C87' },
-  { bg: '#FFF7ED', border: '#F97316', text: '#7C2D12' },
-  { bg: '#F0FDF4', border: '#22C55E', text: '#14532D' },
+  { bg: '#EEF2FF', border: '#818CF8', text: '#312E81' },
+  { bg: '#FEF9C3', border: '#FACC15', text: '#713F12' },
+  { bg: '#D1FAE5', border: '#34D399', text: '#064E3B' },
+  { bg: '#FFE4E6', border: '#FB7185', text: '#881337' },
+  { bg: '#E0F2FE', border: '#38BDF8', text: '#0C4A6E' },
+  { bg: '#F3E8FF', border: '#C084FC', text: '#581C87' },
+  { bg: '#FFEDD5', border: '#FB923C', text: '#7C2D12' },
+  { bg: '#DCFCE7', border: '#4ADE80', text: '#14532D' },
 ];
 
 function getPalette(i: number) {
   return BRANCH_PALETTE[i % BRANCH_PALETTE.length];
+}
+
+/* ─── Lucide icon mapping by keyword ─── */
+const ICON_MAP: Record<string, React.ComponentType<any>> = {
+  livro: BookOpen, leitura: BookOpen, texto: BookOpen, literatura: BookOpen,
+  ciência: Beaker, química: Beaker, experimento: Beaker, laboratório: Beaker,
+  matemática: Calculator, número: Calculator, cálculo: Calculator,
+  geografia: Globe, mundo: Globe, planeta: Globe, terra: Globe,
+  música: Music, som: Music, arte: PaletteIcon, pintura: PaletteIcon,
+  natureza: Leaf, biologia: Dna, ecologia: Leaf, meio: Leaf,
+  tecnologia: Cpu, computador: Cpu, digital: Cpu, programa: Cpu,
+  saúde: Heart, corpo: Heart, física: Atom, energia: Atom,
+  direito: Scale, lei: Scale, justiça: Scale,
+  história: Landmark, sociedade: Landmark, política: Landmark,
+  língua: Languages, idioma: Languages, inglês: Languages,
+  escrita: PenTool, redação: PenTool, gramática: PenTool,
+  ideia: Lightbulb, conceito: Lightbulb, teoria: Lightbulb,
+};
+
+function getIconForLabel(label: string) {
+  const lower = label.toLowerCase();
+  for (const [key, Icon] of Object.entries(ICON_MAP)) {
+    if (lower.includes(key)) return Icon;
+  }
+  return BookOpen;
 }
 
 /* ─── Layout engine ─── */
@@ -71,6 +106,7 @@ function BranchCard({ branch, mode, aee, palette }: {
   const [hovered, setHovered] = useState(false);
   const isInfantil = mode === 'infantil';
   const isMedio = mode === 'medio';
+  const Icon = getIconForLabel(branch.label);
 
   return (
     <div
@@ -108,9 +144,12 @@ function BranchCard({ branch, mode, aee, palette }: {
 
       {/* Header */}
       <div className="flex items-start gap-2">
-        <span className={aee ? 'text-3xl' : isInfantil ? 'text-3xl' : 'text-xl'} style={{ lineHeight: 1 }}>
-          {branch.emoji}
-        </span>
+        <div className="flex flex-col items-center gap-1">
+          <span className={aee ? 'text-3xl' : isInfantil ? 'text-3xl' : 'text-xl'} style={{ lineHeight: 1 }}>
+            {branch.emoji}
+          </span>
+          <Icon size={aee ? 20 : 16} color={palette.border} strokeWidth={2} />
+        </div>
         <div className="flex-1 min-w-0">
           <p style={{
             color: palette.text,
@@ -210,10 +249,10 @@ function BranchCard({ branch, mode, aee, palette }: {
 
 /* ─── SVG connector lines ─── */
 function ConnectorLines({
-  layout, centerX, centerY, cardWidth, rowHeight, startY, aee, mode,
+  layout, centerX, centerY, rowHeight, startY, aee, mode,
 }: {
   layout: PlacedBranch[]; centerX: number; centerY: number;
-  cardWidth: number; rowHeight: number; startY: number; aee: boolean; mode: string;
+  rowHeight: number; startY: number; aee: boolean; mode: string;
 }) {
   const gap = 24;
   return (
@@ -243,7 +282,9 @@ function ConnectorLines({
 }
 
 /* ─── Main component ─── */
-export default function MindMapVisual({ data, mode, aee = false }: { data: MindMapData; mode: string; aee?: boolean }) {
+export default function MindMapVisual({ data, mode, aee = false, institutionName }: {
+  data: MindMapData; mode: string; aee?: boolean; institutionName?: string;
+}) {
   const branches = data.branches || [];
   const layout = useMemo(() => computeLayout(branches), [branches]);
 
@@ -266,12 +307,12 @@ export default function MindMapVisual({ data, mode, aee = false }: { data: MindM
   return (
     <div
       className="relative mx-auto infographic-mindmap"
-      style={{ width: totalWidth, minHeight: totalHeight, background: '#FFFFFF' }}
+      style={{ width: totalWidth, minHeight: totalHeight + 30, background: '#FFFFFF' }}
     >
       {/* Connector lines */}
       <ConnectorLines
         layout={layout} centerX={centerX} centerY={centerY}
-        cardWidth={cardWidth} rowHeight={rowHeight} startY={startY}
+        rowHeight={rowHeight} startY={startY}
         aee={aee} mode={mode}
       />
 
@@ -283,9 +324,7 @@ export default function MindMapVisual({ data, mode, aee = false }: { data: MindM
           height: centerNodeSize,
           left: centerX - centerNodeSize / 2,
           top: centerY - centerNodeSize / 2,
-          background: aee
-            ? '#F59E0B'
-            : '#6366F1',
+          background: aee ? '#F59E0B' : '#6366F1',
           border: `4px solid ${aee ? '#D97706' : '#4F46E5'}`,
           boxShadow: `0 4px 20px ${aee ? 'rgba(245,158,11,0.3)' : 'rgba(99,102,241,0.3)'}`,
         }}
@@ -320,17 +359,22 @@ export default function MindMapVisual({ data, mode, aee = false }: { data: MindM
         );
       })}
 
-      {/* Footer watermark — print only */}
-      <div className="hidden print:block" style={{
+      {/* Footer watermark with school name */}
+      <div style={{
         position: 'absolute',
         bottom: 4,
-        right: 8,
+        left: 0,
+        right: 0,
+        display: 'flex',
+        justifyContent: 'space-between',
         fontFamily: 'Arial, Helvetica, sans-serif',
         fontSize: '7pt',
         color: '#9CA3AF',
         textTransform: 'uppercase',
+        padding: '0 8px',
       }}>
-        INFOGRÁFICO PEDAGÓGICO — EDUCREATOR PRO
+        <span>{institutionName || 'EDUCREATOR PRO'}</span>
+        <span>INFOGRÁFICO PEDAGÓGICO — EDUCREATOR PRO</span>
       </div>
     </div>
   );
