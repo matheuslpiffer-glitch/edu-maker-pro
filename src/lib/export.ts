@@ -1,6 +1,8 @@
 import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 import { RGF_DEFAULT, rgfText } from '@/lib/rgf-format';
+
+interface QuestionOption {
   id: string;
   text: string;
   isCorrect: boolean;
