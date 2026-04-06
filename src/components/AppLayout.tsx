@@ -4,6 +4,7 @@ import { Menu, Eye, ArrowLeft, ArrowLeftRight } from 'lucide-react';
 import AppSidebar from './AppSidebar';
 import HelpFab from './HelpFab';
 import SaveStatusIndicator from './SaveStatusIndicator';
+import SyncButton from './SyncButton';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { useRole } from '@/hooks/useRole';
 import { useAuth } from '@/hooks/useAuth';
@@ -65,7 +66,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Menu size={22} className="text-slate-600" />
           </button>
           <span className="ml-3 font-bold text-lg text-slate-900">EduCreator</span>
-          <SaveStatusIndicator className="ml-auto" />
+          <div className="ml-auto flex items-center gap-2">
+            <SyncButton />
+            <SaveStatusIndicator />
+          </div>
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto min-h-[60vh]">{children}</main>
         <HelpFab />
