@@ -7,12 +7,13 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Download, Brain, Sparkles, Palette, FileDown, Save, Accessibility, Gem, CalendarDays } from 'lucide-react';
+import { Loader2, Download, Brain, Sparkles, Palette, FileDown, Save, Accessibility, Gem, CalendarDays, BookOpen } from 'lucide-react';
 import { ALL_DEFAULT_SUBJECTS } from '@/lib/subjects-data';
 import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import MindMapVisual from '@/components/mindmap/MindMapVisual';
 import MindMapQuestions from '@/components/mindmap/MindMapQuestions';
 import StudySchedule from '@/components/mindmap/StudySchedule';
+import TeacherGuide from '@/components/mindmap/TeacherGuide';
 import type { MindMapData, MindMapQuestion } from '@/components/mindmap/MindMapVisual';
 import type { StudyDay } from '@/components/mindmap/StudySchedule';
 import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
@@ -52,6 +53,7 @@ export default function MindMapGenerator() {
   const [schedule, setSchedule] = useState<StudyDay[]>([]);
   const [generatingQuestions, setGeneratingQuestions] = useState(false);
   const [generatingSchedule, setGeneratingSchedule] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   // Auto-refresh on focus: sync institution name from Supabase
   useEffect(() => {
@@ -422,6 +424,15 @@ TUDO EM MAIÚSCULAS.`;
               {generatingSchedule ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CalendarDays className="h-4 w-4 mr-1" />}
               📅 Gerar Cronograma Semanal
             </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setShowGuide(v => !v)}
+              className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
+            >
+              <BookOpen className="h-4 w-4 mr-1" />
+              📄 {showGuide ? 'Ocultar' : 'Gerar'} Guia do Professor
+            </Button>
           </div>
 
           {/* Full content wrapper for unified PDF export */}
@@ -472,6 +483,21 @@ TUDO EM MAIÚSCULAS.`;
                   schedule={schedule}
                   institutionName={institutionName}
                   theme={theme}
+                />
+              </div>
+            )}
+
+            {/* Teacher guide section */}
+            {showGuide && (
+              <div className="rounded-2xl overflow-hidden mt-4" style={{ border: '1px solid #E5E7EB' }}>
+                <TeacherGuide
+                  theme={theme}
+                  subject={subject}
+                  grade={grade}
+                  mode={mode}
+                  institutionName={institutionName}
+                  hasQuestions={questions.length > 0}
+                  hasSchedule={schedule.length > 0}
                 />
               </div>
             )}
