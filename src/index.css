@@ -270,3 +270,44 @@ h1, h2, h3, h4, h5, h6 {
 .print-only {
   display: none;
 }
+
+/* ===== RGF Print Standard ===== */
+@media print {
+  .rgf-print-header {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 11pt !important;
+    line-height: 1.15 !important;
+    text-transform: uppercase !important;
+    page-break-inside: avoid;
+    margin-bottom: 12pt;
+  }
+  .rgf-body {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 11pt !important;
+    line-height: 1.15 !important;
+    text-transform: uppercase !important;
+  }
+  .rgf-body strong,
+  .rgf-body b,
+  .rgf-body h1,
+  .rgf-body h2,
+  .rgf-body h3 {
+    font-weight: 700 !important;
+  }
+  .rgf-two-columns {
+    column-count: 2 !important;
+    column-gap: 20px !important;
+    column-rule: 1px solid #ccc !important;
+  }
+  .rgf-two-columns .question-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  /* Gabarito on new page */
+  .rgf-gabarito {
+    page-break-before: always;
+  }
+  .rgf-gabarito strong {
+    text-decoration: underline;
+  }
+}
