@@ -15,7 +15,7 @@ import QRCodeModal from '@/components/QRCodeModal';
 import { buildPublicAppUrl } from '@/lib/public-links';
 import { Loader2, PenLine, QrCode, CheckCircle, XCircle, Eye, Gem, Copy, Users, RefreshCw, AlertTriangle, ShieldAlert, Sparkles, BarChart3, MessageSquareHeart, Printer, Filter, SortAsc } from 'lucide-react';
 
-const BANCAS = ['ENEM', 'FUVEST', 'VUNESP', 'UNICAMP'] as const;
+const BANCAS = ['Banca Nacional', 'Banca Acadêmica', 'Avaliação Técnica', 'Banca de Excelência'] as const;
 
 interface Annotation {
   start: number;

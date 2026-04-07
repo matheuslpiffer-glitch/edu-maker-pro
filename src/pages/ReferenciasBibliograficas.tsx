@@ -14,7 +14,7 @@ const references = [
     url: 'https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/saeb',
   },
   {
-    title: 'Matrizes de Referência do ENEM',
+    title: 'Matrizes de Referência — Avaliação Nacional',
     description: 'Documento oficial do INEP que apresenta as competências e habilidades avaliadas no Exame Nacional do Ensino Médio, organizadas por áreas do conhecimento.',
     source: 'INEP / MEC',
     url: 'https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem',

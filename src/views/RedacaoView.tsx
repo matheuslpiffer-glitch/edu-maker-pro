@@ -50,9 +50,9 @@ const AREA_COLORS: Record<string, string> = {
 };
 
 const BANCAS = [
-  { id: 'enem', label: 'ENEM', desc: '5 Competências', icon: GraduationCap, gradient: 'from-indigo-600 to-blue-600' },
-  { id: 'unicamp', label: 'UNICAMP', desc: 'Múltiplos Gêneros', icon: BookOpen, gradient: 'from-violet-600 to-purple-600' },
-  { id: 'fuvest', label: 'FUVEST', desc: 'Dissertativa Clássica', icon: FileText, gradient: 'from-cyan-600 to-blue-600' },
+  { id: 'enem', label: 'Banca Padrão Nacional', desc: '5 Competências', icon: GraduationCap, gradient: 'from-indigo-600 to-blue-600' },
+  { id: 'unicamp', label: 'Banca de Excelência', desc: 'Múltiplos Gêneros', icon: BookOpen, gradient: 'from-violet-600 to-purple-600' },
+  { id: 'fuvest', label: 'Banca Acadêmica', desc: 'Dissertativa Clássica', icon: FileText, gradient: 'from-cyan-600 to-blue-600' },
   { id: 'vunesp', label: 'VUNESP', desc: 'Texto Dissertativo', icon: Globe, gradient: 'from-fuchsia-600 to-pink-600' },
 ];
 

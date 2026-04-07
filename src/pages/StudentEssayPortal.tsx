@@ -144,7 +144,7 @@ function EssayBadges({ competencies }: { competencies: Competency[] }) {
 // ── History Timeline ──
 function EssayTimeline({ submissions }: { submissions: Submission[] }) {
   if (!submissions.length) return null;
-  const maxScore = submissions[0]?.banca === 'ENEM' ? 1000 : submissions[0]?.banca === 'FUVEST' ? 50 : 28;
+  const maxScore = submissions[0]?.banca === 'Banca Nacional' ? 1000 : submissions[0]?.banca === 'Banca Acadêmica' ? 50 : 28;
 
   return (
     <Card>

@@ -342,7 +342,7 @@ export default function CoordView() {
             <SelectTrigger className="w-32"><SelectValue placeholder="Banca" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
-              {['ENEM', 'FUVEST', 'VUNESP', 'UNICAMP'].map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+              {['Banca Nacional', 'Banca Acadêmica', 'Avaliação Técnica', 'Banca de Excelência'].map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
             </SelectContent>
           </Select>
           <Button variant="outline" onClick={handleExportReport}>

@@ -21,11 +21,11 @@ interface QuizQuestion {
 type Phase = 'setup' | 'loading' | 'error' | 'quiz' | 'review' | 'results';
 
 const EXAM_OPTIONS = [
-  { value: 'super_enem', label: 'ENEM' },
+  { value: 'super_enem', label: 'Banca Padrão Nacional' },
   { value: 'fuvest', label: 'FUVEST (USP)' },
-  { value: 'unicamp', label: 'UNICAMP' },
-  { value: 'unesp', label: 'UNESP' },
-  { value: 'ufscar', label: 'UFSCar / Federais' },
+  { value: 'unicamp', label: 'Banca de Excelência' },
+  { value: 'unesp', label: 'Avaliação Técnica' },
+  { value: 'ufscar', label: 'Seleção Federal' },
   { value: 'vestibulinho_etec', label: 'Vestibulinho ETEC' },
   { value: 'selecao_ifs', label: 'IFs - Inst. Federais' },
   { value: 'puc', label: 'PUC' },

@@ -335,10 +335,10 @@ const GRADES = [
 // SERIES_CATEGORIAS and SERIE_GRADE_MAP imported from @/lib/series-data
 
 const ARVORE_PUBLICOS = [
-  { id: 'super_enem', label: 'ENEM' },
+  { id: 'super_enem', label: 'Banca Padrão Nacional' },
   { id: 'fuvest', label: 'FUVEST (USP)' },
-  { id: 'unicamp', label: 'UNICAMP' },
-  { id: 'unesp', label: 'UNESP' },
+  { id: 'unicamp', label: 'Banca de Excelência' },
+  { id: 'unesp', label: 'Avaliação Técnica' },
   { id: 'ufrj', label: 'UFRJ' },
   { id: 'ufmg', label: 'UFMG' },
 ];
