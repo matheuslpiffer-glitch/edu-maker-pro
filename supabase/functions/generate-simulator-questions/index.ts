@@ -762,7 +762,7 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
       mackenzie: `No estilo das provas de redes acadêmicas de elite. Tom formal e acadêmico com rigor clássico, questões que exigem domínio conceitual profundo e raciocínio analítico preciso.`,
       coc: `No estilo do sistema de ensino COC. Questões com contextualização rica e didática moderna, conectando conceitos a situações do cotidiano com linguagem acessível mas rigorosa.`,
       etapa: `No estilo das provas do Colégio Etapa. Nível de desafio elevado com questões técnicas e complexas que exigem raciocínio aprofundado e domínio avançado dos conteúdos.`,
-      objetivo: `No estilo do sistema de ensino Objetivo. Foco em atualidades, questões diretas e objetivas com contextualização em eventos recentes e temas contemporâneos.`,
+      objetivo: `No estilo acadêmico direto e objetivo. Foco em atualidades, questões diretas e objetivas com contextualização em eventos recentes e temas contemporâneos.`,
       obmep_mirim1: `No estilo da OBMEP Mirim 1 (2º e 3º ano). Questões lúdicas de raciocínio lógico-matemático com padrões visuais, sequências e desafios matemáticos acessíveis, sem uso de fórmulas mecânicas. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
       obmep_mirim2: `No estilo da OBMEP Mirim 2 (4º e 5º ano). Problemas de geometria intuitiva, padrões numéricos e desafios criativos que estimulam o pensamento matemático sem mecanização. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
       obmep_n1: `No estilo da OBMEP Nível 1 (6º e 7º ano). Problemas criativos que exigem raciocínio lógico, reconhecimento de padrões, contagem e geometria sem depender de fórmulas decoradas. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,

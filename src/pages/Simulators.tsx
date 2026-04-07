@@ -316,7 +316,7 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
     ],
   },
   objetivo: {
-    label: 'Objetivo',
+    label: 'Instituto Lumina',
     formats: [
       { id: 'obj_simulado', label: 'Simulado Interdisciplinar', icon: '📋', subjects: ['Língua Portuguesa', 'Matemática', 'Ciências da Natureza', 'Ciências Humanas', 'Atualidades'] },
       { id: 'obj_atualidades', label: 'Atualidades e Geopolítica', icon: '🌐', subjects: ['Atualidades', 'Geografia', 'História'] },
