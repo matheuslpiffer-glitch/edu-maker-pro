@@ -245,7 +245,7 @@ export default function QuestionBankAI() {
                 </div>
                 <div className="space-y-2">
                   <Label>Nome da Instituição</Label>
-                  <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Escola Estadual..." />
+                  <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Polo Educacional..." />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

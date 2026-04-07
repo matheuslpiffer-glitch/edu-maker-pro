@@ -71,7 +71,7 @@ export default function SobreProjeto() {
               O <strong className="text-white">EduCreator Pro</strong> nasceu da convicção de que a tecnologia de ponta não deve ser privilégio de poucos. Idealizado e criado por <strong className="text-white">Matheus Lima Piffer</strong>, o projeto surgiu da observação direta das necessidades reais de professores brasileiros que enfrentam, diariamente, o desafio de preparar seus alunos para vestibulares, concursos, olimpíadas e, acima de tudo, para a vida.
             </p>
             <p>
-              Cada módulo foi desenhado com precisão cirúrgica: dos simulados FUVEST e ENEM à geração de materiais inclusivos para alunos com TEA, TDAH e deficiências intelectuais. Não se trata apenas de gerar questões — trata-se de <strong className="text-white">reinventar a forma como o conteúdo pedagógico é criado, distribuído e vivenciado</strong>.
+              Cada módulo foi desenhado com precisão cirúrgica: dos simulados acadêmicos e nacionais à geração de materiais inclusivos para alunos com TEA, TDAH e deficiências intelectuais. Não se trata apenas de gerar questões — trata-se de <strong className="text-white">reinventar a forma como o conteúdo pedagógico é criado, distribuído e vivenciado</strong>.
             </p>
             <p>
               A inteligência artificial aqui não substitui o professor. Ela o potencializa. Ela transforma horas de trabalho em minutos. Ela democratiza o acesso à excelência. Ela garante que nenhum aluno fique para trás.

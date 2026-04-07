@@ -21,15 +21,15 @@ interface QuizQuestion {
 type Phase = 'setup' | 'loading' | 'error' | 'quiz' | 'review' | 'results';
 
 const EXAM_OPTIONS = [
-  { value: 'super_enem', label: 'ENEM' },
+  { value: 'super_enem', label: 'Banca Padrão Nacional' },
   { value: 'fuvest', label: 'FUVEST (USP)' },
-  { value: 'unicamp', label: 'UNICAMP' },
-  { value: 'unesp', label: 'UNESP' },
-  { value: 'ufscar', label: 'UFSCar / Federais' },
+  { value: 'unicamp', label: 'Banca de Excelência' },
+  { value: 'unesp', label: 'Avaliação Técnica' },
+  { value: 'ufscar', label: 'Seleção Federal' },
   { value: 'vestibulinho_etec', label: 'Vestibulinho ETEC' },
   { value: 'selecao_ifs', label: 'IFs - Inst. Federais' },
   { value: 'puc', label: 'PUC' },
-  { value: 'mackenzie', label: 'Mackenzie' },
+  { value: 'mackenzie', label: 'Colégio Vértice' },
   { value: 'fgv', label: 'FGV' },
   { value: 'medicina', label: 'Medicina (Einstein)' },
 ];
@@ -38,7 +38,7 @@ const QUESTION_COUNTS = [5, 10, 15, 20];
 
 const FAST_TRACK_OPTIONS = [
   { id: 'selecao_ifs', label: 'Instituto Federal (IFs)', icon: Building2, gradient: 'from-emerald-600 to-green-700', count: 10 },
-  { id: 'vestibulinho_etec', label: 'ETEC / CPS', icon: Cpu, gradient: 'from-teal-500 to-emerald-600', count: 10 },
+  { id: 'vestibulinho_etec', label: 'Instituto Técnico / Rede Tech', icon: Cpu, gradient: 'from-teal-500 to-emerald-600', count: 10 },
 ];
 
 // Retry helper with exponential backoff (up to 5 retries)

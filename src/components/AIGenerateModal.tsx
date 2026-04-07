@@ -196,7 +196,7 @@ export default function AIGenerateModal({ open, onOpenChange, subjects, onGenera
           <Tabs value={tab} onValueChange={setTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="manual">Tópico Livre</TabsTrigger>
-              <TabsTrigger value="curriculum">Escopo SEDUC-SP</TabsTrigger>
+              <TabsTrigger value="curriculum">Escopo Curricular</TabsTrigger>
             </TabsList>
 
             <TabsContent value="manual" className="space-y-3 mt-3">
@@ -222,7 +222,7 @@ export default function AIGenerateModal({ open, onOpenChange, subjects, onGenera
             <TabsContent value="curriculum" className="mt-3">
               {!subjectId ? (
                 <p className="text-sm text-muted-foreground text-center py-6">
-                  Selecione uma disciplina acima para buscar habilidades do Escopo SEDUC-SP.
+                  Selecione uma disciplina acima para buscar habilidades do Escopo Curricular.
                 </p>
               ) : (
                 <>

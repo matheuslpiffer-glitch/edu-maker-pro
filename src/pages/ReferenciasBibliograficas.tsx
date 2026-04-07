@@ -14,7 +14,7 @@ const references = [
     url: 'https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/saeb',
   },
   {
-    title: 'Matrizes de Referência do ENEM',
+    title: 'Matrizes de Referência — Avaliação Nacional',
     description: 'Documento oficial do INEP que apresenta as competências e habilidades avaliadas no Exame Nacional do Ensino Médio, organizadas por áreas do conhecimento.',
     source: 'INEP / MEC',
     url: 'https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem',
@@ -22,13 +22,13 @@ const references = [
   {
     title: 'SARESP — Sistema de Avaliação de Rendimento Escolar do Estado de São Paulo',
     description: 'Avaliação externa aplicada anualmente pela Secretaria da Educação do Estado de São Paulo para medir o desempenho dos alunos em Língua Portuguesa e Matemática, com base em escalas de proficiência.',
-    source: 'SEDUC-SP — Secretaria da Educação do Estado de São Paulo',
+    source: 'Gestor de Ensino — Secretaria da Educação do Estado de São Paulo',
     url: 'https://www.educacao.sp.gov.br/',
   },
   {
-    title: 'Prova Paulista — Avaliação Bimestral',
+    title: 'Avaliação Regional — Avaliação Bimestral',
     description: 'Avaliação diagnóstica bimestral aplicada pela Secretaria da Educação de São Paulo para acompanhar o desenvolvimento das aprendizagens dos estudantes ao longo do ano letivo.',
-    source: 'SEDUC-SP — Secretaria da Educação do Estado de São Paulo',
+    source: 'Gestor de Ensino — Secretaria da Educação do Estado de São Paulo',
     url: 'https://www.educacao.sp.gov.br/',
   },
   {

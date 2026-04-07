@@ -27,10 +27,10 @@ interface Props {
 }
 
 const EXAM_LABELS: Record<string, string> = {
-  saresp: 'Avaliação Paulista',
-  prova_paulista: 'Prova Paulista',
+  saresp: 'Avaliação de Larga Escala',
+  prova_paulista: 'Avaliação Regional',
   ade: 'Avaliação Diagnóstica (ADE)',
-  saeb: 'SAEB',
+  saeb: 'Avaliação Nacional',
 };
 
 const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institutionName, examType, questions, isDiscursiva, columns = 1, isSenaiMode = false }, ref) => {
@@ -70,7 +70,7 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
         </div>
         {isSenaiMode && (
           <p className="text-xs font-bold mt-2 tracking-[0.2em] uppercase" style={{ color: '#0a1f3d' }}>
-            AVALIAÇÃO DE DESEMPENHO TÉCNICO — MATRIZ SP
+            AVALIAÇÃO DE DESEMPENHO TÉCNICO — MATRIZ INDUSTRIAL
           </p>
         )}
         <h1 className="text-lg font-bold uppercase">{institutionName || 'Instituição de Ensino'}</h1>
@@ -137,8 +137,8 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
       <div className="mt-8 pt-4 border-t border-gray-200 text-center">
         <p style={{ fontSize: '8pt', color: isSenaiMode ? '#0a1f3d' : '#c0c0c0', letterSpacing: '0.05em', fontWeight: isSenaiMode ? 700 : 400 }}>
           {isSenaiMode
-            ? 'EDUFLOW INDUSTRIAL | CURRÍCULO TÉCNICO SENAI | Coord. Matheus Lima Piffer'
-            : 'EduCreator Pro • Matheus Lima Piffer'
+            ? 'MATHEUS PIFFER — INOVAÇÃO & TECNOLOGIA EDUCACIONAL'
+            : 'Matheus Piffer — Inovação & Tecnologia Educacional'
           }
         </p>
       </div>

@@ -36,7 +36,7 @@ serve(async (req) => {
     const diffLabel = diffLabels[difficulty] || diffLabels.medium;
     const isEssay = questionType === "essay";
 
-    const systemPrompt = `Você é um especialista em criação de atividades pedagógicas do Estado de São Paulo. Gere exercícios alinhados ao Escopo e Sequência da SEDUC-SP e ao Currículo Paulista. A linguagem deve ser adequada à série indicada.
+    const systemPrompt = `Você é um especialista em criação de atividades pedagógicas do Estado de São Paulo. Gere exercícios alinhados ao Escopo e Sequência da Gestor de Ensino e ao Currículo Paulista. A linguagem deve ser adequada à série indicada.
 
 IMPORTANTE: Para cada questão, inclua um campo "justification" com a explicação pedagógica de por que a resposta correta é aquela, e por que cada distrator está errado (no caso de múltipla escolha). Esta justificativa é destinada ao professor.
 

@@ -49,8 +49,8 @@ interface TimePoint {
 }
 
 const EXAM_LABELS: Record<string, string> = {
-  saresp: 'Avaliação Paulista', prova_paulista: 'Prova Paulista',
-  ade: 'ADE', saeb: 'SAEB',
+  saresp: 'Avaliação de Larga Escala', prova_paulista: 'Avaliação Regional',
+  ade: 'ADE', saeb: 'Avaliação Nacional',
 };
 
 const PROFICIENCY_COLORS = {

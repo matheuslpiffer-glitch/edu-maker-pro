@@ -168,7 +168,7 @@ const PisaPrintPreview = forwardRef<HTMLDivElement, Props>(
 
         {/* Watermark footer */}
         <div style={{ marginTop: '32px', paddingTop: '12px', borderTop: '1px solid #e5e7eb', fontSize: '8pt', color: '#c0c0c0', textAlign: 'center', letterSpacing: '0.05em' }}>
-          <p>EduCreator Pro • Matheus Lima Piffer</p>
+          <p>Matheus Piffer — Inovação & Tecnologia Educacional</p>
           <p><strong>Competência PISA avaliada:</strong> {compLabel} — Nível {proficiencyLevel} de proficiência OCDE.</p>
         </div>
 

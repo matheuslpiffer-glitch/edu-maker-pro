@@ -400,7 +400,7 @@ export default function AltaPerformance() {
       activeDna: rede,
       activeSpecialty: `alta_performance_${rede}`,
       isDiscursiva,
-      difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente, ${niveis.avancado}% Avançado (interdisciplinar, raciocínio lógico profundo, nível Fuvest/Unicamp/ITA)`,
+      difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente, ${niveis.avancado}% Avançado (interdisciplinar, raciocínio lógico profundo, nível acadêmico de excelência)`,
       examModel: redeInfo?.label || rede,
       matrizReferencia: matrizRef,
       matrizLabel: matrizInfo?.label || 'Padrão BNCC',
@@ -798,7 +798,7 @@ export default function AltaPerformance() {
                 </div>
               ))}
               <p className="text-[10px] text-muted-foreground italic mt-1">
-                🎯 Avançado (Elite): questões interdisciplinares com raciocínio profundo — nível Fuvest, Unicamp, ITA.
+                🎯 Avançado (Elite): questões interdisciplinares com raciocínio profundo — nível acadêmico de excelência.
               </p>
             </div>
 

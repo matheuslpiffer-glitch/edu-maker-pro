@@ -48,15 +48,15 @@ const BADGES = [
   { id: 'iniciante', label: 'Desbravador', desc: 'Completou seu primeiro quiz', icon: Star, color: 'from-purple-500 to-pink-500', totalQuizzes: 1 },
   { id: 'escudo', label: 'Escudo de Ferro', desc: '3 dias de sequência de estudos', icon: Shield, color: 'from-gray-500 to-slate-600', streakDays: 3 },
   { id: 'primeiro_rascunho', label: '✍️ Primeiro Rascunho', desc: 'Completou a primeira redação na Arena', icon: Award, color: 'from-pink-500 to-rose-600', totalQuizzes: 0 },
-  { id: 'mestre_fuvest', label: '🏛️ Mestre da FUVEST', desc: 'Nota acima de 40 em 3 redações da USP', icon: Landmark, color: 'from-violet-500 to-purple-700', totalQuizzes: 0 },
+  { id: 'mestre_fuvest', label: '🏛️ Mestre Acadêmico', desc: 'Nota acima de 40 em 3 redações de elite', icon: Landmark, color: 'from-violet-500 to-purple-700', totalQuizzes: 0 },
   { id: 'fenix', label: '🔄 Fênix Acadêmica', desc: 'Subiu 200+ pts entre redação e reescrita', icon: Flame, color: 'from-orange-500 to-red-600', totalQuizzes: 0 },
   { id: 'ludico_pro', label: '🧩 Lúdico Pro', desc: 'Completou 10 jogos didáticos sem erros', icon: Gamepad2, color: 'from-cyan-500 to-blue-600', totalQuizzes: 0 },
 ];
 
 const DAILY_MISSIONS = [
   { id: 'quiz_if', label: 'Fazer um simulado do IF', xp: 500, icon: Building2, path: '/portal-aluno/quiz?fast=ifs' },
-  { id: 'quiz_etec', label: 'Fazer um simulado da ETEC', xp: 500, icon: Cpu, path: '/portal-aluno/quiz?fast=etec' },
-  { id: 'quiz_enem', label: 'Treinar 10 questões ENEM', xp: 300, icon: Target, path: '/portal-aluno/quiz' },
+  { id: 'quiz_etec', label: 'Fazer um simulado técnico', xp: 500, icon: Cpu, path: '/portal-aluno/quiz?fast=etec' },
+  { id: 'quiz_enem', label: 'Treinar 10 questões oficiais', xp: 300, icon: Target, path: '/portal-aluno/quiz' },
   { id: 'jogos', label: 'Jogar um jogo didático', xp: 200, icon: Gamepad2, path: '/jogos' },
 ];
 
@@ -232,7 +232,7 @@ export default function StudentDashboard() {
   };
 
   const trainingActions = [
-    { id: 'vestibular', label: 'Treino de Vestibular', desc: 'Quiz interativo com cronômetro — ENEM, IFs, ETEC', icon: Target, gradient: 'from-indigo-500 to-blue-600', path: '/portal-aluno/quiz' },
+    { id: 'vestibular', label: 'Treino de Vestibular', desc: 'Quiz interativo com cronômetro — Bancas, IFs, Técnicos', icon: Target, gradient: 'from-indigo-500 to-blue-600', path: '/portal-aluno/quiz' },
     { id: 'literatura', label: 'Dossiê Literário', desc: 'Resumos rápidos e flashcards literários', icon: BookOpen, gradient: 'from-pink-500 to-rose-600', path: '/portal-aluno/literatura' },
     { id: 'jogos', label: 'Jogos Didáticos', desc: 'Cruzadinhas, sudokus e vocabulário', icon: Gamepad2, gradient: 'from-orange-500 to-amber-600', path: '/jogos' },
   ];

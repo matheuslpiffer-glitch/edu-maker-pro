@@ -29,7 +29,7 @@ serve(async (req) => {
     };
     const diffLabel = difficultyMap[difficulty] || difficultyMap.medium;
 
-    const systemPrompt = `Você é um assistente de ensino do Estado de São Paulo. Ao gerar atividades, utilize estritamente o Escopo e Sequência da SEDUC-SP e o Currículo Paulista. Foque nos Objetos de Conhecimento e Habilidades específicos para o bimestre e série selecionados. Garanta que a linguagem e a complexidade estejam alinhadas com o material digital oficial da rede.
+    const systemPrompt = `Você é um assistente de ensino do Estado de São Paulo. Ao gerar atividades, utilize estritamente o Escopo e Sequência da Gestor de Ensino e o Currículo Paulista. Foque nos Objetos de Conhecimento e Habilidades específicos para o bimestre e série selecionados. Garanta que a linguagem e a complexidade estejam alinhadas com o material digital oficial da rede.
 
 FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL:
 Está TERMINANTEMENTE PROIBIDO o uso de delimitadores LaTeX ($...$, $$...$$, \\(...\\), \\[...\\]) e tags HTML de formatação (<sup>, <sub>, <b>, <i>, <em>, <strong>).
@@ -43,7 +43,7 @@ Responda APENAS com JSON válido, sem markdown ou texto adicional.`;
     if (type === "essay") {
       userPrompt = `Gere uma questão ${questionType} de dificuldade ${diffLabel} para a disciplina "${subjectName}" (${grade || ""}).
 
-Habilidade BNCC/SEDUC: ${skillCode ? `${skillCode} - ` : ""}${skillDescription}
+Habilidade BNCC/Gestor de Ensino: ${skillCode ? `${skillCode} - ` : ""}${skillDescription}
 
 Responda em JSON:
 {
@@ -53,7 +53,7 @@ Responda em JSON:
     } else {
       userPrompt = `Gere uma questão ${questionType} de dificuldade ${diffLabel} para a disciplina "${subjectName}" (${grade || ""}).
 
-Habilidade BNCC/SEDUC: ${skillCode ? `${skillCode} - ` : ""}${skillDescription}
+Habilidade BNCC/Gestor de Ensino: ${skillCode ? `${skillCode} - ` : ""}${skillDescription}
 
 Responda em JSON:
 {

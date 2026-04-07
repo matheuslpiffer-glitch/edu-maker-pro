@@ -55,11 +55,11 @@ const sections = [
   },
   {
     icon: PenLine,
-    title: 'Redação ENEM — Simulador e Corretor IA',
+    title: 'Redação Elite — Simulador e Corretor IA',
     steps: [
       'Crie temas com textos motivadores e comando de redação.',
       'Os alunos escrevem e fotografam a redação.',
-      'A IA corrige nas 5 competências do ENEM com justificativas.',
+      'A IA corrige nas 5 competências oficiais com justificativas.',
     ],
   },
 ];

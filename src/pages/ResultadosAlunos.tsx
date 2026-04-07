@@ -334,7 +334,7 @@ export default function ResultadosAlunos() {
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-foreground">Resultados e Desempenho</h1>
-            <p className="text-sm text-muted-foreground">Relatório integrado: Simulados SENAI + Redação Elite + Atividades</p>
+            <p className="text-sm text-muted-foreground">Relatório integrado: Simulados Técnicos + Redação Elite + Atividades</p>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={filtered.length === 0} className="gap-2">

@@ -284,7 +284,7 @@ function CorrectionDashboard({ result, studentName }: { result: CorrectionResult
       {/* Gauge */}
       <Card>
         <CardContent className="pt-6 flex flex-col items-center">
-          <h3 className="font-bold text-lg mb-2">Nota Final ENEM</h3>
+          <h3 className="font-bold text-lg mb-2">Nota Final — Avaliação</h3>
           <ScoreGauge score={result.total_score} />
           <Badge
             className={`mt-2 text-sm ${

@@ -129,7 +129,7 @@ const SenaiIndustrialTemplates = forwardRef<HTMLDivElement, Props>(({ institutio
         </div>
 
         <p className="text-center text-[7pt] text-gray-400 mt-4 tracking-wider">
-          EDUFLOW INDUSTRIAL | CURRÍCULO TÉCNICO SENAI | Coord. Matheus Lima Piffer
+          MATHEUS PIFFER — INOVAÇÃO & TECNOLOGIA EDUCACIONAL
         </p>
       </div>
 
@@ -253,7 +253,7 @@ const SenaiIndustrialTemplates = forwardRef<HTMLDivElement, Props>(({ institutio
         </div>
 
         <p className="text-center text-[7pt] text-gray-400 mt-4 tracking-wider">
-          EDUFLOW INDUSTRIAL | CURRÍCULO TÉCNICO SENAI | Coord. Matheus Lima Piffer
+          MATHEUS PIFFER — INOVAÇÃO & TECNOLOGIA EDUCACIONAL
         </p>
       </div>
     </div>

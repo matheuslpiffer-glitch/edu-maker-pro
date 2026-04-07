@@ -26,10 +26,10 @@ export default function Index() {
   if (isStudentMode) return <Navigate to="/portal-aluno" replace />;
 
   const coreEngines = [
-    { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & ENEM', desc: 'FUVEST, UNICAMP, ENEM, Federais e mais', gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20' },
-    { to: '/tecnicos', icon: Cpu, label: 'Técnicos & IFs', desc: 'ETEC, IFs, Cotuca, SENAI e vestibulinhos', gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20' },
+    { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & Seleções', desc: 'Bancas Acadêmicas, Seleções Nacionais e mais', gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20' },
+    { to: '/tecnicos', icon: Cpu, label: 'Técnicos & Institutos', desc: 'Institutos Técnicos, IFs e vestibulinhos', gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20' },
     { to: '/inclusao', icon: Accessibility, label: 'Inclusão AEE', desc: 'TEA, TDAH, DI e Deficiência Visual', gradient: 'from-cyan-500 to-teal-500', shadow: 'shadow-cyan-500/20' },
-    { to: '/redacao', icon: PenLine, label: 'Redação Elite', desc: 'Temas, correção e simulação ENEM', gradient: 'from-rose-500 to-pink-600', shadow: 'shadow-rose-500/20' },
+    { to: '/redacao', icon: PenLine, label: 'Redação Elite', desc: 'Temas, correção e simulação oficial', gradient: 'from-rose-500 to-pink-600', shadow: 'shadow-rose-500/20' },
     { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', desc: 'Roteiros e apresentações com IA', gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/20' },
   ];
 
@@ -76,7 +76,7 @@ export default function Index() {
               type="text"
               value={omniPrompt}
               onChange={e => setOmniPrompt(e.target.value)}
-              placeholder="Cria uma prova FUVEST de Biologia sobre Genética para 3ª série..."
+              placeholder="Crie uma prova de Biologia sobre Genética para 3ª série..."
               className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-700 placeholder:text-slate-400 py-3 px-2"
             />
             <button className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">

@@ -30,7 +30,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Você é um especialista em redação da banca ${banca || "ENEM"} com nota máxima.
+            content: `Você é um especialista em redação da banca ${banca || "Banca Padrão Nacional"} com nota máxima.
 Sua tarefa é REESCREVER a redação do aluno transformando-a em uma versão "Nota Máxima" (1000 no ENEM, 100 na FUVEST/VUNESP, 12 na UNICAMP).
 
 REGRAS:

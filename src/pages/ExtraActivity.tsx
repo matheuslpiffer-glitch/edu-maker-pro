@@ -99,7 +99,7 @@ export default function ExtraActivity() {
           isJogos: true,
           gameType: activityType,
           specificTopic: topic,
-          customMaterial: `Disciplina Técnica: ${discLabel}. Gere uma atividade do tipo "${typeLabel}" focada no ensino técnico SENAI. ${halfA4 ? 'IMPORTANTE: A atividade deve caber em MEIA FOLHA A4 (metade superior). Inclua linhas de corte pontilhadas ao redor. Layout compacto.' : ''}`,
+          customMaterial: `Disciplina Técnica: ${discLabel}. Gere uma atividade do tipo "${typeLabel}" focada no ensino técnico industrial. ${halfA4 ? 'IMPORTANTE: A atividade deve caber em MEIA FOLHA A4 (metade superior). Inclua linhas de corte pontilhadas ao redor. Layout compacto.' : ''}`,
           serie: 'tecnico',
           includeImages: false,
           count: activityType === 'nuvem_palavras' ? 15 : 8,
@@ -133,7 +133,7 @@ export default function ExtraActivity() {
           <Dices className="h-5 w-5 text-white" />
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Ensino Técnico SENAI</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Ensino Técnico Industrial</p>
           <h1 className="text-2xl font-bold text-slate-900">Atividades Extra Lúdicas</h1>
         </div>
       </div>

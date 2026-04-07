@@ -138,7 +138,7 @@ Responda APENAS com JSON válido (sem markdown):
 };
 
 // Keep backward compat alias
-BANCA_PROMPTS["UNESP"] = BANCA_PROMPTS["VUNESP"];
+BANCA_PROMPTS["Avaliação Técnica"] = BANCA_PROMPTS["Avaliação Técnica"];
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -159,8 +159,8 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const bancaKey = (banca || "ENEM").toUpperCase();
-    const systemPrompt = BANCA_PROMPTS[bancaKey] || BANCA_PROMPTS["ENEM"];
+    const bancaKey = (banca || "Banca Padrão Nacional").toUpperCase();
+    const systemPrompt = BANCA_PROMPTS[bancaKey] || BANCA_PROMPTS["Banca Padrão Nacional"];
     const safeTheme = (theme || "Tema livre").slice(0, 500);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
