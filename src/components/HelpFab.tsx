@@ -19,7 +19,7 @@ const pillars = [
     title: '✍️ Redação Elite (Lab Online)',
     items: [
       'Gere propostas com temas técnicos e receba um Link/QR Code exclusivo.',
-      'Aluno digita online; a IA Doutora corrige por banca (ENEM, FUVEST, VUNESP, UNICAMP).',
+      'Aluno digita online; a IA Doutora corrige por banca (Banca Nacional, Banca Acadêmica, Avaliação Técnica, Banca de Excelência).',
       'Valide ou ajuste a nota no seu Dashboard.',
     ],
   },

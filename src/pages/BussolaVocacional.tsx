@@ -253,22 +253,22 @@ export default function BussolaVocacional() {
   const CURSOS_REGIONAIS: Record<string, { cursos: string[]; universidades: string[]; tecnicos: string[] }> = {
     R: {
       cursos: ['Engenharia Mecânica', 'Engenharia de Produção', 'Engenharia Elétrica', 'Tecnologia em Automação'],
-      universidades: ['UNICAMP (Limeira - FCA/FT)', 'USP (ESALQ - Piracicaba)', 'UNESP (Rio Claro)', 'UNIMEP (Piracicaba)'],
+      universidades: ['Universidade Elite (Campus Interior)', 'Universidade Federal (Agronomia)', 'Universidade Estadual (Rio Claro)', 'Instituto Lumina (Campinas)'],
       tecnicos: ['Instituto Técnico (Eletroeletrônica)', 'Rede Tech (Mecânica Industrial)', 'Instituto Apex (Técnico em Mecatrônica)'],
     },
     I: {
       cursos: ['Ciência da Computação', 'Engenharia de Software', 'Física', 'Biologia', 'Química'],
-      universidades: ['UNICAMP (IC - Campinas)', 'USP (ICMC - São Carlos)', 'UNESP (Rio Claro - Geociências)', 'UFSCar (São Carlos)'],
+      universidades: ['Universidade Elite (Computação)', 'Universidade Federal (Ciências Exatas)', 'Universidade Estadual (Geociências)', 'Universidade Federal (São Carlos)'],
       tecnicos: ['Instituto Técnico (Informática)', 'Instituto Apex (Técnico em Informática)', 'Rede Tech (Análise de Dados)'],
     },
     A: {
       cursos: ['Design Gráfico', 'Arquitetura e Urbanismo', 'Comunicação Social', 'Artes Visuais'],
-      universidades: ['UNICAMP (IA - Artes)', 'USP (FAU - Arquitetura)', 'UNESP (FAAC - Bauru)', 'PUC-Campinas (Design)'],
+      universidades: ['Universidade Elite (Artes)', 'Universidade Federal (Arquitetura)', 'Universidade Estadual (Comunicação)', 'Colégio Apex (Design)'],
       tecnicos: ['Instituto Técnico (Design de Interiores)', 'Rede Lumina (Produção Multimídia)', 'Instituto Técnico (Comunicação Visual)'],
     },
     S: {
       cursos: ['Pedagogia', 'Psicologia', 'Serviço Social', 'Enfermagem', 'Medicina'],
-      universidades: ['UNICAMP (FCM - Medicina)', 'USP (FEUSP - Pedagogia)', 'UNESP (Araraquara - Odontologia)', 'PUC-Campinas (Psicologia)'],
+      universidades: ['Universidade Elite (Medicina)', 'Universidade Federal (Pedagogia)', 'Universidade Estadual (Odontologia)', 'Colégio Apex (Psicologia)'],
       tecnicos: ['Instituto Técnico (Enfermagem)', 'Rede Lumina (Recursos Humanos)', 'Instituto Técnico (Nutrição e Dietética)'],
     },
     E: {
@@ -278,7 +278,7 @@ export default function BussolaVocacional() {
     },
     C: {
       cursos: ['Ciências Contábeis', 'Gestão Financeira', 'Logística', 'Estatística'],
-      universidades: ['UNICAMP (IMECC - Estatística)', 'USP (FEA - Contábeis)', 'FATEC (Gestão Financeira)', 'UFSCar (Engenharia de Produção)'],
+      universidades: ['Universidade Elite (Estatística)', 'Universidade Federal (Contábeis)', 'Instituto Apex (Gestão Financeira)', 'Universidade Federal (Engenharia)'],
       tecnicos: ['Instituto Técnico (Contabilidade)', 'Instituto Apex (Logística)', 'Rede Tech (Gestão da Qualidade)'],
     },
   };
