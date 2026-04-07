@@ -840,7 +840,7 @@ export default function PisaSimulators() {
           <div className="space-y-4 mt-2">
             <div className="space-y-2">
               <Label>Nome da Instituição</Label>
-              <Input value={saveInstitution} onChange={e => setSaveInstitution(e.target.value)} placeholder="Ex: Escola William Silva" className="min-h-[44px]" />
+              <Input value={saveInstitution} onChange={e => setSaveInstitution(e.target.value)} placeholder="Ex: Instituto Apex" className="min-h-[44px]" />
             </div>
             <div className="space-y-2">
               <Label>Turma</Label>

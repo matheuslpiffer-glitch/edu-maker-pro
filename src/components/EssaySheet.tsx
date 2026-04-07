@@ -28,10 +28,9 @@ const EssaySheet = forwardRef<HTMLDivElement, Props>(
         {/* School Header */}
         {includeHeader && (
           <div className="text-center border-b-2 border-black pb-3 mb-4">
-            <p className="text-xs uppercase tracking-wider">Governo do Estado de São Paulo</p>
-            <p className="text-xs uppercase tracking-wider">Secretaria da Educação</p>
-            <p className="text-xs uppercase tracking-wider">Unidade Regional de Ensino</p>
-            <p className="font-bold text-sm mt-1">Escola William Silva</p>
+            <p className="text-xs uppercase tracking-wider">Departamento Pedagógico</p>
+            <p className="text-xs uppercase tracking-wider">Polo Regional de Ensino</p>
+            <p className="font-bold text-sm mt-1">Instituto Apex (Exemplo)</p>
           </div>
         )}
 

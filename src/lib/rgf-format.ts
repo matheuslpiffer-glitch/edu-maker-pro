@@ -1,5 +1,5 @@
 /**
- * Padrão Escola RGF — Configuração de Formatação Pedagógica.
+ * Padrão Pedagógico — Configuração de Formatação.
  *
  * Fonte: Arial 11pt | Títulos em Negrito | Texto em MAIÚSCULAS
  * Espaçamento: 1.15 | Layout: 2 colunas (eco-print)

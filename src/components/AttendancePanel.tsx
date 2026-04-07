@@ -7,10 +7,10 @@ import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Copy, Users, Check, Clock, Link2, MessageCircle } from 'lucide-react';
 
 const DEFAULT_TEACHERS = [
-  'Matheus Lima Piffer', 'Glauco', 'Ana Paula', 'Carlos Eduardo',
-  'Fernanda Silva', 'José Ricardo', 'Maria Clara', 'Pedro Henrique',
-  'Luciana Costa', 'Roberto Santos', 'Patrícia Oliveira', 'Marcos Vinícius',
-  'Juliana Almeida', 'André Luiz', 'Camila Ferreira', 'Thiago Souza',
+  'Professor Modelo 01', 'Professor Modelo 02', 'Professor Modelo 03', 'Professor Modelo 04',
+  'Professor Modelo 05', 'Professor Modelo 06', 'Professor Modelo 07', 'Professor Modelo 08',
+  'Professor Modelo 09', 'Professor Modelo 10', 'Professor Modelo 11', 'Professor Modelo 12',
+  'Professor Modelo 13', 'Professor Modelo 14', 'Professor Modelo 15', 'Professor Modelo 16',
 ];
 
 interface Attendance {
