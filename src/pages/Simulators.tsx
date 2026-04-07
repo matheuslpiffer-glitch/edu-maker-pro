@@ -35,10 +35,10 @@ interface SimQuestion { content: string; options: SimOption[]; skillCode?: strin
 interface SavedSimulator { id: string; title: string; exam_type: string; subject_area: string; grade: string; questions: SimQuestion[]; created_at: string; }
 
 const EXAM_TYPES = [
-  { value: 'saresp', label: 'Avaliação Paulista' },
-  { value: 'prova_paulista', label: 'Prova Paulista' },
+  { value: 'saresp', label: 'Avaliação de Larga Escala' },
+  { value: 'prova_paulista', label: 'Avaliação Regional' },
   { value: 'ade', label: 'Avaliação Diagnóstica (ADE)' },
-  { value: 'saeb', label: 'SAEB' },
+  { value: 'saeb', label: 'Avaliação Nacional' },
 ];
 
 // Categorized DNA models for Simulado
@@ -68,9 +68,9 @@ const VESTIBULARES_DNA: DNACategory[] = [
 // Técnicos institution cards
 const TECNICOS_INSTITUTIONS = [
   { id: 'ifs', label: 'Instituto Federal (IFs)', desc: 'Exame de Seleção Nacional', icon: Building2, gradient: 'from-emerald-600 to-green-700' },
-  { id: 'etec', label: 'ETEC / CPS', desc: 'Vestibulinho Centro Paula Souza', icon: Cpu, gradient: 'from-teal-500 to-emerald-600' },
-  { id: 'cotuca', label: 'Técnicos Unicamp', desc: 'Cotuca / Cotil — Seleção Unicamp', icon: Target, gradient: 'from-green-500 to-teal-600' },
-  { id: 'senai', label: 'SENAI Industrial', desc: 'Simulado Técnico Padrão SENAI', icon: Wrench, gradient: 'from-[#0a1f3d] to-[#1a3a6b]' },
+  { id: 'etec', label: 'Instituto Técnico / Rede Tech', desc: 'Vestibulinho Técnico Profissional', icon: Cpu, gradient: 'from-teal-500 to-emerald-600' },
+  { id: 'cotuca', label: 'Técnicos Universitários', desc: 'Seleção Técnica Universitária', icon: Target, gradient: 'from-green-500 to-teal-600' },
+  { id: 'senai', label: 'Instituto Técnico Avançado', desc: 'Simulado Técnico Padrão Industrial', icon: Wrench, gradient: 'from-[#0a1f3d] to-[#1a3a6b]' },
 ];
 
 const TECNICOS_AREA_SUBJECTS = [
@@ -132,7 +132,7 @@ const SIMULADO_DNA_CATEGORIES: DNACategory[] = [
     title: 'Redes Oficiais',
     color: 'text-indigo-600',
     models: [
-      { value: 'padrao', label: 'Padrão (SEDUC-SP)', icon: BookOpen },
+      { value: 'padrao', label: 'Padrão (Gestor de Ensino)', icon: BookOpen },
       { value: 'super_bncc_elite', label: 'Super BNCC Elite', icon: GraduationCap },
       { value: 'concurso_publico', label: 'Concurso Público', icon: Award },
     ],
@@ -176,7 +176,7 @@ const MOTOR_CATEGORIES = [
   {
     id: 'simulado',
     label: 'Nova Prova & Simulado',
-    description: 'Crie provas completas, simulados ENEM, SAEB e avaliações diagnósticas com gabarito automático.',
+    description: 'Crie provas completas, simulados oficiais e avaliações diagnósticas com gabarito automático.',
     icon: FileText,
     flow: 'simulado' as const,
     models: ALL_SIMULADO_MODELS,
@@ -227,7 +227,7 @@ interface FormatOption {
 
 const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> = {
   senai_tecnico: {
-    label: 'SENAI (Técnico)',
+    label: 'Instituto Técnico (Avançado)',
     formats: [
       { id: 'senai_completa', label: 'Prova Completa (Port/Mat/Cie)', icon: '📋', subjects: ['Língua Portuguesa', 'Matemática', 'Ciências da Natureza'] },
       { id: 'senai_mat', label: 'Apenas Matemática', icon: '📐', subjects: ['Matemática'] },
@@ -236,7 +236,7 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
     ],
   },
   super_enem: {
-    label: 'Super ENEM',
+    label: 'Banca Padrão Nacional',
     formats: [
       { id: 'enem_dia1', label: 'Dia 1: Linguagens e Humanas', icon: '📝', subjects: ['Língua Portuguesa', 'Língua Inglesa', 'Arte', 'História', 'Geografia', 'Filosofia', 'Sociologia'] },
       { id: 'enem_dia2', label: 'Dia 2: Matemática e Natureza', icon: '📐', subjects: ['Matemática', 'Física', 'Química', 'Biologia'] },
@@ -244,7 +244,7 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
     ],
   },
   vestibulares_paulistas: {
-    label: 'FUVEST/UNICAMP/UNESP',
+    label: 'Banca Acadêmica Elite',
     formats: [
       { id: 'fuvest_1fase', label: '1ª Fase (Conhecimentos Gerais)', icon: '📋', subjects: ['Língua Portuguesa', 'Matemática', 'História', 'Geografia', 'Física', 'Química', 'Biologia', 'Filosofia', 'Sociologia'] },
       { id: 'fuvest_2exatas', label: '2ª Fase: Exatas', icon: '📐', subjects: ['Matemática', 'Física', 'Química'] },
@@ -253,10 +253,10 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
     ],
   },
   padrao: {
-    label: 'SEDUC-SP',
+    label: 'Gestor de Ensino',
     formats: [
-      { id: 'seduc_saresp', label: 'Avaliação Paulista', icon: '📊', subjects: [] },
-      { id: 'seduc_prova_paulista', label: 'Prova Paulista', icon: '📝', subjects: [] },
+      { id: 'seduc_saresp', label: 'Avaliação de Larga Escala', icon: '📊', subjects: [] },
+      { id: 'seduc_prova_paulista', label: 'Avaliação Regional', icon: '📝', subjects: [] },
       { id: 'seduc_ade', label: 'Avaliação Diagnóstica (ADE)', icon: '🔍', subjects: [] },
     ],
   },
@@ -269,7 +269,7 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
     ],
   },
   eixo_tecnico_cps: {
-    label: 'ETEC / CPS (Técnico)',
+    label: 'Instituto Técnico / Rede Tech (Técnico)',
     formats: [
       { id: 'etec_completa', label: 'Vestibulinho Completo (50 Questões)', icon: '📋', subjects: ['Língua Portuguesa', 'Matemática', 'Ciências da Natureza', 'Ciências Humanas'] },
       { id: 'etec_mat_logica', label: 'Matemática e Raciocínio Lógico', icon: '🧮', subjects: ['Matemática'] },
@@ -289,7 +289,7 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
     ],
   },
   mackenzie: {
-    label: 'Mackenzie',
+    label: 'Colégio Vértice',
     formats: [
       { id: 'mack_completa', label: 'Prova Completa (1ª Fase)', icon: '📋', subjects: ['Língua Portuguesa', 'Matemática', 'História', 'Geografia', 'Física', 'Química', 'Biologia', 'Língua Inglesa'] },
       { id: 'mack_exatas', label: 'Bloco Exatas', icon: '📐', subjects: ['Matemática', 'Física', 'Química'] },
@@ -347,16 +347,16 @@ const ARVORE_PRIVADOS = [
   { id: 'puc', label: 'PUC' },
   { id: 'fgv', label: 'FGV' },
   { id: 'insper', label: 'Insper' },
-  { id: 'mackenzie', label: 'Mackenzie' },
-  { id: 'einstein', label: 'Faculdades Albert Einstein' },
+  { id: 'mackenzie', label: 'Colégio Vértice' },
+  { id: 'einstein', label: 'Instituto Apex Saúde' },
 ];
 
 const ARVORE_VESTIBULINHOS = [
   { id: 'vestibulinho_ifs', label: 'Instituto Federal (IFs) — Exame de Seleção' },
-  { id: 'vestibulinho_etec', label: 'Simulado Vestibulinho ETEC' },
-  { id: 'cotuca_cotil', label: 'Seleção Cotuca/Cotil (Unicamp)' },
-  { id: 'senai', label: 'Processo Seletivo SENAI' },
-  { id: 'vestibulinho_cps', label: 'Vestibulinho CPS' },
+  { id: 'vestibulinho_etec', label: 'Simulado Vestibulinho Técnico' },
+  { id: 'cotuca_cotil', label: 'Seleção Técnica Universitária' },
+  { id: 'senai', label: 'Processo Seletivo Rede Tech' },
+  { id: 'vestibulinho_cps', label: 'Vestibulinho Rede Tech' },
 ];
 
 const ARVORE_CURSOS_TECNICOS = [
@@ -1023,9 +1023,9 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   );
 
   const modeConfig = mode === 'vestibulares'
-    ? { gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20', label: 'Vestibulares & ENEM', subtitle: 'Federais, UFSCar, PUC, Mackenzie, FGV, Medicina' }
+    ? { gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20', label: 'Vestibulares & Seleções', subtitle: 'Federais, UFSCar, PUC, Mackenzie, FGV, Medicina' }
     : mode === 'tecnicos'
-      ? { gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20', label: 'Técnicos & IFs', subtitle: 'ETEC, Institutos Federais, Cotuca, SENAI, Cursos' }
+      ? { gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20', label: 'Técnicos & Institutos', subtitle: 'ETEC, Institutos Federais, Cotuca, SENAI, Cursos' }
       : { gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-indigo-500/20', label: 'Master Educator Pro 6.0', subtitle: 'Plataforma Inteligente' };
 
   return (

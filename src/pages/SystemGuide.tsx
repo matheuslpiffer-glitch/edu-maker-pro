@@ -21,7 +21,7 @@ const modules = [
     icon: ClipboardList,
     title: 'Simulados Elite',
     badge: 'IA',
-    description: 'Cadernos de prova padrão BNCC, SAEB, Prova Paulista e ADE com 5 alternativas (A-E), Folha de Respostas com bolinhas e QR Code de autenticação.',
+    description: 'Cadernos de prova padrão BNCC, SAEB, Avaliação Regional e ADE com 5 alternativas (A-E), Folha de Respostas com bolinhas e QR Code de autenticação.',
     steps: ['Escolha o tipo de avaliação e habilidades', 'A IA gera as questões e o gabarito', 'Exporte o caderno de prova + folha de respostas'],
   },
   {
@@ -71,7 +71,7 @@ export default function SystemGuide() {
         </div>
         <h1 className="text-3xl font-bold tracking-tight">Guia do Sistema</h1>
         <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-          Manual de gestão pedagógica do <strong>EduCreator Pro 2026</strong> — Escola PEI • Limeira/SP.
+          Manual de gestão pedagógica do <strong>EduCreator Pro 2026</strong> — Polo Educacional.
           Conheça cada módulo e comece a usar em segundos.
         </p>
       </div>
@@ -130,7 +130,7 @@ export default function SystemGuide() {
 
       {/* Footer */}
       <div className="mt-10 text-center text-xs text-muted-foreground pb-6">
-        EduCreator Pro 2026 • Plataforma de Governança Pedagógica • Escola PEI — Limeira/SP
+        EduCreator Pro 2026 • Plataforma de Governança Pedagógica • Polo Educacional
       </div>
     </div>
   );

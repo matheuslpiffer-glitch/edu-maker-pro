@@ -683,7 +683,7 @@ A prova deve seguir o peso oficial:
 - 20 questões de CIÊNCIAS (Física aplicada: mecânica, eletricidade; Química: materiais, reações industriais; Biologia: saúde ocupacional, ergonomia)
 Todas contextualizadas no universo técnico-industrial do eixo "${senaiEixo}".
 Numere as questões de 1 a ${count || 60} sequencialmente.
-O cabeçalho conceitual é: "AVALIAÇÃO DE DESEMPENHO TÉCNICO — MATRIZ SP".\n` : `
+O cabeçalho conceitual é: "AVALIAÇÃO DE DESEMPENHO TÉCNICO — MATRIZ INDUSTRIAL".\n` : `
 ESTILO DAS QUESTÕES:
 - Gere EXATAMENTE ${count || 10} questões de múltipla escolha (A a E) no nível de cursos técnicos SENAI.
 - As questões devem abordar: cálculos técnicos (módulo de engrenagens, relação de transmissão, dimensionamento), leitura de diagramas e esquemas, procedimentos de montagem/desmontagem, nomenclatura técnica industrial.
@@ -701,7 +701,7 @@ CAMPO "descriptor": Descreva brevemente a competência técnica avaliada.\n`
     let techDisciplineInstruction = "";
     if (technicalDiscipline && examModel === 'vest_publicos') {
       const bancaMap: Record<string, string> = {
-        'Super ENEM': 'No estilo ENEM: questões contextualizadas com situações-problema, textos longos, gráficos e interdisciplinaridade. Foco nas competências da Matriz de Referência do ENEM.',
+        'Banca Padrão Nacional': 'No estilo ENEM: questões contextualizadas com situações-problema, textos longos, gráficos e interdisciplinaridade. Foco nas competências da Matriz de Referência do ENEM.',
         'FUVEST (USP)': 'No estilo FUVEST/USP: rigor acadêmico máximo, questões analíticas com textos eruditos, exigindo profundidade conceitual e capacidade de síntese.',
         'UNICAMP': 'No estilo UNICAMP/Comvest: questões interdisciplinares com textos acadêmicos densos, interpretação de dados e raciocínio crítico avançado.',
         'UNESP': 'No estilo UNESP/Vunesp: questões objetivas e diretas com contextualização rica, exigindo domínio conceitual sólido.',
@@ -749,7 +749,7 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
 
     const examLabels: Record<string, string> = {
       saresp: "Avaliação Paulista (baseada nos descritores de proficiência do Estado de São Paulo)",
-      prova_paulista: "Prova Paulista",
+      prova_paulista: "Avaliação Regional",
       ade: "Avaliação Diagnóstica Estadual (ADE)",
       saeb: "SAEB (Sistema de Avaliação da Educação Básica)",
     };
@@ -932,7 +932,7 @@ Responda em JSON:
     {
       "content": "<p>Enunciado contextualizado em HTML</p>",
       "options": [],
-      "skillCode": "Código da habilidade BNCC/SEDUC relacionada",
+      "skillCode": "Código da habilidade BNCC/Gestor de Ensino relacionada",
       "descriptor": "Descritor de competência associado",
       "answerLines": 10,
       "correctionMirror": "Resolução passo a passo com critérios de pontuação"
@@ -955,7 +955,7 @@ Responda em JSON:
         {"letter": "D", "text": "Alternativa D", "isCorrect": false},
         {"letter": "E", "text": "Alternativa E", "isCorrect": false}
       ],
-      "skillCode": "Código da habilidade BNCC/SEDUC relacionada",
+      "skillCode": "Código da habilidade BNCC/Gestor de Ensino relacionada",
       "descriptor": "Descritor de competência associado"
     }
   ]

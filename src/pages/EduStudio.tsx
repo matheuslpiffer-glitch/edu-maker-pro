@@ -247,8 +247,8 @@ export default function EduStudio() {
                     <Select value={simMatrix} onValueChange={setSimMatrix}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="saresp">Avaliação Paulista (Pública)</SelectItem>
-                        <SelectItem value="mackenzie">Mackenzie (RGF)</SelectItem>
+                        <SelectItem value="saresp">Avaliação de Larga Escala (Pública)</SelectItem>
+                        <SelectItem value="mackenzie">Banca Acadêmica (Particular)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

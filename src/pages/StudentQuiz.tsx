@@ -29,7 +29,7 @@ const EXAM_OPTIONS = [
   { value: 'vestibulinho_etec', label: 'Vestibulinho ETEC' },
   { value: 'selecao_ifs', label: 'IFs - Inst. Federais' },
   { value: 'puc', label: 'PUC' },
-  { value: 'mackenzie', label: 'Mackenzie' },
+  { value: 'mackenzie', label: 'Colégio Vértice' },
   { value: 'fgv', label: 'FGV' },
   { value: 'medicina', label: 'Medicina (Einstein)' },
 ];
@@ -38,7 +38,7 @@ const QUESTION_COUNTS = [5, 10, 15, 20];
 
 const FAST_TRACK_OPTIONS = [
   { id: 'selecao_ifs', label: 'Instituto Federal (IFs)', icon: Building2, gradient: 'from-emerald-600 to-green-700', count: 10 },
-  { id: 'vestibulinho_etec', label: 'ETEC / CPS', icon: Cpu, gradient: 'from-teal-500 to-emerald-600', count: 10 },
+  { id: 'vestibulinho_etec', label: 'Instituto Técnico / Rede Tech', icon: Cpu, gradient: 'from-teal-500 to-emerald-600', count: 10 },
 ];
 
 // Retry helper with exponential backoff (up to 5 retries)

@@ -21,7 +21,7 @@ serve(async (req) => {
     }
 
     const skillContext = skillCode
-      ? `\nHabilidade BNCC/SEDUC: ${skillCode} - ${skillDescription}`
+      ? `\nHabilidade BNCC/Gestor de Ensino: ${skillCode} - ${skillDescription}`
       : skillDescription ? `\nHabilidade: ${skillDescription}` : "";
 
     // ══════════════════════════════════════════
@@ -107,7 +107,7 @@ Sequência: 1) Capa, 2) Objetivo, 3) Contextualização, 4-${count - 3}) Desenvo
     // ══════════════════════════════════════════
     // CLASSIC / APOSTILA MODE (structured JSON)
     // ══════════════════════════════════════════
-    const systemPrompt = `Você é um especialista em criação de roteiros de aula do Estado de São Paulo. Crie apresentações seguindo o Escopo e Sequência da SEDUC-SP e o Currículo Paulista. Garanta linguagem adequada à série e alinhamento pedagógico.
+    const systemPrompt = `Você é um especialista em criação de roteiros de aula do Estado de São Paulo. Crie apresentações seguindo o Escopo e Sequência da Gestor de Ensino e o Currículo Paulista. Garanta linguagem adequada à série e alinhamento pedagógico.
 
 Responda APENAS com JSON válido, sem markdown ou texto adicional.`;
 

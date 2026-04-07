@@ -371,7 +371,7 @@ export default function EduSlides() {
               <Tabs defaultValue="free">
                 <TabsList className="w-full">
                   <TabsTrigger value="free" className="flex-1">Tópico Livre</TabsTrigger>
-                  <TabsTrigger value="seduc" className="flex-1">Escopo SEDUC-SP</TabsTrigger>
+                  <TabsTrigger value="seduc" className="flex-1">Escopo Curricular</TabsTrigger>
                 </TabsList>
                 <TabsContent value="free">
                   <p className="text-sm text-muted-foreground py-2">A IA criará o material com base no tema e objetivo informados.</p>

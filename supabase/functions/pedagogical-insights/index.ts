@@ -14,7 +14,7 @@ serve(async (req) => {
 
     const { examType, subjectArea, grade, average, distribution, weakSkills } = await req.json();
 
-    const systemPrompt = `Você é um especialista em análise de dados educacionais do Estado de São Paulo. Com base nos resultados de uma avaliação, forneça insights pedagógicos precisos e acionáveis, alinhados ao Currículo Paulista e ao Escopo e Sequência da SEDUC-SP.
+    const systemPrompt = `Você é um especialista em análise de dados educacionais do Estado de São Paulo. Com base nos resultados de uma avaliação, forneça insights pedagógicos precisos e acionáveis, alinhados ao Currículo Paulista e ao Escopo e Sequência da Gestor de Ensino.
 
 Responda APENAS com JSON válido, sem markdown.`;
 
