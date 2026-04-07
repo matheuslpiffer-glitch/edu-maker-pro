@@ -1023,9 +1023,9 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   );
 
   const modeConfig = mode === 'vestibulares'
-    ? { gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20', label: 'Vestibulares & Seleções', subtitle: 'Federais, UFSCar, PUC, Mackenzie, FGV, Medicina' }
+    ? { gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20', label: 'Vestibulares & Seleções', subtitle: 'Federais, Seleções Acadêmicas, Medicina' }
     : mode === 'tecnicos'
-      ? { gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20', label: 'Técnicos & Institutos', subtitle: 'ETEC, Institutos Federais, Cotuca, SENAI, Cursos' }
+      ? { gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20', label: 'Técnicos & Institutos', subtitle: 'Institutos Técnicos, Federais, Rede Tech' }
       : { gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-indigo-500/20', label: 'Master Educator Pro 6.0', subtitle: 'Plataforma Inteligente' };
 
   return (
@@ -1416,11 +1416,11 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                             <Wrench className="h-6 w-6 text-white" />
                           </div>
                           <Badge className="bg-white/10 text-white/90 border-white/20 text-[10px] uppercase tracking-widest font-bold">
-                            ⚙️ Padrão SENAI
+                            ⚙️ Padrão Industrial
                           </Badge>
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-black leading-tight">
-                          Simulado Técnico<br />Industrial SENAI
+                          Simulado Técnico<br />Industrial Avançado
                         </h2>
                         <p className="text-sm text-slate-300 mt-3 max-w-md leading-relaxed">
                           Questões técnicas com verificação automática de normas de segurança (NR-12, NR-35). Matriz Regional SP. Inclui Relatório de Manutenção e OS.
@@ -1485,7 +1485,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         className="h-5 w-5 rounded accent-[#0a1f3d]"
                       />
                       <div>
-                        <p className="text-sm font-bold text-slate-700">Modo Vestibulinho SENAI-SP (60 questões)</p>
+                        <p className="text-sm font-bold text-slate-700">Modo Vestibulinho Técnico Industrial (60 questões)</p>
                         <p className="text-xs text-slate-500">20 Português + 20 Matemática + 20 Ciências aplicadas ao contexto técnico • Cronômetro de 120 min</p>
                       </div>
                     </div>
@@ -1493,7 +1493,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-slate-500">Nome da Instituição</Label>
-                        <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="SENAI — Unidade SP" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+                        <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Instituto Técnico — Unidade" className="bg-slate-50 border-slate-200 rounded-[20px]" />
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs font-semibold text-slate-500">Título do Simulado</Label>

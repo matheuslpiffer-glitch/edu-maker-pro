@@ -11,7 +11,7 @@ const pillars = [
     items: [
       'Escolha o curso: Logística, ADM, Solda ou Dev. de Sistemas.',
       'A IA gera o Procedimento Operacional Padrão e Checklist de EPI.',
-      'Conteúdo segue a matriz FIESP/SENAI-SP.',
+      'Conteúdo segue a matriz técnica industrial.',
     ],
   },
   {

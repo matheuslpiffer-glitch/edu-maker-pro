@@ -254,32 +254,32 @@ export default function BussolaVocacional() {
     R: {
       cursos: ['Engenharia Mecânica', 'Engenharia de Produção', 'Engenharia Elétrica', 'Tecnologia em Automação'],
       universidades: ['UNICAMP (Limeira - FCA/FT)', 'USP (ESALQ - Piracicaba)', 'UNESP (Rio Claro)', 'UNIMEP (Piracicaba)'],
-      tecnicos: ['ETEC (Eletroeletrônica)', 'SENAI (Mecânica Industrial)', 'COTUCA/UNICAMP (Técnico em Mecatrônica)'],
+      tecnicos: ['Instituto Técnico (Eletroeletrônica)', 'Rede Tech (Mecânica Industrial)', 'Instituto Apex (Técnico em Mecatrônica)'],
     },
     I: {
       cursos: ['Ciência da Computação', 'Engenharia de Software', 'Física', 'Biologia', 'Química'],
       universidades: ['UNICAMP (IC - Campinas)', 'USP (ICMC - São Carlos)', 'UNESP (Rio Claro - Geociências)', 'UFSCar (São Carlos)'],
-      tecnicos: ['ETEC (Informática)', 'COTUCA/UNICAMP (Técnico em Informática)', 'SENAI (Análise de Dados)'],
+      tecnicos: ['Instituto Técnico (Informática)', 'Instituto Apex (Técnico em Informática)', 'Rede Tech (Análise de Dados)'],
     },
     A: {
       cursos: ['Design Gráfico', 'Arquitetura e Urbanismo', 'Comunicação Social', 'Artes Visuais'],
       universidades: ['UNICAMP (IA - Artes)', 'USP (FAU - Arquitetura)', 'UNESP (FAAC - Bauru)', 'PUC-Campinas (Design)'],
-      tecnicos: ['ETEC (Design de Interiores)', 'SENAC (Produção Multimídia)', 'ETEC (Comunicação Visual)'],
+      tecnicos: ['Instituto Técnico (Design de Interiores)', 'Rede Lumina (Produção Multimídia)', 'Instituto Técnico (Comunicação Visual)'],
     },
     S: {
       cursos: ['Pedagogia', 'Psicologia', 'Serviço Social', 'Enfermagem', 'Medicina'],
       universidades: ['UNICAMP (FCM - Medicina)', 'USP (FEUSP - Pedagogia)', 'UNESP (Araraquara - Odontologia)', 'PUC-Campinas (Psicologia)'],
-      tecnicos: ['ETEC (Enfermagem)', 'SENAC (Recursos Humanos)', 'ETEC (Nutrição e Dietética)'],
+      tecnicos: ['Instituto Técnico (Enfermagem)', 'Rede Lumina (Recursos Humanos)', 'Instituto Técnico (Nutrição e Dietética)'],
     },
     E: {
       cursos: ['Administração', 'Economia', 'Direito', 'Gestão Empresarial', 'Marketing'],
-      universidades: ['UNICAMP (FCA - Administração)', 'USP (FEA - Economia)', 'UNESP (Araraquara - Administração Pública)', 'Mackenzie (Campinas)'],
-      tecnicos: ['ETEC (Administração)', 'FATEC (Gestão Empresarial)', 'SENAC (Comércio Exterior)'],
+      universidades: ['Universidade Elite (Administração)', 'Universidade Elite (Economia)', 'Universidade Federal (Administração Pública)', 'Colégio Vértice (Campinas)'],
+      tecnicos: ['Instituto Técnico (Administração)', 'Instituto Apex (Gestão Empresarial)', 'Rede Lumina (Comércio Exterior)'],
     },
     C: {
       cursos: ['Ciências Contábeis', 'Gestão Financeira', 'Logística', 'Estatística'],
       universidades: ['UNICAMP (IMECC - Estatística)', 'USP (FEA - Contábeis)', 'FATEC (Gestão Financeira)', 'UFSCar (Engenharia de Produção)'],
-      tecnicos: ['ETEC (Contabilidade)', 'FATEC (Logística)', 'SENAI (Gestão da Qualidade)'],
+      tecnicos: ['Instituto Técnico (Contabilidade)', 'Instituto Apex (Logística)', 'Rede Tech (Gestão da Qualidade)'],
     },
   };
 

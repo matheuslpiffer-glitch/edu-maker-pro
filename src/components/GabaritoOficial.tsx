@@ -22,7 +22,7 @@ interface Props {
 }
 
 const EXAM_LABELS: Record<string, string> = {
-  saresp: 'SARESP',
+  saresp: 'Avaliação de Larga Escala',
   prova_paulista: 'Avaliação Regional',
   ade: 'Avaliação Diagnóstica (ADE)',
   saeb: 'Avaliação Nacional',
