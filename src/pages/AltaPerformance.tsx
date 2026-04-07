@@ -605,7 +605,12 @@ export default function AltaPerformance() {
       return `*Questão ${i + 1}*\n${stripHtml(q.content)}\n${opts}`;
     }).join('\n\n---\n\n');
 
-    const msg = `🏫 *EduCreator Pro — Simulado Alta Performance*\n\n👤 Professor: Matheus Lima Piffer\n📚 Disciplina: ${disciplina}\n🎯 Rede: ${redeInfo?.label || rede}\n📝 Formato: ${isDiscursiva ? 'Discursivo' : 'Objetiva'}\n\n${text}\n\n✅ Gerado via EduCreator Pro`;
+    const cacheBuster = `?v=${Date.now()}`;
+    const studentLink = savedBankId
+      ? `\n\n🔗 Link do Aluno: ${buildPublicAppUrl(`/atividade/${savedBankId}`)}${cacheBuster}`
+      : '';
+
+    const msg = `🏫 *EduCreator Pro — Simulado Alta Performance*\n\n👤 Professor: Matheus Lima Piffer\n📚 Disciplina: ${disciplina}\n🎯 Rede: ${redeInfo?.label || rede}\n📝 Formato: ${isDiscursiva ? 'Discursivo' : 'Objetiva'}${studentLink}\n\n${text}\n\n✅ Gerado via EduCreator Pro 📖✒️`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
