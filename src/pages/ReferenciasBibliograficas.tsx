@@ -21,14 +21,14 @@ const references = [
   },
   {
     title: 'Simulado de Larga Escala — Avaliação de Rendimento Escolar',
-    description: 'Avaliação externa aplicada anualmente pela Secretaria da Educação do Estado de São Paulo para medir o desempenho dos alunos em Língua Portuguesa e Matemática, com base em escalas de proficiência.',
-    source: 'Gestor de Ensino — Secretaria da Educação do Estado de São Paulo',
+    description: 'Avaliação externa aplicada anualmente pela Departamento Pedagógico Regional para medir o desempenho dos alunos em Língua Portuguesa e Matemática, com base em escalas de proficiência.',
+    source: 'Gestor de Ensino — Departamento Pedagógico Regional',
     url: 'https://www.educacao.sp.gov.br/',
   },
   {
     title: 'Avaliação Regional — Avaliação Bimestral',
-    description: 'Avaliação diagnóstica bimestral aplicada pela Secretaria da Educação de São Paulo para acompanhar o desenvolvimento das aprendizagens dos estudantes ao longo do ano letivo.',
-    source: 'Gestor de Ensino — Secretaria da Educação do Estado de São Paulo',
+    description: 'Avaliação diagnóstica bimestral aplicada pela Departamento Pedagógico Regional para acompanhar o desenvolvimento das aprendizagens dos estudantes ao longo do ano letivo.',
+    source: 'Gestor de Ensino — Departamento Pedagógico Regional',
     url: 'https://www.educacao.sp.gov.br/',
   },
   {
