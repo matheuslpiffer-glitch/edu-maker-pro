@@ -26,10 +26,10 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Você é um corretor especialista de redações no padrão ENEM/INEP com mais de 20 anos de experiência.
+            content: `Você é um corretor especialista de redações no padrão nacional oficial com mais de 20 anos de experiência.
 Sua tarefa é:
 1. Extrair o texto da imagem da redação manuscrita (OCR)
-2. Avaliar o texto nas 5 competências do ENEM (0 a 200 cada, em múltiplos de 40: 0, 40, 80, 120, 160, 200)
+2. Avaliar o texto nas 5 competências oficiais (0 a 200 cada, em múltiplos de 40: 0, 40, 80, 120, 160, 200)
 3. Fornecer justificativas detalhadas e dicas de melhoria
 
 Responda APENAS com JSON válido, sem markdown:
@@ -57,7 +57,7 @@ Responda APENAS com JSON válido, sem markdown:
             content: [
               {
                 type: "text",
-                text: "Extraia o texto desta redação manuscrita e avalie nas 5 competências do ENEM. Retorne o JSON conforme especificado.",
+                text: "Extraia o texto desta redação manuscrita e avalie nas 5 competências oficiais. Retorne o JSON conforme especificado.",
               },
               {
                 type: "image_url",

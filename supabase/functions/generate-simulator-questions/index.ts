@@ -505,7 +505,7 @@ DIRETRIZES DE GERAÇÃO:
 1. CONTEXTUALIZAÇÃO TOTAL: A atividade deve usar os termos técnicos e o cenário da aula (ex: se a aula é de Solda, use termos como 'Arco' e 'Eletrodo').
 2. ESTÉTICA INDUSTRIAL: O tom deve ser de 'Missão' ou 'Ordem de Serviço'. Use linguagem que desafie o aluno (ex: 'Agente, detectamos um gargalo...', 'Engenheiro, inspecione a junta...').
 3. DIAGRAMAÇÃO PARA IMPRESSÃO: O conteúdo deve ser conciso para caber em meia folha A4. Inclua sempre campo de 'Assinatura do Instrutor' no final.
-4. REGRAS DE SEGURANÇA: Nunca sugira procedimentos perigosos sem citar o EPI correspondente. Se o curso for SENAI, siga rigorosamente a nomenclatura da Matriz Técnica de SP.
+4. REGRAS DE SEGURANÇA: Nunca sugira procedimentos perigosos sem citar o EPI correspondente. Siga rigorosamente a nomenclatura da Matriz Técnica Industrial.
 ${NO_IMG_RULE}
 Responda APENAS com JSON válido, sem markdown.`
         : `Você é um Game Designer Educacional especialista em criar jogos pedagógicos envolventes e visualmente ricos em HTML. Seus jogos devem ser prontos para impressão em folha A4.${NO_IMG_RULE}\nResponda APENAS com JSON válido, sem markdown.`;
@@ -554,7 +554,7 @@ Responda em JSON:
       const autorInfo = litAutorName ? ` do autor "${litAutorName}"` : '';
       const focusExtra = specificTopic ? `\nFoco adicional solicitado pelo professor: "${specificTopic}"` : '';
 
-      const systemPromptLit = `Você é um Doutor em Literatura Brasileira e Universal, com especialização em obras cobradas nos principais vestibulares do Brasil (FUVEST, UNICAMP, ENEM, UNESP). Você possui conhecimento enciclopédico sobre todas as obras literárias mundiais.${NO_IMG_RULE}
+      const systemPromptLit = `Você é um Doutor em Literatura Brasileira e Universal, com especialização em obras cobradas nos principais vestibulares do Brasil (principais bancas acadêmicas do Brasil). Você possui conhecimento enciclopédico sobre todas as obras literárias mundiais.${NO_IMG_RULE}
 REGRA CRÍTICA DE TAMANHO: Sua resposta TOTAL (incluindo o JSON) deve ter NO MÁXIMO 4000 palavras. Seja direto e objetivo. Priorize informações essenciais para vestibulares. NÃO escreva capítulos completos — faça RESUMOS CONCISOS de cada parte.
 Responda em formato JSON simplificado, limitando cada seção a no máximo 3 parágrafos. Não use explicações prolixas.
 Responda APENAS com JSON válido, sem markdown, sem blocos de código.`;
@@ -601,7 +601,7 @@ Responda em JSON (SEM markdown, SEM blocos de código):
       const examLabelsStudent: Record<string, string> = {
         super_enem: 'Banca Padrão Nacional', fuvest: 'Banca Acadêmica', unicamp: 'Banca de Excelência', unesp: 'Avaliação Técnica',
         ufscar: 'UFSCar/Federais', vestibulinho_etec: 'ETEC', selecao_ifs: 'Instituto Federal',
-        puc: 'PUC', mackenzie: 'Mackenzie', fgv: 'FGV', medicina: 'Medicina',
+        puc: 'Particular A', mackenzie: 'Rede Vértice', fgv: 'Particular B', medicina: 'Medicina',
       };
       const studentCount = count || studentQCount || 10;
       const instLabel = tecnicoInstitution === 'ifs' ? 'Instituto Federal (IFs)' :
@@ -671,12 +671,12 @@ DIRETRIZES: Use linguagem acessível com frases curtas. Vocabulário adequado pa
         : `\nMODO FAST-TRACK VESTIBULINHO COMPLETO (${tecnicoInstLabel}): Ignore COMPLETAMENTE filtros de disciplina individual. Gere exatamente 20 questões de múltipla escolha (A a E) distribuídas equilibradamente entre as matérias principais da banca: Língua Portuguesa (interpretação, gramática — ~5 questões), Matemática (aritmética, geometria, álgebra — ~5 questões), Ciências da Natureza (~5 questões) e Ciências Humanas (~5 questões). Respeite RIGOROSAMENTE o estilo de enunciado, o nível de dificuldade oficial e a contextualização típica de vestibulinhos de ${tecnicoInstLabel}. As questões devem ser interdisciplinares com situações-problema do cotidiano.\n`
       : "";
 
-    // SENAI Industrial Mode
+    // Industrial Mode
     const senaiInstruction = isSenaiMode
-      ? `\nMODO SIMULADO TÉCNICO INDUSTRIAL — PADRÃO SENAI (MATRIZ REGIONAL SÃO PAULO):
-Você é um Engenheiro de Segurança do Trabalho e Instrutor SENAI especializado no eixo "${senaiEixo || 'Mecânica Industrial'}".
+      ? `\nMODO SIMULADO TÉCNICO INDUSTRIAL — PADRÃO INDUSTRIAL (MATRIZ REGIONAL SÃO PAULO):
+Você é um Engenheiro de Segurança do Trabalho e Instrutor Técnico especializado no eixo "${senaiEixo || 'Mecânica Industrial'}".
 ${senaiSpMatrix ? `\nMATRIZ CURRICULAR SP — CONTEÚDO OBRIGATÓRIO PARA ESTE EIXO:\n${senaiSpMatrix}\nTodas as questões DEVEM abordar os tópicos acima com exemplos do contexto industrial paulista.\n` : ''}
-${senaiVestibulinho ? `\nMODO VESTIBULINHO SENAI-SP (60 QUESTÕES):
+${senaiVestibulinho ? `\nMODO VESTIBULINHO TÉCNICO INDUSTRIAL (60 QUESTÕES):
 A prova deve seguir o peso oficial:
 - 20 questões de LÍNGUA PORTUGUESA (interpretação de texto técnico, gramática aplicada, comunicação empresarial)
 - 20 questões de MATEMÁTICA (cálculos industriais, medidas, proporções, estatística aplicada ao chão de fábrica)
@@ -685,7 +685,7 @@ Todas contextualizadas no universo técnico-industrial do eixo "${senaiEixo}".
 Numere as questões de 1 a ${count || 60} sequencialmente.
 O cabeçalho conceitual é: "AVALIAÇÃO DE DESEMPENHO TÉCNICO — MATRIZ INDUSTRIAL".\n` : `
 ESTILO DAS QUESTÕES:
-- Gere EXATAMENTE ${count || 10} questões de múltipla escolha (A a E) no nível de cursos técnicos SENAI.
+- Gere EXATAMENTE ${count || 10} questões de múltipla escolha (A a E) no nível de cursos técnicos industriais.
 - As questões devem abordar: cálculos técnicos (módulo de engrenagens, relação de transmissão, dimensionamento), leitura de diagramas e esquemas, procedimentos de montagem/desmontagem, nomenclatura técnica industrial.
 - Contextualize com situações reais de chão de fábrica, linha de produção ou manutenção industrial.`}
 
@@ -694,24 +694,24 @@ VERIFICAÇÃO DE NORMAS DE SEGURANÇA (NR-12, NR-35, NR-10):
 - Se o texto da questão mencionar montagem com motores sem citar óculos de proteção, CORRIJA incluindo este item.
 - Inclua pelo menos 2 questões específicas sobre segurança do trabalho e normas regulamentadoras.
 
-CAMPO "skillCode": Use códigos como "NR-12", "NR-35", "SENAI-MEC", "SENAI-ELE", "SENAI-AUT", "SENAI-LOG", "SENAI-ADM", "SENAI-SOL", "SENAI-DEV" conforme o eixo.
+CAMPO "skillCode": Use códigos como "NR-12", "NR-35", "TEC-MEC", "TEC-ELE", "TEC-AUT", "TEC-LOG", "TEC-ADM", "TEC-SOL", "TEC-DEV" conforme o eixo.
 CAMPO "descriptor": Descreva brevemente a competência técnica avaliada.\n`
       : "";
 
     let techDisciplineInstruction = "";
     if (technicalDiscipline && examModel === 'vest_publicos') {
       const bancaMap: Record<string, string> = {
-        'Banca Padrão Nacional': 'No estilo ENEM: questões contextualizadas com situações-problema, textos longos, gráficos e interdisciplinaridade. Foco nas competências da Matriz de Referência do ENEM.',
-        'FUVEST (USP)': 'No estilo FUVEST/USP: rigor acadêmico máximo, questões analíticas com textos eruditos, exigindo profundidade conceitual e capacidade de síntese.',
-        'Banca de Excelência': 'No estilo UNICAMP/Comvest: questões interdisciplinares com textos acadêmicos densos, interpretação de dados e raciocínio crítico avançado.',
-        'Avaliação Técnica': 'No estilo UNESP/Vunesp: questões objetivas e diretas com contextualização rica, exigindo domínio conceitual sólido.',
+        'Banca Padrão Nacional': 'No estilo padrão nacional: questões contextualizadas com situações-problema, textos longos, gráficos e interdisciplinaridade. Foco nas competências da Matriz de Referência Nacional.',
+        'Banca Acadêmica (Elite)': 'No estilo banca acadêmica de elite: rigor acadêmico máximo, questões analíticas com textos eruditos, exigindo profundidade conceitual e capacidade de síntese.',
+        'Banca de Excelência': 'No estilo banca de excelência: questões interdisciplinares com textos acadêmicos densos, interpretação de dados e raciocínio crítico avançado.',
+        'Avaliação Técnica': 'No estilo avaliação técnica: questões objetivas e diretas com contextualização rica, exigindo domínio conceitual sólido.',
         'UFSCar / Federais': 'No estilo de vestibulares de Universidades Federais (UFSCar, UNIFESP, IFs): questões com rigor científico, interdisciplinaridade e contextualização social.',
       };
       techDisciplineInstruction = `\nBANCA VESTIBULAR PÚBLICA: ${bancaMap[technicalDiscipline] || `Questões no estilo do vestibular "${technicalDiscipline}" com alto rigor acadêmico.`}\n`;
     } else if (technicalDiscipline && examModel === 'vest_privados') {
       const bancaMap: Record<string, string> = {
         'PUC (Geral)': 'No estilo PUC: questões com tom formal e humanista, exigindo repertório cultural amplo e capacidade argumentativa.',
-        'Mackenzie': 'No estilo Mackenzie: rigor clássico, questões que exigem domínio conceitual profundo e raciocínio analítico preciso.',
+        'Rede Vértice': 'No estilo acadêmico de alto rigor: rigor clássico, questões que exigem domínio conceitual profundo e raciocínio analítico preciso.',
         'FGV (Administração/Direito)': 'No estilo FGV: questões com foco em atualidades, economia, geopolítica e raciocínio lógico-analítico de alto nível.',
         'Medicina (Einstein/Santa Casa)': 'No estilo de vestibulares de Medicina (Albert Einstein, Santa Casa): nível máximo de exigência em Ciências da Natureza, com questões multietapa e raciocínio clínico.',
         'ESPM': 'No estilo ESPM: foco em comunicação, marketing, atualidades e cultura geral com questões criativas e contextualizadas.',
@@ -756,24 +756,24 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
 
     const modelInstructions: Record<string, string> = {
       super_bncc_elite: `Foco em habilidades e competências transversais da BNCC de forma avançada, exigindo pensamento crítico, interpretação complexa e conexões interdisciplinares.`,
-      senai_tecnico: `Baseado no estilo de provas do SENAI, com foco em raciocínio lógico, interpretação de diagramas técnicos, fluxogramas e resolução de problemas práticos do mundo do trabalho.`,
-      vestibulares_paulistas: `Nível de exigência máximo, no estilo FUVEST/UNICAMP/UNESP. Questões interdisciplinares com textos acadêmicos densos, exigindo análise crítica aprofundada, domínio conceitual e capacidade de síntese.`,
+      senai_tecnico: `Baseado no estilo de provas técnicas industriais, com foco em raciocínio lógico, interpretação de diagramas técnicos, fluxogramas e resolução de problemas práticos do mundo do trabalho.`,
+      vestibulares_paulistas: `Nível de exigência máximo, no estilo das principais bancas acadêmicas. Questões interdisciplinares com textos acadêmicos densos, exigindo análise crítica aprofundada, domínio conceitual e capacidade de síntese.`,
       eixo_tecnico_cps: `No estilo dos vestibulinhos de colégios técnicos (CPS/ETEC/COTIL/COTUCA/COTIP). Questões objetivas e contextualizadas com situações práticas do cotidiano, exigindo interpretação e aplicação de conceitos.`,
-      mackenzie: `No estilo das provas do Mackenzie. Tom formal e acadêmico com rigor clássico, questões que exigem domínio conceitual profundo e raciocínio analítico preciso.`,
+      mackenzie: `No estilo das provas de redes acadêmicas de elite. Tom formal e acadêmico com rigor clássico, questões que exigem domínio conceitual profundo e raciocínio analítico preciso.`,
       coc: `No estilo do sistema de ensino COC. Questões com contextualização rica e didática moderna, conectando conceitos a situações do cotidiano com linguagem acessível mas rigorosa.`,
       etapa: `No estilo das provas do Colégio Etapa. Nível de desafio elevado com questões técnicas e complexas que exigem raciocínio aprofundado e domínio avançado dos conteúdos.`,
-      objetivo: `No estilo do sistema de ensino Objetivo. Foco em atualidades, questões diretas e objetivas com contextualização em eventos recentes e temas contemporâneos.`,
+      objetivo: `No estilo acadêmico direto e objetivo. Foco em atualidades, questões diretas e objetivas com contextualização em eventos recentes e temas contemporâneos.`,
       obmep_mirim1: `No estilo da OBMEP Mirim 1 (2º e 3º ano). Questões lúdicas de raciocínio lógico-matemático com padrões visuais, sequências e desafios matemáticos acessíveis, sem uso de fórmulas mecânicas. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
       obmep_mirim2: `No estilo da OBMEP Mirim 2 (4º e 5º ano). Problemas de geometria intuitiva, padrões numéricos e desafios criativos que estimulam o pensamento matemático sem mecanização. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
       obmep_n1: `No estilo da OBMEP Nível 1 (6º e 7º ano). Problemas criativos que exigem raciocínio lógico, reconhecimento de padrões, contagem e geometria sem depender de fórmulas decoradas. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
       obmep_n2: `No estilo da OBMEP Nível 2 (8º e 9º ano). Questões de raciocínio avançado envolvendo combinatória, teoria dos números, geometria e álgebra com abordagem investigativa. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
       obmep_n3: `No estilo da OBMEP Nível 3 (Ensino Médio). Nível olímpico máximo com problemas desafiadores de teoria dos números, combinatória avançada, geometria euclidiana e álgebra, exigindo demonstrações e raciocínio criativo. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
-      super_enem: `No estilo do ENEM (Exame Nacional do Ensino Médio). Questões contextualizadas com situações-problema do cotidiano, interdisciplinares, com textos, gráficos e tabelas. Foco nas competências e habilidades da Matriz de Referência do ENEM.`,
+      super_enem: `No estilo padrão nacional de avaliação. Questões contextualizadas com situações-problema do cotidiano, interdisciplinares, com textos, gráficos e tabelas. Foco nas competências e habilidades da Matriz de Referência Nacional.`,
       concurso_publico: `No estilo de concursos públicos brasileiros (CESPE/CEBRASPE, FCC, FGV, Vunesp). Questões objetivas com linguagem formal e técnica, cobrando legislação educacional, didática, BNCC e conhecimentos pedagógicos.`,
-      redacao_fuvest: `Gere uma proposta de redação no estilo FUVEST: tema dissertativo-argumentativo com coletânea de textos motivadores (mínimo 3), exigindo posicionamento crítico e repertório cultural. Tom acadêmico e erudito.`,
-      redacao_unicamp: `Gere uma proposta de redação no estilo UNICAMP: proposta com gênero textual específico (carta, artigo, manifesto, crônica), situação comunicativa definida e interlocutor claro. Inclua coletânea de textos de apoio.`,
-      redacao_vunesp: `Gere uma proposta de redação no estilo VUNESP: dissertação argumentativa com tema contemporâneo, 2-3 textos motivadores curtos e objetivos, com foco em clareza argumentativa.`,
-      redacao_enem: `Gere uma proposta de redação no estilo ENEM: tema dissertativo-argumentativo com 3-4 textos motivadores (verbais e não-verbais), exigindo proposta de intervenção que respeite os direitos humanos. Siga rigorosamente as 5 competências da redação ENEM.`,
+      redacao_fuvest: `Gere uma proposta de redação no estilo banca acadêmica: tema dissertativo-argumentativo com coletânea de textos motivadores (mínimo 3), exigindo posicionamento crítico e repertório cultural. Tom acadêmico e erudito.`,
+      redacao_unicamp: `Gere uma proposta de redação no estilo banca de excelência: proposta com gênero textual específico (carta, artigo, manifesto, crônica), situação comunicativa definida e interlocutor claro. Inclua coletânea de textos de apoio.`,
+      redacao_vunesp: `Gere uma proposta de redação no estilo avaliação técnica: dissertação argumentativa com tema contemporâneo, 2-3 textos motivadores curtos e objetivos, com foco em clareza argumentativa.`,
+      redacao_enem: `Gere uma proposta de redação no padrão nacional: tema dissertativo-argumentativo com 3-4 textos motivadores (verbais e não-verbais), exigindo proposta de intervenção que respeite os direitos humanos. Siga rigorosamente as 5 competências da redação oficial.`,
     };
 
     const diffLabels: Record<string, string> = {

@@ -316,7 +316,7 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
     ],
   },
   objetivo: {
-    label: 'Objetivo',
+    label: 'Instituto Lumina',
     formats: [
       { id: 'obj_simulado', label: 'Simulado Interdisciplinar', icon: '📋', subjects: ['Língua Portuguesa', 'Matemática', 'Ciências da Natureza', 'Ciências Humanas', 'Atualidades'] },
       { id: 'obj_atualidades', label: 'Atualidades e Geopolítica', icon: '🌐', subjects: ['Atualidades', 'Geografia', 'História'] },
@@ -336,7 +336,7 @@ const GRADES = [
 
 const ARVORE_PUBLICOS = [
   { id: 'super_enem', label: 'Banca Padrão Nacional' },
-  { id: 'fuvest', label: 'FUVEST (USP)' },
+  { id: 'fuvest', label: 'Banca Acadêmica (Elite)' },
   { id: 'unicamp', label: 'Banca de Excelência' },
   { id: 'unesp', label: 'Avaliação Técnica' },
   { id: 'ufrj', label: 'UFRJ' },
@@ -450,7 +450,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [senaiTimerSeconds, setSenaiTimerSeconds] = useState(0);
   const senaiTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Persist SENAI state in sessionStorage
+  // Persist Técnico state in sessionStorage
   useEffect(() => {
     if (isTecnicosMode) {
       const saved = sessionStorage.getItem('senai_progress');
@@ -476,7 +476,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     }
   }, [senaiEixo, senaiTopic, senaiVestibulinho, questions, title, institutionName]);
 
-  // 120-min countdown for SENAI vestibulinho
+  // 120-min countdown for vestibulinho técnico
   const startSenaiTimer = useCallback(() => {
     if (senaiTimerRef.current) return;
     setSenaiTimerSeconds(120 * 60);
@@ -1403,11 +1403,11 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   </>
                 )}
 
-                {/* ══════ SENAI: PASSO 2 — Eixo Técnico + Tema ══════ */}
+                {/* ══════ TÉCNICO: PASSO 2 — Eixo Técnico + Tema ══════ */}
                 {isSenaiMode && (
                   <>
                     <div className="border-t border-[#0a1f3d]/20" />
-                    {/* Hero SENAI */}
+                    {/* Hero Técnico */}
                     <div className="bg-[#0a1f3d] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
                       <div className="relative z-10">
@@ -1508,7 +1508,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
                     >
                       {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Wrench className="h-5 w-5 mr-2" />}
-                      {generating ? 'GERANDO SIMULADO SENAI-SP...' : senaiVestibulinho ? '⚙️ GERAR VESTIBULINHO SENAI-SP (60Q)' : '⚙️ GERAR SIMULADO PADRÃO SENAI'}
+                      {generating ? 'GERANDO SIMULADO TÉCNICO...' : senaiVestibulinho ? '⚙️ GERAR VESTIBULINHO TÉCNICO (60Q)' : '⚙️ GERAR SIMULADO PADRÃO INDUSTRIAL'}
                     </Button>
                   </>
                 )}

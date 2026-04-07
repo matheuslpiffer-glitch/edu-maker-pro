@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const BANCAS = [
   { value: 'Banca Padrão Nacional', label: 'Banca Padrão Nacional', maxScore: 1000, color: 'bg-blue-500' },
-  { value: 'Banca Acadêmica', label: 'FUVEST (USP)', maxScore: 50, color: 'bg-purple-500' },
+  { value: 'Banca Acadêmica', label: 'Banca Acadêmica (Elite)', maxScore: 50, color: 'bg-purple-500' },
   { value: 'Avaliação Técnica', label: 'Avaliação Técnica', maxScore: 28, color: 'bg-emerald-500' },
   { value: 'Banca de Excelência', label: 'Banca de Excelência', maxScore: 12, color: 'bg-orange-500' },
 ];

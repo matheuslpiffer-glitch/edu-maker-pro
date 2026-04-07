@@ -22,14 +22,14 @@ type Phase = 'setup' | 'loading' | 'error' | 'quiz' | 'review' | 'results';
 
 const EXAM_OPTIONS = [
   { value: 'super_enem', label: 'Banca Padrão Nacional' },
-  { value: 'fuvest', label: 'FUVEST (USP)' },
+  { value: 'fuvest', label: 'Banca Acadêmica (Elite)' },
   { value: 'unicamp', label: 'Banca de Excelência' },
   { value: 'unesp', label: 'Avaliação Técnica' },
   { value: 'ufscar', label: 'Seleção Federal' },
   { value: 'vestibulinho_etec', label: 'Vestibulinho ETEC' },
   { value: 'selecao_ifs', label: 'IFs - Inst. Federais' },
   { value: 'puc', label: 'PUC' },
-  { value: 'mackenzie', label: 'Colégio Vértice' },
+  { value: 'rede_vertice_plus', label: 'Colégio Vértice' },
   { value: 'fgv', label: 'FGV' },
   { value: 'medicina', label: 'Medicina (Einstein)' },
 ];

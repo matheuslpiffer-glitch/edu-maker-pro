@@ -21,7 +21,7 @@ serve(async (req) => {
       const { grade, subject, matrix, level, count } = params || {};
       const isAEE = level === "aee";
       const matrixDesc = matrix === "mackenzie"
-        ? "diretrizes do Sistema Mackenzie para escolas da Rede Gustavo Franco (RGF)"
+        ? "diretrizes da Rede Pedagógica Avançada"
         : "descritores da Avaliação Paulista (proficiência do Estado de São Paulo)";
 
       prompt = `Você é um especialista em avaliação educacional brasileira.
@@ -85,7 +85,7 @@ Formato:
     } else if (tool === "redacao") {
       const { tema, grade } = params || {};
 
-      prompt = `Você é um especialista em produção textual e preparação para vestibulares/ENEM.
+      prompt = `Você é um especialista em produção textual e preparação para vestibulares e seleções.
 
 Dado o tema de redação: "${tema || "Inteligência Artificial na Educação"}", gere um DOSSIÊ DE LEITURA NORTEADOR completo para alunos do ${grade || "Ensino Médio"}.
 

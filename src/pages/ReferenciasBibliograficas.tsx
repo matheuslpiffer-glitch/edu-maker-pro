@@ -20,7 +20,7 @@ const references = [
     url: 'https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem',
   },
   {
-    title: 'SARESP — Sistema de Avaliação de Rendimento Escolar do Estado de São Paulo',
+    title: 'Simulado de Larga Escala — Avaliação de Rendimento Escolar',
     description: 'Avaliação externa aplicada anualmente pela Secretaria da Educação do Estado de São Paulo para medir o desempenho dos alunos em Língua Portuguesa e Matemática, com base em escalas de proficiência.',
     source: 'Gestor de Ensino — Secretaria da Educação do Estado de São Paulo',
     url: 'https://www.educacao.sp.gov.br/',
