@@ -133,7 +133,7 @@ export default function MatChatbot() {
     <>
       {/* Chat Window */}
       {open && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[420px] max-h-[70vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200/60 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-bottom-4 duration-300 overflow-hidden">
+        <div className="fixed top-20 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[420px] max-h-[70vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200/60 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-top-4 duration-300 overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200/50 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-[2.5rem]">
             <img src={avatarSrc} alt="Mat" className="h-10 w-10 rounded-xl object-cover ring-2 ring-white/30" />
@@ -206,9 +206,9 @@ export default function MatChatbot() {
       )}
 
       {/* FAB — circular avatar + name + tooltip */}
-      <div className="fixed bottom-6 right-4 sm:right-6 z-[60] flex flex-col items-center gap-1.5 no-print group">
+      <div className="fixed top-4 right-4 sm:right-6 z-[60] flex flex-col items-center gap-1.5 no-print group">
         {/* Tooltip balloon */}
-        <div className="pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 absolute -top-16 right-0 z-[9999] w-64 bg-purple-700 text-white text-xs rounded-xl px-4 py-3 shadow-xl shadow-purple-900/30 after:content-[''] after:absolute after:-bottom-2 after:right-6 after:w-4 after:h-4 after:bg-purple-700 after:rotate-45 after:rounded-sm">
+        <div className="pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 absolute top-full mt-2 right-0 z-[9999] w-64 bg-purple-700 text-white text-xs rounded-xl px-4 py-3 shadow-xl shadow-purple-900/30 after:content-[''] after:absolute after:-top-2 after:right-6 after:w-4 after:h-4 after:bg-purple-700 after:rotate-45 after:rounded-sm">
           Olá! Sou o Mat, seu assistente EduCreator. Como posso ajudar você hoje? 👋
         </div>
 
