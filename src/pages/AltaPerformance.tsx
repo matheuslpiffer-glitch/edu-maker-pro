@@ -19,15 +19,15 @@ import { buildPublicAppUrl } from '@/lib/public-links';
 const redesEnsino = [
   { value: 'mackenzie', label: 'Sistema Mackenzie', desc: 'Tradição e rigor acadêmico' },
   { value: 'poliedro', label: 'Poliedro', desc: 'Altíssima complexidade' },
-  { value: 'anglo', label: 'Anglo', desc: 'Método espiral progressivo' },
+  { value: 'rede_vertice', label: 'Rede Vértice', desc: 'Método espiral progressivo' },
   { value: 'coc', label: 'COC', desc: 'Foco em resultados objetivos' },
-  { value: 'objetivo', label: 'Objetivo', desc: 'Abrangência e profundidade' },
+  { value: 'instituto_lumina', label: 'Instituto Lumina', desc: 'Abrangência e profundidade' },
   { value: 'pitagoras', label: 'Pitágoras', desc: 'Didática estruturada' },
 ];
 
 const MATRIZ_OPTIONS = [
   { value: 'bncc', label: 'Padrão BNCC', icon: '📘', desc: 'Habilidades curriculares nacionais' },
-  { value: 'saresp', label: 'Foco SARESP/ADE', icon: '📊', desc: 'Avaliações externas estaduais' },
+  { value: 'saresp', label: 'Foco Avaliação Externa', icon: '📊', desc: 'Simulados de larga escala' },
   { value: 'vestibular', label: 'Vestibular/Particulares', icon: '🎯', desc: 'Complexidade máxima' },
 ];
 
@@ -55,21 +55,21 @@ const CONTENT_SUGGESTIONS: Record<string, Record<string, { label: string; tag: s
       { label: 'Números e operações básicas', tag: 'BNCC' },
       { label: 'Geometria: formas e sólidos', tag: 'BNCC' },
       { label: 'Medidas de comprimento e massa', tag: 'BNCC' },
-      { label: 'Problemas com sistema monetário', tag: 'SARESP' },
-      { label: 'Tabelas e gráficos simples', tag: 'SARESP' },
+      { label: 'Problemas com sistema monetário', tag: 'Avaliação' },
+      { label: 'Tabelas e gráficos simples', tag: 'Avaliação' },
     ],
     'Português': [
       { label: 'Leitura e interpretação de textos', tag: 'BNCC' },
       { label: 'Ortografia e acentuação', tag: 'BNCC' },
       { label: 'Produção de pequenos textos narrativos', tag: 'BNCC' },
-      { label: 'Gêneros textuais: fábula, conto, poema', tag: 'SARESP' },
-      { label: 'Inferência e localização de informações', tag: 'SARESP' },
+      { label: 'Gêneros textuais: fábula, conto, poema', tag: 'Avaliação' },
+      { label: 'Inferência e localização de informações', tag: 'Avaliação' },
     ],
     'Ciências': [
       { label: 'Corpo humano: sentidos e higiene', tag: 'BNCC' },
       { label: 'Animais e plantas: classificação', tag: 'BNCC' },
       { label: 'Água e ciclo da água', tag: 'BNCC' },
-      { label: 'Meio ambiente e sustentabilidade', tag: 'SARESP' },
+      { label: 'Meio ambiente e sustentabilidade', tag: 'Avaliação' },
     ],
     'História': [
       { label: 'Noção de tempo: passado e presente', tag: 'BNCC' },
@@ -86,42 +86,42 @@ const CONTENT_SUGGESTIONS: Record<string, Record<string, { label: string; tag: s
     'Matemática': [
       { label: 'Equações do 1º grau', tag: 'BNCC' },
       { label: 'Razão e proporção', tag: 'BNCC' },
-      { label: 'Geometria plana: áreas e perímetros', tag: 'SARESP' },
-      { label: 'Estatística: média, moda e mediana', tag: 'SARESP' },
+      { label: 'Geometria plana: áreas e perímetros', tag: 'Avaliação' },
+      { label: 'Estatística: média, moda e mediana', tag: 'Avaliação' },
       { label: 'Potenciação e radiciação', tag: 'BNCC' },
-      { label: 'Frações e números decimais', tag: 'SARESP' },
+      { label: 'Frações e números decimais', tag: 'Avaliação' },
       { label: 'Teorema de Pitágoras', tag: 'Vestibular' },
     ],
     'Português': [
-      { label: 'Interpretação de textos argumentativos', tag: 'SARESP' },
+      { label: 'Interpretação de textos argumentativos', tag: 'Avaliação' },
       { label: 'Classes gramaticais', tag: 'BNCC' },
       { label: 'Concordância verbal e nominal', tag: 'BNCC' },
-      { label: 'Gêneros: crônica, reportagem, editorial', tag: 'SARESP' },
+      { label: 'Gêneros: crônica, reportagem, editorial', tag: 'Avaliação' },
       { label: 'Variação linguística', tag: 'BNCC' },
       { label: 'Coesão e coerência textual', tag: 'Vestibular' },
     ],
     'Ciências': [
       { label: 'Célula: estrutura e organelas', tag: 'BNCC' },
-      { label: 'Sistemas do corpo humano', tag: 'SARESP' },
+      { label: 'Sistemas do corpo humano', tag: 'Avaliação' },
       { label: 'Ecologia: cadeias e teias alimentares', tag: 'BNCC' },
       { label: 'Transformações químicas', tag: 'BNCC' },
-      { label: 'Energia: formas e transformações', tag: 'SARESP' },
+      { label: 'Energia: formas e transformações', tag: 'Avaliação' },
     ],
     'História': [
       { label: 'Idade Média: feudalismo', tag: 'BNCC' },
       { label: 'Grandes navegações e colonização', tag: 'BNCC' },
-      { label: 'Revolução Industrial', tag: 'SARESP' },
-      { label: 'Brasil Colonial: economia e sociedade', tag: 'SARESP' },
+      { label: 'Revolução Industrial', tag: 'Avaliação' },
+      { label: 'Brasil Colonial: economia e sociedade', tag: 'Avaliação' },
     ],
     'Geografia': [
       { label: 'Clima e vegetação do Brasil', tag: 'BNCC' },
-      { label: 'Urbanização e êxodo rural', tag: 'SARESP' },
+      { label: 'Urbanização e êxodo rural', tag: 'Avaliação' },
       { label: 'Globalização e comércio internacional', tag: 'BNCC' },
-      { label: 'Recursos naturais e sustentabilidade', tag: 'SARESP' },
+      { label: 'Recursos naturais e sustentabilidade', tag: 'Avaliação' },
     ],
     'Inglês': [
       { label: 'Simple Present and Past', tag: 'BNCC' },
-      { label: 'Reading comprehension', tag: 'SARESP' },
+      { label: 'Reading comprehension', tag: 'Avaliação' },
       { label: 'Vocabulary: daily routine', tag: 'BNCC' },
     ],
     'Física': [
@@ -140,60 +140,60 @@ const CONTENT_SUGGESTIONS: Record<string, Record<string, { label: string; tag: s
   'medio': {
     'Matemática': [
       { label: 'Função afim e quadrática', tag: 'BNCC' },
-      { label: 'Progressões aritmética e geométrica', tag: 'SARESP' },
+      { label: 'Progressões aritmética e geométrica', tag: 'Avaliação' },
       { label: 'Trigonometria no triângulo retângulo', tag: 'BNCC' },
       { label: 'Probabilidade e combinatória', tag: 'Vestibular' },
       { label: 'Logaritmos e exponenciais', tag: 'Vestibular' },
-      { label: 'Geometria espacial: prismas e cilindros', tag: 'SARESP' },
+      { label: 'Geometria espacial: prismas e cilindros', tag: 'Avaliação' },
       { label: 'Matrizes e determinantes', tag: 'Vestibular' },
     ],
     'Português': [
-      { label: 'Interpretação de textos filosóficos e científicos', tag: 'SARESP' },
+      { label: 'Interpretação de textos filosóficos e científicos', tag: 'Avaliação' },
       { label: 'Literatura: escolas literárias', tag: 'BNCC' },
       { label: 'Redação dissertativo-argumentativa', tag: 'Vestibular' },
       { label: 'Figuras de linguagem', tag: 'BNCC' },
-      { label: 'Sintaxe: período composto', tag: 'SARESP' },
+      { label: 'Sintaxe: período composto', tag: 'Avaliação' },
       { label: 'Intertextualidade e paráfrase', tag: 'Vestibular' },
     ],
     'Física': [
       { label: 'Cinemática: MRU e MRUV', tag: 'BNCC' },
-      { label: 'Dinâmica: leis de Newton', tag: 'SARESP' },
+      { label: 'Dinâmica: leis de Newton', tag: 'Avaliação' },
       { label: 'Termodinâmica e calorimetria', tag: 'Vestibular' },
-      { label: 'Óptica geométrica', tag: 'SARESP' },
+      { label: 'Óptica geométrica', tag: 'Avaliação' },
       { label: 'Eletricidade: circuitos e resistores', tag: 'Vestibular' },
       { label: 'Ondas e acústica', tag: 'BNCC' },
     ],
     'Química': [
-      { label: 'Estequiometria', tag: 'SARESP' },
+      { label: 'Estequiometria', tag: 'Avaliação' },
       { label: 'Equilíbrio químico', tag: 'Vestibular' },
       { label: 'Funções orgânicas', tag: 'BNCC' },
       { label: 'Eletroquímica: pilhas e eletrólise', tag: 'Vestibular' },
-      { label: 'Soluções: concentração e diluição', tag: 'SARESP' },
+      { label: 'Soluções: concentração e diluição', tag: 'Avaliação' },
     ],
     'Biologia': [
       { label: 'Genética: leis de Mendel', tag: 'BNCC' },
-      { label: 'Ecologia: biomas e impactos ambientais', tag: 'SARESP' },
+      { label: 'Ecologia: biomas e impactos ambientais', tag: 'Avaliação' },
       { label: 'Evolução: Darwin e seleção natural', tag: 'Vestibular' },
       { label: 'Citologia: divisão celular', tag: 'BNCC' },
-      { label: 'Fisiologia humana: sistemas', tag: 'SARESP' },
+      { label: 'Fisiologia humana: sistemas', tag: 'Avaliação' },
     ],
     'História': [
-      { label: 'Era Vargas e populismo', tag: 'SARESP' },
+      { label: 'Era Vargas e populismo', tag: 'Avaliação' },
       { label: 'Guerra Fria e mundo bipolar', tag: 'BNCC' },
       { label: 'Ditadura militar no Brasil', tag: 'Vestibular' },
       { label: 'Revolução Francesa', tag: 'BNCC' },
-      { label: 'Primeira e Segunda Guerra Mundial', tag: 'SARESP' },
+      { label: 'Primeira e Segunda Guerra Mundial', tag: 'Avaliação' },
     ],
     'Geografia': [
       { label: 'Geopolítica contemporânea', tag: 'Vestibular' },
       { label: 'Climatologia e mudanças climáticas', tag: 'BNCC' },
-      { label: 'Urbanização brasileira e problemas urbanos', tag: 'SARESP' },
-      { label: 'Agrária: agronegócio e reforma agrária', tag: 'SARESP' },
+      { label: 'Urbanização brasileira e problemas urbanos', tag: 'Avaliação' },
+      { label: 'Agrária: agronegócio e reforma agrária', tag: 'Avaliação' },
     ],
     'Inglês': [
       { label: 'Reading comprehension: academic texts', tag: 'Vestibular' },
       { label: 'Verb tenses: perfect and continuous', tag: 'BNCC' },
-      { label: 'Connectors and linking words', tag: 'SARESP' },
+      { label: 'Connectors and linking words', tag: 'Avaliação' },
     ],
     'Ciências': [
       { label: 'Física moderna: introdução', tag: 'Vestibular' },
@@ -203,33 +203,33 @@ const CONTENT_SUGGESTIONS: Record<string, Record<string, { label: string; tag: s
   'eja-tecnico': {
     'Matemática': [
       { label: 'Porcentagem e juros simples', tag: 'BNCC' },
-      { label: 'Leitura de gráficos e tabelas', tag: 'SARESP' },
+      { label: 'Leitura de gráficos e tabelas', tag: 'Avaliação' },
       { label: 'Regra de três simples e composta', tag: 'BNCC' },
-      { label: 'Geometria aplicada ao cotidiano', tag: 'SARESP' },
+      { label: 'Geometria aplicada ao cotidiano', tag: 'Avaliação' },
     ],
     'Português': [
       { label: 'Interpretação de textos informativos', tag: 'BNCC' },
-      { label: 'Gêneros do mundo do trabalho: currículo, e-mail', tag: 'SARESP' },
+      { label: 'Gêneros do mundo do trabalho: currículo, e-mail', tag: 'Avaliação' },
       { label: 'Ortografia e pontuação', tag: 'BNCC' },
     ],
     'Ciências': [
       { label: 'Saúde e prevenção de doenças', tag: 'BNCC' },
-      { label: 'Meio ambiente e sustentabilidade', tag: 'SARESP' },
+      { label: 'Meio ambiente e sustentabilidade', tag: 'Avaliação' },
     ],
     'História': [
       { label: 'Direitos humanos e cidadania', tag: 'BNCC' },
-      { label: 'Brasil contemporâneo: democracia', tag: 'SARESP' },
+      { label: 'Brasil contemporâneo: democracia', tag: 'Avaliação' },
     ],
     'Geografia': [
       { label: 'Mercado de trabalho e globalização', tag: 'BNCC' },
-      { label: 'Espaço urbano e mobilidade', tag: 'SARESP' },
+      { label: 'Espaço urbano e mobilidade', tag: 'Avaliação' },
     ],
   },
 };
 
 function getTagColor(tag: string) {
   if (tag === 'BNCC') return 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/30';
-  if (tag === 'SARESP') return 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30';
+  if (tag === 'Avaliação') return 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30';
   return 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/30';
 }
 

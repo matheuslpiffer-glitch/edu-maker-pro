@@ -48,7 +48,7 @@ export const SERIES_CATEGORIAS: SerieCategory[] = [
       { id: 'serie_2', label: '2ª Série EM' },
       { id: 'serie_3', label: '3ª Série EM' },
       { id: 'tecnico', label: 'Curso Técnico' },
-      { id: 'etec', label: 'ETEC / COTUCA' },
+      { id: 'etec', label: 'Instituto Técnico' },
     ],
   },
 ];
@@ -70,7 +70,7 @@ export const SERIE_GRADE_MAP: Record<string, string> = {
   serie_2: '2ª Série EM',
   serie_3: '3ª Série EM',
   tecnico: 'Curso Técnico',
-  etec: 'ETEC / COTUCA',
+  etec: 'Instituto Técnico',
   // Legacy mappings for backward compatibility
   mini_maternal: 'Berçário (Educação Infantil)',
   maternal: 'Maternal I (Educação Infantil)',
