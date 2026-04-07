@@ -634,10 +634,17 @@ export default function AltaPerformance() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
             <Trophy size={28} className="text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-extrabold tracking-tight">Gerador de Simulados — Alta Performance</h1>
             <p className="text-sm text-slate-300 mt-1">Crie avaliações com o rigor pedagógico das maiores franquias do país</p>
           </div>
+          <Button
+            onClick={handleNewSimulado}
+            size="lg"
+            className="gap-2 font-bold text-sm uppercase bg-orange-200 hover:bg-orange-300 text-orange-900 border-0 shadow-lg"
+          >
+            <PlusCircle size={18} /> Criar Novo Simulado
+          </Button>
         </div>
       </div>
 
