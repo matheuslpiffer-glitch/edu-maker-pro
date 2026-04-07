@@ -225,13 +225,23 @@ export default function BussolaVocacional() {
                   onValueChange={(v) => handleSlider(q.id, v)}
                   className="flex-1"
                 />
-                <span className="w-8 text-center text-sm font-bold text-primary tabular-nums">
+                <span className={cn(
+                  "w-8 text-center text-sm font-bold tabular-nums transition-all duration-200",
+                  sliderValues[q.id] !== undefined ? "text-primary scale-110" : "text-muted-foreground"
+                )}>
                   {sliderValues[q.id] ?? '—'}
                 </span>
               </div>
-              <div className="flex justify-between text-[10px] text-muted-foreground px-1">
+              <div className="flex justify-between text-[10px] px-1">
                 {LIKERT_LABELS.map((l, i) => (
-                  <span key={i} className="text-center" style={{ width: '20%' }}>{l}</span>
+                  <span
+                    key={i}
+                    className={cn(
+                      "text-center transition-colors duration-200",
+                      sliderValues[q.id] === i + 1 ? "text-primary font-semibold" : "text-muted-foreground"
+                    )}
+                    style={{ width: '20%' }}
+                  >{l}</span>
                 ))}
               </div>
             </CardContent>
