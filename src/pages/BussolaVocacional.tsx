@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ChevronRight, ChevronLeft, Compass, Sparkles, ShieldCheck, BrainCircuit, Award, FileCheck2, Download, Medal, Share2, MapPin, GraduationCap, BookOpen, Brain, Calculator, HelpCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import defaultMatAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
