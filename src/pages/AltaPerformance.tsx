@@ -450,6 +450,22 @@ export default function AltaPerformance() {
     toast({ title: 'Copiado para a área de transferência!' });
   };
 
+  const handleNewSimulado = useCallback(() => {
+    setRede('');
+    setSerie('');
+    setDisciplina('');
+    setTopicos('');
+    setTotalQuestoes(10);
+    setNiveis({ abaixo: 15, basico: 30, proficiente: 35, avancado: 20 });
+    setQuestions([]);
+    setFormato('objetiva');
+    setMatrizRef('bncc');
+    setSavedBankId(null);
+    setSavedAccessCode(null);
+    localStorage.removeItem('alta_perf_state');
+    toast({ title: '🆕 Novo simulado iniciado!', description: 'Todos os campos foram limpos.' });
+  }, [toast]);
+
   const handleSaveQuestions = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -477,6 +493,13 @@ export default function AltaPerformance() {
         setSavedAccessCode((inserted as any).access_code || null);
       }
       toast({ title: 'Questões salvas com sucesso!', description: (inserted as any).access_code ? `Código de acesso: ${(inserted as any).access_code}` : undefined });
+
+      // Ask if user wants to start a new activity
+      setTimeout(() => {
+        if (window.confirm('✅ Atividade salva na Biblioteca!\n\nDeseja iniciar uma NOVA atividade?')) {
+          handleNewSimulado();
+        }
+      }, 500);
     } catch (e: any) {
       toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     }
