@@ -499,7 +499,7 @@ Responda em JSON:
       const isLudicaTecnica = ['nuvem_palavras', 'labirinto_decisao', 'caca_erros', 'cruzadinha_termos', 'stop_industrial'].includes(gameType);
 
       const systemPromptJogos = isLudicaTecnica
-        ? `Aja como um Designer Instrucional Sênior da RGF Maker Space. Sua tarefa é gerar uma Atividade Lúdica Extra baseada no conteúdo técnico fornecido.
+        ? `Aja como um Designer Instrucional Sênior da EduCreator Maker Space. Sua tarefa é gerar uma Atividade Lúdica Extra baseada no conteúdo técnico fornecido.
 
 DIRETRIZES DE GERAÇÃO:
 1. CONTEXTUALIZAÇÃO TOTAL: A atividade deve usar os termos técnicos e o cenário da aula (ex: se a aula é de Solda, use termos como 'Arco' e 'Eletrodo').
@@ -760,7 +760,7 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
       vestibulares_paulistas: `Nível de exigência máximo, no estilo das principais bancas acadêmicas. Questões interdisciplinares com textos acadêmicos densos, exigindo análise crítica aprofundada, domínio conceitual e capacidade de síntese.`,
       eixo_tecnico_cps: `No estilo dos vestibulinhos de colégios técnicos (CPS/ETEC/COTIL/COTUCA/COTIP). Questões objetivas e contextualizadas com situações práticas do cotidiano, exigindo interpretação e aplicação de conceitos.`,
       mackenzie: `No estilo das provas de redes acadêmicas de elite. Tom formal e acadêmico com rigor clássico, questões que exigem domínio conceitual profundo e raciocínio analítico preciso.`,
-      coc: `No estilo do sistema de ensino COC. Questões com contextualização rica e didática moderna, conectando conceitos a situações do cotidiano com linguagem acessível mas rigorosa.`,
+      coc: `No estilo acadêmico integrado. Questões com contextualização rica e didática moderna, conectando conceitos a situações do cotidiano com linguagem acessível mas rigorosa.`,
       etapa: `No estilo das provas do Colégio Etapa. Nível de desafio elevado com questões técnicas e complexas que exigem raciocínio aprofundado e domínio avançado dos conteúdos.`,
       objetivo: `No estilo acadêmico direto e objetivo. Foco em atualidades, questões diretas e objetivas com contextualização em eventos recentes e temas contemporâneos.`,
       obmep_mirim1: `No estilo da OBMEP Mirim 1 (2º e 3º ano). Questões lúdicas de raciocínio lógico-matemático com padrões visuais, sequências e desafios matemáticos acessíveis, sem uso de fórmulas mecânicas. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
