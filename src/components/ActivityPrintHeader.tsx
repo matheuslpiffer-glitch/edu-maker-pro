@@ -45,7 +45,7 @@ export default function ActivityPrintHeader({ className }: Props) {
         <Input
           value={name}
           onChange={e => setName(e.target.value)}
-          placeholder="Nome da Instituição / Escola (ex: Escola RGF)"
+          placeholder="Nome da Instituição (ex: Instituto Apex)"
           className="max-w-md text-sm"
         />
       </div>
