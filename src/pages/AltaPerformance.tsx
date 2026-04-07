@@ -619,7 +619,8 @@ export default function AltaPerformance() {
       toast({ title: 'Salve as questões primeiro para gerar o link do aluno.', variant: 'destructive' });
       return;
     }
-    const url = buildPublicAppUrl(`/atividade/${savedBankId}`);
+    const cacheBuster = `?v=${Date.now()}`;
+    const url = buildPublicAppUrl(`/atividade/${savedBankId}`) + cacheBuster;
     navigator.clipboard.writeText(url);
     toast({ title: 'Link do Aluno copiado!', description: url });
   };
