@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
-import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket } from 'lucide-react';
+import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket, PlusCircle } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
 import matAvatar from '@/assets/mat-avatar.png';
@@ -450,6 +450,22 @@ export default function AltaPerformance() {
     toast({ title: 'Copiado para a área de transferência!' });
   };
 
+  const handleNewSimulado = useCallback(() => {
+    setRede('');
+    setSerie('');
+    setDisciplina('');
+    setTopicos('');
+    setTotalQuestoes(10);
+    setNiveis({ abaixo: 15, basico: 30, proficiente: 35, avancado: 20 });
+    setQuestions([]);
+    setFormato('objetiva');
+    setMatrizRef('bncc');
+    setSavedBankId(null);
+    setSavedAccessCode(null);
+    localStorage.removeItem('alta_perf_state');
+    toast({ title: '🆕 Novo simulado iniciado!', description: 'Todos os campos foram limpos.' });
+  }, [toast]);
+
   const handleSaveQuestions = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -477,6 +493,13 @@ export default function AltaPerformance() {
         setSavedAccessCode((inserted as any).access_code || null);
       }
       toast({ title: 'Questões salvas com sucesso!', description: (inserted as any).access_code ? `Código de acesso: ${(inserted as any).access_code}` : undefined });
+
+      // Ask if user wants to start a new activity
+      setTimeout(() => {
+        if (window.confirm('✅ Atividade salva na Biblioteca!\n\nDeseja iniciar uma NOVA atividade?')) {
+          handleNewSimulado();
+        }
+      }, 500);
     } catch (e: any) {
       toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     }
@@ -582,7 +605,12 @@ export default function AltaPerformance() {
       return `*Questão ${i + 1}*\n${stripHtml(q.content)}\n${opts}`;
     }).join('\n\n---\n\n');
 
-    const msg = `🏫 *EduCreator Pro — Simulado Alta Performance*\n\n👤 Professor: Matheus Lima Piffer\n📚 Disciplina: ${disciplina}\n🎯 Rede: ${redeInfo?.label || rede}\n📝 Formato: ${isDiscursiva ? 'Discursivo' : 'Objetiva'}\n\n${text}\n\n✅ Gerado via EduCreator Pro`;
+    const cacheBuster = `?v=${Date.now()}`;
+    const studentLink = savedBankId
+      ? `\n\n🔗 Link do Aluno: ${buildPublicAppUrl(`/atividade/${savedBankId}`)}${cacheBuster}`
+      : '';
+
+    const msg = `🏫 *EduCreator Pro — Simulado Alta Performance*\n\n👤 Professor: Matheus Lima Piffer\n📚 Disciplina: ${disciplina}\n🎯 Rede: ${redeInfo?.label || rede}\n📝 Formato: ${isDiscursiva ? 'Discursivo' : 'Objetiva'}${studentLink}\n\n${text}\n\n✅ Gerado via EduCreator Pro 📖✒️`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -591,7 +619,8 @@ export default function AltaPerformance() {
       toast({ title: 'Salve as questões primeiro para gerar o link do aluno.', variant: 'destructive' });
       return;
     }
-    const url = buildPublicAppUrl(`/atividade/${savedBankId}`);
+    const cacheBuster = `?v=${Date.now()}`;
+    const url = buildPublicAppUrl(`/atividade/${savedBankId}`) + cacheBuster;
     navigator.clipboard.writeText(url);
     toast({ title: 'Link do Aluno copiado!', description: url });
   };
@@ -605,10 +634,17 @@ export default function AltaPerformance() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
             <Trophy size={28} className="text-white" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-extrabold tracking-tight">Gerador de Simulados — Alta Performance</h1>
             <p className="text-sm text-slate-300 mt-1">Crie avaliações com o rigor pedagógico das maiores franquias do país</p>
           </div>
+          <Button
+            onClick={handleNewSimulado}
+            size="lg"
+            className="gap-2 font-bold text-sm uppercase bg-orange-200 hover:bg-orange-300 text-orange-900 border-0 shadow-lg"
+          >
+            <PlusCircle size={18} /> Criar Novo Simulado
+          </Button>
         </div>
       </div>
 
