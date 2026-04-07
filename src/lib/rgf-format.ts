@@ -23,7 +23,7 @@ export const RGF_DEFAULT: RGFFormatConfig = {
   twoColumns: true,
 };
 
-/** CSS class string for print containers using RGF standard */
+/** CSS class string for print containers using pedagogical standard */
 export function rgfPrintStyles(cfg: RGFFormatConfig = RGF_DEFAULT): React.CSSProperties {
   return {
     fontFamily: cfg.fontFamily,
@@ -35,7 +35,7 @@ export function rgfPrintStyles(cfg: RGFFormatConfig = RGF_DEFAULT): React.CSSPro
   };
 }
 
-/** Transforms plain text to RGF uppercase if enabled */
+/** Transforms plain text to pedagogical uppercase if enabled */
 export function rgfText(text: string, cfg: RGFFormatConfig = RGF_DEFAULT): string {
   return cfg.textTransform === 'uppercase' ? text.toUpperCase() : text;
 }

@@ -298,7 +298,7 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
     ],
   },
   coc: {
-    label: 'COC',
+    label: 'Sistema Delta',
     formats: [
       { id: 'coc_simulado', label: 'Simulado Geral Integrado', icon: '📋', subjects: ['Língua Portuguesa', 'Matemática', 'Ciências da Natureza', 'Ciências Humanas'] },
       { id: 'coc_exatas', label: 'Ciências Exatas', icon: '📐', subjects: ['Matemática', 'Física', 'Química'] },
@@ -307,7 +307,7 @@ const MODEL_CONFIGS: Record<string, { label: string; formats: FormatOption[] }> 
     ],
   },
   etapa: {
-    label: 'Etapa',
+    label: 'Escola Horizonte',
     formats: [
       { id: 'etapa_completa', label: 'Prova Geral (Alto Nível)', icon: '📋', subjects: ['Língua Portuguesa', 'Matemática', 'História', 'Geografia', 'Física', 'Química', 'Biologia'] },
       { id: 'etapa_exatas', label: 'Exatas Avançadas', icon: '📐', subjects: ['Matemática', 'Física', 'Química'] },
@@ -344,8 +344,8 @@ const ARVORE_PUBLICOS = [
 ];
 
 const ARVORE_PRIVADOS = [
-  { id: 'puc', label: 'PUC' },
-  { id: 'fgv', label: 'FGV' },
+  { id: 'puc', label: 'Centro Universitário Alpha' },
+  { id: 'fgv', label: 'Faculdade Delta' },
   { id: 'insper', label: 'Insper' },
   { id: 'mackenzie', label: 'Colégio Vértice' },
   { id: 'einstein', label: 'Instituto Apex Saúde' },

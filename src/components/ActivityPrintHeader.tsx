@@ -8,7 +8,7 @@ interface Props {
 }
 
 /**
- * Renders the RGF-standard print header with school name, student fields,
+ * Renders the standard print header with school name, student fields,
  * and an editable institution input (persisted in localStorage + Supabase).
  */
 export default function ActivityPrintHeader({ className }: Props) {
@@ -50,8 +50,8 @@ export default function ActivityPrintHeader({ className }: Props) {
         />
       </div>
 
-      {/* Print-only header — RGF standard */}
-      <div className="hidden print:block rgf-print-header" style={{
+      {/* Print-only header — padrão pedagógico */}
+      <div className="hidden print:block edu-print-header" style={{
         fontFamily: 'Arial, Helvetica, sans-serif',
         fontSize: '11pt',
         lineHeight: '1.15',

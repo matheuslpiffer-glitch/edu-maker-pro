@@ -139,7 +139,7 @@ export default function TeacherGuide({
           <div>
             <p className="font-bold uppercase mb-1">ORIENTAÇÕES GERAIS:</p>
             <ul className="list-disc pl-5 space-y-1 uppercase">
-              <li>TODO O MATERIAL FOI DIAGRAMADO PELA IA DOUTORA NO PADRÃO RGF (ARIAL 11, MAIÚSCULAS, NEGRITO).</li>
+              <li>TODO O MATERIAL FOI DIAGRAMADO PELA IA DOUTORA NO PADRÃO PEDAGÓGICO (ARIAL 11, MAIÚSCULAS, NEGRITO).</li>
               <li>O MATERIAL ESTÁ SINCRONIZADO NA NUVEM — ALTERAÇÕES FEITAS EM QUALQUER DISPOSITIVO SERÃO REFLETIDAS AUTOMATICAMENTE.</li>
               <li>PARA COMPARTILHAR COM OUTROS PROFESSORES, UTILIZE O BOTÃO DE WHATSAPP OU COPIE O LINK.</li>
               <li>EM CASO DE DÚVIDAS, CONSULTE O MANUAL DO SISTEMA OU A COORDENAÇÃO PEDAGÓGICA.</li>

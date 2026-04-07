@@ -28,10 +28,10 @@ const EXAM_OPTIONS = [
   { value: 'ufscar', label: 'Seleção Federal' },
   { value: 'vestibulinho_etec', label: 'Vestibulinho ETEC' },
   { value: 'selecao_ifs', label: 'IFs - Inst. Federais' },
-  { value: 'puc', label: 'PUC' },
+  { value: 'puc', label: 'Centro Universitário Alpha' },
   { value: 'rede_vertice_plus', label: 'Colégio Vértice' },
-  { value: 'fgv', label: 'FGV' },
-  { value: 'medicina', label: 'Medicina (Einstein)' },
+  { value: 'fgv', label: 'Faculdade Delta' },
+  { value: 'medicina', label: 'Medicina (Academia Superior)' },
 ];
 
 const QUESTION_COUNTS = [5, 10, 15, 20];

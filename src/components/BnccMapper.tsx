@@ -105,8 +105,8 @@ export default function BnccMapper({ contentText, grade, subjectArea, className 
             </CardContent>
           </Card>
 
-          {/* Print version — RGF standard */}
-          <div className="hidden print:block rgf-body" style={{
+          {/* Print version — padrão pedagógico */}
+          <div className="hidden print:block edu-body" style={{
             fontFamily: 'Arial, Helvetica, sans-serif',
             fontSize: '11pt',
             lineHeight: '1.15',
