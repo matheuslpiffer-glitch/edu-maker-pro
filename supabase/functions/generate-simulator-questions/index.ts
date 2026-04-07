@@ -601,7 +601,7 @@ Responda em JSON (SEM markdown, SEM blocos de código):
       const examLabelsStudent: Record<string, string> = {
         super_enem: 'Banca Padrão Nacional', fuvest: 'Banca Acadêmica', unicamp: 'Banca de Excelência', unesp: 'Avaliação Técnica',
         ufscar: 'UFSCar/Federais', vestibulinho_etec: 'ETEC', selecao_ifs: 'Instituto Federal',
-        puc: 'Particular A', mackenzie: 'Rede Vértice', fgv: 'Particular B', medicina: 'Medicina',
+        puc: 'Centro Universitário Alpha', mackenzie: 'Rede Vértice', fgv: 'Faculdade Delta', medicina: 'Medicina',
       };
       const studentCount = count || studentQCount || 10;
       const instLabel = tecnicoInstitution === 'ifs' ? 'Instituto Federal (IFs)' :
@@ -710,10 +710,10 @@ CAMPO "descriptor": Descreva brevemente a competência técnica avaliada.\n`
       techDisciplineInstruction = `\nBANCA VESTIBULAR PÚBLICA: ${bancaMap[technicalDiscipline] || `Questões no estilo do vestibular "${technicalDiscipline}" com alto rigor acadêmico.`}\n`;
     } else if (technicalDiscipline && examModel === 'vest_privados') {
       const bancaMap: Record<string, string> = {
-        'PUC (Geral)': 'No estilo PUC: questões com tom formal e humanista, exigindo repertório cultural amplo e capacidade argumentativa.',
+        'Centro Universitário Alpha': 'No estilo acadêmico humanista: questões com tom formal e humanista, exigindo repertório cultural amplo e capacidade argumentativa.',
         'Rede Vértice': 'No estilo acadêmico de alto rigor: rigor clássico, questões que exigem domínio conceitual profundo e raciocínio analítico preciso.',
-        'FGV (Administração/Direito)': 'No estilo FGV: questões com foco em atualidades, economia, geopolítica e raciocínio lógico-analítico de alto nível.',
-        'Medicina (Einstein/Santa Casa)': 'No estilo de vestibulares de Medicina (Albert Einstein, Santa Casa): nível máximo de exigência em Ciências da Natureza, com questões multietapa e raciocínio clínico.',
+        'Faculdade Delta': 'No estilo analítico: questões com foco em atualidades, economia, geopolítica e raciocínio lógico-analítico de alto nível.',
+        'Medicina (Academia Superior)': 'No estilo de vestibulares de Medicina de alto nível: nível máximo de exigência em Ciências da Natureza, com questões multietapa e raciocínio clínico.',
         'ESPM': 'No estilo ESPM: foco em comunicação, marketing, atualidades e cultura geral com questões criativas e contextualizadas.',
       };
       techDisciplineInstruction = `\nBANCA VESTIBULAR PARTICULAR: ${bancaMap[technicalDiscipline] || `Questões no estilo do vestibular "${technicalDiscipline}" com foco em excelência acadêmica.`}\n`;
@@ -769,7 +769,7 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
       obmep_n2: `No estilo da OBMEP Nível 2 (8º e 9º ano). Questões de raciocínio avançado envolvendo combinatória, teoria dos números, geometria e álgebra com abordagem investigativa. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
       obmep_n3: `No estilo da OBMEP Nível 3 (Ensino Médio). Nível olímpico máximo com problemas desafiadores de teoria dos números, combinatória avançada, geometria euclidiana e álgebra, exigindo demonstrações e raciocínio criativo. A disciplina é SEMPRE Matemática/Raciocínio Lógico.`,
       super_enem: `No estilo padrão nacional de avaliação. Questões contextualizadas com situações-problema do cotidiano, interdisciplinares, com textos, gráficos e tabelas. Foco nas competências e habilidades da Matriz de Referência Nacional.`,
-      concurso_publico: `No estilo de concursos públicos brasileiros (CESPE/CEBRASPE, FCC, FGV, Vunesp). Questões objetivas com linguagem formal e técnica, cobrando legislação educacional, didática, BNCC e conhecimentos pedagógicos.`,
+      concurso_publico: `No estilo de concursos públicos brasileiros (bancas organizadoras oficiais). Questões objetivas com linguagem formal e técnica, cobrando legislação educacional, didática, BNCC e conhecimentos pedagógicos.`,
       redacao_fuvest: `Gere uma proposta de redação no estilo banca acadêmica: tema dissertativo-argumentativo com coletânea de textos motivadores (mínimo 3), exigindo posicionamento crítico e repertório cultural. Tom acadêmico e erudito.`,
       redacao_unicamp: `Gere uma proposta de redação no estilo banca de excelência: proposta com gênero textual específico (carta, artigo, manifesto, crônica), situação comunicativa definida e interlocutor claro. Inclua coletânea de textos de apoio.`,
       redacao_vunesp: `Gere uma proposta de redação no estilo avaliação técnica: dissertação argumentativa com tema contemporâneo, 2-3 textos motivadores curtos e objetivos, com foco em clareza argumentativa.`,

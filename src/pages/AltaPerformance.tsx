@@ -18,11 +18,11 @@ import { buildPublicAppUrl } from '@/lib/public-links';
 
 const redesEnsino = [
   { value: 'rede_vertice_plus', label: 'Rede Vértice Plus', desc: 'Tradição e rigor acadêmico' },
-  { value: 'poliedro', label: 'Poliedro', desc: 'Altíssima complexidade' },
+  { value: 'rede_alpha', label: 'Rede Alpha', desc: 'Altíssima complexidade' },
   { value: 'rede_vertice', label: 'Rede Vértice', desc: 'Método espiral progressivo' },
-  { value: 'coc', label: 'COC', desc: 'Foco em resultados objetivos' },
+  { value: 'sistema_delta', label: 'Sistema Delta', desc: 'Foco em resultados objetivos' },
   { value: 'instituto_lumina', label: 'Instituto Lumina', desc: 'Abrangência e profundidade' },
-  { value: 'pitagoras', label: 'Pitágoras', desc: 'Didática estruturada' },
+  { value: 'rede_sigma', label: 'Rede Sigma', desc: 'Didática estruturada' },
 ];
 
 const MATRIZ_OPTIONS = [
