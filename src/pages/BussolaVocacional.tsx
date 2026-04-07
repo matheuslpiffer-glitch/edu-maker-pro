@@ -685,7 +685,7 @@ export default function BussolaVocacional() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-4 md:p-8 max-w-3xl mx-auto space-y-6 relative">
       {/* Mat Header */}
       <div className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm">
         <div className="relative shrink-0">
@@ -697,7 +697,7 @@ export default function BussolaVocacional() {
           <span className="absolute top-0 right-0 w-3 h-3 rounded-full border-2 border-background" style={{ backgroundColor: 'hsl(48, 96%, 53%)' }} />
         </div>
         <div className="space-y-1">
-          <p className="text-xs font-bold tracking-wide text-primary uppercase">Mat PhD</p>
+          <p className="text-xs font-bold tracking-wide text-primary uppercase">MAT PHD</p>
           <p className="text-sm text-foreground leading-snug">
             Olá, sou o <strong>Mat</strong>. Vamos analisar seu perfil com rigor científico para projetar seu futuro.
           </p>
@@ -708,16 +708,16 @@ export default function BussolaVocacional() {
       <div className="text-center space-y-2">
         <div className="inline-flex items-center gap-2">
           <Compass className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-extrabold text-foreground">Bússola Vocacional</h1>
+          <h1 className="text-2xl font-extrabold text-foreground uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>BÚSSOLA VOCACIONAL</h1>
         </div>
-        <p className="text-sm text-muted-foreground">Questionário Científico baseado no modelo RIASEC de John Holland</p>
+        <p className="text-sm text-muted-foreground uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>QUESTIONÁRIO CIENTÍFICO BASEADO NO MODELO RIASEC DE JOHN HOLLAND</p>
       </div>
 
       {/* Progress */}
       {step < 3 && (
         <div className="space-y-2">
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Etapa {step + 1} de 3</span>
+          <div className="flex justify-between text-xs text-muted-foreground uppercase">
+            <span>ETAPA {step + 1} DE 3</span>
             <span>{Math.round(((step + 1) / 3) * 100)}%</span>
           </div>
           <Progress value={((step + 1) / 3) * 100} className="h-2" />
@@ -731,20 +731,63 @@ export default function BussolaVocacional() {
       {/* Navigation */}
       {step < 3 && (
         <div className="flex justify-between pt-2">
-          <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={step === 0}>
-            <ChevronLeft className="w-4 h-4 mr-1" /> Voltar
+          <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={step === 0} className="uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <ChevronLeft className="w-4 h-4 mr-1" /> VOLTAR
           </Button>
           {step < 2 ? (
-            <Button onClick={() => setStep(s => s + 1)} disabled={!canAdvance()}>
-              Próximo <ChevronRight className="w-4 h-4 ml-1" />
+            <Button onClick={() => setStep(s => s + 1)} disabled={!canAdvance()} className="uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
+              PRÓXIMO <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           ) : (
-            <Button onClick={calculateScores} disabled={!canAdvance()}>
-              <Sparkles className="w-4 h-4 mr-1" /> Ver Resultado
+            <Button onClick={calculateScores} disabled={!canAdvance()} className="uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
+              <Sparkles className="w-4 h-4 mr-1" /> VER RESULTADO
             </Button>
           )}
         </div>
       )}
+
+      {/* Help FAB */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <button className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center">
+            <HelpCircle className="w-6 h-6" />
+          </button>
+        </DialogTrigger>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
+              <Compass className="w-5 h-5 text-primary" /> O QUE SIGNIFICA CADA DIMENSÃO?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px] shrink-0">
+              <div className="w-full h-full rounded-full overflow-hidden bg-background">
+                <MatAvatarArtwork src={matAvatar} alt="Mat" zoom={zoom} offsetX={offsetX} offsetY={offsetY} />
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Vou te explicar cada dimensão do modelo RIASEC. Cada pessoa é uma combinação única dessas 6 áreas!
+            </p>
+          </div>
+          <div className="space-y-3">
+            {Object.entries(RIASEC_LABELS).map(([key, val]) => (
+              <div key={key} className="p-3 rounded-lg border border-border/50 bg-muted/30 space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: val.color }} />
+                  <span className="text-sm font-bold text-foreground uppercase">{val.label} ({key})</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{val.desc}</p>
+                <p className="text-xs text-foreground">Ambientes ideais: {val.env}.</p>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Watermark */}
+      <div className="fixed bottom-2 right-2 z-40 text-[9px] text-muted-foreground/40 uppercase tracking-wider pointer-events-none select-none" style={{ fontFamily: 'Arial, sans-serif' }}>
+        EDUCREATOR PRO © MATHEUS PIFFER
+      </div>
     </div>
   );
 }
