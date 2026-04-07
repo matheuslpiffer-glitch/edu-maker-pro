@@ -21,7 +21,7 @@ serve(async (req) => {
       const { grade, subject, matrix, level, count } = params || {};
       const isAEE = level === "aee";
       const matrixDesc = matrix === "mackenzie"
-        ? "diretrizes do Sistema Mackenzie para escolas da Rede Gustavo Franco (RGF)"
+        ? "diretrizes da Rede Pedagógica Avançada"
         : "descritores da Avaliação Paulista (proficiência do Estado de São Paulo)";
 
       prompt = `Você é um especialista em avaliação educacional brasileira.

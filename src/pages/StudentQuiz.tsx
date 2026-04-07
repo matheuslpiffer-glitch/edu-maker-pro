@@ -22,7 +22,7 @@ type Phase = 'setup' | 'loading' | 'error' | 'quiz' | 'review' | 'results';
 
 const EXAM_OPTIONS = [
   { value: 'super_enem', label: 'Banca Padrão Nacional' },
-  { value: 'fuvest', label: 'FUVEST (USP)' },
+  { value: 'fuvest', label: 'Banca Acadêmica (Elite)' },
   { value: 'unicamp', label: 'Banca de Excelência' },
   { value: 'unesp', label: 'Avaliação Técnica' },
   { value: 'ufscar', label: 'Seleção Federal' },

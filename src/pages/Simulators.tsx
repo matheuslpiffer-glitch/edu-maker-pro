@@ -336,7 +336,7 @@ const GRADES = [
 
 const ARVORE_PUBLICOS = [
   { id: 'super_enem', label: 'Banca Padrão Nacional' },
-  { id: 'fuvest', label: 'FUVEST (USP)' },
+  { id: 'fuvest', label: 'Banca Acadêmica (Elite)' },
   { id: 'unicamp', label: 'Banca de Excelência' },
   { id: 'unesp', label: 'Avaliação Técnica' },
   { id: 'ufrj', label: 'UFRJ' },
@@ -1508,7 +1508,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
                     >
                       {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Wrench className="h-5 w-5 mr-2" />}
-                      {generating ? 'GERANDO SIMULADO SENAI-SP...' : senaiVestibulinho ? '⚙️ GERAR VESTIBULINHO SENAI-SP (60Q)' : '⚙️ GERAR SIMULADO PADRÃO INDUSTRIAL'}
+                      {generating ? 'GERANDO SIMULADO TÉCNICO...' : senaiVestibulinho ? '⚙️ GERAR VESTIBULINHO TÉCNICO (60Q)' : '⚙️ GERAR SIMULADO PADRÃO INDUSTRIAL'}
                     </Button>
                   </>
                 )}

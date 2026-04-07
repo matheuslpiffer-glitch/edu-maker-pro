@@ -34,7 +34,7 @@ ${COURSE_BONUS_INSTRUCTIONS}
 `;
 
 const BANCA_PROMPTS: Record<string, string> = {
-  ENEM: `Você é um corretor oficial de redação padrão nacional com 20+ anos de experiência.
+  BANCA_NACIONAL: `Você é um corretor oficial de redação padrão nacional com 20+ anos de experiência.
 Avalie a redação nas 5 competências oficiais (0 a 200 cada, múltiplos de 40: 0, 40, 80, 120, 160, 200):
 - C1: Domínio da modalidade escrita formal da língua portuguesa
 - C2: Compreender a proposta de redação e aplicar conceitos das várias áreas de conhecimento
@@ -62,7 +62,7 @@ Responda APENAS com JSON válido (sem markdown):
   "originality": {"score": 85, "flags": [], "ai_generated_probability": 10}
 }`,
 
-  FUVEST: `Você é um corretor de banca acadêmica de excelência com expertise em redação dissertativa.
+  BANCA_ACADEMICA: `Você é um corretor de banca acadêmica de excelência com expertise em redação dissertativa.
 Avalie nas 4 dimensões da banca acadêmica (0 a 25 cada, total 100):
 - Tema e texto: Adequação ao tema proposto e gênero dissertativo
 - Estrutura: Organização textual (introdução, desenvolvimento, conclusão)
@@ -88,7 +88,7 @@ Responda APENAS com JSON válido (sem markdown):
   "originality": {"score": 85, "flags": [], "ai_generated_probability": 10}
 }`,
 
-  VUNESP: `Você é um corretor da banca VUNESP (Fundação para o Vestibular da UNESP).
+  AVALIACAO_TECNICA: `Você é um corretor de avaliação técnica profissional.
 Avalie nas 3 dimensões da banca técnica (total até 100):
 - Conteúdo: Abordagem do tema, argumentação e repertório (0-36)
 - Estrutura: Organização, coesão e coerência textual (0-32)
@@ -110,7 +110,7 @@ Responda APENAS com JSON válido (sem markdown):
   "originality": {"score": 85, "flags": [], "ai_generated_probability": 10}
 }`,
 
-  UNICAMP: `Você é um corretor de banca de excelência.
+  BANCA_EXCELENCIA: `Você é um corretor de banca de excelência.
 Avalie nas 4 dimensões da banca de excelência (total até 12):
 - Proposta temática: Abordagem do tema (0-3)
 - Gênero textual: Adequação ao gênero solicitado (0-3). Se for Carta, VERIFIQUE se há local, data e despedida formal. Se ausente, desconte de "Gênero". Se for artigo, verifique título e linguagem adequada.
