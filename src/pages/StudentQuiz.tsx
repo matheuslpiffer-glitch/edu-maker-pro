@@ -29,7 +29,7 @@ const EXAM_OPTIONS = [
   { value: 'vestibulinho_etec', label: 'Vestibulinho ETEC' },
   { value: 'selecao_ifs', label: 'IFs - Inst. Federais' },
   { value: 'puc', label: 'PUC' },
-  { value: 'mackenzie', label: 'Colégio Vértice' },
+  { value: 'rede_vertice_plus', label: 'Colégio Vértice' },
   { value: 'fgv', label: 'FGV' },
   { value: 'medicina', label: 'Medicina (Einstein)' },
 ];

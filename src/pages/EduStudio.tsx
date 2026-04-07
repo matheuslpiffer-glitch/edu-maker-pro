@@ -20,7 +20,7 @@ interface ToolConfig {
 }
 
 const tools: ToolConfig[] = [
-  { id: 'simulados', title: 'IA de Simulados', desc: 'Questões inéditas alinhadas à BNCC/Mackenzie com gabarito e AEE', icon: GraduationCap, gradient: 'from-amber-500 to-orange-600', glow: 'shadow-amber-500/30' },
+  { id: 'simulados', title: 'IA de Simulados', desc: 'Questões inéditas alinhadas à BNCC/Rede Pedagógica com gabarito e AEE', icon: GraduationCap, gradient: 'from-amber-500 to-orange-600', glow: 'shadow-amber-500/30' },
   { id: 'atividades', title: 'Atividades Maker', desc: 'Roteiros práticos para atividades autônomas em sala', icon: Wrench, gradient: 'from-emerald-500 to-teal-600', glow: 'shadow-emerald-500/30' },
   { id: 'redacao', title: 'Dossiê de Redação', desc: 'Guia de leitura com textos de apoio e estrutura argumentativa', icon: PenLine, gradient: 'from-violet-600 to-fuchsia-600', glow: 'shadow-violet-500/30' },
   { id: 'scriptlab', title: 'ScriptLab', desc: 'Roteiros de aula completos com objetivos, momentos pedagógicos e avaliação', icon: FileText, gradient: 'from-yellow-500 to-amber-600', glow: 'shadow-yellow-500/30' },

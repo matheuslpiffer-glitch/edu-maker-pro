@@ -17,7 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildPublicAppUrl } from '@/lib/public-links';
 
 const redesEnsino = [
-  { value: 'mackenzie', label: 'Sistema Mackenzie', desc: 'Tradição e rigor acadêmico' },
+  { value: 'rede_vertice_plus', label: 'Rede Vértice Plus', desc: 'Tradição e rigor acadêmico' },
   { value: 'poliedro', label: 'Poliedro', desc: 'Altíssima complexidade' },
   { value: 'rede_vertice', label: 'Rede Vértice', desc: 'Método espiral progressivo' },
   { value: 'coc', label: 'COC', desc: 'Foco em resultados objetivos' },

@@ -505,7 +505,7 @@ DIRETRIZES DE GERAÇÃO:
 1. CONTEXTUALIZAÇÃO TOTAL: A atividade deve usar os termos técnicos e o cenário da aula (ex: se a aula é de Solda, use termos como 'Arco' e 'Eletrodo').
 2. ESTÉTICA INDUSTRIAL: O tom deve ser de 'Missão' ou 'Ordem de Serviço'. Use linguagem que desafie o aluno (ex: 'Agente, detectamos um gargalo...', 'Engenheiro, inspecione a junta...').
 3. DIAGRAMAÇÃO PARA IMPRESSÃO: O conteúdo deve ser conciso para caber em meia folha A4. Inclua sempre campo de 'Assinatura do Instrutor' no final.
-4. REGRAS DE SEGURANÇA: Nunca sugira procedimentos perigosos sem citar o EPI correspondente. Se o curso for SENAI, siga rigorosamente a nomenclatura da Matriz Técnica de SP.
+4. REGRAS DE SEGURANÇA: Nunca sugira procedimentos perigosos sem citar o EPI correspondente. Siga rigorosamente a nomenclatura da Matriz Técnica Industrial.
 ${NO_IMG_RULE}
 Responda APENAS com JSON válido, sem markdown.`
         : `Você é um Game Designer Educacional especialista em criar jogos pedagógicos envolventes e visualmente ricos em HTML. Seus jogos devem ser prontos para impressão em folha A4.${NO_IMG_RULE}\nResponda APENAS com JSON válido, sem markdown.`;
@@ -601,7 +601,7 @@ Responda em JSON (SEM markdown, SEM blocos de código):
       const examLabelsStudent: Record<string, string> = {
         super_enem: 'Banca Padrão Nacional', fuvest: 'Banca Acadêmica', unicamp: 'Banca de Excelência', unesp: 'Avaliação Técnica',
         ufscar: 'UFSCar/Federais', vestibulinho_etec: 'ETEC', selecao_ifs: 'Instituto Federal',
-        puc: 'PUC', mackenzie: 'Mackenzie', fgv: 'FGV', medicina: 'Medicina',
+        puc: 'Particular A', mackenzie: 'Rede Vértice', fgv: 'Particular B', medicina: 'Medicina',
       };
       const studentCount = count || studentQCount || 10;
       const instLabel = tecnicoInstitution === 'ifs' ? 'Instituto Federal (IFs)' :
@@ -671,9 +671,9 @@ DIRETRIZES: Use linguagem acessível com frases curtas. Vocabulário adequado pa
         : `\nMODO FAST-TRACK VESTIBULINHO COMPLETO (${tecnicoInstLabel}): Ignore COMPLETAMENTE filtros de disciplina individual. Gere exatamente 20 questões de múltipla escolha (A a E) distribuídas equilibradamente entre as matérias principais da banca: Língua Portuguesa (interpretação, gramática — ~5 questões), Matemática (aritmética, geometria, álgebra — ~5 questões), Ciências da Natureza (~5 questões) e Ciências Humanas (~5 questões). Respeite RIGOROSAMENTE o estilo de enunciado, o nível de dificuldade oficial e a contextualização típica de vestibulinhos de ${tecnicoInstLabel}. As questões devem ser interdisciplinares com situações-problema do cotidiano.\n`
       : "";
 
-    // SENAI Industrial Mode
+    // Industrial Mode
     const senaiInstruction = isSenaiMode
-      ? `\nMODO SIMULADO TÉCNICO INDUSTRIAL — PADRÃO SENAI (MATRIZ REGIONAL SÃO PAULO):
+      ? `\nMODO SIMULADO TÉCNICO INDUSTRIAL — PADRÃO INDUSTRIAL (MATRIZ REGIONAL SÃO PAULO):
 Você é um Engenheiro de Segurança do Trabalho e Instrutor SENAI especializado no eixo "${senaiEixo || 'Mecânica Industrial'}".
 ${senaiSpMatrix ? `\nMATRIZ CURRICULAR SP — CONTEÚDO OBRIGATÓRIO PARA ESTE EIXO:\n${senaiSpMatrix}\nTodas as questões DEVEM abordar os tópicos acima com exemplos do contexto industrial paulista.\n` : ''}
 ${senaiVestibulinho ? `\nMODO VESTIBULINHO SENAI-SP (60 QUESTÕES):
@@ -685,7 +685,7 @@ Todas contextualizadas no universo técnico-industrial do eixo "${senaiEixo}".
 Numere as questões de 1 a ${count || 60} sequencialmente.
 O cabeçalho conceitual é: "AVALIAÇÃO DE DESEMPENHO TÉCNICO — MATRIZ INDUSTRIAL".\n` : `
 ESTILO DAS QUESTÕES:
-- Gere EXATAMENTE ${count || 10} questões de múltipla escolha (A a E) no nível de cursos técnicos SENAI.
+- Gere EXATAMENTE ${count || 10} questões de múltipla escolha (A a E) no nível de cursos técnicos industriais.
 - As questões devem abordar: cálculos técnicos (módulo de engrenagens, relação de transmissão, dimensionamento), leitura de diagramas e esquemas, procedimentos de montagem/desmontagem, nomenclatura técnica industrial.
 - Contextualize com situações reais de chão de fábrica, linha de produção ou manutenção industrial.`}
 
