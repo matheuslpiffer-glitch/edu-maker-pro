@@ -233,7 +233,7 @@ function BancaScorecard({ banca, competencies }: { banca: string; competencies: 
 function TeacherPanel() {
   const { user } = useAuth();
   const [theme, setTheme] = useState('');
-  const [banca, setBanca] = useState<string>('ENEM');
+  const [banca, setBanca] = useState<string>('Banca Padrão Nacional');
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);

@@ -30,7 +30,7 @@ const BANCA_COLORS: Record<string, string> = {
   'AEE': 'bg-violet-100 text-violet-700',
   'Jogos': 'bg-purple-100 text-purple-700',
   'ETEC': 'bg-emerald-100 text-emerald-700',
-  'ENEM': 'bg-amber-100 text-amber-700',
+  'Banca Padrão Nacional': 'bg-amber-100 text-amber-700',
 };
 
 function stripHtml(html: string): string {

@@ -53,7 +53,7 @@ const BANCAS = [
   { id: 'enem', label: 'Banca Padrão Nacional', desc: '5 Competências', icon: GraduationCap, gradient: 'from-indigo-600 to-blue-600' },
   { id: 'unicamp', label: 'Banca de Excelência', desc: 'Múltiplos Gêneros', icon: BookOpen, gradient: 'from-violet-600 to-purple-600' },
   { id: 'fuvest', label: 'Banca Acadêmica', desc: 'Dissertativa Clássica', icon: FileText, gradient: 'from-cyan-600 to-blue-600' },
-  { id: 'vunesp', label: 'VUNESP', desc: 'Texto Dissertativo', icon: Globe, gradient: 'from-fuchsia-600 to-pink-600' },
+  { id: 'vunesp', label: 'Avaliação Técnica', desc: 'Texto Dissertativo', icon: Globe, gradient: 'from-fuchsia-600 to-pink-600' },
 ];
 
 const GENEROS = [
@@ -157,7 +157,7 @@ export default function RedacaoView() {
     if (!user || !proposta) return;
     setSendingToLab(true);
     try {
-      const bancaId = selectedBanca.toUpperCase() || 'ENEM';
+      const bancaId = selectedBanca.toUpperCase() || 'Banca Padrão Nacional';
       const { data, error } = await supabase
         .from('essay_submissions')
         .insert({

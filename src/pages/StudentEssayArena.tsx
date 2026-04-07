@@ -12,10 +12,10 @@ import { PenLine, Sparkles, Maximize2, Minimize2, Trophy, Zap, Loader2, RotateCc
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const BANCAS = [
-  { value: 'ENEM', label: 'Banca Padrão Nacional', maxScore: 1000, color: 'bg-blue-500' },
-  { value: 'FUVEST', label: 'FUVEST (USP)', maxScore: 50, color: 'bg-purple-500' },
-  { value: 'VUNESP', label: 'VUNESP', maxScore: 28, color: 'bg-emerald-500' },
-  { value: 'UNICAMP', label: 'Banca de Excelência', maxScore: 12, color: 'bg-orange-500' },
+  { value: 'Banca Padrão Nacional', label: 'Banca Padrão Nacional', maxScore: 1000, color: 'bg-blue-500' },
+  { value: 'Banca Acadêmica', label: 'FUVEST (USP)', maxScore: 50, color: 'bg-purple-500' },
+  { value: 'Avaliação Técnica', label: 'Avaliação Técnica', maxScore: 28, color: 'bg-emerald-500' },
+  { value: 'Banca de Excelência', label: 'Banca de Excelência', maxScore: 12, color: 'bg-orange-500' },
 ];
 
 const HOT_THEMES = [
@@ -53,7 +53,7 @@ export default function StudentEssayArena() {
   const { toast } = useToast();
 
   const [step, setStep] = useState<'select' | 'write' | 'result'>('select');
-  const [banca, setBanca] = useState('ENEM');
+  const [banca, setBanca] = useState('Banca Padrão Nacional');
   const [theme, setTheme] = useState('');
   const [generatingTheme, setGeneratingTheme] = useState(false);
   const [essayText, setEssayText] = useState('');

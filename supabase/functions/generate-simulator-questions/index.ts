@@ -599,14 +599,14 @@ Responda em JSON (SEM markdown, SEM blocos de código):
     // ══════ STUDENT QUIZ MODE (fast path — lighter model) ══════
     if (studentMode) {
       const examLabelsStudent: Record<string, string> = {
-        super_enem: 'ENEM', fuvest: 'FUVEST', unicamp: 'UNICAMP', unesp: 'UNESP',
+        super_enem: 'Banca Padrão Nacional', fuvest: 'Banca Acadêmica', unicamp: 'Banca de Excelência', unesp: 'Avaliação Técnica',
         ufscar: 'UFSCar/Federais', vestibulinho_etec: 'ETEC', selecao_ifs: 'Instituto Federal',
         puc: 'PUC', mackenzie: 'Mackenzie', fgv: 'FGV', medicina: 'Medicina',
       };
       const studentCount = count || studentQCount || 10;
       const instLabel = tecnicoInstitution === 'ifs' ? 'Instituto Federal (IFs)' :
                         tecnicoInstitution === 'etec' ? 'ETEC / Centro Paula Souza' :
-                        examLabelsStudent[activeSpecialty] || activeSpecialty || examType || 'ENEM';
+                        examLabelsStudent[activeSpecialty] || activeSpecialty || examType || 'Banca Padrão Nacional';
 
       const systemPromptStudent = `Você é um Tutor Socrático para estudantes brasileiros. Gere questões de múltipla escolha (A-E) no estilo "${instLabel}". Para cada questão inclua "tutorExplanation" com 2 frases: o conceito-chave e uma dica prática.${NO_IMG_RULE}Responda APENAS com JSON válido.`;
 
@@ -703,8 +703,8 @@ CAMPO "descriptor": Descreva brevemente a competência técnica avaliada.\n`
       const bancaMap: Record<string, string> = {
         'Banca Padrão Nacional': 'No estilo ENEM: questões contextualizadas com situações-problema, textos longos, gráficos e interdisciplinaridade. Foco nas competências da Matriz de Referência do ENEM.',
         'FUVEST (USP)': 'No estilo FUVEST/USP: rigor acadêmico máximo, questões analíticas com textos eruditos, exigindo profundidade conceitual e capacidade de síntese.',
-        'UNICAMP': 'No estilo UNICAMP/Comvest: questões interdisciplinares com textos acadêmicos densos, interpretação de dados e raciocínio crítico avançado.',
-        'UNESP': 'No estilo UNESP/Vunesp: questões objetivas e diretas com contextualização rica, exigindo domínio conceitual sólido.',
+        'Banca de Excelência': 'No estilo UNICAMP/Comvest: questões interdisciplinares com textos acadêmicos densos, interpretação de dados e raciocínio crítico avançado.',
+        'Avaliação Técnica': 'No estilo UNESP/Vunesp: questões objetivas e diretas com contextualização rica, exigindo domínio conceitual sólido.',
         'UFSCar / Federais': 'No estilo de vestibulares de Universidades Federais (UFSCar, UNIFESP, IFs): questões com rigor científico, interdisciplinaridade e contextualização social.',
       };
       techDisciplineInstruction = `\nBANCA VESTIBULAR PÚBLICA: ${bancaMap[technicalDiscipline] || `Questões no estilo do vestibular "${technicalDiscipline}" com alto rigor acadêmico.`}\n`;
