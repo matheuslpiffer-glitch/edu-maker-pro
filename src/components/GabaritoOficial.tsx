@@ -37,9 +37,9 @@ const GabaritoOficial = forwardRef<HTMLDivElement, Props>(
         ref={ref}
         className="bg-white text-black p-8 max-w-[210mm] mx-auto"
         style={{
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '11pt',
-          lineHeight: '1.6',
+          fontFamily: "'Nunito', sans-serif",
+          fontSize: '12pt',
+          lineHeight: '1.15',
           pageBreakBefore: 'always',
         }}
         data-pdf-section="gabarito-oficial"
@@ -104,23 +104,30 @@ const GabaritoOficial = forwardRef<HTMLDivElement, Props>(
         </table>
 
         {/* Summary */}
-        <div className="border-t-2 border-black pt-4 flex justify-between text-xs text-gray-600">
+        <div className="border-t-2 border-black pt-4 flex justify-between text-xs" style={{ color: '#666' }}>
           <div>
-            <p>Total de questões: {questions.length}</p>
-            <p>ID do Simulado: {shortId}</p>
+            <p>TOTAL DE QUESTÕES: {questions.length}</p>
+            <p>ID DO SIMULADO: {shortId}</p>
           </div>
           <div className="text-right">
-            <p>Documento gerado por EduCreator</p>
-            <p>
-              Data de geração:{' '}
-              {new Date().toLocaleDateString('pt-BR')}
-            </p>
+            <p>GERADO POR EDUCREATOR PRO</p>
+            <p>DATA: {new Date().toLocaleDateString('pt-BR')}</p>
           </div>
         </div>
 
+        {/* Footer Piffer */}
+        <div className="mt-6 pt-3 border-t border-gray-300 text-center" style={{ pageBreakInside: 'avoid' }}>
+          <p style={{ fontSize: '10pt', color: '#555' }}>
+            VAMOS ILUMINAR JUNTOS O CAMINHO DO SEU ALUNO? ✨
+          </p>
+          <p className="mt-1" style={{ fontFamily: "'Dancing Script', cursive", fontSize: '16pt', color: '#333' }}>
+            Matheus Lima Piffer
+          </p>
+        </div>
+
         {/* Watermark */}
-        <p className="text-center mt-4" style={{ fontSize: '8pt', color: '#c0c0c0', letterSpacing: '0.05em' }}>
-          EduCreator Pro • Matheus Piffer
+        <p className="text-center mt-3" style={{ fontSize: '8pt', color: 'rgba(0,0,0,0.1)', letterSpacing: '0.1em' }}>
+          EDUCREATOR PRO SYSTEMS — GABARITO OFICIAL
         </p>
       </div>
     );
