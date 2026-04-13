@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import MathRenderer from '@/components/MathRenderer';
+import AnswerSheet from '@/components/AnswerSheet';
 
 interface QuestionOption {
   id: string;
@@ -84,9 +85,11 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({
   const questionGap = ecoPrint ? 'mb-3' : 'mb-6';
   const headerGap = ecoPrint ? 'mb-3' : 'mb-6';
 
+  const multipleChoiceCount = questions.filter(q => q.type === 'multiple-choice').length;
+
   return (
+    <div ref={ref}>
     <div
-      ref={ref}
       className={`bg-white text-black max-w-[210mm] mx-auto ${isAEE ? 'aee-print' : ''}`}
       style={{ fontFamily, fontSize: bodySize, lineHeight: lineH, padding, boxSizing: 'border-box' }}
     >
@@ -246,6 +249,20 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({
         <div className="mt-8 pt-2 border-t border-gray-300 text-center text-xs text-gray-400">
           Avaliação de Elite por Matheus Lima Piffer | EduCreator Pro
         </div>
+      )}
+    </div>
+
+      {/* ─── ANSWER SHEET (Mestre mode) ─── */}
+      {mestreMode && showGabarito && multipleChoiceCount > 0 && (
+        <AnswerSheet
+          questionCount={multipleChoiceCount}
+          title={header.title}
+          institutionName={header.institutionName}
+          teacherName={header.teacherName}
+          className={header.className}
+          date={header.date}
+          logoUrl={header.logoUrl}
+        />
       )}
     </div>
   );
