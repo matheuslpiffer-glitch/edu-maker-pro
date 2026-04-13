@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Loader2, Printer, Download, FileText, ArrowLeft, ListChecks, AlignLeft, Eye, Columns2 } from 'lucide-react';
+import { Save, Loader2, Printer, Download, FileText, ArrowLeft, ListChecks, AlignLeft, Eye, Columns2, Sparkles, Leaf } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import AssessmentPreview from '@/components/AssessmentPreview';
@@ -56,6 +56,8 @@ export default function CreateAssessment() {
   const [saving, setSaving] = useState(false);
   const [filterSubject, setFilterSubject] = useState('all');
   const [twoColumns, setTwoColumns] = useState(false);
+  const [mestreMode, setMestreMode] = useState(false);
+  const [ecoPrint, setEcoPrint] = useState(false);
 
   useEffect(() => {
     async function load() {
