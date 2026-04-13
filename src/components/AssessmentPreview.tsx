@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import MathRenderer from '@/components/MathRenderer';
+import AnswerSheet from '@/components/AnswerSheet';
 
 interface QuestionOption {
   id: string;
@@ -247,7 +248,20 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({
           Avaliação de Elite por Matheus Lima Piffer | EduCreator Pro
         </div>
       )}
-    </div>
+
+      {/* ─── ANSWER SHEET (Mestre mode) ─── */}
+      {mestreMode && showGabarito && multipleChoiceCount > 0 && (
+        <AnswerSheet
+          questionCount={multipleChoiceCount}
+          title={header.title}
+          institutionName={header.institutionName}
+          teacherName={header.teacherName}
+          className={header.className}
+          date={header.date}
+          logoUrl={header.logoUrl}
+        />
+      )}
+    </>
   );
 });
 
