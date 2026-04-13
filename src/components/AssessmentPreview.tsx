@@ -85,9 +85,11 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({
   const questionGap = ecoPrint ? 'mb-3' : 'mb-6';
   const headerGap = ecoPrint ? 'mb-3' : 'mb-6';
 
+  const multipleChoiceCount = questions.filter(q => q.type === 'multiple-choice').length;
+
   return (
+    <div ref={ref}>
     <div
-      ref={ref}
       className={`bg-white text-black max-w-[210mm] mx-auto ${isAEE ? 'aee-print' : ''}`}
       style={{ fontFamily, fontSize: bodySize, lineHeight: lineH, padding, boxSizing: 'border-box' }}
     >
