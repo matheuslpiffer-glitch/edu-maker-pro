@@ -237,14 +237,28 @@ export default function CreateAssessment() {
             {/* Export buttons */}
             <Card>
               <CardContent className="flex items-center gap-3 p-4 flex-wrap">
+                <Button
+                  size="sm"
+                  variant={mestreMode ? 'default' : 'outline'}
+                  onClick={() => setMestreMode(v => !v)}
+                  className="gap-1"
+                >
+                  <Sparkles size={16} /> Diagramação Mestre
+                </Button>
                 <div className="flex items-center gap-2">
                   <Checkbox id="gabarito" checked={showGabarito} onCheckedChange={(v) => setShowGabarito(!!v)} />
-                  <Label htmlFor="gabarito" className="text-sm cursor-pointer">Incluir Gabarito</Label>
+                  <Label htmlFor="gabarito" className="text-sm cursor-pointer">Gabarito</Label>
                 </div>
-                <div className="flex items-center gap-2 ml-4">
+                <div className="flex items-center gap-2">
                   <Switch id="twocol" checked={twoColumns} onCheckedChange={setTwoColumns} />
                   <Label htmlFor="twocol" className="text-sm cursor-pointer flex items-center gap-1">
-                    <Columns2 size={14} /> Duas Colunas
+                    <Columns2 size={14} /> Colunas
+                  </Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch id="ecoprint" checked={ecoPrint} onCheckedChange={setEcoPrint} />
+                  <Label htmlFor="ecoprint" className="text-sm cursor-pointer flex items-center gap-1">
+                    <Leaf size={14} /> Eco-Print
                   </Label>
                 </div>
                 <div className="flex-1" />
@@ -269,6 +283,8 @@ export default function CreateAssessment() {
                     subjects={subjects}
                     showGabarito={showGabarito}
                     twoColumns={twoColumns}
+                    mestreMode={mestreMode}
+                    ecoPrint={ecoPrint}
                   />
                 </CardContent>
               </Card>
@@ -285,6 +301,8 @@ export default function CreateAssessment() {
           subjects={subjects}
           showGabarito={showGabarito}
           twoColumns={twoColumns}
+          mestreMode={mestreMode}
+          ecoPrint={ecoPrint}
         />
       </div>
 
