@@ -250,6 +250,7 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({
           Avaliação de Elite por Matheus Lima Piffer | EduCreator Pro
         </div>
       )}
+    </div>
 
       {/* ─── ANSWER SHEET (Mestre mode) ─── */}
       {mestreMode && showGabarito && multipleChoiceCount > 0 && (
@@ -263,7 +264,7 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({
           logoUrl={header.logoUrl}
         />
       )}
-    </>
+    </div>
   );
 });
 
