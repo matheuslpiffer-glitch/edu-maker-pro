@@ -59,8 +59,8 @@ export default function VisionCorrector() {
 
     setLoading(true);
     try {
-      // Upload image to storage
-      const fileName = `vision-corrections/${user?.id}/${Date.now()}-${image.name}`;
+      // Upload image to storage (path must start with user.id for RLS)
+      const fileName = `${user?.id}/vision-corrections/${Date.now()}-${image.name}`;
       const { error: uploadError } = await supabase.storage.from('essay-images').upload(fileName, image);
       if (uploadError) throw uploadError;
 
