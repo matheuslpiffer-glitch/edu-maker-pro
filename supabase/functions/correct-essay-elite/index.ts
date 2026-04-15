@@ -197,9 +197,11 @@ function buildInterventionPrompt(level: string, subLevel?: string): string {
     ? "aluno dos Anos Finais (6º ao 9º ano). Atividades devem ser instrutivas e focadas em estrutura textual."
     : subLevel === "enem"
     ? "aluno do Ensino Médio preparando-se para o ENEM. Atividades devem ser técnicas e focadas nas 5 competências."
+    : subLevel === "unicamp"
+    ? "aluno do Ensino Médio preparando-se para a UNICAMP. Atividades devem focar em adequação ao gênero textual, interlocução e leitura crítica dos textos de apoio."
     : subLevel === "vunesp"
-    ? "aluno do Ensino Médio preparando-se para a VUNESP. Atividades devem focar em dissertação rigorosa."
-    : "aluno do Ensino Médio preparando-se para a FUVEST. Atividades devem focar em argumentação filosófica e repertório.";
+    ? "aluno do Ensino Médio preparando-se para a VUNESP. Atividades devem focar em dissertação rigorosa, coerência e norma culta."
+    : "aluno do Ensino Médio preparando-se para a FUVEST. Atividades devem focar em argumentação filosófica, abstração e repertório erudito.";
 
   return `Você é um pedagogo especialista em intervenção pedagógica personalizada.
 Com base nas notas e no feedback da correção, gere um PLANO DE AÇÃO imediato para um ${levelContext}
