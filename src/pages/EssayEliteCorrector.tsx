@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import QRCode from 'qrcode';
+import DocumentScanner from '@/components/DocumentScanner';
 
 interface ScoreItem {
   criteria: string;
@@ -382,7 +383,7 @@ export default function EssayEliteCorrector() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // fileInputRef no longer needed — DocumentScanner handles it
 
   const [level, setLevel] = useState('');
   const [subLevel, setSubLevel] = useState('');
@@ -404,23 +405,13 @@ export default function EssayEliteCorrector() {
     }
   }, []);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) {
-      toast({ title: 'Formato inválido', description: 'Envie uma foto (JPG, PNG).', variant: 'destructive' });
-      return;
-    }
+  const handleScannedImage = (file: File, preview: string) => {
     setImageFile(file);
+    setImagePreview(preview);
     setRotation(0);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setImagePreview(dataUrl);
-      try { localStorage.setItem('elite_photo_preview', dataUrl); } catch {}
-    };
-    reader.readAsDataURL(file);
     setResult(null);
     setInterventionPlan(null);
+    try { localStorage.setItem('elite_photo_preview', preview); } catch {}
   };
 
   const canCorrect = imageFile && level && (level !== 'ensino_medio' || subLevel);
@@ -610,37 +601,18 @@ export default function EssayEliteCorrector() {
             </CardContent>
           </Card>
 
-          {/* Upload */}
-          <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
-          <div
-            onClick={() => !loading && fileInputRef.current?.click()}
-            className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 text-center transition-all ${
-              imagePreview ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20' : 'border-border hover:border-purple-400 hover:bg-purple-50/30 dark:hover:bg-purple-950/10'
-            }`}
-          >
-            {imagePreview ? (
-              <div className="space-y-3">
-                <div className="flex justify-end">
-                  <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRotation(r => (r + 90) % 360); }} className="rounded-xl">
-                    <RotateCw size={14} className="mr-1" /> GIRAR
-                  </Button>
-                </div>
-                <img src={imagePreview} alt="Preview" className="max-h-60 mx-auto rounded-xl shadow-lg object-contain transition-transform" style={{ transform: `rotate(${rotation}deg)` }} />
-                <p className="text-xs text-emerald-600">✅ Foto carregada — clique para trocar</p>
-              </div>
-            ) : (
-              <div className="py-6 space-y-3">
-                <Camera size={36} className="mx-auto text-purple-400" />
-                <p className="font-semibold text-foreground">ARRASTE A FOTO DA REDAÇÃO AQUI</p>
-                <p className="text-xs text-muted-foreground">ou clique para selecionar / tirar foto</p>
-              </div>
-            )}
-          </div>
+          {/* Document Scanner */}
+          {!imagePreview && !loading && (
+            <DocumentScanner onImageReady={handleScannedImage} disabled={loading} />
+          )}
 
           {imagePreview && !loading && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-300">
-              <AlertTriangle size={14} className="shrink-0" />
-              <span>Certifique-se de que a foto está nítida, bem iluminada e sem sombras.</span>
+            <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 space-y-3">
+              <img src={imagePreview} alt="Scanned" className="max-h-60 mx-auto rounded-xl shadow-lg object-contain" />
+              <p className="text-xs text-center text-emerald-600 dark:text-emerald-400 font-semibold">✅ IMAGEM ESCANEADA PRONTA</p>
+              <Button variant="outline" size="sm" className="w-full rounded-xl" onClick={() => { setImagePreview(null); setImageFile(null); localStorage.removeItem('elite_photo_preview'); }}>
+                TROCAR FOTO
+              </Button>
             </div>
           )}
 
@@ -655,13 +627,13 @@ export default function EssayEliteCorrector() {
             </Button>
           )}
 
-          {!imagePreview && (
+          {!imagePreview && !loading && (
             <Button
               disabled
               className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-500/25 opacity-50"
             >
               <Camera className="mr-2" size={20} />
-              TIRE A FOTO PRIMEIRO
+              ESCANEIE A REDAÇÃO PRIMEIRO
             </Button>
           )}
 
@@ -677,12 +649,6 @@ export default function EssayEliteCorrector() {
                 <Loader2 className="inline mr-2 animate-spin" size={16} />
                 {LOADING_PHASES[loadingPhase]}
               </p>
-            </div>
-          )}
-
-          {loading && (
-            <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-1000" style={{ width: `${((loadingPhase + 1) / LOADING_PHASES.length) * 100}%` }} />
             </div>
           )}
         </div>
