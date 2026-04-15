@@ -6,6 +6,7 @@ import {
   clearStoredScannerCapture,
   createPersistableCapture,
   dataUrlToFile,
+  detectDocumentEdges,
   getCroppedProcessedImage,
   persistScannerCapture,
   readStoredScannerCapture,
