@@ -859,8 +859,14 @@ export default function EssayEliteCorrector() {
               </Card>
 
               <div className="flex justify-end gap-2 no-print">
+                <Button
+                  onClick={() => generateElitePDF(result, interventionPlan, studentName, levelLabel)}
+                  className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg"
+                >
+                  <FileText size={16} className="mr-2" /> GERAR RELATÓRIO OFICIAL (PDF)
+                </Button>
                 <Button variant="outline" onClick={() => window.print()} className="rounded-xl">
-                  <Printer size={16} className="mr-2" /> IMPRIMIR LAUDO
+                  <Printer size={16} className="mr-2" /> IMPRIMIR
                 </Button>
               </div>
             </div>
