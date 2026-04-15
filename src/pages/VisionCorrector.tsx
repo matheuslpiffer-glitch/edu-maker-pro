@@ -64,11 +64,15 @@ export default function VisionCorrector() {
       const { error: uploadError } = await supabase.storage.from('essay-images').upload(fileName, image);
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage.from('essay-images').getPublicUrl(fileName);
+      // Generate a signed URL (expires in 10 min) so the AI can access the image securely
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('essay-images')
+        .createSignedUrl(fileName, 600);
+      if (signedError || !signedData?.signedUrl) throw new Error('Falha ao gerar URL temporária da imagem');
 
       // Call edge function
       const { data, error } = await supabase.functions.invoke('correct-vision', {
-        body: { imageUrl: publicUrl, gabarito: gabarito.trim() },
+        body: { imageUrl: signedData.signedUrl, gabarito: gabarito.trim() },
       });
 
       if (error) throw error;

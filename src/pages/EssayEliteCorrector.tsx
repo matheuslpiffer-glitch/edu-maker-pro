@@ -503,7 +503,11 @@ export default function EssayEliteCorrector() {
       // Save to DB
       const filePath = `${user.id}/${Date.now()}_elite_${currentImageFile.name}`;
       const { data: uploadData } = await supabase.storage.from('essay-images').upload(filePath, currentImageFile);
-      const imageUrl = uploadData?.path ? supabase.storage.from('essay-images').getPublicUrl(uploadData.path).data.publicUrl : '';
+      let imageUrl = '';
+      if (uploadData?.path) {
+        const { data: signedData } = await supabase.storage.from('essay-images').createSignedUrl(uploadData.path, 600);
+        imageUrl = signedData?.signedUrl || supabase.storage.from('essay-images').getPublicUrl(uploadData.path).data.publicUrl;
+      }
 
       await supabase.from('essay_corrections').insert({
         user_id: user.id,
