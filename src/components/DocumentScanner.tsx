@@ -6,6 +6,7 @@ import {
   clearStoredScannerCapture,
   createPersistableCapture,
   dataUrlToFile,
+  detectDocumentEdges,
   getCroppedProcessedImage,
   persistScannerCapture,
   readStoredScannerCapture,
@@ -128,10 +129,29 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
       setProcessedPreview(null);
       setRotation(0);
       setSharpnessWarning(false);
-      setCrop(DEFAULT_CROP);
-      setZoom(1);
-      setStage('adjust');
       setFilterMode(DEFAULT_FILTER);
+
+      // Auto-detect document edges and set initial crop/zoom
+      if (capture.edges && (capture.edges.cropX > 0.03 || capture.edges.cropY > 0.03)) {
+        const { cropWidth, cropHeight } = capture.edges;
+        // Calculate zoom to fit the detected document
+        const zoomX = 1 / cropWidth;
+        const zoomY = 1 / cropHeight;
+        const autoZoom = Math.min(Math.max(Math.min(zoomX, zoomY), 1), 2.5);
+        setZoom(autoZoom);
+        // Center the crop on the detected document
+        setCrop(DEFAULT_CROP);
+        console.log('[DocumentScanner] auto-edge-detect:bordas encontradas, zoom ajustado', {
+          edges: capture.edges,
+          autoZoom,
+        });
+      } else {
+        setCrop(DEFAULT_CROP);
+        setZoom(1);
+        console.log('[DocumentScanner] auto-edge-detect:sem bordas significativas detectadas');
+      }
+
+      setStage('adjust');
 
       persistScannerCapture({
         rawDataUrl: capture.dataUrl,

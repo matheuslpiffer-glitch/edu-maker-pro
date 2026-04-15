@@ -403,6 +403,137 @@ function computeSharpness(data: Uint8ClampedArray, width: number, height: number
   return sumSq / count - mean * mean;
 }
 
+/**
+ * Auto-detect document edges using contrast analysis.
+ * Scans inward from each edge to find where the document starts,
+ * returning normalized crop bounds (0-1) for react-easy-crop.
+ */
+export function detectDocumentEdges(
+  imageElement: HTMLImageElement,
+): { cropX: number; cropY: number; cropWidth: number; cropHeight: number } {
+  const w = imageElement.naturalWidth || imageElement.width;
+  const h = imageElement.naturalHeight || imageElement.height;
+
+  // Downsample for performance
+  const maxDim = 400;
+  const scale = Math.min(1, maxDim / Math.max(w, h));
+  const sw = Math.round(w * scale);
+  const sh = Math.round(h * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = sw;
+  canvas.height = sh;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return { cropX: 0, cropY: 0, cropWidth: 1, cropHeight: 1 };
+
+  ctx.drawImage(imageElement, 0, 0, sw, sh);
+  const data = ctx.getImageData(0, 0, sw, sh).data;
+
+  // Convert to grayscale
+  const gray = new Uint8Array(sw * sh);
+  for (let i = 0; i < sw * sh; i++) {
+    gray[i] = Math.round(0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2]);
+  }
+
+  // Compute gradient magnitude (Sobel-like)
+  const gradient = new Float32Array(sw * sh);
+  for (let y = 1; y < sh - 1; y++) {
+    for (let x = 1; x < sw - 1; x++) {
+      const gx =
+        -gray[(y - 1) * sw + (x - 1)] + gray[(y - 1) * sw + (x + 1)]
+        - 2 * gray[y * sw + (x - 1)] + 2 * gray[y * sw + (x + 1)]
+        - gray[(y + 1) * sw + (x - 1)] + gray[(y + 1) * sw + (x + 1)];
+      const gy =
+        -gray[(y - 1) * sw + (x - 1)] - 2 * gray[(y - 1) * sw + x] - gray[(y - 1) * sw + (x + 1)]
+        + gray[(y + 1) * sw + (x - 1)] + 2 * gray[(y + 1) * sw + x] + gray[(y + 1) * sw + (x + 1)];
+      gradient[y * sw + x] = Math.sqrt(gx * gx + gy * gy);
+    }
+  }
+
+  // Find threshold (mean + 0.5 * stddev of gradient)
+  let gSum = 0, gSumSq = 0, gCount = 0;
+  for (let i = 0; i < gradient.length; i++) {
+    if (gradient[i] > 0) { gSum += gradient[i]; gSumSq += gradient[i] * gradient[i]; gCount++; }
+  }
+  const gMean = gCount > 0 ? gSum / gCount : 0;
+  const gStd = gCount > 0 ? Math.sqrt(gSumSq / gCount - gMean * gMean) : 0;
+  const threshold = gMean + 0.5 * gStd;
+
+  // Scan from each edge to find where strong edges begin
+  const margin = 0.02; // minimum margin
+  const scanLimit = 0.35; // don't scan more than 35% from each edge
+
+  function scanFromLeft(): number {
+    const maxX = Math.round(sw * scanLimit);
+    const sampleRows = 10;
+    for (let x = 0; x < maxX; x++) {
+      let edgeCount = 0;
+      for (let s = 0; s < sampleRows; s++) {
+        const y = Math.round((sh * (s + 1)) / (sampleRows + 1));
+        if (gradient[y * sw + x] > threshold) edgeCount++;
+      }
+      if (edgeCount >= sampleRows * 0.3) return Math.max(margin, (x - 2) / sw);
+    }
+    return margin;
+  }
+
+  function scanFromRight(): number {
+    const minX = Math.round(sw * (1 - scanLimit));
+    const sampleRows = 10;
+    for (let x = sw - 1; x > minX; x--) {
+      let edgeCount = 0;
+      for (let s = 0; s < sampleRows; s++) {
+        const y = Math.round((sh * (s + 1)) / (sampleRows + 1));
+        if (gradient[y * sw + x] > threshold) edgeCount++;
+      }
+      if (edgeCount >= sampleRows * 0.3) return Math.max(margin, 1 - (x + 2) / sw);
+    }
+    return margin;
+  }
+
+  function scanFromTop(): number {
+    const maxY = Math.round(sh * scanLimit);
+    const sampleCols = 10;
+    for (let y = 0; y < maxY; y++) {
+      let edgeCount = 0;
+      for (let s = 0; s < sampleCols; s++) {
+        const x = Math.round((sw * (s + 1)) / (sampleCols + 1));
+        if (gradient[y * sw + x] > threshold) edgeCount++;
+      }
+      if (edgeCount >= sampleCols * 0.3) return Math.max(margin, (y - 2) / sh);
+    }
+    return margin;
+  }
+
+  function scanFromBottom(): number {
+    const minY = Math.round(sh * (1 - scanLimit));
+    const sampleCols = 10;
+    for (let y = sh - 1; y > minY; y--) {
+      let edgeCount = 0;
+      for (let s = 0; s < sampleCols; s++) {
+        const x = Math.round((sw * (s + 1)) / (sampleCols + 1));
+        if (gradient[y * sw + x] > threshold) edgeCount++;
+      }
+      if (edgeCount >= sampleCols * 0.3) return Math.max(margin, 1 - (y + 2) / sh);
+    }
+    return margin;
+  }
+
+  const left = scanFromLeft();
+  const right = scanFromRight();
+  const top = scanFromTop();
+  const bottom = scanFromBottom();
+
+  console.log('[DocumentScanner] detecção de bordas:', { left, right, top, bottom });
+
+  return {
+    cropX: left,
+    cropY: top,
+    cropWidth: 1 - left - right,
+    cropHeight: 1 - top - bottom,
+  };
+}
+
 export async function createPersistableCapture(file: File, maxWidth = 1600, quality = 0.86) {
   const image = await loadImage(URL.createObjectURL(file));
 
@@ -429,7 +560,10 @@ export async function createPersistableCapture(file: File, maxWidth = 1600, qual
     const dataUrl = canvas.toDataURL('image/jpeg', quality);
     const normalizedFile = dataUrlToFile(dataUrl, file.name, 'image/jpeg');
 
-    return { dataUrl, file: normalizedFile };
+    // Detect document edges
+    const edges = detectDocumentEdges(image);
+
+    return { dataUrl, file: normalizedFile, edges };
   } finally {
     URL.revokeObjectURL(image.src);
   }
