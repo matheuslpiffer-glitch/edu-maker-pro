@@ -9,6 +9,8 @@ import {
   getCroppedProcessedImage,
   persistScannerCapture,
   readStoredScannerCapture,
+  SCAN_FILTER_OPTIONS,
+  type ScanFilterMode,
 } from '@/lib/document-scanner';
 
 interface DocumentScannerProps {
@@ -18,6 +20,7 @@ interface DocumentScannerProps {
 
 const SHARPNESS_THRESHOLD = 200;
 const DEFAULT_CROP: Point = { x: 0, y: 0 };
+const DEFAULT_FILTER: ScanFilterMode = 'magic';
 
 export default function DocumentScanner({ onImageReady, disabled }: DocumentScannerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +34,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
   const [crop, setCrop] = useState<Point>(DEFAULT_CROP);
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [filterMode, setFilterMode] = useState<ScanFilterMode>(DEFAULT_FILTER);
 
   useEffect(() => {
     const storedCapture = readStoredScannerCapture();
@@ -44,6 +48,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
     setRawFile(dataUrlToFile(storedCapture.rawDataUrl, storedCapture.fileName, storedCapture.mimeType));
     setRotation(storedCapture.rotation ?? 0);
     setProcessedPreview(storedCapture.processedDataUrl);
+    setFilterMode(storedCapture.filterMode ?? DEFAULT_FILTER);
     setStage(storedCapture.processedDataUrl ? 'processed' : 'adjust');
   }, []);
 
@@ -76,6 +81,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
         cropArea: croppedAreaPixels,
         rotation,
         fileName: rawFile.name,
+        filterMode,
       });
 
       setProcessedPreview(dataUrl);
@@ -87,6 +93,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
         fileName: rawFile.name,
         mimeType: rawFile.type || 'image/jpeg',
         rotation,
+        filterMode,
         lastUpdatedAt: Date.now(),
       });
 
@@ -99,7 +106,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
     } finally {
       setProcessing(false);
     }
-  }, [croppedAreaPixels, rawFile, rawPreview, rotation]);
+  }, [croppedAreaPixels, rawFile, rawPreview, rotation, filterMode]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -124,6 +131,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
       setCrop(DEFAULT_CROP);
       setZoom(1);
       setStage('adjust');
+      setFilterMode(DEFAULT_FILTER);
 
       persistScannerCapture({
         rawDataUrl: capture.dataUrl,
@@ -131,6 +139,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
         fileName: capture.file.name,
         mimeType: capture.file.type || 'image/jpeg',
         rotation: 0,
+        filterMode: DEFAULT_FILTER,
         lastUpdatedAt: Date.now(),
       });
 
@@ -157,6 +166,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
         fileName: rawFile.name,
         mimeType: rawFile.type || 'image/jpeg',
         rotation: newRot,
+        filterMode,
         lastUpdatedAt: Date.now(),
       });
     }
@@ -191,6 +201,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
     setCrop(DEFAULT_CROP);
     setZoom(1);
     setCroppedAreaPixels(null);
+    setFilterMode(DEFAULT_FILTER);
     clearStoredScannerCapture();
 
     if (fileInputRef.current) {
@@ -203,6 +214,16 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
   const handleAdjustAgain = () => {
     setStage('adjust');
     console.log('[DocumentScanner] ajuste:retornando para recorte');
+  };
+
+  const handleFilterChange = (mode: ScanFilterMode) => {
+    setFilterMode(mode);
+    // If already processed, go back to adjust so user regenerates with new filter
+    if (stage === 'processed') {
+      setStage('adjust');
+      setProcessedPreview(null);
+    }
+    console.log('[DocumentScanner] filtro:alterado', { mode });
   };
 
   // CAPTURE stage
@@ -255,7 +276,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
           <div className="mb-3 flex items-center justify-between gap-2">
             <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
               <ScanLine size={14} />
-              AJUSTE O ENQUADRAMENTO DA FOLHA
+              SCANNER PRO — AJUSTE O ENQUADRAMENTO
             </span>
             <Button variant="outline" size="sm" onClick={handleRotate} className="h-8 rounded-xl text-xs" disabled={processing}>
               <RotateCw size={12} className="mr-1" /> GIRAR
@@ -283,6 +304,29 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
             <div className="pointer-events-none absolute bottom-10 right-10 h-6 w-6 border-b-4 border-r-4 border-primary" />
           </div>
 
+          {/* Filter mode selector */}
+          <div className="mt-4 space-y-2">
+            <p className="text-xs font-bold text-foreground">MODO DE ESCANEAMENTO</p>
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+              {SCAN_FILTER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => handleFilterChange(opt.value)}
+                  disabled={processing}
+                  className={`rounded-xl border px-2 py-2 text-center transition-all ${
+                    filterMode === opt.value
+                      ? 'border-primary bg-primary/10 text-primary ring-1 ring-primary'
+                      : 'border-border bg-background text-muted-foreground hover:border-primary/50'
+                  }`}
+                >
+                  <span className="block text-[10px] font-bold leading-tight">{opt.label}</span>
+                  <span className="block text-[9px] leading-tight opacity-70">{opt.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
               <span>AJUSTE FINO DO RECORTE</span>
@@ -306,7 +350,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
             </Button>
             <Button onClick={processCurrentImage} className="h-11 rounded-xl text-sm font-bold" disabled={processing || !croppedAreaPixels}>
               {processing ? <Loader2 size={16} className="mr-1.5 animate-spin" /> : <ScanLine size={16} className="mr-1.5" />}
-              GERAR PREVIEW DO SCANNER
+              ESCANEAR COM REALCE
             </Button>
           </div>
         </div>
@@ -321,11 +365,16 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
             <ScanLine size={14} />
-            IMAGEM ESCANEADA (EFEITO XEROX)
+            DOCUMENTO DIGITALIZADO
           </span>
+          <div className="flex items-center gap-1.5">
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+              {SCAN_FILTER_OPTIONS.find(o => o.value === filterMode)?.label ?? 'MAGIC'}
+            </span>
           <Button variant="outline" size="sm" onClick={handleAdjustAgain} className="h-8 rounded-xl text-xs" disabled={processing}>
             <RotateCw size={12} className="mr-1" /> AJUSTAR
           </Button>
+          </div>
         </div>
 
         <div className="relative">
