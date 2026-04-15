@@ -105,7 +105,7 @@ function ScoreBar({ item }: { item: ScoreItem }) {
   );
 }
 
-function generateElitePDF(
+async function generateElitePDF(
   result: EliteResult,
   plan: InterventionPlan | null,
   studentName: string,
