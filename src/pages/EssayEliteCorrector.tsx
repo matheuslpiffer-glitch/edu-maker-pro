@@ -888,7 +888,7 @@ export default function EssayEliteCorrector() {
                     {imagePreview && (
                       <div>
                         <p className="text-xs font-semibold text-muted-foreground mb-2">IMAGEM ORIGINAL</p>
-                        <img src={imagePreview} alt="Original" className="rounded-xl shadow max-h-60 object-contain w-full" style={{ transform: `rotate(${rotation}deg)` }} />
+                        <img src={imagePreview} alt="Original" className="rounded-xl shadow max-h-60 object-contain w-full" />
                       </div>
                     )}
                   </div>
