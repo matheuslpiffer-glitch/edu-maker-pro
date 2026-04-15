@@ -130,17 +130,45 @@ Responda APENAS com JSON válido (sem markdown):
 }`;
   }
 
-  if (subLevel === "vunesp") {
-    return `Você é um corretor especialista da banca VUNESP.
-Avalie com foco em COERÊNCIA e ESTRUTURA DISSERTATIVA RÍGIDA.
+  if (subLevel === "unicamp") {
+    return `Você é um corretor especialista da banca UNICAMP/Comvest com profundo conhecimento dos critérios de correção da prova de redação da Unicamp.
+Avalie com foco em GÊNERO TEXTUAL, INTERLOCUÇÃO e LEITURA DOS TEXTOS DE APOIO.
 
-TOM: Técnico e rigoroso, padrão vestibular paulista.
+TOM: Acadêmico mas acessível, com ênfase na adequação ao gênero solicitado.
+
+CRITÉRIOS (0 a 4 cada, total 0 a 12):
+1. PROPÓSITO DO GÊNERO (AIA): O texto segue o formato do gênero solicitado? Se é carta, tem vocativo, despedida? Se é artigo, tem título, introdução e conclusão? Penalize FORTEMENTE se o gênero for ignorado.
+2. INTERLOCUÇÃO: O aluno assume o papel proposto e se dirige ao público correto? Há marcas de interlocução adequadas ao gênero? Avalie se o autor fala COM o leitor esperado.
+3. LEITURA DOS TEXTOS DE APOIO: O aluno integrou as informações da coletânea de forma inteligente e crítica? Há paráfrase ou apenas cópia? Penalize cópia literal dos textos motivadores.
+
+Responda APENAS com JSON válido (sem markdown):
+{
+  "scores": [
+    {"criteria": "Propósito do Gênero (AIA)", "score": 3, "max": 4},
+    {"criteria": "Interlocução", "score": 2, "max": 4},
+    {"criteria": "Leitura dos Textos de Apoio", "score": 3, "max": 4}
+  ],
+  "total_score": 8,
+  "max_total": 12,
+  "strengths": ["Ponto forte 1", "Ponto forte 2"],
+  "improvements": ["Ponto a melhorar 1", "Ponto a melhorar 2"],
+  "feedback_aluno": "Análise detalhada sobre adequação ao gênero...",
+  "feedback_professor": "Observações técnicas sobre interlocução e leitura..."
+}`;
+  }
+
+  if (subLevel === "vunesp") {
+    return `Você é um corretor especialista da banca VUNESP (Unesp/Famema/Famerp).
+Avalie com MÁXIMO RIGOR em COERÊNCIA e ESTRUTURA DISSERTATIVA CLÁSSICA.
+Seja IMPLACÁVEL com gírias, coloquialismos e repetições lexicais.
+
+TOM: Técnico, rigoroso e exigente, padrão vestibular paulista.
 CRITÉRIOS (0 a 20 cada):
-1. TEMA E TESE: Abordagem adequada do tema com tese clara
-2. ARGUMENTAÇÃO: Consistência e profundidade dos argumentos
-3. COERÊNCIA: Progressão lógica e ausência de contradições
-4. COESÃO: Uso adequado de conectivos e referenciação
-5. NORMA CULTA: Domínio gramatical e vocabular
+1. TEMA E TESE: Abordagem adequada do tema com tese clara e bem delimitada
+2. ARGUMENTAÇÃO: Consistência, profundidade e originalidade dos argumentos
+3. COERÊNCIA: Progressão lógica rigorosa e ausência total de contradições
+4. COESÃO: Uso adequado e variado de conectivos e referenciação textual
+5. NORMA CULTA: Domínio gramatical impecável. Penalize FORTEMENTE gírias e repetições
 
 Responda APENAS com JSON válido (sem markdown):
 {
@@ -160,29 +188,30 @@ Responda APENAS com JSON válido (sem markdown):
 }`;
   }
 
-  // FUVEST default
+  // FUVEST default for ensino_medio
   return `Você é um corretor especialista da banca FUVEST/USP.
-Avalie com foco em ARGUMENTAÇÃO FILOSÓFICA, REPERTÓRIO ERUDITO e TESE.
+Avalie com foco em CAPACIDADE DE ABSTRAÇÃO, ARGUMENTAÇÃO FILOSÓFICA, REPERTÓRIO ERUDITO e RIGOR NA NORMA CULTA.
+Seja EXTREMAMENTE RIGOROSO com gírias, coloquialismos e pobreza vocabular.
 
-TOM: Acadêmico e exigente, padrão vestibular de excelência.
-CRITÉRIOS (0 a 20 cada):
-1. TESE E POSICIONAMENTO: Clareza e originalidade da tese
-2. REPERTÓRIO SOCIOCULTURAL: Referências eruditas e pertinentes
-3. ARGUMENTAÇÃO: Profundidade filosófica e lógica
-4. ESTRUTURA TEXTUAL: Organização e gênero textual
-5. EXPRESSÃO LINGUÍSTICA: Precisão vocabular e domínio gramatical
+TOM: Acadêmico, exigente e erudito, padrão vestibular de excelência da USP.
+CRITÉRIOS (0 a 10 cada, total 0 a 50):
+1. TESE E POSICIONAMENTO: Clareza, originalidade e capacidade de abstração da tese
+2. REPERTÓRIO SOCIOCULTURAL: Referências eruditas, filosóficas e pertinentes ao tema
+3. ARGUMENTAÇÃO: Profundidade filosófica, lógica dedutiva/indutiva e encadeamento
+4. ESTRUTURA TEXTUAL: Organização rigorosa, gênero textual e progressão temática
+5. EXPRESSÃO LINGUÍSTICA: Precisão vocabular e domínio absoluto da norma culta. Penalize FORTEMENTE repetições e gírias
 
 Responda APENAS com JSON válido (sem markdown):
 {
   "scores": [
-    {"criteria": "Tese e Posicionamento", "score": 15, "max": 20},
-    {"criteria": "Repertório Sociocultural", "score": 12, "max": 20},
-    {"criteria": "Argumentação", "score": 14, "max": 20},
-    {"criteria": "Estrutura Textual", "score": 16, "max": 20},
-    {"criteria": "Expressão Linguística", "score": 15, "max": 20}
+    {"criteria": "Tese e Posicionamento", "score": 7, "max": 10},
+    {"criteria": "Repertório Sociocultural", "score": 6, "max": 10},
+    {"criteria": "Argumentação", "score": 7, "max": 10},
+    {"criteria": "Estrutura Textual", "score": 8, "max": 10},
+    {"criteria": "Expressão Linguística", "score": 7, "max": 10}
   ],
-  "total_score": 72,
-  "max_total": 100,
+  "total_score": 35,
+  "max_total": 50,
   "strengths": ["Ponto forte 1", "Ponto forte 2"],
   "improvements": ["Ponto a melhorar 1", "Ponto a melhorar 2"],
   "feedback_aluno": "Análise acadêmica detalhada...",
