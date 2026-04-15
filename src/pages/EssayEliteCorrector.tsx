@@ -523,27 +523,36 @@ export default function EssayEliteCorrector() {
 
     try {
       const { base64, mimeType } = await compressImage(currentImageFile);
+      console.log('[handleCorrect] image compressed, sending to edge function...');
       setLoadingPhase(1);
 
-      const { data, error } = await supabase.functions.invoke('correct-essay-elite', {
-        body: {
-          imageBase64: base64,
-          mimeType,
-          level: level === 'ensino_medio' ? 'ensino_medio' : level,
-          subLevel: level === 'ensino_medio' ? subLevel : undefined,
-        },
-      });
+      const { data } = await invokeWithTimeout('correct-essay-elite', {
+        imageBase64: base64,
+        mimeType,
+        level: level === 'ensino_medio' ? 'ensino_medio' : level,
+        subLevel: level === 'ensino_medio' ? subLevel : undefined,
+      }, 180_000); // 3 min timeout
 
       clearInterval(timer);
 
-      if (error) throw error;
       if (data?.error) {
-        if ((data.error as string).includes('ilegível') || (data.error as string).includes('escura')) {
-          toast({ title: '📷 FOTO ILEGÍVEL', description: data.error, variant: 'destructive' });
+        const errMsg = data.error as string;
+        if (errMsg.includes('ilegível') || errMsg.includes('escura')) {
+          toast({ title: '📷 FOTO ILEGÍVEL', description: errMsg, variant: 'destructive' });
           setLoading(false);
           return;
         }
-        throw new Error(data.error);
+        if (errMsg.includes('Créditos') || errMsg.includes('credits')) {
+          toast({ title: '💳 Créditos insuficientes', description: 'Adicione créditos em Configurações > Workspace > Uso.', variant: 'destructive' });
+          setLoading(false);
+          return;
+        }
+        if (errMsg.includes('Limite') || errMsg.includes('rate')) {
+          toast({ title: '⏱️ Limite de requisições', description: 'Aguarde alguns segundos e tente novamente.', variant: 'destructive' });
+          setLoading(false);
+          return;
+        }
+        throw new Error(errMsg);
       }
 
       setResult(data as EliteResult);
@@ -578,7 +587,9 @@ export default function EssayEliteCorrector() {
       });
     } catch (e: any) {
       clearInterval(timer);
-      toast({ title: 'Erro na correção', description: e.message, variant: 'destructive' });
+      console.error('[handleCorrect] error:', e);
+      const msg = e.message || 'Erro desconhecido';
+      toast({ title: '❌ Erro na correção', description: msg, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
