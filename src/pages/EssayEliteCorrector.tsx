@@ -143,6 +143,8 @@ async function invokeWithTimeout(functionName: string, body: Record<string, unkn
     throw err;
   }
 }
+
+function ScoreBar({ item }: { item: ScoreItem }) {
   const pct = (item.score / item.max) * 100;
   const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-amber-500' : pct >= 40 ? 'bg-orange-500' : 'bg-red-500';
   return (
