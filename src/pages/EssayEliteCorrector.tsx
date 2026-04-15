@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import QRCode from 'qrcode';
+import DocumentScanner from '@/components/DocumentScanner';
 
 interface ScoreItem {
   criteria: string;
