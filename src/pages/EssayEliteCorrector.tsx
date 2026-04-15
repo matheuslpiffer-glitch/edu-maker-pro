@@ -1,0 +1,478 @@
+import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle, Trophy, TrendingUp, Star, BookOpen } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface ScoreItem {
+  criteria: string;
+  score: number;
+  max: number;
+}
+
+interface EliteResult {
+  scores: ScoreItem[];
+  total_score: number;
+  max_total: number;
+  strengths: string[];
+  improvements: string[];
+  feedback_aluno: string;
+  feedback_professor: string;
+  transcribed_text: string;
+  legibility: string;
+  paragraph_count?: number;
+  estimated_word_count?: number;
+  transcription_notes?: string;
+  level: string;
+  subLevel?: string;
+}
+
+const LEVELS = [
+  { value: 'anos_iniciais', label: 'ANOS INICIAIS (1º AO 5º ANO)', desc: 'Alfabetização, ortografia básica, estrutura de frase' },
+  { value: 'anos_finais', label: 'ANOS FINAIS (6º AO 9º ANO)', desc: 'Coesão, pontuação, desenvolvimento do tema' },
+  { value: 'ensino_medio', label: 'ENSINO MÉDIO (BANCAS)', desc: 'Correção técnica por banca de vestibular' },
+];
+
+const SUB_LEVELS = [
+  { value: 'enem', label: 'ENEM — 5 COMPETÊNCIAS' },
+  { value: 'vunesp', label: 'VUNESP — ESTRUTURA DISSERTATIVA' },
+  { value: 'fuvest', label: 'FUVEST — ARGUMENTAÇÃO FILOSÓFICA' },
+];
+
+const LOADING_PHASES = [
+  '📷 COMPRIMINDO IMAGEM...',
+  '🔍 DECIFRANDO CALIGRAFIA COM IA DE ELITE...',
+  '📝 TRANSCREVENDO MANUSCRITO...',
+  '🎯 APLICANDO CORREÇÃO DINÂMICA...',
+  '💡 GERANDO FEEDBACK PERSONALIZADO...',
+];
+
+async function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<{ base64: string; mimeType: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxWidth) { h = Math.round(h * (maxWidth / w)); w = maxWidth; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return reject(new Error('Canvas não suportado'));
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      const base64 = dataUrl.split(',')[1];
+      if (base64.length > 1_400_000) {
+        const d2 = canvas.toDataURL('image/jpeg', 0.4);
+        resolve({ base64: d2.split(',')[1], mimeType: 'image/jpeg' });
+      } else {
+        resolve({ base64, mimeType: 'image/jpeg' });
+      }
+    };
+    img.onerror = () => reject(new Error('Erro ao carregar imagem'));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function ScoreBar({ item }: { item: ScoreItem }) {
+  const pct = (item.score / item.max) * 100;
+  const color = pct >= 80 ? 'bg-emerald-500' : pct >= 60 ? 'bg-amber-500' : pct >= 40 ? 'bg-orange-500' : 'bg-red-500';
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-sm">
+        <span className="font-medium text-foreground">{item.criteria}</span>
+        <span className="font-bold">{item.score}/{item.max}</span>
+      </div>
+      <div className="h-3 rounded-full bg-muted overflow-hidden">
+        <div className={`h-full rounded-full transition-all duration-700 ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+export default function EssayEliteCorrector() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [level, setLevel] = useState('');
+  const [subLevel, setSubLevel] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [rotation, setRotation] = useState(0);
+  const [studentName, setStudentName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState(0);
+  const [result, setResult] = useState<EliteResult | null>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) {
+      toast({ title: 'Formato inválido', description: 'Envie uma foto (JPG, PNG).', variant: 'destructive' });
+      return;
+    }
+    setImageFile(file);
+    setRotation(0);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    setResult(null);
+  };
+
+  const effectiveLevel = level === 'ensino_medio' ? subLevel : level;
+  const canCorrect = imageFile && level && (level !== 'ensino_medio' || subLevel);
+
+  const handleCorrect = async () => {
+    if (!canCorrect || !user) return;
+    setLoading(true);
+    setLoadingPhase(0);
+    setResult(null);
+
+    const timer = setInterval(() => setLoadingPhase(p => Math.min(p + 1, LOADING_PHASES.length - 1)), 5000);
+
+    try {
+      const { base64, mimeType } = await compressImage(imageFile!);
+      setLoadingPhase(1);
+
+      const { data, error } = await supabase.functions.invoke('correct-essay-elite', {
+        body: {
+          imageBase64: base64,
+          mimeType,
+          level: level === 'ensino_medio' ? 'ensino_medio' : level,
+          subLevel: level === 'ensino_medio' ? subLevel : undefined,
+        },
+      });
+
+      clearInterval(timer);
+
+      if (error) throw error;
+      if (data?.error) {
+        if ((data.error as string).includes('ilegível') || (data.error as string).includes('escura')) {
+          toast({ title: '📷 FOTO ILEGÍVEL', description: data.error, variant: 'destructive' });
+          setLoading(false);
+          return;
+        }
+        throw new Error(data.error);
+      }
+
+      setResult(data as EliteResult);
+      toast({ title: '✅ CORREÇÃO DE ELITE CONCLUÍDA!' });
+
+      // Save to DB
+      const filePath = `${user.id}/${Date.now()}_elite_${imageFile!.name}`;
+      const { data: uploadData } = await supabase.storage.from('essay-images').upload(filePath, imageFile!);
+      const imageUrl = uploadData?.path ? supabase.storage.from('essay-images').getPublicUrl(uploadData.path).data.publicUrl : '';
+
+      await supabase.from('essay_corrections').insert({
+        user_id: user.id,
+        image_url: imageUrl,
+        extracted_text: data.transcribed_text || '',
+        comp1_score: data.scores?.[0]?.score || 0,
+        comp2_score: data.scores?.[1]?.score || 0,
+        comp3_score: data.scores?.[2]?.score || 0,
+        comp4_score: data.scores?.[3]?.score || 0,
+        comp5_score: data.scores?.[4]?.score || 0,
+        total_score: data.total_score || 0,
+        comp1_justification: data.scores?.[0]?.criteria || '',
+        comp2_justification: data.scores?.[1]?.criteria || '',
+        comp3_justification: data.scores?.[2]?.criteria || '',
+        comp4_justification: data.scores?.[3]?.criteria || '',
+        comp5_justification: data.scores?.[4]?.criteria || '',
+        golden_tips: [...(data.strengths || []), ...(data.improvements || [])] as any,
+        student_name: studentName,
+      });
+    } catch (e: any) {
+      clearInterval(timer);
+      toast({ title: 'Erro na correção', description: e.message, variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const levelLabel = level === 'ensino_medio'
+    ? SUB_LEVELS.find(s => s.value === subLevel)?.label || 'ENSINO MÉDIO'
+    : LEVELS.find(l => l.value === level)?.label || '';
+
+  return (
+    <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
+      {/* Header */}
+      <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-purple-600 to-indigo-800 p-8 text-white shadow-2xl shadow-purple-500/30">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIxLjUiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wOCkiLz48L3N2Zz4=')] opacity-50" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/redacao')} className="text-white/80 hover:text-white hover:bg-white/10">
+              <ArrowLeft size={18} />
+            </Button>
+            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <Sparkles size={24} className="text-yellow-300" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight">SUPER IA DE ELITE</h1>
+              <p className="text-white/60 text-sm">Motor de visão ultra-robusto com correção dinâmica por nível</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Config + Upload */}
+        <div className="space-y-4">
+          {/* Level selector */}
+          <Card className="rounded-2xl shadow-lg border-purple-200 dark:border-purple-800">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <BookOpen size={16} className="text-purple-500" />
+                NÍVEL DE APRENDIZAGEM
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Select value={level} onValueChange={(v) => { setLevel(v); setSubLevel(''); setResult(null); }}>
+                <SelectTrigger className="rounded-xl">
+                  <SelectValue placeholder="Selecione o nível..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {LEVELS.map(l => (
+                    <SelectItem key={l.value} value={l.value}>
+                      <div>
+                        <div className="font-semibold text-sm">{l.label}</div>
+                        <div className="text-xs text-muted-foreground">{l.desc}</div>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {level === 'ensino_medio' && (
+                <Select value={subLevel} onValueChange={setSubLevel}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Selecione a banca..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUB_LEVELS.map(s => (
+                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">NOME DO ALUNO (OPCIONAL)</Label>
+                <Input value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="Ex: João Silva" className="rounded-xl" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Upload */}
+          <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileSelect} />
+          <div
+            onClick={() => !loading && fileInputRef.current?.click()}
+            className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 text-center transition-all ${
+              imagePreview ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20' : 'border-border hover:border-purple-400 hover:bg-purple-50/30 dark:hover:bg-purple-950/10'
+            }`}
+          >
+            {imagePreview ? (
+              <div className="space-y-3">
+                <div className="flex justify-end">
+                  <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setRotation(r => (r + 90) % 360); }} className="rounded-xl">
+                    <RotateCw size={14} className="mr-1" /> GIRAR
+                  </Button>
+                </div>
+                <img src={imagePreview} alt="Preview" className="max-h-60 mx-auto rounded-xl shadow-lg object-contain transition-transform" style={{ transform: `rotate(${rotation}deg)` }} />
+                <p className="text-xs text-emerald-600">✅ Foto carregada — clique para trocar</p>
+              </div>
+            ) : (
+              <div className="py-6 space-y-3">
+                <Camera size={36} className="mx-auto text-purple-400" />
+                <p className="font-semibold text-foreground">ARRASTE A FOTO DA REDAÇÃO AQUI</p>
+                <p className="text-xs text-muted-foreground">ou clique para selecionar / tirar foto</p>
+              </div>
+            )}
+          </div>
+
+          {imagePreview && !loading && (
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-700 dark:text-amber-300">
+              <AlertTriangle size={14} className="shrink-0" />
+              <span>Certifique-se de que a foto está nítida, bem iluminada e sem sombras.</span>
+            </div>
+          )}
+
+          <Button
+            onClick={handleCorrect}
+            disabled={loading || !canCorrect}
+            className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white shadow-xl shadow-purple-500/25 disabled:opacity-50"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 animate-spin" size={20} />
+                {LOADING_PHASES[loadingPhase]}
+              </>
+            ) : (
+              <>
+                <Sparkles className="mr-2" size={20} />
+                ✨ CORREÇÃO DE ELITE COM IA
+              </>
+            )}
+          </Button>
+
+          {loading && (
+            <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+              <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-1000" style={{ width: `${((loadingPhase + 1) / LOADING_PHASES.length) * 100}%` }} />
+            </div>
+          )}
+        </div>
+
+        {/* Right: Results */}
+        <div className="space-y-4">
+          {!result && !loading && (
+            <Card className="rounded-2xl border-dashed h-full flex items-center justify-center min-h-[400px]">
+              <CardContent className="text-center py-12">
+                <Sparkles size={48} className="mx-auto text-purple-300 mb-4" />
+                <p className="font-semibold text-foreground">SUPER IA DE ELITE</p>
+                <p className="text-xs text-muted-foreground mt-2 max-w-xs mx-auto">Selecione o nível, envie a foto e a IA fará a transcrição paleográfica + correção dinâmica</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {result && (
+            <div className="space-y-4">
+              {/* Level badge + Score */}
+              <Card className="rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border-purple-200 dark:border-purple-800 shadow-lg">
+                <CardContent className="pt-6 text-center space-y-2">
+                  <Badge className="bg-purple-600 text-white text-xs">{levelLabel}</Badge>
+                  <div className="text-5xl font-black text-purple-700 dark:text-purple-300">{result.total_score}/{result.max_total}</div>
+                  <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">
+                    {Math.round((result.total_score / result.max_total) * 100)}% DE ACERTO
+                  </p>
+                  {result.estimated_word_count && (
+                    <p className="text-xs text-muted-foreground">{result.estimated_word_count} palavras · {result.paragraph_count || '?'} parágrafos</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Scores table */}
+              <Card className="rounded-2xl shadow-lg">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Star size={16} className="text-purple-500" />
+                    TABELA DE NOTAS
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {result.scores.map((item, i) => <ScoreBar key={i} item={item} />)}
+                </CardContent>
+              </Card>
+
+              {/* Strengths */}
+              {result.strengths?.length > 0 && (
+                <Card className="rounded-2xl border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 shadow-lg">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                      <Trophy size={16} /> PONTOS FORTES
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {result.strengths.map((s, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-emerald-700 dark:text-emerald-300">
+                          <span className="shrink-0">✅</span><span>{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Improvements */}
+              {result.improvements?.length > 0 && (
+                <Card className="rounded-2xl border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 shadow-lg">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                      <TrendingUp size={16} /> O QUE MELHORAR
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {result.improvements.map((s, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-amber-700 dark:text-amber-300">
+                          <span className="shrink-0">📝</span><span>{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Feedback for student */}
+              {result.feedback_aluno && (
+                <Card className="rounded-2xl shadow-lg">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">💬 FEEDBACK PARA O ALUNO</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{result.feedback_aluno}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Feedback for teacher */}
+              {result.feedback_professor && (
+                <Card className="rounded-2xl shadow-lg border-purple-200 dark:border-purple-800">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">🎓 OBSERVAÇÕES PARA O PROFESSOR</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">{result.feedback_professor}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Transcribed text + original image side by side */}
+              <Card className="rounded-2xl shadow-lg">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">📝 TEXTO TRANSCRITO vs ORIGINAL</CardTitle>
+                  {result.legibility === 'baixa' && (
+                    <div className="flex items-center gap-1.5 mt-1 text-xs text-amber-600">
+                      <AlertTriangle size={12} />
+                      <span>Caligrafia de baixa legibilidade — verifique a transcrição</span>
+                    </div>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-2">TRANSCRIÇÃO IA</p>
+                      <div className="p-3 rounded-xl bg-muted/50 text-sm whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                        {result.transcribed_text}
+                      </div>
+                    </div>
+                    {imagePreview && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-2">IMAGEM ORIGINAL</p>
+                        <img src={imagePreview} alt="Original" className="rounded-xl shadow max-h-60 object-contain w-full" style={{ transform: `rotate(${rotation}deg)` }} />
+                      </div>
+                    )}
+                  </div>
+                  {result.transcription_notes && (
+                    <p className="text-xs text-muted-foreground mt-3 italic">Obs: {result.transcription_notes}</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end no-print">
+                <Button variant="outline" onClick={() => window.print()} className="rounded-xl">
+                  <Printer size={16} className="mr-2" /> IMPRIMIR LAUDO
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
