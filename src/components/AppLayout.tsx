@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Eye, ArrowLeft, ArrowLeftRight } from 'lucide-react';
 import AppSidebar from './AppSidebar';
-import HelpFab from './HelpFab';
 import SaveStatusIndicator from './SaveStatusIndicator';
 import SyncButton from './SyncButton';
 import { useStudentMode } from '@/hooks/useStudentMode';
