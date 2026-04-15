@@ -243,8 +243,25 @@ async function generateElitePDF(
   // Score table
   doc.setFontSize(11);
   doc.setTextColor(88, 55, 180);
-  doc.text('TABELA DE NOTAS POR CRITÉRIO', 15, y);
+  // Dynamic table title based on banca
+  const bancaTableTitles: Record<string, string> = {
+    enem: 'COMPETÊNCIAS ENEM',
+    unicamp: 'CRITÉRIOS UNICAMP — GÊNERO, LEITURA E ESCRITA',
+    fuvest: 'CRITÉRIOS FUVEST — ABSTRAÇÃO E NORMA CULTA',
+    vunesp: 'CRITÉRIOS VUNESP — ESTRUTURA DISSERTATIVA',
+  };
+  const tableTitle = (result.subLevel && bancaTableTitles[result.subLevel]) || 'TABELA DE NOTAS POR CRITÉRIO';
+  doc.text(tableTitle, 15, y);
   y += 4;
+
+  // Dynamic column headers based on banca
+  const bancaColHeaders: Record<string, string[]> = {
+    unicamp: ['Dimensão', 'Nota', 'Máx', '%'],
+    enem: ['Competência', 'Nota', 'Máx', '%'],
+    fuvest: ['Critério', 'Nota', 'Máx', '%'],
+    vunesp: ['Critério', 'Nota', 'Máx', '%'],
+  };
+  const colHeaders = (result.subLevel && bancaColHeaders[result.subLevel]) || ['Critério', 'Nota', 'Máx', '%'];
 
   const tableBody = result.scores.map(s => {
     const p = Math.round((s.score / s.max) * 100);
@@ -253,7 +270,7 @@ async function generateElitePDF(
 
   (doc as any).autoTable({
     startY: y,
-    head: [['Critério', 'Nota', 'Máx', '%']],
+    head: [colHeaders],
     body: tableBody,
     margin: { left: 15, right: 15 },
     styles: { fontSize: 9, cellPadding: 3 },
