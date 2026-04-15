@@ -644,23 +644,41 @@ export default function EssayEliteCorrector() {
             </div>
           )}
 
-          <Button
-            onClick={handleCorrect}
-            disabled={loading || !canCorrect}
-            className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white shadow-xl shadow-purple-500/25 disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 animate-spin" size={20} />
+          {imagePreview && !loading && (
+            <Button
+              onClick={handleCorrect}
+              disabled={loading || !canCorrect}
+              className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white shadow-xl shadow-purple-500/25 disabled:opacity-50"
+            >
+              <Sparkles className="mr-2" size={20} />
+              ✅ CONFIRMAR E CORRIGIR
+            </Button>
+          )}
+
+          {!imagePreview && (
+            <Button
+              disabled
+              className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-500/25 opacity-50"
+            >
+              <Camera className="mr-2" size={20} />
+              TIRE A FOTO PRIMEIRO
+            </Button>
+          )}
+
+          {loading && (
+            <div className="space-y-3">
+              <div className="w-full h-3 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-1000"
+                  style={{ width: `${Math.min(((loadingPhase + 1) / LOADING_PHASES.length) * 100, 95)}%` }}
+                />
+              </div>
+              <p className="text-center text-sm font-semibold text-purple-700 dark:text-purple-300 animate-pulse">
+                <Loader2 className="inline mr-2 animate-spin" size={16} />
                 {LOADING_PHASES[loadingPhase]}
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2" size={20} />
-                ✨ CORREÇÃO DE ELITE COM IA
-              </>
-            )}
-          </Button>
+              </p>
+            </div>
+          )}
 
           {loading && (
             <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
