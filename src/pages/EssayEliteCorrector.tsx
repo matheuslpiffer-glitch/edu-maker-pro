@@ -12,6 +12,7 @@ import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle,
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import QRCode from 'qrcode';
 
 interface ScoreItem {
   criteria: string;
