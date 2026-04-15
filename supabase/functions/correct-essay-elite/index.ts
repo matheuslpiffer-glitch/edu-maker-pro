@@ -6,8 +6,14 @@ const corsHeaders = {
 };
 
 function buildTranscriptionPrompt(): string {
-  return `Você é um especialista mundial em paleografia e caligrafia escolar brasileira com 30 anos de experiência.
+  return `Você é um especialista mundial em PALEOGRAFIA DIGITAL e caligrafia escolar brasileira com 30 anos de experiência.
 Sua ÚNICA tarefa nesta etapa é DECIFRAR e TRANSCREVER fielmente o manuscrito da imagem.
+
+TÉCNICA DE PALEOGRAFIA DIGITAL:
+- Analise cada caractere em contexto: se uma letra é ambígua (ex: 'a' vs 'o', 'n' vs 'u', 'm' vs 'n'), use o CONTEXTO DA FRASE para determinar qual letra faz sentido pedagógico
+- Se uma palavra parece sem sentido, considere as palavras ANTES e DEPOIS para deduzir a intenção do aluno
+- Analise o padrão de caligrafia do aluno ao longo do texto: se ele escreve 'a' de um jeito específico, use esse padrão para decifrar letras semelhantes
+- Priorize SEMPRE a interpretação que resulta em sentido semântico coerente
 
 REGRAS ABSOLUTAS:
 - Decifre CADA palavra, não importa quão ilegível pareça a caligrafia ("garrancho")
@@ -57,8 +63,8 @@ Responda APENAS com JSON válido (sem markdown):
   "max_total": 50,
   "strengths": ["Ponto forte celebrado com entusiasmo ⭐", "Outro acerto incrível 🌟"],
   "improvements": ["Dica carinhosa para melhorar 💪", "Incentivo à leitura 📚"],
-  "feedback_aluno": "Mensagem lúdica e motivadora para o aluno, celebrando os acertos e incentivando a leitura...",
-  "feedback_professor": "Observações técnicas sobre o estágio de alfabetização e recomendações pedagógicas..."
+  "feedback_aluno": "Mensagem lúdica e motivadora para o aluno...",
+  "feedback_professor": "Observações técnicas sobre o estágio de alfabetização..."
 }`;
   }
 
@@ -66,14 +72,14 @@ Responda APENAS com JSON válido (sem markdown):
     return `Você é um professor experiente do Ensino Fundamental II (6º ao 9º ano).
 Seu foco é ESTRUTURA e COESÃO. Avalie a redação com base nos critérios abaixo.
 
-TOM: Instrutivo e construtivo. Mostre exatamente ONDE e COMO o texto pode melhorar, especialmente na conexão entre parágrafos. Seja encorajador, mas com rigor pedagógico.
+TOM: Instrutivo e construtivo. Mostre exatamente ONDE e COMO o texto pode melhorar. Seja encorajador, mas com rigor pedagógico.
 
 CRITÉRIOS (0 a 10 cada):
-1. COESÃO (Uso de Conectivos): O aluno usa conectivos (porém, além disso, portanto, etc.) para ligar ideias e parágrafos de forma fluida?
+1. COESÃO (Uso de Conectivos): O aluno usa conectivos para ligar ideias e parágrafos de forma fluida?
 2. COERÊNCIA (Faz sentido?): As ideias se conectam logicamente? O texto progride sem contradições?
 3. PONTUAÇÃO: O aluno usa vírgulas, pontos, dois-pontos e outros sinais de forma correta?
-4. RIQUEZA DE VOCABULÁRIO: O aluno usa palavras variadas, evitando repetições? Demonstra repertório lexical adequado à faixa etária?
-5. DESENVOLVIMENTO ARGUMENTATIVO: O aluno aprofunda suas ideias com exemplos, explicações ou justificativas?
+4. RIQUEZA DE VOCABULÁRIO: O aluno usa palavras variadas, evitando repetições?
+5. DESENVOLVIMENTO ARGUMENTATIVO: O aluno aprofunda suas ideias com exemplos e justificativas?
 
 Responda APENAS com JSON válido (sem markdown):
 {
@@ -87,25 +93,24 @@ Responda APENAS com JSON válido (sem markdown):
   "total_score": 34,
   "max_total": 50,
   "strengths": ["Ponto forte identificado", "Outro aspecto positivo"],
-  "improvements": ["Mostre onde o parágrafo poderia ser melhor conectado", "Sugestão prática de melhoria"],
-  "feedback_aluno": "Feedback instrutivo mostrando onde e como melhorar a conexão entre ideias...",
-  "feedback_professor": "Observações técnicas sobre coesão, coerência e desenvolvimento para planejamento pedagógico..."
+  "improvements": ["Sugestão prática de melhoria", "Outra sugestão"],
+  "feedback_aluno": "Feedback instrutivo...",
+  "feedback_professor": "Observações técnicas..."
 }`;
   }
 
-  // Ensino Médio - Bancas
   if (subLevel === "enem") {
     return `Você é um corretor especialista do ENEM com mais de 20 anos de experiência.
-Aplique RIGOROSAMENTE as 5 Competências oficiais do ENEM (0 a 200 cada, múltiplos de 40: 0, 40, 80, 120, 160, 200).
+Aplique RIGOROSAMENTE as 5 Competências oficiais do ENEM (0 a 200 cada, múltiplos de 40).
 
-TOM: Técnico, rigoroso e preciso. Cite EXATAMENTE as falhas na norma culta. Avalie a qualidade da tese e da proposta de intervenção com máximo rigor. Sem margem para subjetividade.
+TOM: Técnico, rigoroso e preciso. Cite EXATAMENTE as falhas na norma culta.
 
 COMPETÊNCIAS:
-1. DOMÍNIO DA MODALIDADE ESCRITA FORMAL da língua portuguesa (desvios gramaticais, ortográficos, acentuação, concordância, regência)
-2. COMPREENDER A PROPOSTA de redação e aplicar conceitos das áreas de conhecimento para desenvolver o tema dentro dos limites estruturais do texto dissertativo-argumentativo
-3. SELECIONAR, RELACIONAR, ORGANIZAR e INTERPRETAR informações, fatos, opiniões e argumentos em defesa de um ponto de vista (qualidade da argumentação)
-4. MECANISMOS LINGUÍSTICOS necessários para a construção da argumentação (coesão textual: uso de conectivos, referenciação, progressão temática)
-5. ELABORAR PROPOSTA DE INTERVENÇÃO para o problema abordado, respeitando os direitos humanos (deve conter: Agente + Ação + Meio/Modo + Efeito/Finalidade + Detalhamento)
+1. DOMÍNIO DA MODALIDADE ESCRITA FORMAL da língua portuguesa
+2. COMPREENDER A PROPOSTA de redação e aplicar conceitos
+3. SELECIONAR, RELACIONAR, ORGANIZAR e INTERPRETAR informações e argumentos
+4. MECANISMOS LINGUÍSTICOS necessários para a construção da argumentação (coesão)
+5. ELABORAR PROPOSTA DE INTERVENÇÃO (Agente + Ação + Meio + Efeito + Detalhamento)
 
 Responda APENAS com JSON válido (sem markdown):
 {
@@ -118,10 +123,10 @@ Responda APENAS com JSON válido (sem markdown):
   ],
   "total_score": 600,
   "max_total": 1000,
-  "strengths": ["Ponto forte técnico citando trecho do texto", "Outro ponto forte com evidência"],
-  "improvements": ["Falha na norma culta com citação exata do trecho", "Problema na tese/proposta com justificativa técnica"],
-  "feedback_aluno": "Análise técnica detalhada citando falhas na norma culta e qualidade da tese/proposta de intervenção...",
-  "feedback_professor": "Observações pedagógicas para o professor com recomendações de intervenção didática..."
+  "strengths": ["Ponto forte técnico", "Outro ponto forte"],
+  "improvements": ["Falha com citação do trecho", "Problema com justificativa"],
+  "feedback_aluno": "Análise técnica detalhada...",
+  "feedback_professor": "Observações pedagógicas..."
 }`;
   }
 
@@ -131,11 +136,11 @@ Avalie com foco em COERÊNCIA e ESTRUTURA DISSERTATIVA RÍGIDA.
 
 TOM: Técnico e rigoroso, padrão vestibular paulista.
 CRITÉRIOS (0 a 20 cada):
-1. TEMA E TESE: Abordagem adequada do tema com tese clara e bem definida
-2. ARGUMENTAÇÃO: Consistência, profundidade e pertinência dos argumentos
-3. COERÊNCIA: Progressão lógica, ausência de contradições, unidade temática
-4. COESÃO: Uso adequado de conectivos, referenciação e articulação entre períodos e parágrafos
-5. NORMA CULTA: Domínio gramatical, vocabular e de registro formal
+1. TEMA E TESE: Abordagem adequada do tema com tese clara
+2. ARGUMENTAÇÃO: Consistência e profundidade dos argumentos
+3. COERÊNCIA: Progressão lógica e ausência de contradições
+4. COESÃO: Uso adequado de conectivos e referenciação
+5. NORMA CULTA: Domínio gramatical e vocabular
 
 Responda APENAS com JSON válido (sem markdown):
 {
@@ -150,7 +155,7 @@ Responda APENAS com JSON válido (sem markdown):
   "max_total": 100,
   "strengths": ["Ponto forte 1", "Ponto forte 2"],
   "improvements": ["Ponto a melhorar 1", "Ponto a melhorar 2"],
-  "feedback_aluno": "Análise detalhada para o aluno...",
+  "feedback_aluno": "Análise detalhada...",
   "feedback_professor": "Observações para o professor..."
 }`;
   }
@@ -185,19 +190,45 @@ Responda APENAS com JSON válido (sem markdown):
 }`;
 }
 
+function buildInterventionPrompt(level: string, subLevel?: string): string {
+  const levelContext = level === "anos_iniciais"
+    ? "aluno dos Anos Iniciais (1º ao 5º ano). Atividades devem ser lúdicas e adequadas à alfabetização."
+    : level === "anos_finais"
+    ? "aluno dos Anos Finais (6º ao 9º ano). Atividades devem ser instrutivas e focadas em estrutura textual."
+    : subLevel === "enem"
+    ? "aluno do Ensino Médio preparando-se para o ENEM. Atividades devem ser técnicas e focadas nas 5 competências."
+    : subLevel === "vunesp"
+    ? "aluno do Ensino Médio preparando-se para a VUNESP. Atividades devem focar em dissertação rigorosa."
+    : "aluno do Ensino Médio preparando-se para a FUVEST. Atividades devem focar em argumentação filosófica e repertório.";
+
+  return `Você é um pedagogo especialista em intervenção pedagógica personalizada.
+Com base nas notas e no feedback da correção, gere um PLANO DE AÇÃO imediato para um ${levelContext}
+
+Seu plano deve:
+1. IDENTIFICAR a MAIOR LACUNA de aprendizagem (o critério com pior desempenho proporcional)
+2. SUGERIR exatamente 3 ATIVIDADES PRÁTICAS IMEDIATAS que o aluno pode fazer nos próximos dias
+3. FORNECER uma EXPLICAÇÃO TEÓRICA BREVE e personalizada sobre o erro mais recorrente
+
+As atividades devem ser concretas, específicas e realizáveis (ex: "Reescreva o 2º parágrafo usando 3 conectivos diferentes", "Leia 2 editoriais e grife os conectivos").
+
+Responda APENAS com JSON válido (sem markdown):
+{
+  "biggest_gap": "Nome do critério com pior desempenho",
+  "gap_explanation": "Explicação breve do que essa lacuna significa pedagogicamente",
+  "activities": [
+    {"title": "Título curto da atividade", "description": "Descrição detalhada e prática do exercício", "duration": "15 min"},
+    {"title": "Título curto da atividade 2", "description": "Descrição detalhada e prática", "duration": "20 min"},
+    {"title": "Título curto da atividade 3", "description": "Descrição detalhada e prática", "duration": "10 min"}
+  ],
+  "theory_snippet": "Explicação teórica personalizada e breve sobre o erro mais cometido pelo aluno, com exemplos práticos de como corrigir."
+}`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { imageBase64, mimeType, level, subLevel } = await req.json();
-    if (!imageBase64) throw new Error("Nenhuma imagem fornecida");
-    if (!level) throw new Error("Nível de aprendizagem não informado");
-
-    if (imageBase64.length > 5_500_000) {
-      return new Response(JSON.stringify({ error: "Imagem muito grande. Reduza a resolução." }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const { imageBase64, mimeType, level, subLevel, generatePlan, correctionData } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -208,8 +239,62 @@ serve(async (req) => {
     };
     const gateway = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
+    // ========== INTERVENTION PLAN ONLY (Phase 3) ==========
+    if (generatePlan && correctionData) {
+      console.log("Phase 3: Generating intervention plan for level:", level);
+      const phase3 = await fetch(gateway, {
+        method: "POST",
+        headers: aiHeaders,
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: buildInterventionPrompt(level, subLevel) },
+            {
+              role: "user",
+              content: `Aqui estão os resultados da correção do aluno:\n\nNOTAS:\n${JSON.stringify(correctionData.scores)}\n\nNOTA TOTAL: ${correctionData.total_score}/${correctionData.max_total}\n\nPONTOS FORTES: ${JSON.stringify(correctionData.strengths)}\n\nO QUE MELHORAR: ${JSON.stringify(correctionData.improvements)}\n\nTEXTO DO ALUNO:\n${correctionData.transcribed_text}\n\nGere o plano de intervenção personalizado.`,
+            },
+          ],
+          temperature: 0.4,
+          max_tokens: 2000,
+        }),
+      });
+
+      if (!phase3.ok) {
+        const s = phase3.status;
+        if (s === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (s === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const t = await phase3.text();
+        console.error("Phase 3 error:", s, t);
+        return new Response(JSON.stringify({ error: "Erro ao gerar plano de intervenção." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const p3Data = await phase3.json();
+      const p3Content = p3Data.choices?.[0]?.message?.content || "";
+      let p3Parsed;
+      try {
+        p3Parsed = JSON.parse(p3Content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
+      } catch {
+        console.error("Phase 3 parse error:", p3Content);
+        return new Response(JSON.stringify({ error: "Erro ao interpretar plano de intervenção." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      return new Response(JSON.stringify(p3Parsed), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ========== FULL CORRECTION FLOW (Phase 1 + 2) ==========
+    if (!imageBase64) throw new Error("Nenhuma imagem fornecida");
+    if (!level) throw new Error("Nível de aprendizagem não informado");
+
+    if (imageBase64.length > 5_500_000) {
+      return new Response(JSON.stringify({ error: "Imagem muito grande. Reduza a resolução." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // ========== PHASE 1: Transcription with vision ==========
-    console.log("Phase 1: Starting transcription for level:", level);
+    console.log("Phase 1: Starting paleographic transcription for level:", level);
     const phase1 = await fetch(gateway, {
       method: "POST",
       headers: aiHeaders,
@@ -220,7 +305,7 @@ serve(async (req) => {
           {
             role: "user",
             content: [
-              { type: "text", text: "Decifre e transcreva fielmente este manuscrito escolar. Se a caligrafia for um 'garrancho', use o contexto das palavras vizinhas para deduzir o texto com 99% de precisão. Esta transcrição será exibida ao professor ANTES de qualquer avaliação." },
+              { type: "text", text: "Aplique a técnica de PALEOGRAFIA DIGITAL: decifre e transcreva fielmente este manuscrito escolar. Se a caligrafia for um 'garrancho', analise o contexto da frase inteira para garantir que a transcrição faça sentido pedagógico. Priorize a interpretação semântica coerente." },
               { type: "image_url", image_url: { url: `data:${mimeType || "image/jpeg"};base64,${imageBase64}` } },
             ],
           },
