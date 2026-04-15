@@ -396,6 +396,14 @@ export default function EssayEliteCorrector() {
   const [interventionPlan, setInterventionPlan] = useState<InterventionPlan | null>(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
 
+  // Restore preview from localStorage on mount
+  useEffect(() => {
+    const cached = localStorage.getItem('elite_photo_preview');
+    if (cached && !imagePreview) {
+      setImagePreview(cached);
+    }
+  }, []);
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) {
@@ -405,7 +413,11 @@ export default function EssayEliteCorrector() {
     setImageFile(file);
     setRotation(0);
     const reader = new FileReader();
-    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setImagePreview(dataUrl);
+      try { localStorage.setItem('elite_photo_preview', dataUrl); } catch {}
+    };
     reader.readAsDataURL(file);
     setResult(null);
     setInterventionPlan(null);
