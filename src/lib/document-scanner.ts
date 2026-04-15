@@ -1,11 +1,22 @@
 import type { Area } from 'react-easy-crop';
 
+// ─── Filter Modes ───────────────────────────────────────────────────────────
+export type ScanFilterMode = 'magic' | 'grayscale' | 'bw' | 'original';
+
+export const SCAN_FILTER_OPTIONS: { value: ScanFilterMode; label: string; desc: string }[] = [
+  { value: 'magic', label: 'REALCE MÁGICO', desc: 'Remove sombras, realça caneta' },
+  { value: 'grayscale', label: 'TONS DE CINZA', desc: 'Escala de cinza com contraste' },
+  { value: 'bw', label: 'PRETO & BRANCO', desc: 'Alto contraste, estilo xerox' },
+  { value: 'original', label: 'ORIGINAL', desc: 'Sem filtro, cor natural' },
+];
+
 export interface StoredScannerCapture {
   rawDataUrl: string;
   processedDataUrl: string | null;
   fileName: string;
   mimeType: string;
   rotation: number;
+  filterMode?: ScanFilterMode;
   lastUpdatedAt: number;
 }
 
@@ -119,20 +130,248 @@ async function loadImage(source: string) {
   });
 }
 
-function applyXeroxEffect(data: Uint8ClampedArray) {
-  for (let index = 0; index < data.length; index += 4) {
-    let gray = 0.299 * data[index] + 0.587 * data[index + 1] + 0.114 * data[index + 2];
-    gray = (gray - 128) * 1.8 + 128;
-    gray += 30;
-    gray = Math.max(0, Math.min(255, gray));
+// ─── Image Processing Filters ───────────────────────────────────────────────
 
-    if (gray > 200) gray = 255;
-    if (gray < 80) gray = 0;
+/** Compute grayscale luminance for a pixel */
+function luminance(r: number, g: number, b: number) {
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
 
-    data[index] = gray;
-    data[index + 1] = gray;
-    data[index + 2] = gray;
-    data[index + 3] = 255;
+/** Clamp value to 0–255 */
+function clamp(v: number) {
+  return v < 0 ? 0 : v > 255 ? 255 : v;
+}
+
+/**
+ * Estimate the background (shadow/lighting map) using a box-blur approximation.
+ * This simulates the "divide by background" technique used in CamScanner.
+ * We downsample, blur, then upsample for speed.
+ */
+function estimateBackground(
+  grayPixels: Float32Array,
+  width: number,
+  height: number,
+  radius = 30,
+): Float32Array {
+  // Downscale factor for speed
+  const scale = 4;
+  const sw = Math.ceil(width / scale);
+  const sh = Math.ceil(height / scale);
+  const small = new Float32Array(sw * sh);
+
+  // Downsample
+  for (let y = 0; y < sh; y++) {
+    for (let x = 0; x < sw; x++) {
+      const ox = Math.min(x * scale, width - 1);
+      const oy = Math.min(y * scale, height - 1);
+      small[y * sw + x] = grayPixels[oy * width + ox];
+    }
+  }
+
+  // Box blur (horizontal then vertical) on small image
+  const sr = Math.max(1, Math.ceil(radius / scale));
+  const temp = new Float32Array(sw * sh);
+
+  // Horizontal pass
+  for (let y = 0; y < sh; y++) {
+    let sum = 0;
+    let count = 0;
+    for (let x = 0; x < Math.min(sr, sw); x++) {
+      sum += small[y * sw + x];
+      count++;
+    }
+    for (let x = 0; x < sw; x++) {
+      if (x + sr < sw) { sum += small[y * sw + x + sr]; count++; }
+      if (x - sr > 0) { sum -= small[y * sw + x - sr - 1]; count--; }
+      temp[y * sw + x] = sum / count;
+    }
+  }
+
+  // Vertical pass
+  const blurred = new Float32Array(sw * sh);
+  for (let x = 0; x < sw; x++) {
+    let sum = 0;
+    let count = 0;
+    for (let y = 0; y < Math.min(sr, sh); y++) {
+      sum += temp[y * sw + x];
+      count++;
+    }
+    for (let y = 0; y < sh; y++) {
+      if (y + sr < sh) { sum += temp[(y + sr) * sw + x]; count++; }
+      if (y - sr > 0) { sum -= temp[(y - sr - 1) * sw + x]; count--; }
+      blurred[y * sw + x] = sum / count;
+    }
+  }
+
+  // Upsample back to full size with bilinear interpolation
+  const result = new Float32Array(width * height);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const fx = (x / scale);
+      const fy = (y / scale);
+      const x0 = Math.floor(fx);
+      const y0 = Math.floor(fy);
+      const x1 = Math.min(x0 + 1, sw - 1);
+      const y1 = Math.min(y0 + 1, sh - 1);
+      const dx = fx - x0;
+      const dy = fy - y0;
+
+      result[y * width + x] =
+        blurred[y0 * sw + x0] * (1 - dx) * (1 - dy) +
+        blurred[y0 * sw + x1] * dx * (1 - dy) +
+        blurred[y1 * sw + x0] * (1 - dx) * dy +
+        blurred[y1 * sw + x1] * dx * dy;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Apply unsharp mask sharpening to grayscale data in-place.
+ */
+function sharpen(data: Uint8ClampedArray, width: number, height: number, amount = 0.6) {
+  const copy = new Uint8Array(data.length);
+  for (let i = 0; i < data.length; i++) copy[i] = data[i];
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const idx = (y * width + x) * 4;
+      for (let c = 0; c < 3; c++) {
+        const center = copy[idx + c];
+        const neighbors =
+          copy[((y - 1) * width + x) * 4 + c] +
+          copy[((y + 1) * width + x) * 4 + c] +
+          copy[(y * width + (x - 1)) * 4 + c] +
+          copy[(y * width + (x + 1)) * 4 + c];
+        const blur = neighbors / 4;
+        const sharp = center + (center - blur) * amount;
+        data[idx + c] = clamp(Math.round(sharp));
+      }
+    }
+  }
+}
+
+/**
+ * MAGIC COLOR filter — CamScanner-style:
+ * 1. Estimate background lighting via large blur
+ * 2. Divide original by background → removes shadows, normalizes paper to white
+ * 3. Boost ink contrast
+ * 4. Sharpen
+ */
+function applyMagicColor(data: Uint8ClampedArray, width: number, height: number) {
+  const totalPixels = width * height;
+  const gray = new Float32Array(totalPixels);
+
+  // Build grayscale map
+  for (let i = 0; i < totalPixels; i++) {
+    gray[i] = luminance(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+  }
+
+  // Estimate background
+  const bg = estimateBackground(gray, width, height, 40);
+
+  // Normalize: pixel / background * 255, then boost contrast
+  for (let i = 0; i < totalPixels; i++) {
+    const idx = i * 4;
+    const bgVal = Math.max(bg[i], 1); // avoid division by zero
+
+    for (let c = 0; c < 3; c++) {
+      // Divide by background → normalizes lighting
+      let v = (data[idx + c] / bgVal) * 220;
+
+      // Contrast stretch: push paper towards white, ink towards dark
+      v = (v - 128) * 1.6 + 128 + 20;
+      data[idx + c] = clamp(Math.round(v));
+    }
+    data[idx + 3] = 255;
+  }
+
+  // Sharpen the result
+  sharpen(data, width, height, 0.7);
+}
+
+/**
+ * GRAYSCALE filter — high contrast gray with shadow removal.
+ */
+function applyGrayscaleFilter(data: Uint8ClampedArray, width: number, height: number) {
+  const totalPixels = width * height;
+  const gray = new Float32Array(totalPixels);
+
+  for (let i = 0; i < totalPixels; i++) {
+    gray[i] = luminance(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+  }
+
+  const bg = estimateBackground(gray, width, height, 40);
+
+  for (let i = 0; i < totalPixels; i++) {
+    const idx = i * 4;
+    const bgVal = Math.max(bg[i], 1);
+    let v = (gray[i] / bgVal) * 230;
+    v = (v - 128) * 1.5 + 128 + 15;
+    v = clamp(Math.round(v));
+
+    data[idx] = v;
+    data[idx + 1] = v;
+    data[idx + 2] = v;
+    data[idx + 3] = 255;
+  }
+
+  sharpen(data, width, height, 0.5);
+}
+
+/**
+ * B&W filter — strong threshold for xerox-like output.
+ */
+function applyBWFilter(data: Uint8ClampedArray, width: number, height: number) {
+  const totalPixels = width * height;
+  const gray = new Float32Array(totalPixels);
+
+  for (let i = 0; i < totalPixels; i++) {
+    gray[i] = luminance(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]);
+  }
+
+  const bg = estimateBackground(gray, width, height, 40);
+
+  for (let i = 0; i < totalPixels; i++) {
+    const idx = i * 4;
+    const bgVal = Math.max(bg[i], 1);
+    let v = (gray[i] / bgVal) * 240;
+    v = (v - 128) * 2.2 + 128 + 25;
+
+    // Hard threshold
+    const bw = v > 170 ? 255 : v < 100 ? 0 : clamp(Math.round((v - 100) * (255 / 70)));
+
+    data[idx] = bw;
+    data[idx + 1] = bw;
+    data[idx + 2] = bw;
+    data[idx + 3] = 255;
+  }
+}
+
+/**
+ * Apply the selected filter mode to image data.
+ */
+export function applyFilter(
+  data: Uint8ClampedArray,
+  width: number,
+  height: number,
+  mode: ScanFilterMode,
+) {
+  switch (mode) {
+    case 'magic':
+      applyMagicColor(data, width, height);
+      break;
+    case 'grayscale':
+      applyGrayscaleFilter(data, width, height);
+      break;
+    case 'bw':
+      applyBWFilter(data, width, height);
+      break;
+    case 'original':
+      // No filter — just sharpen slightly
+      sharpen(data, width, height, 0.3);
+      break;
   }
 }
 
@@ -201,8 +440,9 @@ export async function getCroppedProcessedImage(params: {
   cropArea: Area;
   rotation: number;
   fileName: string;
+  filterMode?: ScanFilterMode;
 }) {
-  const { src, cropArea, rotation, fileName } = params;
+  const { src, cropArea, rotation, fileName, filterMode = 'magic' } = params;
   const image = await loadImage(src);
   const bounds = getRotatedBounds(image.naturalWidth || image.width, image.naturalHeight || image.height, rotation);
 
@@ -246,7 +486,7 @@ export async function getCroppedProcessedImage(params: {
   );
 
   const imageData = outputContext.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
-  applyXeroxEffect(imageData.data);
+  applyFilter(imageData.data, outputCanvas.width, outputCanvas.height, filterMode);
   outputContext.putImageData(imageData, 0, 0);
 
   const sharpness = computeSharpness(imageData.data, outputCanvas.width, outputCanvas.height);
