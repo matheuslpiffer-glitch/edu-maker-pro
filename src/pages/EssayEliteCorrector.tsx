@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,6 +14,11 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import QRCode from 'qrcode';
 import DocumentScanner from '@/components/DocumentScanner';
+import {
+  clearStoredScannerCapture,
+  dataUrlToFile,
+  readStoredScannerCapture,
+} from '@/lib/document-scanner';
 
 interface ScoreItem {
   criteria: string;
@@ -389,7 +394,6 @@ export default function EssayEliteCorrector() {
   const [subLevel, setSubLevel] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [rotation, setRotation] = useState(0);
   const [studentName, setStudentName] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
@@ -397,27 +401,55 @@ export default function EssayEliteCorrector() {
   const [interventionPlan, setInterventionPlan] = useState<InterventionPlan | null>(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
 
-  // Restore preview from localStorage on mount
+  // Restore accepted scan from storage on mount
   useEffect(() => {
-    const cached = localStorage.getItem('elite_photo_preview');
-    if (cached && !imagePreview) {
-      setImagePreview(cached);
+    const cachedCapture = readStoredScannerCapture();
+    if (cachedCapture?.processedDataUrl && !imagePreview) {
+      console.log('[EssayEliteCorrector] render:restaurando imagem escaneada salva');
+      setImagePreview(cachedCapture.processedDataUrl);
+      setImageFile(dataUrlToFile(cachedCapture.processedDataUrl, cachedCapture.fileName, cachedCapture.mimeType));
     }
   }, []);
 
   const handleScannedImage = (file: File, preview: string) => {
+    console.log('[EssayEliteCorrector] captura:imagem confirmada pelo scanner', {
+      name: file.name,
+      size: file.size,
+    });
+
     setImageFile(file);
     setImagePreview(preview);
-    setRotation(0);
     setResult(null);
     setInterventionPlan(null);
-    try { localStorage.setItem('elite_photo_preview', preview); } catch {}
   };
 
-  const canCorrect = imageFile && level && (level !== 'ensino_medio' || subLevel);
+  const canCorrect = Boolean(imagePreview) && Boolean(level) && (level !== 'ensino_medio' || Boolean(subLevel));
 
   const handleCorrect = async () => {
     if (!canCorrect || !user) return;
+
+    const currentImageFile = imageFile || (() => {
+      const cachedCapture = readStoredScannerCapture();
+      if (!cachedCapture?.processedDataUrl) return null;
+      return dataUrlToFile(cachedCapture.processedDataUrl, cachedCapture.fileName, cachedCapture.mimeType);
+    })();
+
+    if (!currentImageFile) {
+      console.log('[EssayEliteCorrector] captura:arquivo não encontrado no momento da correção');
+      return;
+    }
+
+    console.log('[EssayEliteCorrector] correção:enviando imagem para edge function', {
+      name: currentImageFile.name,
+      size: currentImageFile.size,
+      level,
+      subLevel,
+    });
+
+    if (!imageFile) {
+      setImageFile(currentImageFile);
+    }
+
     setLoading(true);
     setLoadingPhase(0);
     setResult(null);
@@ -426,7 +458,7 @@ export default function EssayEliteCorrector() {
     const timer = setInterval(() => setLoadingPhase(p => Math.min(p + 1, LOADING_PHASES.length - 1)), 5000);
 
     try {
-      const { base64, mimeType } = await compressImage(imageFile!);
+      const { base64, mimeType } = await compressImage(currentImageFile);
       setLoadingPhase(1);
 
       const { data, error } = await supabase.functions.invoke('correct-essay-elite', {
@@ -454,8 +486,8 @@ export default function EssayEliteCorrector() {
       toast({ title: '✅ CORREÇÃO DE ELITE CONCLUÍDA!' });
 
       // Save to DB
-      const filePath = `${user.id}/${Date.now()}_elite_${imageFile!.name}`;
-      const { data: uploadData } = await supabase.storage.from('essay-images').upload(filePath, imageFile!);
+      const filePath = `${user.id}/${Date.now()}_elite_${currentImageFile.name}`;
+      const { data: uploadData } = await supabase.storage.from('essay-images').upload(filePath, currentImageFile);
       const imageUrl = uploadData?.path ? supabase.storage.from('essay-images').getPublicUrl(uploadData.path).data.publicUrl : '';
 
       await supabase.from('essay_corrections').insert({
@@ -533,7 +565,7 @@ export default function EssayEliteCorrector() {
     : LEVELS.find(l => l.value === level)?.label || '';
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6 p-4 pb-32 md:p-8 md:pb-36">
       {/* Header */}
       <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-700 via-purple-600 to-indigo-800 p-8 text-white shadow-2xl shadow-purple-500/30">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIxLjUiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wOCkiLz48L3N2Zz4=')] opacity-50" />
@@ -610,31 +642,22 @@ export default function EssayEliteCorrector() {
             <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 space-y-3">
               <img src={imagePreview} alt="Scanned" className="max-h-60 mx-auto rounded-xl shadow-lg object-contain" />
               <p className="text-xs text-center text-emerald-600 dark:text-emerald-400 font-semibold">✅ IMAGEM ESCANEADA PRONTA</p>
-              <Button variant="outline" size="sm" className="w-full rounded-xl" onClick={() => { setImagePreview(null); setImageFile(null); localStorage.removeItem('elite_photo_preview'); }}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full rounded-xl"
+                onClick={() => {
+                  console.log('[EssayEliteCorrector] captura:limpando imagem aceita');
+                  setImagePreview(null);
+                  setImageFile(null);
+                  setResult(null);
+                  setInterventionPlan(null);
+                  clearStoredScannerCapture();
+                }}
+              >
                 TROCAR FOTO
               </Button>
             </div>
-          )}
-
-          {imagePreview && !loading && (
-            <Button
-              onClick={handleCorrect}
-              disabled={loading || !canCorrect}
-              className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white shadow-xl shadow-purple-500/25 disabled:opacity-50"
-            >
-              <Sparkles className="mr-2" size={20} />
-              ✅ CONFIRMAR E CORRIGIR
-            </Button>
-          )}
-
-          {!imagePreview && !loading && (
-            <Button
-              disabled
-              className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-500/25 opacity-50"
-            >
-              <Camera className="mr-2" size={20} />
-              ESCANEIE A REDAÇÃO PRIMEIRO
-            </Button>
           )}
 
           {loading && (
@@ -865,7 +888,7 @@ export default function EssayEliteCorrector() {
                     {imagePreview && (
                       <div>
                         <p className="text-xs font-semibold text-muted-foreground mb-2">IMAGEM ORIGINAL</p>
-                        <img src={imagePreview} alt="Original" className="rounded-xl shadow max-h-60 object-contain w-full" style={{ transform: `rotate(${rotation}deg)` }} />
+                        <img src={imagePreview} alt="Original" className="rounded-xl shadow max-h-60 object-contain w-full" />
                       </div>
                     )}
                   </div>
@@ -890,6 +913,21 @@ export default function EssayEliteCorrector() {
           )}
         </div>
       </div>
+
+      {imagePreview && !loading && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 py-3 backdrop-blur">
+          <div className="mx-auto max-w-5xl">
+            <Button
+              onClick={handleCorrect}
+              disabled={!canCorrect}
+              className="h-14 w-full rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-500/25 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 disabled:opacity-50"
+            >
+              <Sparkles className="mr-2" size={20} />
+              CONFIRMAR ESCANEAMENTO E CORRIGIR
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

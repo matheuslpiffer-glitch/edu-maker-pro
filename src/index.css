@@ -194,6 +194,14 @@ img[width], img.h-auto:not(.prose-output img), .shrink-0 img, img[class*="w-5"],
   object-fit: contain;
 }
 
+.reactEasyCrop_Container img,
+.reactEasyCrop_Image,
+.reactEasyCrop_Video {
+  min-height: unset !important;
+  background: transparent !important;
+  object-fit: contain !important;
+}
+
 /* Force non-italic titles globally */
 h1, h2, h3, h4, h5, h6 {
   font-style: normal !important;
