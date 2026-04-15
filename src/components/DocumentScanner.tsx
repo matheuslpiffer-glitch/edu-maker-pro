@@ -1,91 +1,23 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
+import Cropper, { type Area, type Point } from 'react-easy-crop';
 import { Button } from '@/components/ui/button';
 import { Camera, RotateCw, Check, X, AlertTriangle, ScanLine, Loader2 } from 'lucide-react';
+import {
+  clearStoredScannerCapture,
+  createPersistableCapture,
+  dataUrlToFile,
+  getCroppedProcessedImage,
+  persistScannerCapture,
+  readStoredScannerCapture,
+} from '@/lib/document-scanner';
 
 interface DocumentScannerProps {
   onImageReady: (file: File, preview: string) => void;
   disabled?: boolean;
 }
 
-/**
- * Applies "xerox" effect: grayscale, high contrast, brightness boost.
- * Returns a processed dataURL and a sharpness score (Laplacian variance).
- */
-function processImage(
-  img: HTMLImageElement,
-  rotation: number
-): { dataUrl: string; sharpness: number } {
-  const radians = (rotation * Math.PI) / 180;
-  const absCos = Math.abs(Math.cos(radians));
-  const absSin = Math.abs(Math.sin(radians));
-  const w = Math.round(img.width * absCos + img.height * absSin);
-  const h = Math.round(img.width * absSin + img.height * absCos);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext('2d')!;
-
-  ctx.translate(w / 2, h / 2);
-  ctx.rotate(radians);
-  ctx.drawImage(img, -img.width / 2, -img.height / 2);
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-  const imageData = ctx.getImageData(0, 0, w, h);
-  const data = imageData.data;
-
-  // Grayscale + high contrast + brightness (xerox effect)
-  for (let i = 0; i < data.length; i += 4) {
-    let gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-    // Contrast: stretch around 128
-    gray = ((gray - 128) * 1.8) + 128;
-    // Brightness boost
-    gray += 30;
-    // Clamp
-    gray = Math.max(0, Math.min(255, gray));
-    // Threshold soft: push light grays to white, dark grays to black
-    if (gray > 200) gray = 255;
-    if (gray < 80) gray = 0;
-    data[i] = gray;
-    data[i + 1] = gray;
-    data[i + 2] = gray;
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-
-  // Compute sharpness (Laplacian variance on a downscaled version)
-  const sharpness = computeSharpness(data, w, h);
-
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
-  return { dataUrl, sharpness };
-}
-
-function computeSharpness(data: Uint8ClampedArray, w: number, h: number): number {
-  // Laplacian kernel on grayscale
-  let sum = 0;
-  let sumSq = 0;
-  let count = 0;
-  const step = 4; // sample every 4th pixel for speed
-  for (let y = 1; y < h - 1; y += step) {
-    for (let x = 1; x < w - 1; x += step) {
-      const idx = (y * w + x) * 4;
-      const center = data[idx];
-      const top = data[((y - 1) * w + x) * 4];
-      const bottom = data[((y + 1) * w + x) * 4];
-      const left = data[(y * w + (x - 1)) * 4];
-      const right = data[(y * w + (x + 1)) * 4];
-      const lap = 4 * center - top - bottom - left - right;
-      sum += lap;
-      sumSq += lap * lap;
-      count++;
-    }
-  }
-  if (count === 0) return 0;
-  const mean = sum / count;
-  return sumSq / count - mean * mean; // variance
-}
-
 const SHARPNESS_THRESHOLD = 200;
+const DEFAULT_CROP: Point = { x: 0, y: 0 };
 
 export default function DocumentScanner({ onImageReady, disabled }: DocumentScannerProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,64 +27,186 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
   const [processing, setProcessing] = useState(false);
   const [sharpnessWarning, setSharpnessWarning] = useState(false);
   const [rawFile, setRawFile] = useState<File | null>(null);
-  const [stage, setStage] = useState<'capture' | 'processed'>('capture');
+  const [stage, setStage] = useState<'capture' | 'adjust' | 'processed'>('capture');
+  const [crop, setCrop] = useState<Point>(DEFAULT_CROP);
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
-  const processCurrentImage = useCallback((src: string, rot: number) => {
+  useEffect(() => {
+    const storedCapture = readStoredScannerCapture();
+    if (!storedCapture) return;
+
+    console.log('[DocumentScanner] render:restaurando captura persistida', {
+      hasProcessed: Boolean(storedCapture.processedDataUrl),
+    });
+
+    setRawPreview(storedCapture.rawDataUrl);
+    setRawFile(dataUrlToFile(storedCapture.rawDataUrl, storedCapture.fileName, storedCapture.mimeType));
+    setRotation(storedCapture.rotation ?? 0);
+    setProcessedPreview(storedCapture.processedDataUrl);
+    setStage(storedCapture.processedDataUrl ? 'processed' : 'adjust');
+  }, []);
+
+  useEffect(() => {
+    if (!rawPreview) return;
+
+    console.log('[DocumentScanner] render:scanner visível', {
+      stage,
+      hasProcessedPreview: Boolean(processedPreview),
+    });
+
+    if (stage === 'capture') {
+      setStage(processedPreview ? 'processed' : 'adjust');
+    }
+  }, [rawPreview, processedPreview, stage]);
+
+  const processCurrentImage = useCallback(async () => {
+    if (!rawPreview || !rawFile || !croppedAreaPixels) return;
+
     setProcessing(true);
-    const img = new Image();
-    img.onload = () => {
-      const { dataUrl, sharpness } = processImage(img, rot);
+
+    try {
+      console.log('[DocumentScanner] processamento:iniciado', {
+        rotation,
+        cropArea: croppedAreaPixels,
+      });
+
+      const { dataUrl, sharpness } = await getCroppedProcessedImage({
+        src: rawPreview,
+        cropArea: croppedAreaPixels,
+        rotation,
+        fileName: rawFile.name,
+      });
+
       setProcessedPreview(dataUrl);
       setSharpnessWarning(sharpness < SHARPNESS_THRESHOLD);
       setStage('processed');
-      setProcessing(false);
-    };
-    img.src = src;
-  }, []);
+      persistScannerCapture({
+        rawDataUrl: rawPreview,
+        processedDataUrl: dataUrl,
+        fileName: rawFile.name,
+        mimeType: rawFile.type || 'image/jpeg',
+        rotation,
+        lastUpdatedAt: Date.now(),
+      });
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+      console.log('[DocumentScanner] processamento:concluído', {
+        sharpness,
+        hasWarning: sharpness < SHARPNESS_THRESHOLD,
+      });
+    } catch (error) {
+      console.error('[DocumentScanner] processamento:erro', error);
+    } finally {
+      setProcessing(false);
+    }
+  }, [croppedAreaPixels, rawFile, rawPreview, rotation]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) return;
-    setRawFile(file);
-    setRotation(0);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setRawPreview(dataUrl);
-      processCurrentImage(dataUrl, 0);
-    };
-    reader.readAsDataURL(file);
+
+    console.log('[DocumentScanner] captura:arquivo recebido', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    });
+
+    setProcessing(true);
+
+    try {
+      const capture = await createPersistableCapture(file);
+
+      setRawFile(capture.file);
+      setRawPreview(capture.dataUrl);
+      setProcessedPreview(null);
+      setRotation(0);
+      setSharpnessWarning(false);
+      setCrop(DEFAULT_CROP);
+      setZoom(1);
+      setStage('adjust');
+
+      persistScannerCapture({
+        rawDataUrl: capture.dataUrl,
+        processedDataUrl: null,
+        fileName: capture.file.name,
+        mimeType: capture.file.type || 'image/jpeg',
+        rotation: 0,
+        lastUpdatedAt: Date.now(),
+      });
+
+      console.log('[DocumentScanner] captura:salva e pronta para renderizar');
+    } catch (error) {
+      console.error('[DocumentScanner] captura:erro ao salvar', error);
+    } finally {
+      setProcessing(false);
+      e.target.value = '';
+    }
   };
 
   const handleRotate = () => {
     if (!rawPreview) return;
     const newRot = (rotation + 90) % 360;
     setRotation(newRot);
-    processCurrentImage(rawPreview, newRot);
+    setProcessedPreview(null);
+    setStage('adjust');
+
+    if (rawFile) {
+      persistScannerCapture({
+        rawDataUrl: rawPreview,
+        processedDataUrl: null,
+        fileName: rawFile.name,
+        mimeType: rawFile.type || 'image/jpeg',
+        rotation: newRot,
+        lastUpdatedAt: Date.now(),
+      });
+    }
+
+    console.log('[DocumentScanner] ajuste:rotação atualizada', { rotation: newRot });
   };
 
   const handleAccept = () => {
-    if (!processedPreview || !rawFile) return;
-    // Convert processed dataUrl to File
-    fetch(processedPreview)
-      .then(r => r.blob())
-      .then(blob => {
-        const processedFile = new File([blob], rawFile.name, { type: 'image/jpeg' });
-        onImageReady(processedFile, processedPreview);
-      });
+    if (!processedPreview) return;
+
+    const processedFile = dataUrlToFile(
+      processedPreview,
+      rawFile?.name || `redacao-escaneada-${Date.now()}.jpg`,
+      'image/jpeg',
+    );
+
+    console.log('[DocumentScanner] aceite:imagem confirmada para correção', {
+      name: processedFile.name,
+      size: processedFile.size,
+    });
+
+    onImageReady(processedFile, processedPreview);
   };
 
-  const handleRetake = () => {
+  const handleRetake = useCallback(() => {
     setRawPreview(null);
     setProcessedPreview(null);
     setSharpnessWarning(false);
     setStage('capture');
     setRotation(0);
     setRawFile(null);
+    setCrop(DEFAULT_CROP);
+    setZoom(1);
+    setCroppedAreaPixels(null);
+    clearStoredScannerCapture();
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    console.log('[DocumentScanner] captura:reiniciada');
+  }, []);
+
+  const handleAdjustAgain = () => {
+    setStage('adjust');
+    console.log('[DocumentScanner] ajuste:retornando para recorte');
   };
 
   // CAPTURE stage
-  if (stage === 'capture' || !processedPreview) {
+  if (stage === 'capture') {
     return (
       <div className="space-y-3">
         <input
@@ -166,31 +220,95 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
 
         <div
           onClick={() => !disabled && !processing && fileInputRef.current?.click()}
-          className="relative cursor-pointer rounded-2xl border-2 border-dashed border-purple-300 dark:border-purple-700 hover:border-purple-500 p-4 text-center transition-all bg-purple-50/30 dark:bg-purple-950/10"
+          className="relative cursor-pointer rounded-2xl border-2 border-dashed border-primary/40 bg-accent/40 p-4 text-center transition-all hover:border-primary"
         >
-          {/* Frame overlay illustration */}
-          <div className="relative mx-auto w-full max-w-xs aspect-[3/4] rounded-xl border-4 border-dashed border-purple-400/60 flex flex-col items-center justify-center gap-3 bg-gradient-to-b from-purple-100/40 to-white/20 dark:from-purple-900/20 dark:to-black/10">
-            {/* Corner marks */}
-            <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-purple-500 rounded-tl-md" />
-            <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-purple-500 rounded-tr-md" />
-            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-purple-500 rounded-bl-md" />
-            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-purple-500 rounded-br-md" />
+          <div className="relative mx-auto flex aspect-[3/4] w-full max-w-xs flex-col items-center justify-center gap-3 rounded-xl border-4 border-dashed border-primary/50 bg-background/70">
+            <div className="absolute left-0 top-0 h-6 w-6 rounded-tl-md border-l-4 border-t-4 border-primary" />
+            <div className="absolute right-0 top-0 h-6 w-6 rounded-tr-md border-r-4 border-t-4 border-primary" />
+            <div className="absolute bottom-0 left-0 h-6 w-6 rounded-bl-md border-b-4 border-l-4 border-primary" />
+            <div className="absolute bottom-0 right-0 h-6 w-6 rounded-br-md border-b-4 border-r-4 border-primary" />
 
             {processing ? (
               <>
-                <Loader2 size={36} className="text-purple-500 animate-spin" />
-                <p className="text-sm font-semibold text-purple-600 dark:text-purple-300">PROCESSANDO IMAGEM...</p>
+                <Loader2 size={36} className="animate-spin text-primary" />
+                <p className="text-sm font-semibold text-primary">SALVANDO CAPTURA...</p>
               </>
             ) : (
               <>
-                <ScanLine size={36} className="text-purple-400" />
-                <p className="font-bold text-sm text-purple-700 dark:text-purple-300">POSICIONE A FOLHA AQUI</p>
-                <p className="text-xs text-muted-foreground px-4">Enquadre a redação dentro das marcas. A IA aplicará o efeito scanner automaticamente.</p>
-                <Camera size={28} className="text-purple-500 mt-2" />
+                <ScanLine size={36} className="text-primary" />
+                <p className="text-sm font-bold text-foreground">POSICIONE A FOLHA AQUI</p>
+                <p className="px-4 text-xs text-muted-foreground">A foto é salva imediatamente no aparelho antes do escaneamento.</p>
+                <Camera size={28} className="mt-2 text-primary" />
               </>
             )}
           </div>
-          <p className="text-xs text-muted-foreground mt-3">Clique ou toque para abrir a câmera</p>
+          <p className="mt-3 text-xs text-muted-foreground">Clique ou toque para abrir a câmera traseira</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (stage === 'adjust' && rawPreview) {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+              <ScanLine size={14} />
+              AJUSTE O ENQUADRAMENTO DA FOLHA
+            </span>
+            <Button variant="outline" size="sm" onClick={handleRotate} className="h-8 rounded-xl text-xs" disabled={processing}>
+              <RotateCw size={12} className="mr-1" /> GIRAR
+            </Button>
+          </div>
+
+          <div className="relative mx-auto h-[420px] w-full max-w-md overflow-hidden rounded-2xl border border-border bg-muted">
+            <Cropper
+              image={rawPreview}
+              crop={crop}
+              zoom={zoom}
+              rotation={rotation}
+              aspect={3 / 4}
+              showGrid
+              objectFit="contain"
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={(_, croppedPixels) => setCroppedAreaPixels(croppedPixels)}
+            />
+
+            <div className="pointer-events-none absolute inset-6 rounded-[1.75rem] border-2 border-dashed border-primary/70 shadow-[0_0_0_9999px_hsl(var(--background)/0.38)]" />
+            <div className="pointer-events-none absolute left-10 top-10 h-6 w-6 border-l-4 border-t-4 border-primary" />
+            <div className="pointer-events-none absolute right-10 top-10 h-6 w-6 border-r-4 border-t-4 border-primary" />
+            <div className="pointer-events-none absolute bottom-10 left-10 h-6 w-6 border-b-4 border-l-4 border-primary" />
+            <div className="pointer-events-none absolute bottom-10 right-10 h-6 w-6 border-b-4 border-r-4 border-primary" />
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+              <span>AJUSTE FINO DO RECORTE</span>
+              <span>{zoom.toFixed(1)}x</span>
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="3"
+              step="0.1"
+              value={zoom}
+              onChange={(event) => setZoom(Number(event.target.value))}
+              className="w-full accent-[hsl(var(--primary))]"
+              disabled={processing}
+            />
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Button variant="outline" onClick={handleRetake} className="h-11 rounded-xl text-sm font-bold" disabled={processing}>
+              <X size={16} className="mr-1.5" /> TIRAR OUTRA
+            </Button>
+            <Button onClick={processCurrentImage} className="h-11 rounded-xl text-sm font-bold" disabled={processing || !croppedAreaPixels}>
+              {processing ? <Loader2 size={16} className="mr-1.5 animate-spin" /> : <ScanLine size={16} className="mr-1.5" />}
+              GERAR PREVIEW DO SCANNER
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -199,15 +317,14 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
   // PROCESSED stage — show scanned result
   return (
     <div className="space-y-3">
-      {/* Scanned preview */}
-      <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20 p-4 space-y-3">
+      <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+          <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
             <ScanLine size={14} />
             IMAGEM ESCANEADA (EFEITO XEROX)
           </span>
-          <Button variant="outline" size="sm" onClick={handleRotate} className="rounded-xl text-xs h-8" disabled={processing}>
-            <RotateCw size={12} className="mr-1" /> GIRAR
+          <Button variant="outline" size="sm" onClick={handleAdjustAgain} className="h-8 rounded-xl text-xs" disabled={processing}>
+            <RotateCw size={12} className="mr-1" /> AJUSTAR
           </Button>
         </div>
 
@@ -224,9 +341,8 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
           )}
         </div>
 
-        {/* Sharpness warning */}
         {sharpnessWarning && (
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-700 text-xs text-amber-700 dark:text-amber-300">
+          <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-xs text-foreground">
             <AlertTriangle size={16} className="shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">FOTO DETECTADA COMO POUCO NÍTIDA</p>
@@ -235,7 +351,6 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
           </div>
         )}
 
-        {/* Action buttons */}
         <div className="grid grid-cols-2 gap-2">
           <Button
             variant="outline"
@@ -246,11 +361,7 @@ export default function DocumentScanner({ onImageReady, disabled }: DocumentScan
             <X size={16} className="mr-1.5" />
             TIRAR OUTRA
           </Button>
-          <Button
-            onClick={handleAccept}
-            className="rounded-xl h-11 text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg"
-            disabled={processing}
-          >
+          <Button onClick={handleAccept} className="h-11 rounded-xl text-sm font-bold" disabled={processing}>
             <Check size={16} className="mr-1.5" />
             USAR ESTA VERSÃO
           </Button>
