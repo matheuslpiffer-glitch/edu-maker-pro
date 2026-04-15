@@ -135,16 +135,112 @@ Responda APENAS com JSON válido (sem markdown):
   "annotations": [...],
   "originality": {"score": 85, "flags": [], "ai_generated_probability": 10}
 }`,
+
+  UNICAMP: `Você é um corretor da banca UNICAMP (Comvest) com expertise em gêneros textuais diversos.
+A UNICAMP exige adequação ao gênero textual solicitado (carta, artigo, crônica, podcast, etc.), interlocução clara e leitura produtiva dos textos de apoio.
+
+Avalie nas 4 dimensões da banca UNICAMP (0 a 3 cada, total até 12):
+- Adequação ao Gênero (AIA): O aluno respeitou o gênero solicitado? Se for Carta Aberta, há vocativo, interlocutor explícito e despedida? Se for Artigo, há título e linguagem adequada? Se for Podcast/Roteiro, há marcas de oralidade planejada? (0-3)
+- Interlocução: O texto dialoga com o interlocutor proposto? Há marcas de direcionamento e tom adequados ao público-alvo? (0-3)
+- Conteúdo e Leitura: O aluno leu e utilizou produtivamente os textos de apoio da coletânea? A tese é consistente? (0-3)
+- Articulação Linguística: Coesão, coerência, norma culta e recursos expressivos adequados ao gênero (0-3)
+
+CRITÉRIO UNICAMP: Seja rigoroso com a adequação ao gênero. Se o gênero exige vocativo e não há, a nota de "Adequação ao Gênero" deve ser no máximo 1. Se o aluno ignorou a coletânea, "Conteúdo e Leitura" deve ser no máximo 1.
+
+${COMMON_INSTRUCTIONS}
+
+Responda APENAS com JSON válido (sem markdown):
+{
+  "competencies": [
+    {"name": "Adequação ao Gênero (AIA)", "score": 2, "max": 3, "justification": "..."},
+    {"name": "Interlocução", "score": 2, "max": 3, "justification": "..."},
+    {"name": "Conteúdo e Leitura", "score": 3, "max": 3, "justification": "..."},
+    {"name": "Articulação Linguística", "score": 2, "max": 3, "justification": "..."}
+  ],
+  "total_score": 9,
+  "suggestions": "...",
+  "repertoire_analysis": "...",
+  "annotations": [...],
+  "originality": {"score": 85, "flags": [], "ai_generated_probability": 10}
+}`,
+
+  FUVEST: `Você é um corretor da banca FUVEST (USP) com expertise em argumentação filosófica e abstração.
+A FUVEST valoriza capacidade de abstração, tese filosófica sólida e rigor absoluto na norma culta.
+
+Avalie nas 3 dimensões da banca FUVEST (total até 50):
+- Desenvolvimento do Tema e Tipologia: Adequação ao tema, capacidade de abstração, profundidade da tese e argumentação filosófica. O aluno apresenta uma tese clara e a desenvolve com argumentos consistentes? (0-20)
+- Estrutura: Organização do texto, progressão temática, paragrafação lógica e construção argumentativa sólida (0-15)
+- Expressão: Domínio rigoroso da norma culta formal, precisão vocabular, recursos estilísticos e ausência de marcas de oralidade (0-15)
+
+CRITÉRIO FUVEST: Valorize especialmente a capacidade de ABSTRAÇÃO — o aluno que generaliza o tema com reflexão filosófica profunda deve ter nota máxima em Desenvolvimento. Penalize fortemente desvios de norma culta.
+
+${COMMON_INSTRUCTIONS}
+
+Responda APENAS com JSON válido (sem markdown):
+{
+  "competencies": [
+    {"name": "Desenvolvimento do Tema", "score": 14, "max": 20, "justification": "..."},
+    {"name": "Estrutura", "score": 11, "max": 15, "justification": "..."},
+    {"name": "Expressão", "score": 10, "max": 15, "justification": "..."}
+  ],
+  "total_score": 35,
+  "suggestions": "...",
+  "repertoire_analysis": "...",
+  "annotations": [...],
+  "originality": {"score": 85, "flags": [], "ai_generated_probability": 10}
+}`,
+
+  VUNESP: `Você é um corretor da banca VUNESP (Unesp/Famema/Famerp) com expertise em estrutura dissertativa clássica.
+A VUNESP foca em estrutura clássica de tese e argumentos, com atenção total à coerência e coesão.
+
+Avalie nas 3 dimensões da banca VUNESP (total até 20):
+- Tema: Adequação e abordagem do tema proposto. O aluno compreendeu o recorte temático? A tese é clara e bem posicionada? (0-7)
+- Estrutura e Gênero: Organização do texto dissertativo-argumentativo, paragrafação, introdução com tese, desenvolvimento com argumentos e conclusão coerente (0-7)
+- Coesão e Coerência: Uso adequado de conectivos, progressão textual lógica, ausência de contradições e domínio da norma culta (0-6)
+
+CRITÉRIO VUNESP: Seja rigoroso com a COERÊNCIA — contradições internas devem zerar o critério. A estrutura dissertativa clássica (intro-desenv-conclusão) é obrigatória.
+
+${COMMON_INSTRUCTIONS}
+
+Responda APENAS com JSON válido (sem markdown):
+{
+  "competencies": [
+    {"name": "Tema", "score": 5, "max": 7, "justification": "..."},
+    {"name": "Estrutura e Gênero", "score": 5, "max": 7, "justification": "..."},
+    {"name": "Coesão e Coerência", "score": 4, "max": 6, "justification": "..."}
+  ],
+  "total_score": 14,
+  "suggestions": "...",
+  "repertoire_analysis": "...",
+  "annotations": [...],
+  "originality": {"score": 85, "flags": [], "ai_generated_probability": 10}
+}`,
 };
 
-// Keep backward compat alias
-BANCA_PROMPTS["Avaliação Técnica"] = BANCA_PROMPTS["Avaliação Técnica"];
+// Normalize banca value from frontend to prompt key
+function resolveBancaKey(banca: string): string {
+  const map: Record<string, string> = {
+    "banca padrão nacional": "BANCA_NACIONAL",
+    "banca padrao nacional": "BANCA_NACIONAL",
+    "banca acadêmica": "BANCA_ACADEMICA",
+    "banca academica": "BANCA_ACADEMICA",
+    "avaliação técnica": "AVALIACAO_TECNICA",
+    "avaliacao tecnica": "AVALIACAO_TECNICA",
+    "banca de excelência": "BANCA_EXCELENCIA",
+    "banca de excelencia": "BANCA_EXCELENCIA",
+    "unicamp": "UNICAMP",
+    "fuvest": "FUVEST",
+    "vunesp": "VUNESP",
+  };
+  const normalized = (banca || "").toLowerCase().trim();
+  return map[normalized] || Object.keys(BANCA_PROMPTS).find(k => k === banca) || "BANCA_NACIONAL";
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { essayText, banca, theme } = await req.json();
+    const { essayText, banca, theme, generoTextual } = await req.json();
     if (!essayText || typeof essayText !== "string" || essayText.trim().length < 50) {
       return new Response(JSON.stringify({ error: "Texto muito curto. Mínimo de 50 caracteres." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -159,9 +255,17 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const bancaKey = (banca || "Banca Padrão Nacional").toUpperCase();
-    const systemPrompt = BANCA_PROMPTS[bancaKey] || BANCA_PROMPTS["Banca Padrão Nacional"];
+    const bancaKey = resolveBancaKey(banca);
+    let systemPrompt = BANCA_PROMPTS[bancaKey] || BANCA_PROMPTS["BANCA_NACIONAL"];
     const safeTheme = (theme || "Tema livre").slice(0, 500);
+
+    // If UNICAMP and genre specified, inject into prompt
+    if (bancaKey === "UNICAMP" && generoTextual) {
+      systemPrompt = systemPrompt.replace(
+        "CRITÉRIO UNICAMP:",
+        `GÊNERO TEXTUAL EXIGIDO NESTA PROVA: "${generoTextual}". Avalie RIGOROSAMENTE se o aluno atendeu a este gênero.\n\nCRITÉRIO UNICAMP:`
+      );
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

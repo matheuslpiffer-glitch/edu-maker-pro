@@ -13,9 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 const BANCAS = [
   { value: 'Banca Padrão Nacional', label: 'Banca Padrão Nacional', maxScore: 1000, color: 'bg-blue-500' },
-  { value: 'Banca Acadêmica', label: 'Banca Acadêmica (Elite)', maxScore: 50, color: 'bg-purple-500' },
-  { value: 'Avaliação Técnica', label: 'Avaliação Técnica', maxScore: 28, color: 'bg-emerald-500' },
+  { value: 'Banca Acadêmica', label: 'Banca Acadêmica (Elite)', maxScore: 100, color: 'bg-purple-500' },
+  { value: 'Avaliação Técnica', label: 'Avaliação Técnica', maxScore: 100, color: 'bg-emerald-500' },
   { value: 'Banca de Excelência', label: 'Banca de Excelência', maxScore: 12, color: 'bg-orange-500' },
+  { value: 'UNICAMP', label: 'UNICAMP (Comvest)', maxScore: 12, color: 'bg-red-500' },
+  { value: 'FUVEST', label: 'FUVEST (USP)', maxScore: 50, color: 'bg-amber-600' },
+  { value: 'VUNESP', label: 'VUNESP (Unesp)', maxScore: 20, color: 'bg-cyan-500' },
 ];
 
 const HOT_THEMES = [
@@ -55,6 +58,7 @@ export default function StudentEssayArena() {
   const [step, setStep] = useState<'select' | 'write' | 'result'>('select');
   const [banca, setBanca] = useState('Banca Padrão Nacional');
   const [theme, setTheme] = useState('');
+  const [generoTextual, setGeneroTextual] = useState('');
   const [generatingTheme, setGeneratingTheme] = useState(false);
   const [essayText, setEssayText] = useState('');
   const [focusMode, setFocusMode] = useState(false);
@@ -122,7 +126,7 @@ export default function StudentEssayArena() {
     setCorrecting(true);
     try {
       const { data, error } = await supabase.functions.invoke('correct-essay-text', {
-        body: { essayText, banca, theme },
+        body: { essayText, banca, theme, generoTextual: banca === 'UNICAMP' ? generoTextual : undefined },
       });
       if (error) throw error;
 
@@ -190,17 +194,34 @@ export default function StudentEssayArena() {
                 <button
                   key={b.value}
                   onClick={() => setBanca(b.value)}
-                  className={`p-4 rounded-xl border-2 transition-all text-center font-semibold ${
+                  className={`p-3 rounded-xl border-2 transition-all text-center font-semibold ${
                     banca === b.value
                       ? 'border-primary bg-primary/10 shadow-md scale-105'
                       : 'border-border hover:border-primary/50'
                   }`}
                 >
-                  <div className="text-lg">{b.label}</div>
+                  <div className="text-sm md:text-lg">{b.label}</div>
                   <div className="text-xs text-muted-foreground">Máx: {b.maxScore}</div>
                 </button>
               ))}
             </div>
+            {banca === 'UNICAMP' && (
+              <div className="mt-4">
+                <label className="text-sm font-medium mb-1 block">Gênero Textual Exigido:</label>
+                <Select value={generoTextual} onValueChange={setGeneroTextual}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o gênero..." /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Carta Aberta">Carta Aberta</SelectItem>
+                    <SelectItem value="Artigo de Opinião">Artigo de Opinião</SelectItem>
+                    <SelectItem value="Crônica">Crônica</SelectItem>
+                    <SelectItem value="Roteiro de Podcast">Roteiro de Podcast</SelectItem>
+                    <SelectItem value="Manifesto">Manifesto</SelectItem>
+                    <SelectItem value="Editorial">Editorial</SelectItem>
+                    <SelectItem value="Dissertação">Dissertação</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </CardContent>
         </Card>
 
