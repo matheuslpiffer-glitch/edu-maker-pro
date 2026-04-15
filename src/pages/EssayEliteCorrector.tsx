@@ -934,11 +934,14 @@ export default function EssayEliteCorrector() {
           <div className="mx-auto max-w-5xl">
             <Button
               onClick={handleCorrect}
-              disabled={!canCorrect}
-              className="h-14 w-full rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-500/25 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 disabled:opacity-50"
+              className={`h-14 w-full rounded-2xl text-base font-bold shadow-xl shadow-purple-500/25 ${
+                canCorrect
+                  ? 'bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700'
+                  : 'bg-muted text-muted-foreground'
+              }`}
             >
               <Sparkles className="mr-2" size={20} />
-              CONFIRMAR ESCANEAMENTO E CORRIGIR
+              {!hasLevel ? 'SELECIONE O NÍVEL ACIMA ☝️' : 'CONFIRMAR ESCANEAMENTO E CORRIGIR'}
             </Button>
           </div>
         </div>
