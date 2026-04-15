@@ -104,6 +104,259 @@ function ScoreBar({ item }: { item: ScoreItem }) {
   );
 }
 
+function generateElitePDF(
+  result: EliteResult,
+  plan: InterventionPlan | null,
+  studentName: string,
+  levelLabel: string,
+) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const now = new Date().toLocaleString('pt-BR');
+  let y = 0;
+
+  function addWatermark() {
+    doc.saveGraphicsState();
+    doc.setGState(new (doc as any).GState({ opacity: 0.06 }));
+    doc.setFontSize(48);
+    doc.setTextColor(120, 80, 200);
+    doc.text('EDUCREATOR PRO', W / 2, H / 2 - 10, { angle: 45, align: 'center' });
+    doc.text('AVALIAÇÃO OFICIAL', W / 2, H / 2 + 20, { angle: 45, align: 'center' });
+    doc.restoreGraphicsState();
+  }
+
+  function addHeaderFooter(page: number, total: number) {
+    // Header line
+    doc.setDrawColor(180, 160, 220);
+    doc.setLineWidth(0.5);
+    doc.line(15, 14, W - 15, 14);
+    doc.setFontSize(7);
+    doc.setTextColor(130, 130, 130);
+    doc.text('SUPER IA DE ELITE — RELATÓRIO OFICIAL', W - 15, 11, { align: 'right' });
+
+    // Footer
+    doc.setDrawColor(180, 160, 220);
+    doc.line(15, H - 14, W - 15, H - 14);
+    doc.setFontSize(7);
+    doc.setTextColor(130, 130, 130);
+    doc.text(`Página ${page} de ${total}`, 15, H - 9);
+    doc.text(`Processado em: ${now}`, W - 15, H - 9, { align: 'right' });
+    doc.text('MATHEUS PIFFER — INOVAÇÃO & ESTRATÉGIA PEDAGÓGICA', W / 2, H - 9, { align: 'center' });
+  }
+
+  function checkPage(needed: number) {
+    if (y + needed > H - 25) {
+      doc.addPage();
+      addWatermark();
+      y = 22;
+    }
+  }
+
+  // === PAGE 1 ===
+  addWatermark();
+  y = 22;
+
+  // Title block
+  doc.setFillColor(88, 55, 180);
+  doc.roundedRect(15, y, W - 30, 18, 3, 3, 'F');
+  doc.setFontSize(16);
+  doc.setTextColor(255, 255, 255);
+  doc.text('RELATÓRIO DE CORREÇÃO — SUPER IA DE ELITE', W / 2, y + 12, { align: 'center' });
+  y += 24;
+
+  // Student info
+  doc.setFontSize(10);
+  doc.setTextColor(60, 60, 60);
+  doc.text(`Aluno: ${studentName || '___________________________'}`, 15, y);
+  doc.text(`Turma: ___________`, W / 2 + 10, y);
+  y += 6;
+  doc.text(`Nível: ${levelLabel}`, 15, y);
+  doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, W / 2 + 10, y);
+  y += 10;
+
+  // Score badge
+  const pctScore = Math.round((result.total_score / result.max_total) * 100);
+  doc.setFillColor(pctScore >= 70 ? 34 : pctScore >= 50 ? 200 : 220, pctScore >= 70 ? 170 : pctScore >= 50 ? 160 : 60, pctScore >= 70 ? 80 : pctScore >= 50 ? 30 : 30);
+  doc.roundedRect(W / 2 - 25, y, 50, 20, 4, 4, 'F');
+  doc.setFontSize(20);
+  doc.setTextColor(255, 255, 255);
+  doc.text(`${result.total_score}/${result.max_total}`, W / 2, y + 14, { align: 'center' });
+  y += 26;
+
+  // Score table
+  doc.setFontSize(11);
+  doc.setTextColor(88, 55, 180);
+  doc.text('TABELA DE NOTAS POR CRITÉRIO', 15, y);
+  y += 4;
+
+  const tableBody = result.scores.map(s => {
+    const p = Math.round((s.score / s.max) * 100);
+    return [s.criteria, `${s.score}`, `${s.max}`, `${p}%`];
+  });
+
+  (doc as any).autoTable({
+    startY: y,
+    head: [['Critério', 'Nota', 'Máx', '%']],
+    body: tableBody,
+    margin: { left: 15, right: 15 },
+    styles: { fontSize: 9, cellPadding: 3 },
+    headStyles: { fillColor: [88, 55, 180], textColor: 255, fontStyle: 'bold' },
+    alternateRowStyles: { fillColor: [245, 240, 255] },
+    theme: 'grid',
+  });
+  y = (doc as any).lastAutoTable.finalY + 8;
+
+  // Strengths
+  if (result.strengths?.length) {
+    checkPage(30);
+    doc.setFontSize(11);
+    doc.setTextColor(16, 140, 80);
+    doc.text('✅ PONTOS FORTES', 15, y);
+    y += 5;
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    result.strengths.forEach(s => {
+      checkPage(8);
+      const lines = doc.splitTextToSize(`• ${s}`, W - 35);
+      doc.text(lines, 18, y);
+      y += lines.length * 4.5;
+    });
+    y += 4;
+  }
+
+  // Improvements
+  if (result.improvements?.length) {
+    checkPage(30);
+    doc.setFontSize(11);
+    doc.setTextColor(200, 120, 0);
+    doc.text('📝 O QUE MELHORAR', 15, y);
+    y += 5;
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    result.improvements.forEach(s => {
+      checkPage(8);
+      const lines = doc.splitTextToSize(`• ${s}`, W - 35);
+      doc.text(lines, 18, y);
+      y += lines.length * 4.5;
+    });
+    y += 4;
+  }
+
+  // Feedback aluno
+  if (result.feedback_aluno) {
+    checkPage(20);
+    doc.setFontSize(11);
+    doc.setTextColor(88, 55, 180);
+    doc.text('💬 FEEDBACK PARA O ALUNO', 15, y);
+    y += 5;
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    const fbLines = doc.splitTextToSize(result.feedback_aluno, W - 35);
+    fbLines.forEach((line: string) => {
+      checkPage(5);
+      doc.text(line, 18, y);
+      y += 4.5;
+    });
+    y += 4;
+  }
+
+  // Feedback professor
+  if (result.feedback_professor) {
+    checkPage(20);
+    doc.setFontSize(11);
+    doc.setTextColor(88, 55, 180);
+    doc.text('🎓 OBSERVAÇÕES PARA O PROFESSOR', 15, y);
+    y += 5;
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    const fpLines = doc.splitTextToSize(result.feedback_professor, W - 35);
+    fpLines.forEach((line: string) => {
+      checkPage(5);
+      doc.text(line, 18, y);
+      y += 4.5;
+    });
+    y += 4;
+  }
+
+  // Transcription
+  checkPage(25);
+  doc.setFontSize(11);
+  doc.setTextColor(88, 55, 180);
+  doc.text('📝 TRANSCRIÇÃO DA CALIGRAFIA (IA)', 15, y);
+  y += 2;
+  doc.setFontSize(7);
+  doc.setTextColor(130, 130, 130);
+  doc.text(`Legibilidade: ${result.legibility || 'N/A'} · ${result.estimated_word_count || '?'} palavras · ${result.paragraph_count || '?'} parágrafos`, 15, y + 4);
+  y += 8;
+  doc.setFontSize(9);
+  doc.setTextColor(40, 40, 40);
+  const txLines = doc.splitTextToSize(result.transcribed_text || '', W - 35);
+  txLines.forEach((line: string) => {
+    checkPage(5);
+    doc.text(line, 18, y);
+    y += 4.5;
+  });
+  y += 6;
+
+  // Intervention Plan
+  if (plan) {
+    checkPage(30);
+    doc.setFillColor(255, 240, 220);
+    doc.roundedRect(15, y - 2, W - 30, 12, 2, 2, 'F');
+    doc.setFontSize(11);
+    doc.setTextColor(180, 90, 0);
+    doc.text('🎯 PLANO DE AÇÃO PARA O ALUNO', W / 2, y + 6, { align: 'center' });
+    y += 16;
+
+    // Gap
+    doc.setFontSize(9);
+    doc.setTextColor(180, 40, 40);
+    doc.text(`Maior Lacuna: ${plan.biggest_gap}`, 15, y);
+    y += 5;
+    doc.setTextColor(60, 60, 60);
+    const gapLines = doc.splitTextToSize(plan.gap_explanation, W - 35);
+    doc.text(gapLines, 18, y);
+    y += gapLines.length * 4.5 + 4;
+
+    // Activities table
+    (doc as any).autoTable({
+      startY: y,
+      head: [['#', 'Atividade', 'Descrição', 'Duração']],
+      body: plan.activities.map((a, i) => [`${i + 1}`, a.title, a.description, a.duration]),
+      margin: { left: 15, right: 15 },
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [200, 120, 0], textColor: 255, fontStyle: 'bold' },
+      columnStyles: { 0: { cellWidth: 8 }, 3: { cellWidth: 18 } },
+      theme: 'grid',
+    });
+    y = (doc as any).lastAutoTable.finalY + 6;
+
+    // Theory
+    checkPage(20);
+    doc.setFontSize(9);
+    doc.setTextColor(60, 40, 120);
+    doc.text('💡 Explicação Teórica:', 15, y);
+    y += 5;
+    doc.setTextColor(40, 40, 40);
+    const thLines = doc.splitTextToSize(plan.theory_snippet, W - 35);
+    thLines.forEach((line: string) => {
+      checkPage(5);
+      doc.text(line, 18, y);
+      y += 4.5;
+    });
+  }
+
+  // Apply headers, footers & watermarks to all pages
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    addHeaderFooter(i, totalPages);
+  }
+
+  doc.save(`relatorio_elite_${(studentName || 'aluno').replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`);
+}
+
 export default function EssayEliteCorrector() {
   const navigate = useNavigate();
   const { user } = useAuth();
