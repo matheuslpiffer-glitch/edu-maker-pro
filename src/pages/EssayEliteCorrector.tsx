@@ -8,13 +8,20 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle, Trophy, TrendingUp, Star, BookOpen } from 'lucide-react';
+import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle, Trophy, TrendingUp, Star, BookOpen, Target, Clock, Lightbulb, CheckCircle2, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ScoreItem {
   criteria: string;
   score: number;
   max: number;
+}
+
+interface InterventionPlan {
+  biggest_gap: string;
+  gap_explanation: string;
+  activities: { title: string; description: string; duration: string }[];
+  theory_snippet: string;
 }
 
 interface EliteResult {
@@ -110,6 +117,8 @@ export default function EssayEliteCorrector() {
   const [loading, setLoading] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [result, setResult] = useState<EliteResult | null>(null);
+  const [interventionPlan, setInterventionPlan] = useState<InterventionPlan | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -123,9 +132,9 @@ export default function EssayEliteCorrector() {
     reader.onload = (ev) => setImagePreview(ev.target?.result as string);
     reader.readAsDataURL(file);
     setResult(null);
+    setInterventionPlan(null);
   };
 
-  const effectiveLevel = level === 'ensino_medio' ? subLevel : level;
   const canCorrect = imageFile && level && (level !== 'ensino_medio' || subLevel);
 
   const handleCorrect = async () => {
@@ -133,6 +142,7 @@ export default function EssayEliteCorrector() {
     setLoading(true);
     setLoadingPhase(0);
     setResult(null);
+    setInterventionPlan(null);
 
     const timer = setInterval(() => setLoadingPhase(p => Math.min(p + 1, LOADING_PHASES.length - 1)), 5000);
 
@@ -195,6 +205,50 @@ export default function EssayEliteCorrector() {
     }
   };
 
+  const handleGeneratePlan = async () => {
+    if (!result || !user) return;
+    setLoadingPlan(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('correct-essay-elite', {
+        body: {
+          generatePlan: true,
+          level: result.level,
+          subLevel: result.subLevel,
+          correctionData: {
+            scores: result.scores,
+            total_score: result.total_score,
+            max_total: result.max_total,
+            strengths: result.strengths,
+            improvements: result.improvements,
+            transcribed_text: result.transcribed_text,
+          },
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setInterventionPlan(data as InterventionPlan);
+      toast({ title: '📋 PLANO DE INTERVENÇÃO GERADO!' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao gerar plano', description: e.message, variant: 'destructive' });
+    } finally {
+      setLoadingPlan(false);
+    }
+  };
+
+  const handleSharePlan = () => {
+    if (!interventionPlan) return;
+    const text = `📋 PLANO DE AÇÃO PARA O ALUNO${studentName ? ` — ${studentName}` : ''}\n\n🔍 MAIOR LACUNA: ${interventionPlan.biggest_gap}\n${interventionPlan.gap_explanation}\n\n📝 ATIVIDADES:\n${interventionPlan.activities.map((a, i) => `${i + 1}. ${a.title} (${a.duration})\n   ${a.description}`).join('\n\n')}\n\n💡 TEORIA:\n${interventionPlan.theory_snippet}\n\n— SUPER IA DE ELITE`;
+
+    if (navigator.share) {
+      navigator.share({ title: 'Plano de Intervenção', text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text);
+      toast({ title: 'Copiado!', description: 'Plano copiado para a área de transferência.' });
+    }
+  };
+
   const levelLabel = level === 'ensino_medio'
     ? SUB_LEVELS.find(s => s.value === subLevel)?.label || 'ENSINO MÉDIO'
     : LEVELS.find(l => l.value === level)?.label || '';
@@ -232,7 +286,7 @@ export default function EssayEliteCorrector() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Select value={level} onValueChange={(v) => { setLevel(v); setSubLevel(''); setResult(null); }}>
+              <Select value={level} onValueChange={(v) => { setLevel(v); setSubLevel(''); setResult(null); setInterventionPlan(null); }}>
                 <SelectTrigger className="rounded-xl">
                   <SelectValue placeholder="Selecione o nível..." />
                 </SelectTrigger>
@@ -341,6 +395,14 @@ export default function EssayEliteCorrector() {
 
           {result && (
             <div className="space-y-4">
+              {/* IA Processada com Sucesso Badge */}
+              <div className="flex items-center justify-center gap-2 py-2">
+                <Badge className="bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-full shadow-lg shadow-emerald-500/20 flex items-center gap-1.5">
+                  <CheckCircle2 size={14} />
+                  IA PROCESSADA COM SUCESSO — LEITURA PROFUNDA
+                </Badge>
+              </div>
+
               {/* Level badge + Score */}
               <Card className="rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border-purple-200 dark:border-purple-800 shadow-lg">
                 <CardContent className="pt-6 text-center space-y-2">
@@ -354,6 +416,83 @@ export default function EssayEliteCorrector() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Generate Intervention Plan Button */}
+              {!interventionPlan && (
+                <Button
+                  onClick={handleGeneratePlan}
+                  disabled={loadingPlan}
+                  className="w-full h-12 rounded-2xl text-sm font-bold bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:via-orange-600 hover:to-red-600 text-white shadow-lg shadow-orange-500/25"
+                >
+                  {loadingPlan ? (
+                    <>
+                      <Loader2 className="mr-2 animate-spin" size={18} />
+                      GERANDO PLANO DE INTERVENÇÃO...
+                    </>
+                  ) : (
+                    <>
+                      <Target className="mr-2" size={18} />
+                      🎯 GERAR PLANO DE INTERVENÇÃO
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {/* Intervention Plan Card */}
+              {interventionPlan && (
+                <Card className="rounded-2xl border-2 border-orange-300 dark:border-orange-700 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/20 shadow-xl">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm flex items-center gap-2 text-orange-700 dark:text-orange-300">
+                        <Target size={16} />
+                        📋 PLANO DE AÇÃO PARA O ALUNO
+                      </CardTitle>
+                      <Button variant="ghost" size="sm" onClick={handleSharePlan} className="text-orange-600 hover:text-orange-700 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-xl">
+                        <Share2 size={14} className="mr-1" /> COMPARTILHAR
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Biggest Gap */}
+                    <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+                      <p className="text-xs font-bold text-red-700 dark:text-red-300 mb-1 flex items-center gap-1.5">
+                        <AlertTriangle size={12} /> MAIOR LACUNA IDENTIFICADA
+                      </p>
+                      <p className="text-sm font-semibold text-red-800 dark:text-red-200">{interventionPlan.biggest_gap}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">{interventionPlan.gap_explanation}</p>
+                    </div>
+
+                    {/* Activities */}
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold text-orange-700 dark:text-orange-300 flex items-center gap-1.5">
+                        📝 3 ATIVIDADES PRÁTICAS IMEDIATAS
+                      </p>
+                      {interventionPlan.activities.map((activity, i) => (
+                        <div key={i} className="p-3 rounded-xl bg-white dark:bg-background/50 border border-orange-200 dark:border-orange-800 shadow-sm">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                              <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center shrink-0">{i + 1}</span>
+                              {activity.title}
+                            </p>
+                            <Badge variant="outline" className="text-xs shrink-0 flex items-center gap-1">
+                              <Clock size={10} /> {activity.duration}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground ml-6.5 leading-relaxed">{activity.description}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Theory Snippet */}
+                    <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800">
+                      <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300 mb-1 flex items-center gap-1.5">
+                        <Lightbulb size={12} /> EXPLICAÇÃO TEÓRICA PERSONALIZADA
+                      </p>
+                      <p className="text-sm text-indigo-800 dark:text-indigo-200 leading-relaxed whitespace-pre-wrap">{interventionPlan.theory_snippet}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Scores table */}
               <Card className="rounded-2xl shadow-lg">
@@ -464,7 +603,7 @@ export default function EssayEliteCorrector() {
                 </CardContent>
               </Card>
 
-              <div className="flex justify-end no-print">
+              <div className="flex justify-end gap-2 no-print">
                 <Button variant="outline" onClick={() => window.print()} className="rounded-xl">
                   <Printer size={16} className="mr-2" /> IMPRIMIR LAUDO
                 </Button>
