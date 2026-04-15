@@ -423,10 +423,25 @@ export default function EssayEliteCorrector() {
     setInterventionPlan(null);
   };
 
-  const canCorrect = Boolean(imagePreview) && Boolean(level) && (level !== 'ensino_medio' || Boolean(subLevel));
+  const hasImage = Boolean(imagePreview);
+  const hasLevel = Boolean(level) && (level !== 'ensino_medio' || Boolean(subLevel));
+  const canCorrect = hasImage && hasLevel;
 
   const handleCorrect = async () => {
-    if (!canCorrect || !user) return;
+    console.log('Botão clicado, iniciando correção...', { hasImage, hasLevel, canCorrect, user: !!user });
+    
+    if (!hasImage) {
+      toast({ title: '📷 Envie a foto primeiro', description: 'Tire ou envie uma foto da redação antes de corrigir.', variant: 'destructive' });
+      return;
+    }
+    if (!hasLevel) {
+      toast({ title: '📚 Selecione o nível', description: 'Escolha o nível de aprendizagem antes de corrigir.', variant: 'destructive' });
+      return;
+    }
+    if (!user) {
+      toast({ title: '🔒 Faça login', description: 'Você precisa estar logado para usar a correção.', variant: 'destructive' });
+      return;
+    }
 
     const currentImageFile = imageFile || (() => {
       const cachedCapture = readStoredScannerCapture();
