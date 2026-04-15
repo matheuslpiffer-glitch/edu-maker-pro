@@ -58,8 +58,9 @@ const LEVELS = [
 
 const SUB_LEVELS = [
   { value: 'enem', label: 'ENEM — 5 COMPETÊNCIAS' },
-  { value: 'vunesp', label: 'VUNESP — ESTRUTURA DISSERTATIVA' },
+  { value: 'unicamp', label: 'UNICAMP — GÊNERO E INTERLOCUÇÃO' },
   { value: 'fuvest', label: 'FUVEST — ARGUMENTAÇÃO FILOSÓFICA' },
+  { value: 'vunesp', label: 'VUNESP — ESTRUTURA DISSERTATIVA' },
 ];
 
 const LOADING_PHASES = [
