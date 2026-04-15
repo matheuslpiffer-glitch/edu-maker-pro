@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Settings } from 'lucide-react';
+import { X, Send, Settings, HelpCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import defaultAvatar from '@/assets/mat-avatar-closeup.png';
@@ -63,7 +63,6 @@ export default function MatChatbot() {
       });
     };
 
-    // Exponential backoff
     let attempts = 0;
     const maxAttempts = 3;
 
@@ -115,7 +114,7 @@ export default function MatChatbot() {
             }
           }
         }
-        break; // success
+        break;
       } catch (e) {
         attempts++;
         if (attempts >= maxAttempts) {
@@ -131,11 +130,11 @@ export default function MatChatbot() {
 
   return (
     <>
-      {/* Chat Window */}
+      {/* Chat Window — anchored to bottom-right */}
       {open && (
-        <div className="fixed top-20 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[420px] max-h-[70vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200/60 rounded-[2.5rem] shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-top-4 duration-300 overflow-hidden">
+        <div className="fixed bottom-20 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[420px] max-h-[70vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200/60 rounded-[2rem] shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-bottom-4 duration-300 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200/50 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-[2.5rem]">
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200/50 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-[2rem]">
             <img src={avatarSrc} alt="Mat" className="h-10 w-10 rounded-xl object-cover ring-2 ring-white/30" />
             <div className="flex-1">
               <h3 className="text-sm font-black text-white">Mat</h3>
@@ -205,25 +204,19 @@ export default function MatChatbot() {
         </div>
       )}
 
-      {/* FAB — circular avatar + name + tooltip */}
-      <div className="fixed top-4 right-4 sm:right-6 z-[60] flex flex-col items-center gap-1.5 no-print group">
-        {/* Tooltip balloon */}
-        <div className="pointer-events-none opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 absolute top-full mt-2 right-0 z-[9999] w-64 bg-purple-700 text-white text-xs rounded-xl px-4 py-3 shadow-xl shadow-purple-900/30 after:content-[''] after:absolute after:-top-2 after:right-6 after:w-4 after:h-4 after:bg-purple-700 after:rotate-45 after:rounded-sm">
-          Olá! Sou o Mat, seu assistente EduCreator. Como posso ajudar você hoje? 👋
-        </div>
-
+      {/* Minimized FAB — bottom-right corner */}
+      <div className="fixed bottom-6 right-6 z-[60] no-print">
         <button
           onClick={() => setOpen(prev => !prev)}
           className="relative flex items-center justify-center transition-all duration-300 focus:outline-none"
         >
           {open ? (
-            <div className="w-[80px] h-[80px] rounded-full bg-slate-800 hover:bg-slate-700 shadow-lg flex items-center justify-center transition-all">
-              <X className="h-6 w-6 text-white" />
+            <div className="w-14 h-14 rounded-full bg-slate-800 hover:bg-slate-700 shadow-lg flex items-center justify-center transition-all">
+              <X className="h-5 w-5 text-white" />
             </div>
           ) : (
             <div className="relative">
-              {/* Gradient ring container */}
-              <div className="w-[80px] h-[80px] rounded-full p-[3px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-105 transition-all duration-300">
+              <div className="w-14 h-14 rounded-full p-[2px] bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 hover:scale-110 transition-all duration-300">
                 <div className="w-full h-full rounded-full overflow-hidden bg-white">
                   <MatAvatarArtwork src={avatarSrc} alt="Mat" zoom={zoom} offsetX={offsetX} offsetY={offsetY} />
                 </div>
@@ -231,22 +224,18 @@ export default function MatChatbot() {
               {/* Edit button */}
               <button
                 onClick={(e) => { e.stopPropagation(); setShowAvatarEditor(true); }}
-                className="absolute -bottom-1 -left-1 h-6 w-6 rounded-full bg-card border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors z-10"
+                className="absolute -top-1 -left-1 h-5 w-5 rounded-full bg-card border border-border shadow-md flex items-center justify-center hover:bg-muted transition-colors z-10"
               >
-                <Settings className="h-3 w-3 text-muted-foreground" />
+                <Settings className="h-2.5 w-2.5 text-muted-foreground" />
               </button>
               {/* Online indicator */}
-              <span className="absolute top-0 right-0 flex h-4 w-4">
+              <span className="absolute top-0 right-0 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-4 w-4 bg-amber-400 ring-2 ring-white shadow-md" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-400 ring-2 ring-white shadow-md" />
               </span>
             </div>
           )}
         </button>
-
-        {!open && (
-          <span className="text-xs font-extrabold tracking-wide text-slate-700 dark:text-slate-300 select-none uppercase">Mat</span>
-        )}
       </div>
 
       <MatAvatarEditor

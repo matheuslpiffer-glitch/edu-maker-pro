@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -396,6 +396,14 @@ export default function EssayEliteCorrector() {
   const [interventionPlan, setInterventionPlan] = useState<InterventionPlan | null>(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
 
+  // Restore preview from localStorage on mount
+  useEffect(() => {
+    const cached = localStorage.getItem('elite_photo_preview');
+    if (cached && !imagePreview) {
+      setImagePreview(cached);
+    }
+  }, []);
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith('image/')) {
@@ -405,7 +413,11 @@ export default function EssayEliteCorrector() {
     setImageFile(file);
     setRotation(0);
     const reader = new FileReader();
-    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setImagePreview(dataUrl);
+      try { localStorage.setItem('elite_photo_preview', dataUrl); } catch {}
+    };
     reader.readAsDataURL(file);
     setResult(null);
     setInterventionPlan(null);
@@ -632,23 +644,41 @@ export default function EssayEliteCorrector() {
             </div>
           )}
 
-          <Button
-            onClick={handleCorrect}
-            disabled={loading || !canCorrect}
-            className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white shadow-xl shadow-purple-500/25 disabled:opacity-50"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 animate-spin" size={20} />
+          {imagePreview && !loading && (
+            <Button
+              onClick={handleCorrect}
+              disabled={loading || !canCorrect}
+              className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-700 hover:via-purple-700 hover:to-indigo-700 text-white shadow-xl shadow-purple-500/25 disabled:opacity-50"
+            >
+              <Sparkles className="mr-2" size={20} />
+              ✅ CONFIRMAR E CORRIGIR
+            </Button>
+          )}
+
+          {!imagePreview && (
+            <Button
+              disabled
+              className="w-full h-14 rounded-2xl text-base font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-500/25 opacity-50"
+            >
+              <Camera className="mr-2" size={20} />
+              TIRE A FOTO PRIMEIRO
+            </Button>
+          )}
+
+          {loading && (
+            <div className="space-y-3">
+              <div className="w-full h-3 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-1000"
+                  style={{ width: `${Math.min(((loadingPhase + 1) / LOADING_PHASES.length) * 100, 95)}%` }}
+                />
+              </div>
+              <p className="text-center text-sm font-semibold text-purple-700 dark:text-purple-300 animate-pulse">
+                <Loader2 className="inline mr-2 animate-spin" size={16} />
                 {LOADING_PHASES[loadingPhase]}
-              </>
-            ) : (
-              <>
-                <Sparkles className="mr-2" size={20} />
-                ✨ CORREÇÃO DE ELITE COM IA
-              </>
-            )}
-          </Button>
+              </p>
+            </div>
+          )}
 
           {loading && (
             <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
