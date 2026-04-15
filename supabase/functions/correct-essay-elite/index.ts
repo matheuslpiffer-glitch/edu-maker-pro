@@ -287,19 +287,58 @@ serve(async (req) => {
     if (!imageBase64) throw new Error("Nenhuma imagem fornecida");
     if (!level) throw new Error("Nível de aprendizagem não informado");
 
+    // Validate base64 size (max ~4MB base64 = ~3MB image)
     if (imageBase64.length > 5_500_000) {
       return new Response(JSON.stringify({ error: "Imagem muito grande. Reduza a resolução." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // ========== PHASE 1: Transcription with vision ==========
+    console.log("Image base64 length:", imageBase64.length, "chars (~", Math.round(imageBase64.length * 0.75 / 1024), "KB)");
+
+    // Helper to robustly parse JSON from AI responses (handles truncation)
+    function robustJsonParse(raw: string): any {
+      // Strip markdown fences
+      let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+      // Find JSON object boundaries
+      const start = cleaned.indexOf("{");
+      const end = cleaned.lastIndexOf("}");
+      if (start === -1) throw new Error("No JSON found");
+      if (end === -1 || end <= start) {
+        // Truncated response — try to repair
+        cleaned = cleaned.substring(start);
+        // Close open strings, arrays, objects
+        cleaned = cleaned
+          .replace(/,\s*$/, "")
+          .replace(/[\x00-\x1F\x7F]/g, " ");
+        // Count unclosed braces/brackets and close them
+        let braces = 0, brackets = 0;
+        for (const ch of cleaned) {
+          if (ch === "{") braces++;
+          if (ch === "}") braces--;
+          if (ch === "[") brackets++;
+          if (ch === "]") brackets--;
+        }
+        // Close any open string
+        const quoteCount = (cleaned.match(/(?<!\\)"/g) || []).length;
+        if (quoteCount % 2 !== 0) cleaned += '"';
+        while (brackets > 0) { cleaned += "]"; brackets--; }
+        while (braces > 0) { cleaned += "}"; braces--; }
+      } else {
+        cleaned = cleaned.substring(start, end + 1);
+      }
+      // Remove trailing commas before } or ]
+      cleaned = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
+      return JSON.parse(cleaned);
+    }
+
+    // ========== PHASE 1: Transcription with vision (use flash for speed) ==========
     console.log("Phase 1: Starting paleographic transcription for level:", level);
     const phase1 = await fetch(gateway, {
       method: "POST",
       headers: aiHeaders,
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: buildTranscriptionPrompt() },
           {
@@ -317,20 +356,21 @@ serve(async (req) => {
 
     if (!phase1.ok) {
       const s = phase1.status;
+      const t = await phase1.text();
+      console.error("Phase 1 AI error:", s, t);
       if (s === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (s === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      const t = await phase1.text();
-      console.error("Phase 1 error:", s, t);
-      return new Response(JSON.stringify({ error: "Erro na transcrição. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Erro na transcrição. Tente novamente.", diagnostics: { stage: "phase1_ai", status: s } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const p1Data = await phase1.json();
     const p1Content = p1Data.choices?.[0]?.message?.content || "";
+    console.log("Phase 1 raw response length:", p1Content.length);
     let p1Parsed;
     try {
-      p1Parsed = JSON.parse(p1Content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
-    } catch {
-      console.error("Phase 1 parse error:", p1Content);
+      p1Parsed = robustJsonParse(p1Content);
+    } catch (parseErr) {
+      console.error("Phase 1 parse error:", p1Content.substring(0, 500));
       return new Response(JSON.stringify({ error: "Erro ao interpretar transcrição. Tente foto mais nítida." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -342,13 +382,13 @@ serve(async (req) => {
 
     console.log("Phase 1 complete. Words:", p1Parsed.estimated_word_count, "Legibility:", p1Parsed.legibility);
 
-    // ========== PHASE 2: Level-adaptive correction ==========
+    // ========== PHASE 2: Level-adaptive correction (use flash for speed) ==========
     console.log("Phase 2: Starting correction with level:", level, "subLevel:", subLevel);
     const phase2 = await fetch(gateway, {
       method: "POST",
       headers: aiHeaders,
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: buildCorrectionPrompt(level, subLevel) },
           {
@@ -363,21 +403,22 @@ serve(async (req) => {
 
     if (!phase2.ok) {
       const s = phase2.status;
+      const t = await phase2.text();
+      console.error("Phase 2 AI error:", s, t);
       if (s === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (s === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      const t = await phase2.text();
-      console.error("Phase 2 error:", s, t);
-      return new Response(JSON.stringify({ error: "Erro na correção. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Erro na correção. Tente novamente.", diagnostics: { stage: "phase2_ai", status: s } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const p2Data = await phase2.json();
     const p2Content = p2Data.choices?.[0]?.message?.content || "";
+    console.log("Phase 2 raw response length:", p2Content.length);
     let p2Parsed;
     try {
-      p2Parsed = JSON.parse(p2Content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
-    } catch {
-      console.error("Phase 2 parse error:", p2Content);
-      return new Response(JSON.stringify({ error: "Erro ao interpretar correção." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      p2Parsed = robustJsonParse(p2Content);
+    } catch (parseErr) {
+      console.error("Phase 2 parse error:", p2Content.substring(0, 500));
+      return new Response(JSON.stringify({ error: "Erro ao interpretar correção. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     console.log("Phase 2 complete. Total score:", p2Parsed.total_score);
@@ -398,7 +439,7 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("correct-essay-elite error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }), {
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido", diagnostics: { stage: "catch_all" } }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

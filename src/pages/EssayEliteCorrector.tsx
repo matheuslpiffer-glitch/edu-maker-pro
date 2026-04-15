@@ -70,7 +70,7 @@ const LOADING_PHASES = [
   '💡 GERANDO FEEDBACK PERSONALIZADO...',
 ];
 
-async function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<{ base64: string; mimeType: string }> {
+async function compressImage(file: File, maxWidth = 1500, quality = 0.7): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
@@ -83,9 +83,13 @@ async function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promis
       ctx.drawImage(img, 0, 0, w, h);
       const dataUrl = canvas.toDataURL('image/jpeg', quality);
       const base64 = dataUrl.split(',')[1];
+      console.log('Compressed image base64 length:', base64.length, 'chars (~', Math.round(base64.length * 0.75 / 1024), 'KB)');
+      // If still too large, compress harder
       if (base64.length > 1_400_000) {
         const d2 = canvas.toDataURL('image/jpeg', 0.4);
-        resolve({ base64: d2.split(',')[1], mimeType: 'image/jpeg' });
+        const b2 = d2.split(',')[1];
+        console.log('Re-compressed to:', b2.length, 'chars (~', Math.round(b2.length * 0.75 / 1024), 'KB)');
+        resolve({ base64: b2, mimeType: 'image/jpeg' });
       } else {
         resolve({ base64, mimeType: 'image/jpeg' });
       }
