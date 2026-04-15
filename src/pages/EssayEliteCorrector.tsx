@@ -599,23 +599,20 @@ export default function EssayEliteCorrector() {
     if (!result || !user) return;
     setLoadingPlan(true);
     try {
-      const { data, error } = await supabase.functions.invoke('correct-essay-elite', {
-        body: {
-          generatePlan: true,
-          level: result.level,
-          subLevel: result.subLevel,
-          correctionData: {
-            scores: result.scores,
-            total_score: result.total_score,
-            max_total: result.max_total,
-            strengths: result.strengths,
-            improvements: result.improvements,
-            transcribed_text: result.transcribed_text,
-          },
+      const { data } = await invokeWithTimeout('correct-essay-elite', {
+        generatePlan: true,
+        level: result.level,
+        subLevel: result.subLevel,
+        correctionData: {
+          scores: result.scores,
+          total_score: result.total_score,
+          max_total: result.max_total,
+          strengths: result.strengths,
+          improvements: result.improvements,
+          transcribed_text: result.transcribed_text,
         },
-      });
+      }, 120_000);
 
-      if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
       setInterventionPlan(data as InterventionPlan);
