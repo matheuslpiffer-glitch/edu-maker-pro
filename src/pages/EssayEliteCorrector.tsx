@@ -70,12 +70,19 @@ const LOADING_PHASES = [
   '💡 GERANDO FEEDBACK PERSONALIZADO...',
 ];
 
-async function compressImage(file: File, maxWidth = 1500, quality = 0.7): Promise<{ base64: string; mimeType: string }> {
+async function compressImage(file: File, maxWidth = 1200, quality = 0.65): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
       let w = img.width, h = img.height;
-      if (w > maxWidth) { h = Math.round(h * (maxWidth / w)); w = maxWidth; }
+      // Constrain both width AND height to maxWidth
+      if (w > maxWidth || h > maxWidth) {
+        if (w >= h) {
+          h = Math.round(h * (maxWidth / w)); w = maxWidth;
+        } else {
+          w = Math.round(w * (maxWidth / h)); h = maxWidth;
+        }
+      }
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       const ctx = canvas.getContext('2d');
@@ -83,12 +90,12 @@ async function compressImage(file: File, maxWidth = 1500, quality = 0.7): Promis
       ctx.drawImage(img, 0, 0, w, h);
       const dataUrl = canvas.toDataURL('image/jpeg', quality);
       const base64 = dataUrl.split(',')[1];
-      console.log('Compressed image base64 length:', base64.length, 'chars (~', Math.round(base64.length * 0.75 / 1024), 'KB)');
-      // If still too large, compress harder
-      if (base64.length > 1_400_000) {
-        const d2 = canvas.toDataURL('image/jpeg', 0.4);
+      console.log('[compressImage] size:', Math.round(base64.length * 0.75 / 1024), 'KB, dims:', w, 'x', h);
+      if (base64.length > 1_200_000) {
+        // Re-compress harder
+        const d2 = canvas.toDataURL('image/jpeg', 0.35);
         const b2 = d2.split(',')[1];
-        console.log('Re-compressed to:', b2.length, 'chars (~', Math.round(b2.length * 0.75 / 1024), 'KB)');
+        console.log('[compressImage] re-compressed:', Math.round(b2.length * 0.75 / 1024), 'KB');
         resolve({ base64: b2, mimeType: 'image/jpeg' });
       } else {
         resolve({ base64, mimeType: 'image/jpeg' });
@@ -97,6 +104,44 @@ async function compressImage(file: File, maxWidth = 1500, quality = 0.7): Promis
     img.onerror = () => reject(new Error('Erro ao carregar imagem'));
     img.src = URL.createObjectURL(file);
   });
+}
+
+/** Call edge function with extended timeout (3 min) */
+async function invokeWithTimeout(functionName: string, body: Record<string, unknown>, timeoutMs = 180_000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`;
+  
+  // Get current session token
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+
+    const data = await resp.json().catch(() => null);
+
+    if (!resp.ok) {
+      const msg = data?.error || data?.message || `Erro ${resp.status}: ${resp.statusText}`;
+      throw new Error(msg);
+    }
+    return { data, error: null };
+  } catch (err: any) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') {
+      throw new Error('Tempo esgotado (3 min). Tente com uma foto menor ou mais nítida.');
+    }
+    throw err;
+  }
 }
 
 function ScoreBar({ item }: { item: ScoreItem }) {
@@ -478,27 +523,36 @@ export default function EssayEliteCorrector() {
 
     try {
       const { base64, mimeType } = await compressImage(currentImageFile);
+      console.log('[handleCorrect] image compressed, sending to edge function...');
       setLoadingPhase(1);
 
-      const { data, error } = await supabase.functions.invoke('correct-essay-elite', {
-        body: {
-          imageBase64: base64,
-          mimeType,
-          level: level === 'ensino_medio' ? 'ensino_medio' : level,
-          subLevel: level === 'ensino_medio' ? subLevel : undefined,
-        },
-      });
+      const { data } = await invokeWithTimeout('correct-essay-elite', {
+        imageBase64: base64,
+        mimeType,
+        level: level === 'ensino_medio' ? 'ensino_medio' : level,
+        subLevel: level === 'ensino_medio' ? subLevel : undefined,
+      }, 180_000); // 3 min timeout
 
       clearInterval(timer);
 
-      if (error) throw error;
       if (data?.error) {
-        if ((data.error as string).includes('ilegível') || (data.error as string).includes('escura')) {
-          toast({ title: '📷 FOTO ILEGÍVEL', description: data.error, variant: 'destructive' });
+        const errMsg = data.error as string;
+        if (errMsg.includes('ilegível') || errMsg.includes('escura')) {
+          toast({ title: '📷 FOTO ILEGÍVEL', description: errMsg, variant: 'destructive' });
           setLoading(false);
           return;
         }
-        throw new Error(data.error);
+        if (errMsg.includes('Créditos') || errMsg.includes('credits')) {
+          toast({ title: '💳 Créditos insuficientes', description: 'Adicione créditos em Configurações > Workspace > Uso.', variant: 'destructive' });
+          setLoading(false);
+          return;
+        }
+        if (errMsg.includes('Limite') || errMsg.includes('rate')) {
+          toast({ title: '⏱️ Limite de requisições', description: 'Aguarde alguns segundos e tente novamente.', variant: 'destructive' });
+          setLoading(false);
+          return;
+        }
+        throw new Error(errMsg);
       }
 
       setResult(data as EliteResult);
@@ -533,7 +587,9 @@ export default function EssayEliteCorrector() {
       });
     } catch (e: any) {
       clearInterval(timer);
-      toast({ title: 'Erro na correção', description: e.message, variant: 'destructive' });
+      console.error('[handleCorrect] error:', e);
+      const msg = e.message || 'Erro desconhecido';
+      toast({ title: '❌ Erro na correção', description: msg, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -543,23 +599,20 @@ export default function EssayEliteCorrector() {
     if (!result || !user) return;
     setLoadingPlan(true);
     try {
-      const { data, error } = await supabase.functions.invoke('correct-essay-elite', {
-        body: {
-          generatePlan: true,
-          level: result.level,
-          subLevel: result.subLevel,
-          correctionData: {
-            scores: result.scores,
-            total_score: result.total_score,
-            max_total: result.max_total,
-            strengths: result.strengths,
-            improvements: result.improvements,
-            transcribed_text: result.transcribed_text,
-          },
+      const { data } = await invokeWithTimeout('correct-essay-elite', {
+        generatePlan: true,
+        level: result.level,
+        subLevel: result.subLevel,
+        correctionData: {
+          scores: result.scores,
+          total_score: result.total_score,
+          max_total: result.max_total,
+          strengths: result.strengths,
+          improvements: result.improvements,
+          transcribed_text: result.transcribed_text,
         },
-      });
+      }, 120_000);
 
-      if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
       setInterventionPlan(data as InterventionPlan);
