@@ -405,23 +405,13 @@ export default function EssayEliteCorrector() {
     }
   }, []);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith('image/')) {
-      toast({ title: 'Formato inválido', description: 'Envie uma foto (JPG, PNG).', variant: 'destructive' });
-      return;
-    }
+  const handleScannedImage = (file: File, preview: string) => {
     setImageFile(file);
+    setImagePreview(preview);
     setRotation(0);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setImagePreview(dataUrl);
-      try { localStorage.setItem('elite_photo_preview', dataUrl); } catch {}
-    };
-    reader.readAsDataURL(file);
     setResult(null);
     setInterventionPlan(null);
+    try { localStorage.setItem('elite_photo_preview', preview); } catch {}
   };
 
   const canCorrect = imageFile && level && (level !== 'ensino_medio' || subLevel);
