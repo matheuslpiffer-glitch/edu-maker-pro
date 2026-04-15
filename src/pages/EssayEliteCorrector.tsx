@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle, Trophy, TrendingUp, Star, BookOpen, Target, Clock, Lightbulb, CheckCircle2, Share2 } from 'lucide-react';
+import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle, Trophy, TrendingUp, Star, BookOpen, Target, Clock, Lightbulb, CheckCircle2, Share2, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 interface ScoreItem {
   criteria: string;
