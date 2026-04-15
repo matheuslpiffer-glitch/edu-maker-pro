@@ -347,11 +347,32 @@ async function generateElitePDF(
     });
   }
 
+  // Generate QR Code for digital version
+  const digitalUrl = `${window.location.origin}/redacao/elite`;
+  let qrDataUrl: string | null = null;
+  try {
+    qrDataUrl = await QRCode.toDataURL(digitalUrl, { width: 200, margin: 1 });
+  } catch {
+    // QR generation failed, continue without it
+  }
+
   // Apply headers, footers & watermarks to all pages
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     addHeaderFooter(i, totalPages);
+  }
+
+  // Add QR Code to footer of last page
+  if (qrDataUrl) {
+    doc.setPage(totalPages);
+    const qrSize = 22;
+    const qrX = W - 15 - qrSize;
+    const qrY = H - 14 - qrSize - 2;
+    doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+    doc.setFontSize(6);
+    doc.setTextColor(130, 130, 130);
+    doc.text('Versão Digital', qrX + qrSize / 2, qrY + qrSize + 3, { align: 'center' });
   }
 
   doc.save(`relatorio_elite_${(studentName || 'aluno').replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`);
