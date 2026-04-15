@@ -383,7 +383,7 @@ export default function EssayEliteCorrector() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // fileInputRef no longer needed — DocumentScanner handles it
 
   const [level, setLevel] = useState('');
   const [subLevel, setSubLevel] = useState('');
