@@ -31,6 +31,7 @@ const Subjects = lazy(() => import("@/pages/Subjects"));
 const AdvancedSettings = lazy(() => import("@/pages/AdvancedSettings"));
 const RedacaoView = lazy(() => import("@/views/RedacaoView"));
 const EssayCorrector = lazy(() => import("@/pages/EssayCorrector"));
+const EssayEliteCorrector = lazy(() => import("@/pages/EssayEliteCorrector"));
 const EduSlides = lazy(() => import("@/pages/EduSlides"));
 const Simulators = lazy(() => import("@/pages/Simulators"));
 const Vestibulares = lazy(() => import("@/pages/Vestibulares"));
@@ -150,6 +151,7 @@ function AppRoutes() {
           <Route path="/disciplinas" element={<Subjects />} />
           <Route path="/redacao" element={<RedacaoView />} />
           <Route path="/redacao/corretor" element={<EssayCorrector />} />
+          <Route path="/redacao/elite" element={<EssayEliteCorrector />} />
           <Route path="/literatura" element={<LiteraturaView />} />
           <Route path="/configuracoes" element={<AdvancedSettings />} />
           <Route path="/eduslides" element={<EduSlides />} />

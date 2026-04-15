@@ -197,13 +197,23 @@ export default function RedacaoView() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex items-center gap-3 mb-6 no-print">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
-          <ArrowLeft size={18} />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Estúdio de Redação Elite</h1>
-          <p className="text-xs text-muted-foreground">Gere propostas de redação com IA para as principais bancas</p>
+      <div className="flex items-center justify-between gap-3 mb-6 no-print">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
+            <ArrowLeft size={18} />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Estúdio de Redação Elite</h1>
+            <p className="text-xs text-muted-foreground">Gere propostas de redação com IA para as principais bancas</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate('/redacao/corretor')} className="rounded-xl text-xs">
+            📸 CORRETOR IA
+          </Button>
+          <Button size="sm" onClick={() => navigate('/redacao/elite')} className="rounded-xl text-xs bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-purple-500/20">
+            <Sparkles size={14} className="mr-1" /> SUPER IA DE ELITE
+          </Button>
         </div>
       </div>
 
