@@ -118,11 +118,10 @@ function generateElitePDF(
 
   function addWatermark() {
     doc.saveGraphicsState();
-    doc.setGState(new (doc as any).GState({ opacity: 0.06 }));
-    doc.setFontSize(48);
-    doc.setTextColor(120, 80, 200);
-    doc.text('EDUCREATOR PRO', W / 2, H / 2 - 10, { angle: 45, align: 'center' });
-    doc.text('AVALIAÇÃO OFICIAL', W / 2, H / 2 + 20, { angle: 45, align: 'center' });
+    doc.setGState(new (doc as any).GState({ opacity: 0.12 }));
+    doc.setFontSize(52);
+    doc.setTextColor(128, 128, 128);
+    doc.text('PIFFER EDUTECH', W / 2, H / 2, { angle: 45, align: 'center' });
     doc.restoreGraphicsState();
   }
 
@@ -131,9 +130,9 @@ function generateElitePDF(
     doc.setDrawColor(180, 160, 220);
     doc.setLineWidth(0.5);
     doc.line(15, 14, W - 15, 14);
-    doc.setFontSize(7);
-    doc.setTextColor(130, 130, 130);
-    doc.text('SUPER IA DE ELITE — RELATÓRIO OFICIAL', W - 15, 11, { align: 'right' });
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Produzido por Piffer EduTech', W - 15, 11, { align: 'right' });
 
     // Footer
     doc.setDrawColor(180, 160, 220);
