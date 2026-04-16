@@ -633,6 +633,30 @@ export default function Inclusao() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Left: form */}
         <div className="lg:col-span-3 space-y-6">
+          {/* Ciclo Escolar */}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <GraduationCap className="h-3.5 w-3.5" /> Ciclo / Série <span className="text-destructive">*</span>
+            </Label>
+            <Select value={schoolCycle} onValueChange={setSchoolCycle}>
+              <SelectTrigger className="rounded-2xl">
+                <SelectValue placeholder="Selecione o ciclo escolar" />
+              </SelectTrigger>
+              <SelectContent>
+                {CYCLE_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {schoolCycle && (
+              <p className="text-[10px] text-cyan-600 font-semibold animate-in fade-in">
+                🎯 IA ajustará: {schoolCycle === 'infantil' ? 'foco lúdico/imagético, linguagem simples, estímulos visuais amplos' :
+                  schoolCycle === 'anos_iniciais' ? 'linguagem acessível, ilustrações de apoio, enunciados curtos' :
+                  schoolCycle === 'anos_finais' ? 'enunciados intermediários, vocabulário progressivo' :
+                  schoolCycle === 'medio' ? 'linguagem estrutural/objetiva, abordagem formal' :
+                  'linguagem adulta, contextos práticos do cotidiano'}
+              </p>
+            )}
+          </div>
+
           {/* Necessidade Específica */}
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
