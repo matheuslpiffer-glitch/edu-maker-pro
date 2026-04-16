@@ -556,6 +556,17 @@ export default function Inclusao() {
           </div>
         </div>
 
+        {/* Selo de Garantia Pedagógica */}
+        <div className="flex items-center justify-center gap-3 p-4 rounded-2xl border border-amber-300/50 bg-gradient-to-r from-amber-50/80 to-yellow-50/80">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+            <GraduationCap className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-amber-800 uppercase tracking-wider">Selo de Garantia Pedagógica</p>
+            <p className="text-[10px] text-amber-700 leading-tight">Análise baseada em Protocolos de Neurociência Clínica · DSM-5-TR · CID-11</p>
+          </div>
+        </div>
+
         {/* Feature Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {INCLUSION_CARDS.map(card => {
