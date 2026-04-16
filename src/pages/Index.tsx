@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { BookOpen, FileText, Layers, Sparkles, Presentation, Paperclip, Send, Landmark, Cpu, Accessibility, PenLine } from 'lucide-react';
+import {
+  BookOpen, FileText, Layers, Sparkles, Presentation,
+  Landmark, Cpu, Accessibility, PenLine, ScanLine,
+  Brain, CalendarDays, Map, Gamepad2, Library,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +13,6 @@ import WelcomeModal from '@/components/WelcomeModal';
 export default function Index() {
   const { isStudentMode } = useStudentMode();
   const [stats, setStats] = useState({ questions: 0, assessments: 0, subjects: 0 });
-  const [omniPrompt, setOmniPrompt] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -25,12 +28,25 @@ export default function Index() {
 
   if (isStudentMode) return <Navigate to="/portal-aluno" replace />;
 
+  const heroCard = {
+    to: '/redacao/elite',
+    icon: ScanLine,
+    label: 'Scanner Super IA de Elite',
+    desc: 'Escaneie a redação, a IA decifra o garrancho, corrige e gera o PDF profissional Piffer EduTech.',
+    gradient: 'from-violet-600 via-purple-600 to-indigo-700',
+    shadow: 'shadow-purple-500/30',
+  };
+
   const coreEngines = [
-    { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & Seleções', desc: 'Bancas Acadêmicas, Seleções Nacionais e mais', gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20' },
-    { to: '/tecnicos', icon: Cpu, label: 'Técnicos & Institutos', desc: 'Institutos Técnicos, IFs e vestibulinhos', gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20' },
+    { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & Seleções', desc: 'ENEM, UNICAMP, FUVEST, VUNESP', gradient: 'from-blue-600 to-indigo-600', shadow: 'shadow-blue-500/20' },
+    { to: '/tecnicos', icon: Cpu, label: 'Técnicos & Institutos', desc: 'IFs, vestibulinhos e técnicos', gradient: 'from-emerald-500 to-teal-600', shadow: 'shadow-emerald-500/20' },
     { to: '/inclusao', icon: Accessibility, label: 'Inclusão AEE', desc: 'TEA, TDAH, DI e Deficiência Visual', gradient: 'from-cyan-500 to-teal-500', shadow: 'shadow-cyan-500/20' },
     { to: '/redacao', icon: PenLine, label: 'Redação Elite', desc: 'Temas, correção e simulação oficial', gradient: 'from-rose-500 to-pink-600', shadow: 'shadow-rose-500/20' },
     { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', desc: 'Roteiros e apresentações com IA', gradient: 'from-violet-500 to-purple-600', shadow: 'shadow-violet-500/20' },
+    { to: '/mapa-mental', icon: Map, label: 'Infográficos & Mapas', desc: 'Mapas mentais e infográficos visuais', gradient: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-500/20' },
+    { to: '/planejamento', icon: CalendarDays, label: 'Planejamento 360°', desc: 'Planos de aula alinhados à BNCC', gradient: 'from-sky-500 to-blue-600', shadow: 'shadow-sky-500/20' },
+    { to: '/jogos', icon: Gamepad2, label: 'Game Factory', desc: 'Jogos pedagógicos interativos', gradient: 'from-lime-500 to-green-600', shadow: 'shadow-lime-500/20' },
+    { to: '/biblioteca', icon: Library, label: 'Minha Biblioteca', desc: 'Todos os materiais salvos', gradient: 'from-slate-500 to-gray-600', shadow: 'shadow-slate-500/20' },
   ];
 
   const statCards = [
@@ -38,7 +54,6 @@ export default function Index() {
     { label: 'Provas', value: stats.assessments, icon: FileText, gradient: 'from-violet-500 to-purple-600' },
     { label: 'Disciplinas', value: stats.subjects, icon: Layers, gradient: 'from-cyan-500 to-blue-600' },
   ];
-
 
   return (
     <div className="relative max-w-6xl mx-auto min-h-screen -m-4 md:-m-6 lg:-m-8 p-6 md:p-8 lg:p-10 overflow-hidden">
@@ -55,7 +70,7 @@ export default function Index() {
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/15 to-cyan-600/10 pointer-events-none" />
           <div className="relative z-10">
             <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px] uppercase tracking-widest font-bold mb-4">
-              EduCreator Pro 2026
+              EduCreator Pro 2026 — Piffer EduTech
             </Badge>
             <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight">
               Olá, Professor! 👋
@@ -66,29 +81,32 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Omni-Prompt */}
+        {/* HERO CARD — Scanner Super IA */}
         <div className="mb-8">
-          <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-200/60 p-2 flex items-center gap-2 transition-all duration-300 focus-within:ring-4 focus-within:ring-indigo-500/10 focus-within:shadow-[0_8px_40px_rgb(99,102,241,0.08)]">
-            <div className="pl-3 shrink-0">
-              <Sparkles className="h-5 w-5 text-indigo-500 animate-pulse" />
+          <Link to={heroCard.to}>
+            <div className={`relative bg-gradient-to-br ${heroCard.gradient} rounded-[2rem] p-8 sm:p-10 text-white shadow-2xl ${heroCard.shadow} hover:scale-[1.01] transition-all duration-300 cursor-pointer group overflow-hidden`}>
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIxLjUiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wOCkiLz48L3N2Zz4=')] opacity-40" />
+              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm group-hover:scale-110 transition-transform shrink-0">
+                  <heroCard.icon size={40} className="text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles size={16} className="text-yellow-300" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-white/70">Motor Principal</span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black tracking-tight">{heroCard.label}</h2>
+                  <p className="text-sm text-white/70 mt-1 max-w-md">{heroCard.desc}</p>
+                </div>
+                <div className="hidden sm:flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
+                  <Brain size={28} className="text-white/60" />
+                </div>
+              </div>
             </div>
-            <input
-              type="text"
-              value={omniPrompt}
-              onChange={e => setOmniPrompt(e.target.value)}
-              placeholder="Crie uma prova de Biologia sobre Genética para 3ª série..."
-              className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-700 placeholder:text-slate-400 py-3 px-2"
-            />
-            <button className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all">
-              <Paperclip className="h-4 w-4" />
-            </button>
-            <button className="p-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all hover:scale-105">
-              <Send className="h-4 w-4" />
-            </button>
-          </div>
+          </Link>
         </div>
 
-        {/* 5 Core Engines */}
+        {/* Core Engines Grid */}
         <div className="mb-8">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">Motores de Elite</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -121,20 +139,12 @@ export default function Index() {
           ))}
         </div>
 
-        {/* Mission Statement */}
-        <div className="bg-white/90 backdrop-blur-2xl rounded-[3.5rem] border border-slate-200/60 p-8 sm:p-10 mb-6">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-500 mb-3">Nossa Missão</p>
-          <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-medium">
-            "Democratizar a alta performance acadêmica e a inclusão pedagógica através da Inteligência Artificial, capacitando professores e alunos com ferramentas de elite para os desafios nacionais brasileiros."
-          </p>
-        </div>
-
-        {/* Credits */}
-        <div className="text-center py-4">
+        {/* Footer Piffer EduTech */}
+        <div className="text-center py-6 space-y-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-            Idealizador e Criador: <span className="text-slate-600">Matheus Lima Piffer</span>
+            Desenvolvido por <span className="text-slate-600">Matheus Lima Piffer</span>
           </p>
-          <p className="text-[9px] text-slate-300 mt-1">© {new Date().getFullYear()} EduCreator Pro — Todos os direitos reservados</p>
+          <p className="text-[9px] text-slate-300">© 2026 Piffer EduTech — Inovação & Estratégia Pedagógica</p>
         </div>
       </div>
     </div>
