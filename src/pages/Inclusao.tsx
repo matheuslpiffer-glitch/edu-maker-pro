@@ -590,6 +590,17 @@ export default function Inclusao() {
   if (activeView === 'audio') return <ComingSoonView title="Audiodescrição Pedagógica" icon={Volume2} onBack={() => setActiveView('dashboard')} />;
   if (activeView === 'libras') return <ComingSoonView title="Tradutor para Libras (Imagens)" icon={Languages} onBack={() => setActiveView('dashboard')} />;
 
+  /* ── Triagem Neuro View ── */
+  if (activeView === 'triagem') return (
+    <TriagemNeuro
+      onBack={() => setActiveView('dashboard')}
+      onAdaptFromProfile={(profile) => {
+        setSelectedProfiles([profile]);
+        setActiveView('adaptar');
+      }}
+    />
+  );
+
   /* ── Main Adaptar View ── */
   return (
     <div className="max-w-7xl mx-auto space-y-8">
