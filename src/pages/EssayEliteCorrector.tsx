@@ -710,7 +710,8 @@ export default function EssayEliteCorrector() {
     try {
       const blob = await generateElitePDF(result, interventionPlan, studentName, levelLabel, true);
       if (!blob) throw new Error('Falha ao gerar PDF');
-      const fileName = `relatorio_elite_${(studentName || 'aluno').replace(/\s+/g, '_').toLowerCase()}.pdf`;
+      const cleanName = (studentName || 'Aluno').replace(/\s+/g, '_');
+      const fileName = `Relatorio_Redacao_${cleanName}.pdf`;
       const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
 
       // Try native share with file
@@ -722,7 +723,7 @@ export default function EssayEliteCorrector() {
         });
         toast({ title: '✅ Compartilhado com sucesso!' });
       } else {
-        // Fallback: WhatsApp with text summary
+        // Fallback: save PDF locally + open WhatsApp with summary
         const pct = Math.round((result.total_score / result.max_total) * 100);
         const msg = encodeURIComponent(
           `📊 *Relatório de Redação — ${studentName || 'Aluno'}*\n\n` +
@@ -733,13 +734,14 @@ export default function EssayEliteCorrector() {
           `📝 Melhorar: ${(result.improvements || []).slice(0, 2).join('; ')}\n\n` +
           `_Processado pela Super IA do EduCreator Pro — Piffer EduTech_`
         );
-        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
-        toast({ title: '📱 WhatsApp aberto!', description: 'O resumo da nota foi enviado. O PDF foi salvo no dispositivo.' });
-        // Also save the PDF locally as fallback
+        // Download PDF first
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url; a.download = fileName; a.click();
         URL.revokeObjectURL(url);
+        // Then open WhatsApp
+        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+        toast({ title: '📱 PDF salvo + WhatsApp aberto!', description: 'Anexe o PDF baixado na conversa.' });
       }
     } catch (e: any) {
       if (e.name !== 'AbortError') {
