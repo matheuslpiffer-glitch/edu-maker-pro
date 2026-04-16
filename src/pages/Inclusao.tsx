@@ -331,6 +331,7 @@ export default function Inclusao() {
   const [qrOpen, setQrOpen] = useState(false);
   const [specificNecessity, setSpecificNecessity] = useState('');
   const [consultancyTip, setConsultancyTip] = useState('');
+  const [schoolCycle, setSchoolCycle] = useState('');
 
   const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic;
 
