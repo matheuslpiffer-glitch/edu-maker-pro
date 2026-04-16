@@ -13,6 +13,7 @@ import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
+  ArrowLeft, Volume2, Languages, Lightbulb,
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -41,6 +42,60 @@ const SUBJECTS = [
   'Arte', 'Educação Física', 'Inglês', 'Ensino Religioso',
 ];
 
+/* ── Necessity-specific AI adaptation tips ── */
+const NECESSITY_TIPS: Record<string, string> = {
+  'TEA': 'Professor, adaptei este material para TEA utilizando linguagem literal e estrutura previsível, evitando metáforas e figuras de linguagem ambíguas. Sugiro aplicar em ambiente calmo com rotina visual clara.',
+  'TDAH': 'Professor, adaptei esta prova para TDAH destacando palavras-chave em negrito e dividindo textos longos em parágrafos menores com tópicos. Sugiro aplicar em um ambiente com poucos distratores sonoros.',
+  'Dislexia': 'Professor, adaptei este material para Dislexia com maior espaçamento entre linhas, fonte acessível e suporte visual. Sugiro permitir tempo extra e leitura em voz alta se necessário.',
+  'Baixa Visão': 'Professor, adaptei este material para Baixa Visão com fonte ampliada (14pt+), alto contraste e descrições textuais detalhadas de imagens. Sugiro imprimir em papel fosco.',
+  'Surdez': 'Professor, adaptei este material para alunos Surdos priorizando recursos visuais, imagens e linguagem direta. Sugiro disponibilizar intérprete de Libras durante a aplicação.',
+  'Altas Habilidades': 'Professor, este material foi enriquecido para Altas Habilidades com questões de aprofundamento e desafios extras. Sugiro oferecer projetos de pesquisa complementares.',
+};
+
+const NECESSITY_OPTIONS = ['TEA', 'TDAH', 'Dislexia', 'Baixa Visão', 'Surdez', 'Altas Habilidades'];
+
+/* ── Dashboard Cards ── */
+const INCLUSION_CARDS = [
+  {
+    id: 'adaptar' as const,
+    title: 'Adaptar Avaliação',
+    desc: 'Adapte provas e materiais com IA especializada em DUA',
+    icon: RefreshCw,
+    gradient: 'from-purple-600 to-violet-700',
+    shadow: 'shadow-purple-500/30',
+    bgAccent: 'bg-purple-500/10',
+  },
+  {
+    id: 'tdah' as const,
+    title: 'Criar Trilha TDAH',
+    desc: 'Conteúdos curtos com estímulos visuais e micro-learning',
+    icon: Zap,
+    gradient: 'from-blue-600 to-cyan-600',
+    shadow: 'shadow-blue-500/30',
+    bgAccent: 'bg-blue-500/10',
+  },
+  {
+    id: 'audio' as const,
+    title: 'Audiodescrição Pedagógica',
+    desc: 'Materiais acessíveis para alunos com deficiência visual',
+    icon: Volume2,
+    gradient: 'from-emerald-600 to-teal-600',
+    shadow: 'shadow-emerald-500/30',
+    bgAccent: 'bg-emerald-500/10',
+  },
+  {
+    id: 'libras' as const,
+    title: 'Tradutor para Libras',
+    desc: 'Geração de imagens e roteiros visuais em Libras',
+    icon: Languages,
+    gradient: 'from-orange-500 to-amber-600',
+    shadow: 'shadow-orange-500/30',
+    bgAccent: 'bg-orange-500/10',
+  },
+];
+
+type ActiveView = 'dashboard' | 'adaptar' | 'tdah' | 'audio' | 'libras';
+
 function cleanHtml(raw: string): string {
   return raw
     .replace(/```html\s*/gi, '')
@@ -54,10 +109,6 @@ function cleanHtml(raw: string): string {
     .trim();
 }
 
-/**
- * Sanitize text fields (options, plain text) — strips LaTeX delimiters and HTML tags.
- * Keeps only plain Unicode text safe for screen readers and any browser.
- */
 function sanitizeText(text: string): string {
   if (!text) return '';
   return text
@@ -219,11 +270,33 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
   );
 }
 
+/* ── Coming Soon Card ── */
+function ComingSoonView({ title, icon: Icon, onBack }: { title: string; icon: React.ElementType; onBack: () => void }) {
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      <Button variant="ghost" onClick={onBack} className="gap-2 rounded-xl">
+        <ArrowLeft className="h-4 w-4" /> Voltar
+      </Button>
+      <div className="bg-card rounded-[3rem] border p-12 text-center space-y-4">
+        <div className="h-16 w-16 mx-auto rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+          <Icon className="h-8 w-8 text-white" />
+        </div>
+        <h2 className="text-2xl font-black text-foreground">{title}</h2>
+        <p className="text-muted-foreground text-sm max-w-md mx-auto">
+          Este módulo está em desenvolvimento e será liberado em breve. Fique atento às atualizações do EduCreator Pro!
+        </p>
+        <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-xs font-bold">EM BREVE</Badge>
+      </div>
+    </div>
+  );
+}
+
 export default function Inclusao() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { addQuestions } = useSavedQuestionsBank();
 
+  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
   const [subject, setSubject] = useState('');
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [aeeMode, setAeeMode] = useState<'gerar_novas' | 'adaptar_antigas' | 'texto_resumo'>('gerar_novas');
@@ -238,6 +311,8 @@ export default function Inclusao() {
   const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
   const [savedAccessCode, setSavedAccessCode] = useState('');
   const [qrOpen, setQrOpen] = useState(false);
+  const [specificNecessity, setSpecificNecessity] = useState('');
+  const [consultancyTip, setConsultancyTip] = useState('');
 
   const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic;
 
@@ -256,6 +331,7 @@ export default function Inclusao() {
     setResult(null);
     setGeneratedImages({});
     setSavedAccessCode('');
+    setConsultancyTip('');
     try {
       const data = await fetchAeeWithRetry({
         isInclusao: true,
@@ -268,6 +344,7 @@ export default function Inclusao() {
         aeeQuestionType: questionType,
         aeeImageMode: imageMode,
         specificTopic: topic,
+        specificNecessity,
       });
       if (data?.error) throw new Error(data.error);
       if (data?.questions) {
@@ -282,6 +359,15 @@ export default function Inclusao() {
           options: q.options,
           dataCriacao: new Date().toISOString(),
         })));
+
+        // Generate consultancy tip
+        if (specificNecessity && NECESSITY_TIPS[specificNecessity]) {
+          setConsultancyTip(NECESSITY_TIPS[specificNecessity]);
+        } else if (selectedProfiles.length > 0) {
+          const profileLabel = AEE_PROFILES.find(p => p.value === selectedProfiles[0])?.label || '';
+          setConsultancyTip(`Professor, este material foi adaptado com foco em ${profileLabel}, seguindo as diretrizes do Desenho Universal para a Aprendizagem (DUA). Sugiro revisar o ambiente de aplicação para minimizar barreiras.`);
+        }
+
         toast({ title: '✅ Material AEE gerado com sucesso!' });
       }
     } catch (e: any) {
@@ -425,25 +511,91 @@ export default function Inclusao() {
     indigo: { bg: 'bg-indigo-50', border: 'border-indigo-500', text: 'text-indigo-600', shadow: 'shadow-indigo-500/20' },
   };
 
+  /* ── Dashboard View ── */
+  if (activeView === 'dashboard') {
+    return (
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Hero */}
+        <div className="bg-[#0F172A] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 to-teal-600/10 pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                <Accessibility className="h-6 w-6 text-white" />
+              </div>
+              <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 text-[10px] uppercase tracking-widest font-bold">
+                Inclusão AEE
+              </Badge>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black leading-tight">
+              Educação para Todos,<br />Sem Exceção.
+            </h2>
+            <p className="text-sm text-slate-400 mt-3 max-w-md leading-relaxed">
+              IA especializada em Desenho Universal para a Aprendizagem. Crie materiais adaptados por perfil com imagens de apoio visual.
+            </p>
+          </div>
+        </div>
+
+        {/* Feature Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {INCLUSION_CARDS.map(card => {
+            const Icon = card.icon;
+            return (
+              <button
+                key={card.id}
+                onClick={() => setActiveView(card.id)}
+                className={`group relative p-6 sm:p-8 rounded-[2rem] border bg-card text-left transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${card.shadow}`}
+              >
+                <div className={`absolute inset-0 rounded-[2rem] ${card.bgAccent} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                <div className="relative z-10 space-y-3">
+                  <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-lg`}>
+                    <Icon className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-lg font-black text-foreground">{card.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{card.desc}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground">
+          Tecnologia Assistiva Autoral por Matheus Lima Piffer · Sistema de Inclusão Blindado · EduCreator Pro
+        </p>
+      </div>
+    );
+  }
+
+  /* ── Coming Soon Views ── */
+  if (activeView === 'tdah') return <ComingSoonView title="Criar Trilha TDAH" icon={Zap} onBack={() => setActiveView('dashboard')} />;
+  if (activeView === 'audio') return <ComingSoonView title="Audiodescrição Pedagógica" icon={Volume2} onBack={() => setActiveView('dashboard')} />;
+  if (activeView === 'libras') return <ComingSoonView title="Tradutor para Libras (Imagens)" icon={Languages} onBack={() => setActiveView('dashboard')} />;
+
+  /* ── Main Adaptar View ── */
   return (
     <div className="max-w-7xl mx-auto space-y-8">
+      {/* Back button */}
+      <Button variant="ghost" onClick={() => setActiveView('dashboard')} className="gap-2 rounded-xl">
+        <ArrowLeft className="h-4 w-4" /> Voltar para Inclusão
+      </Button>
+
       {/* Hero */}
       <div className="bg-[#0F172A] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 to-teal-600/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-violet-600/10 pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-              <Accessibility className="h-6 w-6 text-white" />
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <RefreshCw className="h-6 w-6 text-white" />
             </div>
-            <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 text-[10px] uppercase tracking-widest font-bold">
-              Inclusão AEE
+            <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-[10px] uppercase tracking-widest font-bold">
+              Adaptar Avaliação
             </Badge>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black leading-tight">
-            Educação para Todos,<br />Sem Exceção.
+            Adaptar Material / Prova
           </h2>
           <p className="text-sm text-slate-400 mt-3 max-w-md leading-relaxed">
-            IA especializada em Desenho Universal para a Aprendizagem. Crie materiais adaptados por perfil com imagens de apoio visual.
+            A IA adapta materiais pedagógicos inteiros com base no Desenho Universal para a Aprendizagem (DUA).
           </p>
         </div>
       </div>
@@ -451,6 +603,31 @@ export default function Inclusao() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Left: form */}
         <div className="lg:col-span-3 space-y-6">
+          {/* Necessidade Específica */}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Defina a Necessidade Específica
+            </Label>
+            <Select value={specificNecessity} onValueChange={setSpecificNecessity}>
+              <SelectTrigger className="rounded-2xl">
+                <SelectValue placeholder="Selecione a necessidade (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {NECESSITY_OPTIONS.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {specificNecessity && (
+              <p className="text-[10px] text-purple-600 font-semibold animate-in fade-in">
+                ✨ A IA ajustará automaticamente: {specificNecessity === 'TEA' ? 'linguagem literal, sem metáforas' :
+                  specificNecessity === 'TDAH' ? 'instruções curtas, tópicos, negritos' :
+                  specificNecessity === 'Dislexia' ? 'espaçamento amplo, suporte visual' :
+                  specificNecessity === 'Baixa Visão' ? 'fonte 14pt+, alto contraste' :
+                  specificNecessity === 'Surdez' ? 'prioridade visual, linguagem direta' :
+                  'enriquecimento e desafios extras'}
+              </p>
+            )}
+          </div>
+
           {/* STEP 1 — Disciplina */}
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -586,7 +763,7 @@ export default function Inclusao() {
                 onClick={handleGenerate}
                 disabled={generating || !canGenerate}
                 size="lg"
-                className="w-full rounded-2xl text-white shadow-lg bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700"
+                className="w-full rounded-2xl text-white shadow-lg bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700"
               >
                 {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Accessibility className="h-4 w-4 mr-2" />}
                 {generating ? 'Gerando...' : 'GERAR ATIVIDADE INCLUSIVA'}
@@ -609,13 +786,13 @@ export default function Inclusao() {
                     onClick={() => setAeeMode(mode.id)}
                     className={`w-full p-3 rounded-xl border-2 text-left transition-all flex items-center gap-3 ${
                       isSelected
-                        ? 'bg-cyan-50 border-cyan-500 shadow-md'
+                        ? 'bg-purple-50 border-purple-500 shadow-md'
                         : 'bg-card border-transparent hover:border-border'
                     }`}
                   >
-                    <Icon className={`h-4 w-4 shrink-0 ${isSelected ? 'text-cyan-600' : 'text-muted-foreground'}`} />
+                    <Icon className={`h-4 w-4 shrink-0 ${isSelected ? 'text-purple-600' : 'text-muted-foreground'}`} />
                     <div>
-                      <span className={`text-xs font-bold block ${isSelected ? 'text-cyan-700' : 'text-foreground'}`}>{mode.label}</span>
+                      <span className={`text-xs font-bold block ${isSelected ? 'text-purple-700' : 'text-foreground'}`}>{mode.label}</span>
                       <span className="text-[10px] text-muted-foreground">{mode.desc}</span>
                     </div>
                   </button>
@@ -637,6 +814,17 @@ export default function Inclusao() {
       {result && result.length > 0 && (
         <div className="bg-card rounded-[3rem] border p-8 space-y-6">
           <h3 className="text-lg font-black text-foreground">📋 Material Gerado</h3>
+
+          {/* Consultancy Tip */}
+          {consultancyTip && (
+            <div className="flex items-start gap-3 p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200">
+              <Lightbulb className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-black text-amber-800 uppercase tracking-wider mb-1">💡 Consultoria de Acessibilidade IA</p>
+                <p className="text-sm text-amber-900 leading-relaxed">{consultancyTip}</p>
+              </div>
+            </div>
+          )}
 
           {/* PIN badge */}
           {savedAccessCode && (
@@ -690,7 +878,6 @@ export default function Inclusao() {
                   </div>
                 )}
 
-                {/* Existing AI-generated image */}
                 {q.imageUrl && (
                   <img
                     src={q.imageUrl}
@@ -707,7 +894,6 @@ export default function Inclusao() {
                   />
                 )}
 
-                {/* Generated image */}
                 {generatedImages[i] && !q.imageUrl && (
                   <img
                     src={generatedImages[i]}
@@ -724,7 +910,6 @@ export default function Inclusao() {
                   />
                 )}
 
-                {/* Per-question image generator */}
                 {imageMode === 'com_imagem' && (
                   <QuestionImageGenerator
                     questionIndex={i}
@@ -732,7 +917,6 @@ export default function Inclusao() {
                   />
                 )}
 
-                {/* Text-only badge */}
                 {imageMode === 'somente_texto' && (
                   <div className="flex items-center gap-2 p-3 rounded-xl bg-teal-50 border border-teal-200 text-teal-700 text-xs font-medium">
                     <CheckCircle2 className="h-4 w-4 shrink-0" />
@@ -749,7 +933,7 @@ export default function Inclusao() {
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Salvar Atividade
             </Button>
-            <Button onClick={handleSaveToBank} disabled={saving} className="rounded-2xl gap-2 bg-gradient-to-r from-cyan-600 to-teal-600 text-white hover:from-cyan-700 hover:to-teal-700">
+            <Button onClick={handleSaveToBank} disabled={saving} className="rounded-2xl gap-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white hover:from-purple-700 hover:to-violet-700">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
               Enviar para Aluno (PIN)
             </Button>
