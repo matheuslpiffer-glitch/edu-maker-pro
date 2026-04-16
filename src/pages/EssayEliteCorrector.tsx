@@ -166,7 +166,8 @@ async function generateElitePDF(
   plan: InterventionPlan | null,
   studentName: string,
   levelLabel: string,
-) {
+  returnBlob = false,
+): Promise<Blob | void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
