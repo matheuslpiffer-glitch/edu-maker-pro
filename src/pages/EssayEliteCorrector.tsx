@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle, Trophy, TrendingUp, Star, BookOpen, Target, Clock, Lightbulb, CheckCircle2, Share2, FileText } from 'lucide-react';
+import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle, Trophy, TrendingUp, Star, BookOpen, Target, Clock, Lightbulb, CheckCircle2, Share2, FileText, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -166,7 +166,8 @@ async function generateElitePDF(
   plan: InterventionPlan | null,
   studentName: string,
   levelLabel: string,
-) {
+  returnBlob = false,
+): Promise<Blob | void> {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -448,6 +449,9 @@ async function generateElitePDF(
     doc.text('Versão Digital', qrX + qrSize / 2, qrY + qrSize + 3, { align: 'center' });
   }
 
+  if (returnBlob) {
+    return doc.output('blob');
+  }
   doc.save(`relatorio_elite_${(studentName || 'aluno').replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`);
 }
 
@@ -467,7 +471,7 @@ export default function EssayEliteCorrector() {
   const [result, setResult] = useState<EliteResult | null>(null);
   const [interventionPlan, setInterventionPlan] = useState<InterventionPlan | null>(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
-
+  const [sharing, setSharing] = useState(false);
   // Restore accepted scan from storage on mount
   useEffect(() => {
     const cachedCapture = readStoredScannerCapture();
@@ -651,6 +655,53 @@ export default function EssayEliteCorrector() {
     } else {
       navigator.clipboard.writeText(text);
       toast({ title: 'Copiado!', description: 'Plano copiado para a área de transferência.' });
+    }
+  };
+
+  const handleShareReport = async () => {
+    if (!result) return;
+    setSharing(true);
+    try {
+      const blob = await generateElitePDF(result, interventionPlan, studentName, levelLabel, true);
+      if (!blob) throw new Error('Falha ao gerar PDF');
+      const fileName = `relatorio_elite_${(studentName || 'aluno').replace(/\s+/g, '_').toLowerCase()}.pdf`;
+      const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+
+      // Try native share with file
+      if (navigator.share && navigator.canShare?.({ files: [pdfFile] })) {
+        await navigator.share({
+          title: `Relatório de Redação - ${studentName || 'Aluno'}`,
+          text: 'Olá! Segue o relatório de desempenho da redação processado pela Super IA do EduCreator Pro. Produzido por Piffer EduTech.',
+          files: [pdfFile],
+        });
+        toast({ title: '✅ Compartilhado com sucesso!' });
+      } else {
+        // Fallback: WhatsApp with text summary
+        const pct = Math.round((result.total_score / result.max_total) * 100);
+        const msg = encodeURIComponent(
+          `📊 *Relatório de Redação — ${studentName || 'Aluno'}*\n\n` +
+          `📝 Nível: ${levelLabel}\n` +
+          `🎯 Nota: ${result.total_score}/${result.max_total} (${pct}%)\n\n` +
+          `${result.scores.map(s => `• ${s.criteria}: ${s.score}/${s.max}`).join('\n')}\n\n` +
+          `✅ Pontos fortes: ${(result.strengths || []).slice(0, 2).join('; ')}\n` +
+          `📝 Melhorar: ${(result.improvements || []).slice(0, 2).join('; ')}\n\n` +
+          `_Processado pela Super IA do EduCreator Pro — Piffer EduTech_`
+        );
+        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+        toast({ title: '📱 WhatsApp aberto!', description: 'O resumo da nota foi enviado. O PDF foi salvo no dispositivo.' });
+        // Also save the PDF locally as fallback
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName; a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e: any) {
+      if (e.name !== 'AbortError') {
+        console.error('[handleShareReport]', e);
+        toast({ title: '❌ Erro ao compartilhar', description: e.message, variant: 'destructive' });
+      }
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -992,12 +1043,23 @@ export default function EssayEliteCorrector() {
                 </CardContent>
               </Card>
 
-              <div className="flex justify-end gap-2 no-print">
+              <div className="flex flex-wrap justify-end gap-2 no-print">
+                <Button
+                  onClick={handleShareReport}
+                  disabled={sharing}
+                  className="rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/25"
+                >
+                  {sharing ? (
+                    <><Loader2 size={16} className="mr-2 animate-spin" /> PREPARANDO ARQUIVO...</>
+                  ) : (
+                    <><MessageCircle size={16} className="mr-2" /> ENVIAR P/ WHATSAPP</>
+                  )}
+                </Button>
                 <Button
                   onClick={() => generateElitePDF(result, interventionPlan, studentName, levelLabel)}
                   className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg"
                 >
-                  <FileText size={16} className="mr-2" /> GERAR RELATÓRIO OFICIAL (PDF)
+                  <FileText size={16} className="mr-2" /> GERAR PDF
                 </Button>
                 <Button variant="outline" onClick={() => window.print()} className="rounded-xl">
                   <Printer size={16} className="mr-2" /> IMPRIMIR
