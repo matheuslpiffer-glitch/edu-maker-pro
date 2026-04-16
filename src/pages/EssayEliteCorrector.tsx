@@ -449,6 +449,9 @@ async function generateElitePDF(
     doc.text('Versão Digital', qrX + qrSize / 2, qrY + qrSize + 3, { align: 'center' });
   }
 
+  if (returnBlob) {
+    return doc.output('blob');
+  }
   doc.save(`relatorio_elite_${(studentName || 'aluno').replace(/\s+/g, '_').toLowerCase()}_${Date.now()}.pdf`);
 }
 
