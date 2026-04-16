@@ -20,6 +20,7 @@ export const SUBJECT_CATEGORIES: SubjectCategory[] = [
       { name: 'Arte', icon: '🎨', color: 'pink', bnccPrefix: 'EF/EM – AR' },
       { name: 'Educação Física', icon: '⚽', color: 'indigo', bnccPrefix: 'EF/EM – EF' },
       { name: 'Língua Inglesa', icon: '🌍', color: 'cyan', bnccPrefix: 'EF/EM – LI' },
+      { name: 'Língua Espanhola', icon: '🇪🇸', color: 'red', bnccPrefix: 'EM – LE' },
     ],
   },
   {
