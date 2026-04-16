@@ -13,12 +13,13 @@ import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
-  ArrowLeft, Volume2, Languages, Lightbulb,
+  ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { buildPinUrl } from '@/lib/public-links';
 import QRCodeModal from '@/components/QRCodeModal';
+import TriagemNeuro from '@/components/TriagemNeuro';
 
 /* ── Profiles ── */
 const AEE_PROFILES = [
@@ -92,9 +93,26 @@ const INCLUSION_CARDS = [
     shadow: 'shadow-orange-500/30',
     bgAccent: 'bg-orange-500/10',
   },
+  {
+    id: 'triagem' as const,
+    title: 'Triagem e Anamnese Neuro',
+    desc: 'Questionários SNAP-IV e M-CHAT com relatório de apoio pedagógico',
+    icon: Stethoscope,
+    gradient: 'from-rose-600 to-pink-600',
+    shadow: 'shadow-rose-500/30',
+    bgAccent: 'bg-rose-500/10',
+  },
 ];
 
-type ActiveView = 'dashboard' | 'adaptar' | 'tdah' | 'audio' | 'libras';
+const CYCLE_OPTIONS = [
+  { value: 'infantil', label: 'Educação Infantil' },
+  { value: 'anos_iniciais', label: 'Anos Iniciais (1º ao 5º)' },
+  { value: 'anos_finais', label: 'Anos Finais (6º ao 9º)' },
+  { value: 'medio', label: 'Ensino Médio' },
+  { value: 'eja', label: 'EJA' },
+];
+
+type ActiveView = 'dashboard' | 'adaptar' | 'tdah' | 'audio' | 'libras' | 'triagem';
 
 function cleanHtml(raw: string): string {
   return raw
@@ -313,8 +331,9 @@ export default function Inclusao() {
   const [qrOpen, setQrOpen] = useState(false);
   const [specificNecessity, setSpecificNecessity] = useState('');
   const [consultancyTip, setConsultancyTip] = useState('');
+  const [schoolCycle, setSchoolCycle] = useState('');
 
-  const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic;
+  const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic && !!schoolCycle;
 
   const toggleProfile = (value: string) => {
     setSelectedProfiles(prev =>
@@ -345,6 +364,7 @@ export default function Inclusao() {
         aeeImageMode: imageMode,
         specificTopic: topic,
         specificNecessity,
+        schoolCycle,
       });
       if (data?.error) throw new Error(data.error);
       if (data?.questions) {
@@ -571,6 +591,17 @@ export default function Inclusao() {
   if (activeView === 'audio') return <ComingSoonView title="Audiodescrição Pedagógica" icon={Volume2} onBack={() => setActiveView('dashboard')} />;
   if (activeView === 'libras') return <ComingSoonView title="Tradutor para Libras (Imagens)" icon={Languages} onBack={() => setActiveView('dashboard')} />;
 
+  /* ── Triagem Neuro View ── */
+  if (activeView === 'triagem') return (
+    <TriagemNeuro
+      onBack={() => setActiveView('dashboard')}
+      onAdaptFromProfile={(profile) => {
+        setSelectedProfiles([profile]);
+        setActiveView('adaptar');
+      }}
+    />
+  );
+
   /* ── Main Adaptar View ── */
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -603,6 +634,30 @@ export default function Inclusao() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Left: form */}
         <div className="lg:col-span-3 space-y-6">
+          {/* Ciclo Escolar */}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <GraduationCap className="h-3.5 w-3.5" /> Ciclo / Série <span className="text-destructive">*</span>
+            </Label>
+            <Select value={schoolCycle} onValueChange={setSchoolCycle}>
+              <SelectTrigger className="rounded-2xl">
+                <SelectValue placeholder="Selecione o ciclo escolar" />
+              </SelectTrigger>
+              <SelectContent>
+                {CYCLE_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {schoolCycle && (
+              <p className="text-[10px] text-cyan-600 font-semibold animate-in fade-in">
+                🎯 IA ajustará: {schoolCycle === 'infantil' ? 'foco lúdico/imagético, linguagem simples, estímulos visuais amplos' :
+                  schoolCycle === 'anos_iniciais' ? 'linguagem acessível, ilustrações de apoio, enunciados curtos' :
+                  schoolCycle === 'anos_finais' ? 'enunciados intermediários, vocabulário progressivo' :
+                  schoolCycle === 'medio' ? 'linguagem estrutural/objetiva, abordagem formal' :
+                  'linguagem adulta, contextos práticos do cotidiano'}
+              </p>
+            )}
+          </div>
+
           {/* Necessidade Específica */}
           <div className="space-y-2">
             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
