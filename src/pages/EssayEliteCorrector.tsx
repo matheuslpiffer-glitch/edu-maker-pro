@@ -1043,12 +1043,23 @@ export default function EssayEliteCorrector() {
                 </CardContent>
               </Card>
 
-              <div className="flex justify-end gap-2 no-print">
+              <div className="flex flex-wrap justify-end gap-2 no-print">
+                <Button
+                  onClick={handleShareReport}
+                  disabled={sharing}
+                  className="rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/25"
+                >
+                  {sharing ? (
+                    <><Loader2 size={16} className="mr-2 animate-spin" /> PREPARANDO ARQUIVO...</>
+                  ) : (
+                    <><MessageCircle size={16} className="mr-2" /> ENVIAR P/ WHATSAPP</>
+                  )}
+                </Button>
                 <Button
                   onClick={() => generateElitePDF(result, interventionPlan, studentName, levelLabel)}
                   className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg"
                 >
-                  <FileText size={16} className="mr-2" /> GERAR RELATÓRIO OFICIAL (PDF)
+                  <FileText size={16} className="mr-2" /> GERAR PDF
                 </Button>
                 <Button variant="outline" onClick={() => window.print()} className="rounded-xl">
                   <Printer size={16} className="mr-2" /> IMPRIMIR
