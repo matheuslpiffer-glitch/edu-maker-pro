@@ -13,12 +13,13 @@ import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
-  ArrowLeft, Volume2, Languages, Lightbulb,
+  ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { buildPinUrl } from '@/lib/public-links';
 import QRCodeModal from '@/components/QRCodeModal';
+import TriagemNeuro from '@/components/TriagemNeuro';
 
 /* ── Profiles ── */
 const AEE_PROFILES = [
@@ -92,9 +93,26 @@ const INCLUSION_CARDS = [
     shadow: 'shadow-orange-500/30',
     bgAccent: 'bg-orange-500/10',
   },
+  {
+    id: 'triagem' as const,
+    title: 'Triagem e Anamnese Neuro',
+    desc: 'Questionários SNAP-IV e M-CHAT com relatório de apoio pedagógico',
+    icon: Stethoscope,
+    gradient: 'from-rose-600 to-pink-600',
+    shadow: 'shadow-rose-500/30',
+    bgAccent: 'bg-rose-500/10',
+  },
 ];
 
-type ActiveView = 'dashboard' | 'adaptar' | 'tdah' | 'audio' | 'libras';
+const CYCLE_OPTIONS = [
+  { value: 'infantil', label: 'Educação Infantil' },
+  { value: 'anos_iniciais', label: 'Anos Iniciais (1º ao 5º)' },
+  { value: 'anos_finais', label: 'Anos Finais (6º ao 9º)' },
+  { value: 'medio', label: 'Ensino Médio' },
+  { value: 'eja', label: 'EJA' },
+];
+
+type ActiveView = 'dashboard' | 'adaptar' | 'tdah' | 'audio' | 'libras' | 'triagem';
 
 function cleanHtml(raw: string): string {
   return raw
