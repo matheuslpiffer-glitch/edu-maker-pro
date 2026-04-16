@@ -333,7 +333,7 @@ export default function Inclusao() {
   const [consultancyTip, setConsultancyTip] = useState('');
   const [schoolCycle, setSchoolCycle] = useState('');
 
-  const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic;
+  const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic && !!schoolCycle;
 
   const toggleProfile = (value: string) => {
     setSelectedProfiles(prev =>
@@ -364,6 +364,7 @@ export default function Inclusao() {
         aeeImageMode: imageMode,
         specificTopic: topic,
         specificNecessity,
+        schoolCycle,
       });
       if (data?.error) throw new Error(data.error);
       if (data?.questions) {
