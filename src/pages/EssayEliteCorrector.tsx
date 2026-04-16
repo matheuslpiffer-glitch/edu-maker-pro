@@ -658,6 +658,53 @@ export default function EssayEliteCorrector() {
     }
   };
 
+  const handleShareReport = async () => {
+    if (!result) return;
+    setSharing(true);
+    try {
+      const blob = await generateElitePDF(result, interventionPlan, studentName, levelLabel, true);
+      if (!blob) throw new Error('Falha ao gerar PDF');
+      const fileName = `relatorio_elite_${(studentName || 'aluno').replace(/\s+/g, '_').toLowerCase()}.pdf`;
+      const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+
+      // Try native share with file
+      if (navigator.share && navigator.canShare?.({ files: [pdfFile] })) {
+        await navigator.share({
+          title: `Relatório de Redação - ${studentName || 'Aluno'}`,
+          text: 'Olá! Segue o relatório de desempenho da redação processado pela Super IA do EduCreator Pro. Produzido por Piffer EduTech.',
+          files: [pdfFile],
+        });
+        toast({ title: '✅ Compartilhado com sucesso!' });
+      } else {
+        // Fallback: WhatsApp with text summary
+        const pct = Math.round((result.total_score / result.max_total) * 100);
+        const msg = encodeURIComponent(
+          `📊 *Relatório de Redação — ${studentName || 'Aluno'}*\n\n` +
+          `📝 Nível: ${levelLabel}\n` +
+          `🎯 Nota: ${result.total_score}/${result.max_total} (${pct}%)\n\n` +
+          `${result.scores.map(s => `• ${s.criteria}: ${s.score}/${s.max}`).join('\n')}\n\n` +
+          `✅ Pontos fortes: ${(result.strengths || []).slice(0, 2).join('; ')}\n` +
+          `📝 Melhorar: ${(result.improvements || []).slice(0, 2).join('; ')}\n\n` +
+          `_Processado pela Super IA do EduCreator Pro — Piffer EduTech_`
+        );
+        window.open(`https://api.whatsapp.com/send?text=${msg}`, '_blank');
+        toast({ title: '📱 WhatsApp aberto!', description: 'O resumo da nota foi enviado. O PDF foi salvo no dispositivo.' });
+        // Also save the PDF locally as fallback
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName; a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (e: any) {
+      if (e.name !== 'AbortError') {
+        console.error('[handleShareReport]', e);
+        toast({ title: '❌ Erro ao compartilhar', description: e.message, variant: 'destructive' });
+      }
+    } finally {
+      setSharing(false);
+    }
+  };
+
   const levelLabel = level === 'ensino_medio'
     ? SUB_LEVELS.find(s => s.value === subLevel)?.label || 'ENSINO MÉDIO'
     : LEVELS.find(l => l.value === level)?.label || '';
