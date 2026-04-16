@@ -202,7 +202,7 @@ async function generateElitePDF(
     doc.setFontSize(6.5);
     doc.setTextColor(140, 140, 140);
     doc.text(`Página ${page}/${total}`, ML, H - 11);
-    doc.text('© 2026 PIFFER EDUTECH — INOVAÇÃO & ESTRATÉGIA PEDAGÓGICA', W / 2, H - 11, { align: 'center' });
+    doc.text('Análise fundamentada nas diretrizes oficiais BNCC/ENEM via tecnologia Piffer EduTech © 2026', W / 2, H - 11, { align: 'center' });
     doc.text(now, W - MR, H - 11, { align: 'right' });
   }
 
