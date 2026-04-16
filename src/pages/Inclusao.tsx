@@ -556,15 +556,70 @@ export default function Inclusao() {
           </div>
         </div>
 
-        {/* Selo de Garantia Pedagógica */}
-        <div className="flex items-center justify-center gap-3 p-4 rounded-2xl border border-amber-300/50 bg-gradient-to-r from-amber-50/80 to-yellow-50/80">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
-            <GraduationCap className="h-5 w-5 text-white" />
+        {/* Welcome Introduction */}
+        <div className="rounded-[2.5rem] border border-sky-200/60 bg-gradient-to-br from-sky-50/80 via-white to-blue-50/60 p-8 sm:p-10 space-y-5">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
+              <Brain className="h-6 w-6 text-white" />
+            </div>
+            <h3 className="text-lg sm:text-xl font-black text-foreground leading-tight">
+              Bem-vindo ao Centro de Apoio Especializado Piffer EduTech 🧠
+            </h3>
           </div>
-          <div>
-            <p className="text-xs font-black text-amber-800 uppercase tracking-wider">Selo de Garantia Pedagógica</p>
-            <p className="text-[10px] text-amber-700 leading-tight">Análise baseada em Protocolos de Neurociência Clínica · DSM-5-TR · CID-11</p>
+
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Professor(a), você acaba de acessar uma ferramenta de elite fundamentada nos protocolos globais de neurociência e no Desenho Universal para a Aprendizagem (DUA).
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Nossa Inteligência Artificial atua como uma consultora especialista em neurodesenvolvimento para te ajudar a:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/70 border border-sky-100">
+              <Stethoscope className="h-5 w-5 text-sky-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-black text-foreground">Identificar Sinais</p>
+                <p className="text-[11px] text-muted-foreground leading-snug">Realizar triagens técnicas de suspeita (TEA, TDAH, Dislexia e outros).</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/70 border border-sky-100">
+              <Eye className="h-5 w-5 text-violet-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-black text-foreground">Analisar o Desenvolvimento</p>
+                <p className="text-[11px] text-muted-foreground leading-snug">Avaliar a coordenação motora fina através da caligrafia do aluno.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4 rounded-2xl bg-white/70 border border-sky-100">
+              <Sparkles className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-black text-foreground">Adaptar com Precisão</p>
+                <p className="text-[11px] text-muted-foreground leading-snug">Gerar materiais personalizados por ciclo escolar que removem barreiras de aprendizagem.</p>
+              </div>
+            </div>
           </div>
+
+          <p className="text-xs text-muted-foreground italic leading-relaxed border-l-4 border-sky-300 pl-4">
+            Lembre-se: Este é um suporte pedagógico de alta precisão para embasar suas decisões e encaminhamentos. Juntos, garantimos o direito de aprender de cada aluno.
+          </p>
+
+          {/* Selo de Garantia Pedagógica */}
+          <div className="flex items-center gap-3 p-4 rounded-2xl border border-amber-300/50 bg-gradient-to-r from-amber-50/80 to-yellow-50/80">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+              <GraduationCap className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="text-xs font-black text-amber-800 uppercase tracking-wider">Selo de Garantia Pedagógica</p>
+              <p className="text-[10px] text-amber-700 leading-tight">Análise baseada em Protocolos de Neurociência Clínica · DSM-5-TR · CID-11</p>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => setActiveView('triagem')}
+            className="w-full sm:w-auto rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 text-white font-black py-5 px-8 text-sm hover:from-sky-600 hover:to-blue-700 shadow-lg shadow-sky-500/30 transition-all"
+          >
+            <Sparkles className="mr-2 h-4 w-4" />
+            Iniciar Nova Triagem ou Adaptação
+          </Button>
         </div>
 
         {/* Feature Cards */}
