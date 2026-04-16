@@ -471,7 +471,7 @@ export default function EssayEliteCorrector() {
   const [result, setResult] = useState<EliteResult | null>(null);
   const [interventionPlan, setInterventionPlan] = useState<InterventionPlan | null>(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
-
+  const [sharing, setSharing] = useState(false);
   // Restore accepted scan from storage on mount
   useEffect(() => {
     const cachedCapture = readStoredScannerCapture();
