@@ -10,7 +10,7 @@ export default function Infograficos() {
           <Workflow className="h-5 w-5 text-white" />
         </div>
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Mapas Mentais Maker</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Gerador de Processos</p>
           <h1 className="text-2xl font-bold text-slate-900">Gerador de Infográficos de Processos</h1>
         </div>
       </div>

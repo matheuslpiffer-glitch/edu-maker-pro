@@ -125,6 +125,7 @@ function AppRoutes() {
             <Route path="/portal-aluno/arena-redacao" element={<StudentEssayArena />} />
             <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
             <Route path="/portal-aluno/literatura" element={<LiteraturaView />} />
+            <Route path="/infograficos" element={<Infograficos />} />
             <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
             <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
             <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
