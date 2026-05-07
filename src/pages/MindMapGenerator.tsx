@@ -14,7 +14,6 @@ import MindMapVisual from '@/components/mindmap/MindMapVisual';
 import MindMapQuestions from '@/components/mindmap/MindMapQuestions';
  import StudySchedule from '@/components/mindmap/StudySchedule';
  import TeacherGuide from '@/components/mindmap/TeacherGuide';
- import GeradorInfograficoProcesso from '@/components/mindmap/GeradorInfograficoProcesso';
  import type { MindMapData, MindMapQuestion } from '@/components/mindmap/MindMapVisual';
 import type { StudyDay } from '@/components/mindmap/StudySchedule';
  import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
@@ -314,13 +313,6 @@ TUDO EM MAIÚSCULAS.`;
        </div>
 
        <Tabs defaultValue="mindmap" className="w-full">
-         <div className="flex justify-center mb-6 no-print">
-           <TabsList className="grid w-full max-w-md grid-cols-2">
-             <TabsTrigger value="mindmap">Mapa Mental</TabsTrigger>
-             <TabsTrigger value="infographic">Infográfico Passo a Passo</TabsTrigger>
-           </TabsList>
-         </div>
-
          <TabsContent value="mindmap" className="space-y-6">
            <Card>
         <CardHeader>
@@ -515,12 +507,8 @@ TUDO EM MAIÚSCULAS.`;
           </div>
          </>
        )}
-         </TabsContent>
-
-         <TabsContent value="infographic">
-           <GeradorInfograficoProcesso />
-         </TabsContent>
-       </Tabs>
+          </TabsContent>
+        </Tabs>
 
        <p className="text-center text-xs text-muted-foreground">
         Infográfico Pedagógico Maker · Neuroeducação & Visual Thinking por Matheus Lima Piffer
