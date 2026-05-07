@@ -551,12 +551,33 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
-        { role: "system", content: systemPromptJogos },
-        { role: "user", content: userPromptJogos },
-      ], 0.8);
+      if (gameType === 'cruzadinha' || gameType === 'cruzadinha_termos') {
+        const systemPromptCruzadinha = `Atue como um criador de jogos pedagógicos. Com base no tema fornecido, crie dados para uma palavra cruzada. REGRA CRÍTICA: Retorne APENAS um objeto JSON válido, sem formatação markdown, contendo um array chamado "words". Cada item do array deve ter duas chaves: "answer" (a palavra da resposta, em MAIÚSCULAS, sem espaços e sem acentos) e "clue" (a dica pedagógica clara e objetiva para o aluno adivinhar a palavra). Gere entre 6 e 10 palavras no máximo.`;
+        const userPromptCruzadinha = `Tema: "${specificTopic || 'tema geral'}"\nSérie: ${serie || 'Ensino Fundamental'}${customMaterial ? `\nContexto: ${customMaterial.slice(0, 2000)}` : ''}`;
+        
+        const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
+          { role: "system", content: systemPromptCruzadinha },
+          { role: "user", content: userPromptCruzadinha },
+        ], 0.7);
 
-      return await parseAIResponse(response, "jogo");
+        if (!response.ok) return handleErrorResponse(response, "cruzadinha");
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || "";
+        try {
+          const parsed = extractJsonFromMixedResponse(content);
+          return new Response(JSON.stringify({ questions: [{ content: JSON.stringify(parsed), skillCode: "GAME-CRUZADINHA", descriptor: specificTopic || 'Cruzadinha' }] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        } catch (error) {
+          console.error("Failed to parse cruzadinha JSON:", content, error);
+          return new Response(JSON.stringify({ error: "Erro ao processar dados da cruzadinha." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      } else {
+        const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
+          { role: "system", content: systemPromptJogos },
+          { role: "user", content: userPromptJogos },
+        ], 0.8);
+
+        return await parseAIResponse(response, "jogo");
+      }
     }
 
     // ══════ LITERATURA MODE ══════
