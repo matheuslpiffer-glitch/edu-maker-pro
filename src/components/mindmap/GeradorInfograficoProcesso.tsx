@@ -18,13 +18,13 @@ interface Step {
   colorTheme: 'blue' | 'green' | 'orange' | 'purple' | 'pink' | 'teal';
 }
 
-const THEMES: Record<string, { bg: string; border: string; circle: string; text: string; subBg: string }> = {
-  blue: { bg: 'bg-blue-50', border: 'border-blue-200', circle: 'bg-blue-500', text: 'text-blue-700', subBg: 'bg-white' },
-  green: { bg: 'bg-green-50', border: 'border-green-200', circle: 'bg-green-500', text: 'text-green-700', subBg: 'bg-white' },
-  orange: { bg: 'bg-orange-50', border: 'border-orange-200', circle: 'bg-orange-500', text: 'text-orange-700', subBg: 'bg-white' },
-  purple: { bg: 'bg-purple-50', border: 'border-purple-200', circle: 'bg-purple-500', text: 'text-purple-700', subBg: 'bg-white' },
-  pink: { bg: 'bg-pink-50', border: 'border-pink-200', circle: 'bg-pink-500', text: 'text-pink-700', subBg: 'bg-white' },
-  teal: { bg: 'bg-teal-50', border: 'border-teal-200', circle: 'bg-teal-500', text: 'text-teal-700', subBg: 'bg-white' },
+const THEMES: Record<string, { bg: string; border: string; circle: string; text: string }> = {
+  blue: { bg: 'bg-blue-50', border: 'border-blue-200', circle: 'bg-blue-500', text: 'text-blue-700' },
+  green: { bg: 'bg-green-50', border: 'border-green-200', circle: 'bg-green-500', text: 'text-green-700' },
+  orange: { bg: 'bg-orange-50', border: 'border-orange-200', circle: 'bg-orange-500', text: 'text-orange-700' },
+  purple: { bg: 'bg-purple-50', border: 'border-purple-200', circle: 'bg-purple-500', text: 'text-purple-700' },
+  pink: { bg: 'bg-pink-50', border: 'border-pink-200', circle: 'bg-pink-500', text: 'text-pink-700' },
+  teal: { bg: 'bg-teal-50', border: 'border-teal-200', circle: 'bg-teal-500', text: 'text-teal-700' },
 };
 
 const IconRenderer = ({ name, className }: { name: string; className?: string }) => {
@@ -140,42 +140,38 @@ export default function GeradorInfograficoProcesso() {
             </Button>
           </div>
 
-          <div ref={printRef} className="max-w-5xl mx-auto bg-white border-2 border-slate-200 rounded-2xl shadow-xl overflow-hidden">
-            {/* Header */}
-            <header className="bg-slate-900 text-white p-8 text-center">
-              <h2 className="text-3xl font-bold uppercase tracking-tight">
+          <div ref={printRef} className="max-w-5xl mx-auto bg-white border-2 border-slate-200 rounded-2xl shadow-xl overflow-hidden print:shadow-none print:border-none">
+            <header className="bg-slate-900 text-white p-6 text-center">
+              <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-wide">
                 {subject}
-              </h2>
-              <div className="mt-4 h-1 w-24 bg-blue-500 mx-auto rounded-full" />
+              </h1>
             </header>
 
-            <div className="p-6 md:p-8 space-y-4">
+            <div className="p-4 md:p-6 space-y-2">
               {steps.map((step, index) => {
                 const theme = THEMES[step.colorTheme] || THEMES.blue;
                 return (
-                  <div key={index} className="flex flex-col items-center">
-                    {/* Step Row */}
-                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-6 p-6 border-2 rounded-2xl ${theme.bg} ${theme.border} transition-all hover:shadow-md animate-in fade-in slide-in-from-bottom-4 duration-500`} style={{ animationDelay: `${index * 100}ms` }}>
-                      
-                      {/* Column 1: Identification */}
-                      <div className="flex flex-col items-center justify-center space-y-3 w-full md:w-32 flex-shrink-0">
-                        <div className={`w-16 h-16 rounded-full ${theme.circle} flex items-center justify-center text-white text-3xl font-black shadow-lg ring-4 ring-white`}>
+                  <div key={index} className="flex flex-col items-center w-full">
+                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-4 p-4 border-2 rounded-xl mb-2 ${theme.bg} ${theme.border}`}>
+                      {/* Coluna 1: Esquerda - Identificação */}
+                      <div className="flex flex-col items-center justify-center w-full md:w-32 flex-shrink-0 border-r-0 md:border-r border-slate-200/50 pr-0 md:pr-4">
+                        <div className={`w-14 h-14 rounded-full ${theme.circle} flex items-center justify-center text-white text-2xl font-black shadow-md`}>
                           {step.number}
                         </div>
-                        <h3 
-                          className="text-sm font-black text-slate-800 text-center uppercase tracking-wider outline-none focus:ring-2 ring-primary/20 rounded"
+                        <span 
+                          className="text-xs font-bold text-slate-800 text-center mt-2 uppercase outline-none focus:bg-white p-1 rounded"
                           contentEditable
                           suppressContentEditableWarning
                           onBlur={(e) => updateStep(index, 'title', e.currentTarget.textContent || '')}
                         >
                           {step.title}
-                        </h3>
+                        </span>
                       </div>
 
-                      {/* Column 2: Content */}
-                      <div className="flex-1 flex flex-col justify-center space-y-4">
+                      {/* Coluna 2: Centro - Conteúdo */}
+                      <div className="flex-1 flex flex-col justify-center py-2">
                         <div 
-                          className="text-lg font-bold text-slate-800 leading-tight outline-none focus:ring-2 ring-primary/20 rounded"
+                          className="text-base md:text-lg font-medium text-slate-800 leading-tight outline-none focus:bg-white p-1 rounded"
                           contentEditable
                           suppressContentEditableWarning
                           onBlur={(e) => updateStep(index, 'mainInstruction', e.currentTarget.textContent || '')}
@@ -183,7 +179,7 @@ export default function GeradorInfograficoProcesso() {
                           {step.mainInstruction}
                         </div>
                         <div 
-                          className={`p-3 rounded-xl border border-slate-200 ${theme.subBg} text-sm text-slate-600 shadow-sm italic outline-none focus:ring-2 ring-primary/20`}
+                          className="bg-white border border-slate-100 rounded p-2 text-sm mt-2 text-slate-600 shadow-sm outline-none focus:ring-1 ring-slate-200"
                           contentEditable
                           suppressContentEditableWarning
                           onBlur={(e) => updateStep(index, 'subInstruction', e.currentTarget.textContent || '')}
@@ -192,14 +188,14 @@ export default function GeradorInfograficoProcesso() {
                         </div>
                       </div>
 
-                      {/* Column 3: Visual/Apoio */}
-                      <div className="w-full md:w-56 flex-shrink-0 flex items-center justify-center md:justify-end gap-4">
+                      {/* Coluna 3: Direita - Visual/Apoio */}
+                      <div className="w-full md:w-[200px] flex-shrink-0 flex items-center justify-center md:justify-start gap-3 pl-0 md:pl-4 border-l-0 md:border-l border-slate-200/50">
                         <div className="flex-shrink-0">
-                          <IconRenderer name={step.iconName} className="w-14 h-14 text-slate-700 opacity-80" />
+                          <IconRenderer name={step.iconName} className="w-16 h-16 text-slate-700" />
                         </div>
-                        <div className="relative max-w-[160px]">
+                        <div className="relative">
                           <div 
-                            className="bg-white p-3 rounded-2xl rounded-tl-none shadow-md text-xs italic border border-slate-100 relative text-slate-700 outline-none focus:ring-2 ring-primary/20"
+                            className="bg-white p-3 rounded-2xl rounded-tl-none shadow-sm text-[10px] leading-tight italic border border-slate-100 relative text-slate-600 min-w-[80px] outline-none focus:bg-slate-50"
                             contentEditable
                             suppressContentEditableWarning
                             onBlur={(e) => updateStep(index, 'thoughtBubble', e.currentTarget.textContent || '')}
@@ -210,29 +206,28 @@ export default function GeradorInfograficoProcesso() {
                       </div>
                     </div>
 
-                    {/* Arrow between steps */}
                     {index < steps.length - 1 && (
-                      <div className="my-2 text-slate-300">
-                        <ArrowDown className="w-8 h-8" />
+                      <div className="my-1 text-slate-300">
+                        <ArrowDown className="w-6 h-6" />
                       </div>
                     )}
                   </div>
                 );
               })}
 
-              {/* Footer "LEMBRE-SE!" */}
+              {/* Rodapé "LEMBRE-SE!" */}
               {footerTips.length > 0 && (
-                <div className="mt-8 border-2 border-dashed border-blue-300 bg-blue-50/50 p-6 rounded-2xl flex flex-col md:flex-row items-center gap-8">
-                  <div className="flex items-center gap-4 flex-shrink-0">
-                    <LucideIcons.Star className="w-10 h-10 text-amber-400 fill-amber-400 animate-pulse" />
-                    <span className="text-xl font-black text-blue-800 tracking-tighter">LEMBRE-SE!</span>
+                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6">
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <LucideIcons.Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
+                    <span className="text-lg font-black text-blue-800">LEMBRE-SE!</span>
                   </div>
-                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex-1 flex flex-wrap justify-between gap-4">
                     {footerTips.map((tip, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <LucideIcons.Lightbulb className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                        <LucideIcons.CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0" />
                         <span 
-                          className="text-sm font-medium text-slate-700 outline-none focus:ring-2 ring-blue-400/20 rounded"
+                          className="text-xs font-medium text-slate-700 outline-none focus:bg-white p-1 rounded"
                           contentEditable
                           suppressContentEditableWarning
                           onBlur={(e) => updateFooterTip(idx, e.currentTarget.textContent || '')}
@@ -246,8 +241,8 @@ export default function GeradorInfograficoProcesso() {
               )}
             </div>
             
-            <div className="p-4 bg-slate-50 text-center text-[10px] text-slate-400 uppercase tracking-widest font-bold">
-              Gerado por EduCreator — Inteligência Artificial Pedagógica
+            <div className="p-4 bg-slate-50 text-center text-[10px] text-slate-400 uppercase tracking-widest font-bold border-t border-slate-100">
+              EduCreator — Sistematização de Processos Pedagógicos
             </div>
           </div>
         </div>
