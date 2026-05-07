@@ -332,6 +332,7 @@ export default function Inclusao() {
   const [specificNecessity, setSpecificNecessity] = useState('');
   const [consultancyTip, setConsultancyTip] = useState('');
   const [schoolCycle, setSchoolCycle] = useState('');
+  const [complexity, setComplexity] = useState('basico');
 
   const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic && !!schoolCycle;
 
@@ -365,6 +366,7 @@ export default function Inclusao() {
         specificTopic: topic,
         specificNecessity,
         schoolCycle,
+        nivelComplexidade: complexity,
       });
       if (data?.error) throw new Error(data.error);
       if (data?.questions) {
@@ -760,6 +762,28 @@ export default function Inclusao() {
                 {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Nível de Complexidade */}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              Nível de Complexidade <span className="text-destructive">*</span>
+            </Label>
+            <Select value={complexity} onValueChange={setComplexity}>
+              <SelectTrigger className="rounded-2xl">
+                <SelectValue placeholder="Selecione o nível de complexidade" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="basico">Básico (Foco em Memorização/Compreensão)</SelectItem>
+                <SelectItem value="intermediario">Intermediário (Foco em Aplicação/Análise)</SelectItem>
+                <SelectItem value="robusto">Robusto/Avançado (Foco em Avaliação/Criação)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground">
+              {complexity === 'basico' ? 'Questões diretas e concretas.' :
+               complexity === 'intermediario' ? 'Questões que exigem relacionar conceitos.' :
+               'Questões com alto desafio cognitivo, deduções e pensamento crítico.'}
+            </p>
           </div>
 
           {/* STEP 2 — Profile multi-select */}
