@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import generateCrossword from 'crossword-layout-generator';
 import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +22,114 @@ interface GameQuestion {
   skillCode?: string;
   descriptor?: string;
 }
+
+const CrosswordGame = ({ data }: { data: string }) => {
+  const crossword = useMemo(() => {
+    try {
+      const parsed = JSON.parse(data);
+      if (!parsed.words || !Array.isArray(parsed.words)) return null;
+      
+      const layout = generateCrossword(parsed.words);
+      return {
+        result: layout.result,
+        rows: layout.rows,
+        cols: layout.cols,
+        table: layout.table,
+        words: parsed.words
+      };
+    } catch (e) {
+      console.error("Error generating crossword layout:", e);
+      return null;
+    }
+  }, [data]);
+
+  if (!crossword) return <p className="text-red-500">Erro ao gerar grade da cruzadinha.</p>;
+
+  // Separate horizontals and verticals based on layout.result
+  const horizontals = crossword.result.filter((r: any) => r.orientation === 'across');
+  const verticals = crossword.result.filter((r: any) => r.orientation === 'down');
+
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-center overflow-x-auto p-4">
+        <table className="border-collapse border-2 border-slate-800">
+          <tbody>
+            {crossword.table.map((row: string[], y: number) => (
+              <tr key={y}>
+                {row.map((cell: string, x: number) => {
+                  const isBlack = cell === '-';
+                  // Find if any word starts here to show a number
+                  const wordStart = crossword.result.find((r: any) => r.x === x && r.y === y);
+                  
+                  return (
+                    <td 
+                      key={x} 
+                      className={`relative w-8 h-8 sm:w-10 sm:h-10 border border-slate-400 text-center font-bold text-xs sm:text-sm ${isBlack ? 'bg-slate-900' : 'bg-white'}`}
+                    >
+                      {!isBlack && (
+                        <>
+                          {wordStart && (
+                            <span className="absolute top-0.5 left-0.5 text-[8px] sm:text-[10px] text-slate-500 leading-none">
+                              {crossword.result.indexOf(wordStart) + 1}
+                            </span>
+                          )}
+                          <span className="text-transparent print:text-slate-200">
+                            {cell}
+                          </span>
+                        </>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+        <div className="space-y-3">
+          <h4 className="font-bold text-slate-900 border-b pb-1">HORIZONTAIS</h4>
+          <ul className="space-y-2">
+            {horizontals.map((w: any) => (
+              <li key={w.answer} className="text-sm text-slate-700">
+                <span className="font-bold mr-2">{crossword.result.indexOf(w) + 1}.</span>
+                {crossword.words.find((word: any) => word.answer === w.answer)?.clue}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="space-y-3">
+          <h4 className="font-bold text-slate-900 border-b pb-1">VERTICAIS</h4>
+          <ul className="space-y-2">
+            {verticals.map((w: any) => (
+              <li key={w.answer} className="text-sm text-slate-700">
+                <span className="font-bold mr-2">{crossword.result.indexOf(w) + 1}.</span>
+                {crossword.words.find((word: any) => word.answer === w.answer)?.clue}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      
+      <div className="mt-8 pt-8 border-t border-dashed border-slate-200 no-print">
+        <details className="cursor-pointer group">
+          <summary className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
+            Ver Gabarito
+          </summary>
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {crossword.result.map((w: any, idx: number) => (
+              <div key={idx} className="text-[10px] bg-slate-50 p-2 rounded-lg border border-slate-100">
+                <span className="font-bold text-violet-600 mr-1">{idx + 1}.</span>
+                <span className="text-slate-600 uppercase font-mono">{w.answer}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      </div>
+    </div>
+  );
+};
 
 const GAME_TYPES = [
   { id: 'cruzadinha', label: 'Cruzadinha Temática', icon: Grid3X3, desc: 'Palavras cruzadas com dicas pedagógicas' },
