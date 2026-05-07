@@ -197,8 +197,8 @@ export default function GeradorInfograficoProcesso() {
               {steps.map((step, index) => {
                 const theme = THEMES[step.colorTheme] || THEMES.blue;
                 return (
-                  <div key={index} className="flex flex-col items-center w-full">
-                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-4 p-4 border-2 rounded-xl mb-2 ${theme.bg} ${theme.border}`}>
+                  <div key={index} className="flex flex-col items-center w-full print-break-inside-avoid">
+                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-4 p-4 border-2 rounded-xl mb-2 ${theme.bg} ${theme.border} print:border-slate-300`}>
                       {/* Coluna 1: Esquerda - Identificação */}
                       <div className="flex flex-col items-center justify-center w-full md:w-32 flex-shrink-0 border-r-0 md:border-r border-slate-200/50 pr-0 md:pr-4">
                         <div className={`w-14 h-14 rounded-full ${theme.circle} flex items-center justify-center text-white text-2xl font-black shadow-md`}>
@@ -261,9 +261,9 @@ export default function GeradorInfograficoProcesso() {
                 );
               })}
 
-              {/* Rodapé "LEMBRE-SE!" */}
+              {/* Rodapé "LEMBRE-SE!" - print-break-inside-avoid para não quebrar a caixa */}
               {footerTips.length > 0 && (
-                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6">
+                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6 print:m-2 print:border-blue-400 print-break-inside-avoid">
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <LucideIcons.Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
                     <span className="text-lg font-black text-blue-800">LEMBRE-SE!</span>
