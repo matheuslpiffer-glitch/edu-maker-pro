@@ -56,26 +56,15 @@ export default function GeradorInfograficoProcesso() {
 
     setLoading(true);
     try {
-      const systemPrompt = `Atue como um designer instrucional. O usuário fornecerá um assunto. Crie um processo passo a passo de 5 a 7 etapas. Retorne APENAS um objeto JSON perfeitamente válido com a seguinte estrutura: um array chamado "steps". Cada objeto dentro do array deve ter: "stepNumber" (número do passo), "title" (título curto da ação), "description" (instrução clara e direta), "lucideIcon" (o nome exato de um ícone da biblioteca lucide-react que represente a ação, em minúsculas e com hífens, ex: "book-open", "calculator", "check-circle"), e "extraTip" (uma frase muito curta para um balão de dica lateral).`;
-
-      const { data, error } = await supabase.functions.invoke('edu-studio-ai', {
-        body: { 
-          prompt: subject,
-          systemPrompt: systemPrompt,
-          format: 'json'
-        },
+      const { data, error } = await supabase.functions.invoke('generate-infographic-steps', {
+        body: { subject },
       });
 
       if (error) throw error;
-      
-      let parsedData = data;
-      if (typeof data === 'string') {
-        const cleanJson = data.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-        parsedData = JSON.parse(cleanJson);
-      }
+      if (data?.error) throw new Error(data.error);
 
-      if (parsedData?.steps) {
-        setSteps(parsedData.steps);
+      if (data?.steps) {
+        setSteps(data.steps);
         toast({ title: 'Infográfico gerado com sucesso!' });
       } else {
         throw new Error('Formato de resposta inválido');
