@@ -65,13 +65,32 @@ export default function GeradorInfograficoProcesso() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      if (data?.steps) {
-        setSteps(data.steps);
-        setFooterTips(data.footerTips || []);
-        toast({ title: 'Infográfico gerado com sucesso!' });
-      } else {
-        throw new Error('Formato de resposta inválido');
-      }
+      const validatedSteps = (data?.steps || []).map((step: any, idx: number) => ({
+        number: step.number || idx + 1,
+        title: step.title || 'PASSO',
+        mainInstruction: step.mainInstruction || 'Instrução não fornecida.',
+        subInstruction: step.subInstruction || 'Detalhes adicionais em breve.',
+        iconName: step.iconName || 'help-circle',
+        thoughtBubble: step.thoughtBubble || 'Continue aprendendo!',
+        colorTheme: ['blue', 'green', 'orange', 'purple', 'pink', 'teal'].includes(step.colorTheme) 
+          ? step.colorTheme 
+          : ['blue', 'green', 'orange', 'purple', 'pink', 'teal'][idx % 6]
+      }));
+
+      const validatedTips = Array.isArray(data?.footerTips) && data.footerTips.length >= 4
+        ? data.footerTips.slice(0, 4)
+        : [
+            'Revise os pontos principais com atenção.',
+            'Tire suas dúvidas com o professor.',
+            'Pratique o que foi aprendido hoje.',
+            'Compartilhe seu conhecimento com colegas.'
+          ];
+
+      if (validatedSteps.length === 0) throw new Error('A IA não retornou passos válidos.');
+
+      setSteps(validatedSteps);
+      setFooterTips(validatedTips);
+      toast({ title: 'Infográfico gerado com sucesso!' });
     } catch (err: any) {
       console.error(err);
       toast({ 
@@ -85,7 +104,10 @@ export default function GeradorInfograficoProcesso() {
   };
 
   const handlePrint = () => {
-    window.print();
+    // Pequeno delay para garantir que qualquer edição pendente seja renderizada
+    setTimeout(() => {
+      window.print();
+    }, 300);
   };
 
   const updateStep = (index: number, field: keyof Step, value: string | number) => {
@@ -101,7 +123,31 @@ export default function GeradorInfograficoProcesso() {
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto p-4">
+    <div className="space-y-8 max-w-4xl mx-auto p-4 print:p-0 print:max-w-none">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: portrait; margin: 1cm; }
+          body { background-color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .no-print { display: none !important; }
+          .print-break-inside-avoid { break-inside: avoid; }
+          header { background-color: #0f172a !important; color: white !important; }
+          .bg-blue-50 { background-color: #eff6ff !important; }
+          .bg-green-50 { background-color: #f0fdf4 !important; }
+          .bg-orange-50 { background-color: #fff7ed !important; }
+          .bg-purple-50 { background-color: #faf5ff !important; }
+          .bg-pink-50 { background-color: #fdf2f8 !important; }
+          .bg-teal-50 { background-color: #f0fdfa !important; }
+          .border-blue-200 { border-color: #bfdbfe !important; }
+          .bg-blue-500 { background-color: #3b82f6 !important; }
+          .bg-green-500 { background-color: #22c55e !important; }
+          .bg-orange-500 { background-color: #f97316 !important; }
+          .bg-purple-500 { background-color: #a855f7 !important; }
+          .bg-pink-500 { background-color: #ec4899 !important; }
+          .bg-teal-500 { background-color: #14b8a6 !important; }
+          .shadow-xl, .shadow-md, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+      `}} />
       <Card className="no-print">
         <CardContent className="pt-6 space-y-4">
           <div className="space-y-2">
@@ -151,8 +197,8 @@ export default function GeradorInfograficoProcesso() {
               {steps.map((step, index) => {
                 const theme = THEMES[step.colorTheme] || THEMES.blue;
                 return (
-                  <div key={index} className="flex flex-col items-center w-full">
-                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-4 p-4 border-2 rounded-xl mb-2 ${theme.bg} ${theme.border}`}>
+                  <div key={index} className="flex flex-col items-center w-full print-break-inside-avoid">
+                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-4 p-4 border-2 rounded-xl mb-2 ${theme.bg} ${theme.border} print:border-slate-300`}>
                       {/* Coluna 1: Esquerda - Identificação */}
                       <div className="flex flex-col items-center justify-center w-full md:w-32 flex-shrink-0 border-r-0 md:border-r border-slate-200/50 pr-0 md:pr-4">
                         <div className={`w-14 h-14 rounded-full ${theme.circle} flex items-center justify-center text-white text-2xl font-black shadow-md`}>
@@ -215,9 +261,9 @@ export default function GeradorInfograficoProcesso() {
                 );
               })}
 
-              {/* Rodapé "LEMBRE-SE!" */}
+              {/* Rodapé "LEMBRE-SE!" - print-break-inside-avoid para não quebrar a caixa */}
               {footerTips.length > 0 && (
-                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6">
+                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6 print:m-2 print:border-blue-400 print-break-inside-avoid">
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <LucideIcons.Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
                     <span className="text-lg font-black text-blue-800">LEMBRE-SE!</span>
