@@ -104,7 +104,10 @@ export default function GeradorInfograficoProcesso() {
   };
 
   const handlePrint = () => {
-    window.print();
+    // Pequeno delay para garantir que qualquer edição pendente seja renderizada
+    setTimeout(() => {
+      window.print();
+    }, 300);
   };
 
   const updateStep = (index: number, field: keyof Step, value: string | number) => {
@@ -120,7 +123,31 @@ export default function GeradorInfograficoProcesso() {
   };
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto p-4">
+    <div className="space-y-8 max-w-4xl mx-auto p-4 print:p-0 print:max-w-none">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: portrait; margin: 1cm; }
+          body { background-color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .no-print { display: none !important; }
+          .print-break-inside-avoid { break-inside: avoid; }
+          header { background-color: #0f172a !important; color: white !important; }
+          .bg-blue-50 { background-color: #eff6ff !important; }
+          .bg-green-50 { background-color: #f0fdf4 !important; }
+          .bg-orange-50 { background-color: #fff7ed !important; }
+          .bg-purple-50 { background-color: #faf5ff !important; }
+          .bg-pink-50 { background-color: #fdf2f8 !important; }
+          .bg-teal-50 { background-color: #f0fdfa !important; }
+          .border-blue-200 { border-color: #bfdbfe !important; }
+          .bg-blue-500 { background-color: #3b82f6 !important; }
+          .bg-green-500 { background-color: #22c55e !important; }
+          .bg-orange-500 { background-color: #f97316 !important; }
+          .bg-purple-500 { background-color: #a855f7 !important; }
+          .bg-pink-500 { background-color: #ec4899 !important; }
+          .bg-teal-500 { background-color: #14b8a6 !important; }
+          .shadow-xl, .shadow-md, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+      `}} />
       <Card className="no-print">
         <CardContent className="pt-6 space-y-4">
           <div className="space-y-2">
