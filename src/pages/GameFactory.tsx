@@ -372,11 +372,19 @@ export default function GameFactory() {
                 </CardHeader>
                 <CardContent>
                   <div id="pdf-preview-container" className="space-y-4 bg-white p-6 rounded-xl">
-                    {result.map((q, i) => (
-                      <div key={i} className="border rounded-2xl p-4 bg-white print-no-break">
-                        <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
-                      </div>
-                    ))}
+                    {result.map((q, i) => {
+                      const isCruzadinha = q.skillCode?.includes('CRUZADINHA');
+                      
+                      return (
+                        <div key={i} className="border rounded-2xl p-4 bg-white print-no-break">
+                          {isCruzadinha ? (
+                            <CrosswordGame data={q.content} />
+                          ) : (
+                            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
