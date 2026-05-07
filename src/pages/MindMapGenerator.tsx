@@ -12,12 +12,14 @@ import { ALL_DEFAULT_SUBJECTS } from '@/lib/subjects-data';
 import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import MindMapVisual from '@/components/mindmap/MindMapVisual';
 import MindMapQuestions from '@/components/mindmap/MindMapQuestions';
-import StudySchedule from '@/components/mindmap/StudySchedule';
-import TeacherGuide from '@/components/mindmap/TeacherGuide';
-import type { MindMapData, MindMapQuestion } from '@/components/mindmap/MindMapVisual';
+ import StudySchedule from '@/components/mindmap/StudySchedule';
+ import TeacherGuide from '@/components/mindmap/TeacherGuide';
+ import GeradorInfograficoProcesso from '@/components/mindmap/GeradorInfograficoProcesso';
+ import type { MindMapData, MindMapQuestion } from '@/components/mindmap/MindMapVisual';
 import type { StudyDay } from '@/components/mindmap/StudySchedule';
-import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
-import { useInstitutionName } from '@/hooks/useInstitutionName';
+ import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
+ import { useInstitutionName } from '@/hooks/useInstitutionName';
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function getAutoMode(grade: string): string {
   const iniciais = ['ano_1', 'ano_2', 'ano_3', 'ano_4', 'ano_5', 'bercario', 'maternal_1', 'maternal_2'];
@@ -299,19 +301,28 @@ TUDO EM MAIÚSCULAS.`;
   const selectedMode = MODES.find(m => m.id === mode);
   const hasFullContent = questions.length > 0 || schedule.length > 0;
 
-  return (
-    <div className="space-y-6 pb-12">
-      <div className="text-center space-y-2">
-        <div className="flex items-center justify-center gap-2">
-          <Brain className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-            Infográfico Pedagógico Maker
-          </h1>
-        </div>
-        <p className="text-muted-foreground">Dra. IA · Neuroeducação & Design Instrucional Visual</p>
-      </div>
+   return (
+     <div className="space-y-6 pb-12">
+       <div className="text-center space-y-2">
+         <div className="flex items-center justify-center gap-2">
+           <Brain className="h-8 w-8 text-primary" />
+           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+             Infográfico Pedagógico Maker
+           </h1>
+         </div>
+         <p className="text-muted-foreground">Dra. IA · Neuroeducação & Design Instrucional Visual</p>
+       </div>
 
-      <Card>
+       <Tabs defaultValue="mindmap" className="w-full">
+         <div className="flex justify-center mb-6 no-print">
+           <TabsList className="grid w-full max-w-md grid-cols-2">
+             <TabsTrigger value="mindmap">Mapa Mental</TabsTrigger>
+             <TabsTrigger value="infographic">Infográfico Passo a Passo</TabsTrigger>
+           </TabsList>
+         </div>
+
+         <TabsContent value="mindmap" className="space-y-6">
+           <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg"><Sparkles className="h-5 w-5" /> Painel de Configuração</CardTitle>
         </CardHeader>
@@ -382,11 +393,11 @@ TUDO EM MAIÚSCULAS.`;
           <Button onClick={generate} disabled={loading} className="w-full md:w-auto">
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Brain className="h-4 w-4 mr-2" />}
             {loading ? 'Gerando Infográfico...' : 'Gerar Infográfico com IA'}
-          </Button>
-        </CardContent>
-      </Card>
+           </Button>
+         </CardContent>
+       </Card>
 
-      {mapData && (
+       {mapData && (
         <>
           <div className="flex flex-wrap gap-2 no-print">
             <Button variant="outline" size="sm" onClick={exportImage}>
@@ -502,10 +513,16 @@ TUDO EM MAIÚSCULAS.`;
               </div>
             )}
           </div>
-        </>
-      )}
+         </>
+       )}
+         </TabsContent>
 
-      <p className="text-center text-xs text-muted-foreground">
+         <TabsContent value="infographic">
+           <GeradorInfograficoProcesso />
+         </TabsContent>
+       </Tabs>
+
+       <p className="text-center text-xs text-muted-foreground">
         Infográfico Pedagógico Maker · Neuroeducação & Visual Thinking por Matheus Lima Piffer
       </p>
     </div>
