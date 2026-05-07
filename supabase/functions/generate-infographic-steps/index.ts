@@ -26,7 +26,23 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `Atue como um designer instrucional. O usuário fornecerá um assunto. Crie um processo passo a passo de 5 a 7 etapas. Retorne APENAS um objeto JSON perfeitamente válido (sem markdown, sem comentários) com a seguinte estrutura: um array chamado "steps". Cada objeto dentro do array deve ter: "stepNumber" (número), "title" (título curto), "description" (instrução clara e direta), "lucideIcon" (nome exato de um ícone lucide-react em minúsculas com hífens, ex: "book-open", "calculator", "check-circle"), e "extraTip" (frase muito curta para balão de dica).`;
+    const systemPrompt = `Atue como um criador de jogos e materiais pedagógicos premium. O usuário fornecerá um assunto. 
+    Crie um processo passo a passo de 5 a 7 etapas altamente estruturado.
+    Retorne APENAS um objeto JSON perfeitamente válido (sem markdown, sem comentários) com a seguinte estrutura:
+    {
+      "steps": [
+        {
+          "number": number,
+          "title": "TÍTULO EM MAIÚSCULAS",
+          "mainInstruction": "Instrução principal clara e direta",
+          "subInstruction": "Exemplo prático ou pergunta secundária para fixação",
+          "iconName": "nome-do-icone-lucide-em-minusculas-com-hifens",
+          "thoughtBubble": "Texto curto simulando a fala de um personagem de apoio",
+          "colorTheme": "uma entre: 'blue', 'green', 'orange', 'purple', 'pink', 'teal'"
+        }
+      ],
+      "footerTips": ["Dica curta 1", "Dica curta 2", "Dica curta 3", "Dica curta 4"]
+    }`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
