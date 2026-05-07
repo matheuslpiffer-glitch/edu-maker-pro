@@ -264,7 +264,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo, senaiSpMatrix, senaiVestibulinho } = await req.json();
+    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo, senaiSpMatrix, senaiVestibulinho, nivelComplexidade } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
     if (isInclusao) {
@@ -311,6 +311,12 @@ serve(async (req) => {
 A descrição deve ser clara, educativa e relacionada ao tema da questão.
 Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLINATIONS" class="w-full h-auto rounded-3xl" />\n`;
 
+      const complexityInstruction = nivelComplexidade === 'robusto'
+        ? `\nAtenção: O conteúdo deve ter ALTA complexidade cognitiva (análise, dedução, pensamento crítico). Não facilite o conteúdo ou a resposta. A adaptação AEE deve ocorrer EXCLUSIVAMENTE na acessibilidade do formato (frases curtas, sem dupla negação, uso de apoio visual, design limpo), mantendo o rigor acadêmico da disciplina.\n`
+        : nivelComplexidade === 'intermediario'
+        ? `\nComplexidade Intermediária: As questões devem exigir que o aluno relacione conceitos e aplique conhecimentos em situações semi-complexas, mantendo a acessibilidade DUA.\n`
+        : `\nComplexidade Básica: Foco em memorização e compreensão direta, com questões muito concretas e objetivas.\n`;
+
       const questionTypeLabels: Record<string, string> = {
         multipla_visual: 'Múltipla Escolha Visual (com 4 alternativas A-D, cada uma acompanhada de emoji ou imagem)',
         verdadeiro_falso: 'Verdadeiro ou Falso (afirmações claras com V ou F)',
@@ -329,6 +335,7 @@ HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
 DIRETRIZES OBRIGATÓRIAS DO PERFIL:
 ${diretriz}
 ${imageInstruction}
+${complexityInstruction}
 REGRAS VISUAIS HTML:
 - Use <div style="background:#ecfeff;border:2px solid #06b6d4;border-radius:16px;padding:20px;margin:16px 0"> para cada bloco de questão
 - Use espaçamento generoso (margin: 16px 0) entre todos os elementos
