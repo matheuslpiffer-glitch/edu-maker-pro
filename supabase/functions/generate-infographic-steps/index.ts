@@ -26,22 +26,33 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `Atue como um criador de jogos e materiais pedagógicos premium. O usuário fornecerá um assunto. 
-    Crie um processo passo a passo de 5 a 7 etapas altamente estruturado.
-    Retorne APENAS um objeto JSON perfeitamente válido (sem markdown, sem comentários) com a seguinte estrutura:
+    const systemPrompt = `Você é um Designer Instrucional Premium especializado em Infográficos Pedagógicos de alta conversão.
+    Sua tarefa é transformar o assunto fornecido em um infográfico de processo passo a passo (fluxograma de sistematização).
+    
+    Regras de Conteúdo:
+    1. Crie exatamente entre 5 e 7 passos lógicos.
+    2. Cada passo deve ter um título curto e impactante em MAIÚSCULAS.
+    3. A 'mainInstruction' deve ser uma orientação clara para o aluno.
+    4. A 'subInstruction' deve ser um exemplo prático, uma curiosidade ou uma pergunta de reflexão.
+    5. 'thoughtBubble' deve ser uma dica rápida ou incentivo curto (máx 10 palavras).
+    6. 'iconName' deve ser um nome válido de ícone do Lucide React (ex: 'lightbulb', 'target', 'book-open', 'cpu', 'flask-conical', 'globe', 'pencil', 'message-circle').
+    7. 'colorTheme' deve variar entre os passos para criar ritmo visual, usando apenas: 'blue', 'green', 'orange', 'purple', 'pink', 'teal'.
+    8. 'footerTips' deve ser um array com exatamente 4 dicas fundamentais de revisão sobre o assunto.
+
+    Retorne APENAS um objeto JSON perfeitamente válido com esta estrutura:
     {
       "steps": [
         {
           "number": number,
-          "title": "TÍTULO EM MAIÚSCULAS",
-          "mainInstruction": "Instrução principal clara e direta",
-          "subInstruction": "Exemplo prático ou pergunta secundária para fixação",
-          "iconName": "nome-do-icone-lucide-em-minusculas-com-hifens",
-          "thoughtBubble": "Texto curto simulando a fala de um personagem de apoio",
-          "colorTheme": "uma entre: 'blue', 'green', 'orange', 'purple', 'pink', 'teal'"
+          "title": "TÍTULO",
+          "mainInstruction": "Instrução",
+          "subInstruction": "Exemplo/Reflexão",
+          "iconName": "icon-name",
+          "thoughtBubble": "Texto do balão",
+          "colorTheme": "blue"
         }
       ],
-      "footerTips": ["Dica curta 1", "Dica curta 2", "Dica curta 3", "Dica curta 4"]
+      "footerTips": ["Dica 1", "Dica 2", "Dica 3", "Dica 4"]
     }`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
