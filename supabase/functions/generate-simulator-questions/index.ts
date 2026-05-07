@@ -264,7 +264,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo, senaiSpMatrix, senaiVestibulinho, nivelComplexidade } = await req.json();
+     const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo, senaiSpMatrix, senaiVestibulinho, nivelComplexidade, subject } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
     if (isInclusao) {
@@ -311,11 +311,17 @@ serve(async (req) => {
 A descrição deve ser clara, educativa e relacionada ao tema da questão.
 Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLINATIONS" class="w-full h-auto rounded-3xl" />\n`;
 
-      const complexityInstruction = nivelComplexidade === 'robusto'
-        ? `\nAtenção: O conteúdo deve ter ALTA complexidade cognitiva (análise, dedução, pensamento crítico). Não facilite o conteúdo ou a resposta. A adaptação AEE deve ocorrer EXCLUSIVAMENTE na acessibilidade do formato (frases curtas, sem dupla negação, uso de apoio visual, design limpo), mantendo o rigor acadêmico da disciplina.\n`
-        : nivelComplexidade === 'intermediario'
-        ? `\nComplexidade Intermediária: As questões devem exigir que o aluno relacione conceitos e aplique conhecimentos em situações semi-complexas, mantendo a acessibilidade DUA.\n`
-        : `\nComplexidade Básica: Foco em memorização e compreensão direta, com questões muito concretas e objetivas.\n`;
+       const gradeLabel: Record<string, string> = {
+         fundamental_1: 'Ensino Fundamental I (1º ao 5º ano)',
+         fundamental_2: 'Ensino Fundamental II (6º ao 9º ano)',
+         ensino_medio: 'Ensino Médio (1ª a 3ª série)',
+       };
+
+       const complexityInstruction = nivelComplexidade === 'robusto'
+         ? `\nAtenção máxima: O conteúdo deve ter ALTA complexidade cognitiva. Exija raciocínio lógico profundo, dedução e análise crítica. NÃO facilite a resposta ou o conceito.\n`
+         : nivelComplexidade === 'intermediario'
+         ? `\nComplexidade Intermediária: Exija que o aluno relacione conceitos e aplique o conhecimento.\n`
+         : `\nComplexidade Básica: O desafio cognitivo deve ser focado em memorização e compreensão concreta.\n`;
 
       const questionTypeLabels: Record<string, string> = {
         multipla_visual: 'Múltipla Escolha Visual (com 4 alternativas A-D, cada uma acompanhada de emoji ou imagem)',
@@ -324,9 +330,11 @@ Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLI
         perguntas_diretas: 'Perguntas Diretas (pergunta simples com espaço para resposta curta)',
       };
 
-      let systemPromptAEE = `Você é um Pós-Doutor em Educação Especial, especialista em Desenho Universal para a Aprendizagem (DUA) e em Atendimento Educacional Especializado (AEE). Seu trabalho é criar materiais RADICALMENTE acessíveis para alunos com ${perfil}.
-
-HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
+       let systemPromptAEE = `Atue como um especialista em Desenho Universal para a Aprendizagem (DUA). Gere as questões para a disciplina de ${subject || 'Geral'} focada em alunos do ${gradeLabel[serie] || serie || 'Ensino Básico'}.
+ 
+ Seu trabalho é criar materiais RADICALMENTE acessíveis para alunos com ${perfil}.
+ 
+ HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
 1. LINGUAGEM SIMPLES (Plain Language): Use SEMPRE frases curtas, ordem direta (sujeito-verbo-complemento) e termos concretos do cotidiano do aluno.
 2. CONTEXTUALIZAÇÃO: Relacione CADA conceito com algo do dia a dia (ex: rodas de bicicleta para raio/diâmetro, pizza para frações, escada para sequências numéricas).
 3. DESTAQUE DE PALAVRAS-CHAVE: Use <strong> em termos centrais para auxiliar na focalização visual do aluno.
@@ -335,8 +343,11 @@ HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
 DIRETRIZES OBRIGATÓRIAS DO PERFIL:
 ${diretriz}
 ${imageInstruction}
-${complexityInstruction}
-REGRAS VISUAIS HTML:
+ ${complexityInstruction}
+ 
+ REGRA DE OURO INEGOCIÁVEL: Independente do nível de complexidade, a adaptação AEE deve ocorrer EXCLUSIVAMENTE na acessibilidade do formato: use frases curtas, ordem direta, elimine duplas negações, evite pegadinhas, estruture visualmente o texto com clareza e sugira o uso de imagens de apoio visual. O formato deve ser acessível, mas a expectativa de aprendizagem deve respeitar a série e a complexidade solicitadas.
+ 
+ REGRAS VISUAIS HTML:
 - Use <div style="background:#ecfeff;border:2px solid #06b6d4;border-radius:16px;padding:20px;margin:16px 0"> para cada bloco de questão
 - Use espaçamento generoso (margin: 16px 0) entre todos os elementos
 - Use fonte grande implícita nos textos (tags <span style="font-size:1.15em">)
