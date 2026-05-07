@@ -65,13 +65,32 @@ export default function GeradorInfograficoProcesso() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      if (data?.steps) {
-        setSteps(data.steps);
-        setFooterTips(data.footerTips || []);
-        toast({ title: 'Infográfico gerado com sucesso!' });
-      } else {
-        throw new Error('Formato de resposta inválido');
-      }
+      const validatedSteps = (data?.steps || []).map((step: any, idx: number) => ({
+        number: step.number || idx + 1,
+        title: step.title || 'PASSO',
+        mainInstruction: step.mainInstruction || 'Instrução não fornecida.',
+        subInstruction: step.subInstruction || 'Detalhes adicionais em breve.',
+        iconName: step.iconName || 'help-circle',
+        thoughtBubble: step.thoughtBubble || 'Continue aprendendo!',
+        colorTheme: ['blue', 'green', 'orange', 'purple', 'pink', 'teal'].includes(step.colorTheme) 
+          ? step.colorTheme 
+          : ['blue', 'green', 'orange', 'purple', 'pink', 'teal'][idx % 6]
+      }));
+
+      const validatedTips = Array.isArray(data?.footerTips) && data.footerTips.length >= 4
+        ? data.footerTips.slice(0, 4)
+        : [
+            'Revise os pontos principais com atenção.',
+            'Tire suas dúvidas com o professor.',
+            'Pratique o que foi aprendido hoje.',
+            'Compartilhe seu conhecimento com colegas.'
+          ];
+
+      if (validatedSteps.length === 0) throw new Error('A IA não retornou passos válidos.');
+
+      setSteps(validatedSteps);
+      setFooterTips(validatedTips);
+      toast({ title: 'Infográfico gerado com sucesso!' });
     } catch (err: any) {
       console.error(err);
       toast({ 
