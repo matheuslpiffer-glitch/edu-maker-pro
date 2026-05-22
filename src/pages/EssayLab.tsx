@@ -850,13 +850,13 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
 
   // localStorage auto-save (500ms debounce)
   useEffect(() => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => {
       const payload = JSON.stringify({ text: essayText, name: studentName, cls: studentClass });
       localStorage.setItem(lsKey, payload);
       sessionStorage.setItem(ssKey, payload);
     }, 500);
-    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+    return () => { if (debounceTimer.current) clearTimeout(debounceTimer.current); };
   }, [essayText, studentName, studentClass, lsKey, ssKey]);
 
   // DB sync every 10 seconds
