@@ -209,7 +209,7 @@ export default function CreateAssessment() {
                 </div>
                 <div className="space-y-2">
                   <Label>Turma</Label>
-                  <Input value={className} onChange={e => setClassName(e.target.value)} placeholder="8º Ano A" />
+                  <Input value={className} onChange={e => setClassName(e.target.value)} placeholder="8º Ano A" disabled={saving} />
                 </div>
               </div>
               <div className="space-y-2">
