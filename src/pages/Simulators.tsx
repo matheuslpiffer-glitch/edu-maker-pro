@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { useAuth } from '@/hooks/useAuth';
 import { useCustomLogo } from '@/hooks/useCustomLogo';
 import { Button } from '@/components/ui/button';
