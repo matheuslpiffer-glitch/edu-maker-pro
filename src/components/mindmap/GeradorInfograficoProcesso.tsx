@@ -279,7 +279,7 @@ export default function GeradorInfograficoProcesso() {
 
               {/* Rodapé "LEMBRE-SE!" - print-break-inside-avoid para não quebrar a caixa */}
               {footerTips.length > 0 && (
-                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6 print:m-2 print:border-blue-400 print-break-inside-avoid">
+                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6 print:m-2 print:border-blue-400 print-break-inside-avoid print-flex-row print-bg-blue-50">
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <LucideIcons.Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
                     <span className="text-lg font-black text-blue-800">LEMBRE-SE!</span>
