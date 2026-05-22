@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Pencil, Trash2, Loader2, BookOpen, ListChecks, AlignLeft, Search, ShoppingCart, FileText } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, BookOpen, ListChecks, AlignLeft, Search, ShoppingCart, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import SubjectSelect from '@/components/SubjectSelect';
 import { getSubjectIcon } from '@/lib/subjects-data';
