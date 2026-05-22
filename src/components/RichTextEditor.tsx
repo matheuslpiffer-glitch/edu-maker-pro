@@ -38,10 +38,10 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Digite 
   return (
     <div className={cn('border rounded-lg overflow-hidden bg-card', className)}>
       <div className="flex items-center gap-1 p-2 border-b bg-muted/30">
-        <Button type="button" variant="ghost" size="sm" onClick={() => execCommand('bold')} className="h-8 w-8 p-0">
+        <Button type="button" variant="ghost" size="sm" onClick={() => execCommand('bold')} className="h-8 w-8 p-0" disabled={disabled}>
           <Bold size={16} />
         </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={() => execCommand('italic')} className="h-8 w-8 p-0">
+        <Button type="button" variant="ghost" size="sm" onClick={() => execCommand('italic')} className="h-8 w-8 p-0" disabled={disabled}>
           <Italic size={16} />
         </Button>
       </div>
