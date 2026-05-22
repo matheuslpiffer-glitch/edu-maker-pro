@@ -8,9 +8,10 @@ interface Props {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
-export default function RichTextEditor({ value, onChange, placeholder = 'Digite aqui...', className }: Props) {
+export default function RichTextEditor({ value, onChange, placeholder = 'Digite aqui...', className, disabled = false }: Props) {
   const editorRef = useRef<HTMLDivElement>(null);
   const lastExternalValue = useRef(value);
 
