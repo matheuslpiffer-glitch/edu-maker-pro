@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -124,8 +124,38 @@ export default function BussolaVocacional() {
   const matAvatar = customAvatar || defaultMatAvatar;
   const [step, setStep] = useState(0); // 0-2 = form steps, 3 = results
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({});
-  const [scores, setScores] = useState<Scores | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Load progress from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('mat_vocacional_progress');
+    if (saved) {
+      try {
+        const { step: savedStep, sliderValues: savedValues } = JSON.parse(saved);
+        setStep(savedStep);
+        setSliderValues(savedValues);
+      } catch (e) {
+        console.error('Error loading progress:', e);
+      }
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // Save progress to localStorage
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('mat_vocacional_progress', JSON.stringify({ step, sliderValues }));
+    }
+  }, [step, sliderValues, isLoaded]);
+
+  const resetTest = () => {
+    setStep(0);
+    setSliderValues({});
+    localStorage.removeItem('mat_vocacional_progress');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toast({ title: 'Teste Reiniciado', description: 'O progresso foi limpo com sucesso.' });
+  };
 
   const handleExportPDF = async () => {
     if (!resultsRef.current) return;
@@ -162,6 +192,13 @@ export default function BussolaVocacional() {
   };
 
   const calculateScores = () => {
+    setStep(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const scores = useMemo(() => {
+    if (step !== 3) return null;
+    
     const s: Scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
     const counts: Scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
 
@@ -173,29 +210,33 @@ export default function BussolaVocacional() {
       });
     });
 
-    // Normalize: each dimension's max is count * 5, scale to 0-100
     Object.keys(s).forEach(k => {
       const max = counts[k] * 5;
       s[k] = max > 0 ? Math.round((s[k] / max) * 100) : 0;
     });
 
-    setScores(s);
-    setStep(3);
-  };
+    return s;
+  }, [sliderValues, step]);
 
-  const radarData = scores ? Object.entries(RIASEC_LABELS).map(([key, val]) => ({
-    dimension: val.label,
-    value: scores[key],
-    fullMark: 100,
-  })) : [];
+  const radarData = useMemo(() => {
+    if (!scores) return [];
+    return Object.entries(RIASEC_LABELS).map(([key, val]) => ({
+      dimension: val.label,
+      value: scores[key],
+      fullMark: 100,
+    }));
+  }, [scores]);
 
-  const barData = scores ? Object.entries(RIASEC_LABELS).map(([key, val]) => ({
-    name: val.label,
-    value: scores[key],
-    color: val.color,
-  })).sort((a, b) => b.value - a.value) : [];
+  const barData = useMemo(() => {
+    if (!scores) return [];
+    return Object.entries(RIASEC_LABELS).map(([key, val]) => ({
+      name: val.label,
+      value: scores[key],
+      color: val.color,
+    })).sort((a, b) => b.value - a.value);
+  }, [scores]);
 
-  const topDimensions = barData.slice(0, 3);
+  const topDimensions = useMemo(() => barData.slice(0, 3), [barData]);
 
   const renderStep = (questions: Question[], title: string, subtitle: string) => (
     <div className="space-y-6">
@@ -319,7 +360,7 @@ export default function BussolaVocacional() {
     return suggestions;
   };
 
-  const computeBigFive = () => {
+  const bigFiveData = useMemo(() => {
     if (!scores) return [];
     return [
       { name: 'Abertura à Experiência', value: Math.round(((scores.I || 0) + (scores.A || 0)) / 2) },
@@ -328,7 +369,7 @@ export default function BussolaVocacional() {
       { name: 'Amabilidade', value: Math.round(((scores.S || 0) * 0.7 + (scores.A || 0) * 0.3)) },
       { name: 'Estabilidade Emocional', value: Math.round(((scores.C || 0) * 0.5 + (scores.R || 0) * 0.3 + (scores.I || 0) * 0.2)) },
     ];
-  };
+  }, [scores]);
 
   const handleShare = () => {
     const text = `Meu perfil vocacional RIASEC (Dr. Mat PhD - EduCreator): ${barData.map(d => `${d.name}: ${d.value}%`).join(' | ')}`;
@@ -340,8 +381,8 @@ export default function BussolaVocacional() {
     }
   };
 
-  const generateParecer = () => {
-    if (!scores) return '';
+  const parecer = useMemo(() => {
+    if (!scores) return null;
     const sorted = Object.entries(scores).sort(([, a], [, b]) => b - a);
     const top = sorted[0];
     const second = sorted[1];
@@ -353,10 +394,9 @@ export default function BussolaVocacional() {
     const code = `MAT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 
     return { topLabel, secondLabel, thirdLabel, top, second, third, date, code };
-  };
+  }, [scores]);
 
   const renderResults = () => {
-    const parecer = generateParecer();
     if (!parecer) return null;
 
     return (
@@ -566,7 +606,7 @@ export default function BussolaVocacional() {
           <div className="space-y-3">
             <p className="text-sm font-bold text-foreground">5. ESTATÍSTICAS COMPLEMENTARES — Big Five (OCEAN)</p>
             <p className="text-xs text-muted-foreground">Dimensões da personalidade derivadas do perfil RIASEC</p>
-            {computeBigFive().map(dim => (
+            {bigFiveData.map(dim => (
               <div key={dim.name} className="space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-foreground">{dim.name}</span>
@@ -687,7 +727,7 @@ export default function BussolaVocacional() {
         <Button onClick={handleShare} variant="secondary" className="gap-2">
           <Share2 className="w-4 h-4" /> Compartilhar com meu Coordenador
         </Button>
-        <Button variant="outline" onClick={() => { setStep(0); setScores(null); setSliderValues({}); }}>
+        <Button variant="outline" onClick={resetTest}>
           Refazer Avaliação
         </Button>
       </div>
@@ -741,12 +781,39 @@ export default function BussolaVocacional() {
 
       {/* Navigation */}
       {step < 3 && (
-        <div className="flex justify-between pt-2">
-          <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={step === 0} className="uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
-            <ChevronLeft className="w-4 h-4 mr-1" /> VOLTAR
-          </Button>
+        <div className="flex justify-between items-center pt-2">
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                setStep(s => Math.max(0, s - 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              disabled={step === 0} 
+              className="uppercase" 
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" /> VOLTAR
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetTest}
+              className="text-muted-foreground text-[10px] uppercase tracking-wider"
+            >
+              Reiniciar Teste
+            </Button>
+          </div>
           {step < 2 ? (
-            <Button onClick={() => setStep(s => s + 1)} disabled={!canAdvance()} className="uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <Button 
+              onClick={() => {
+                setStep(s => s + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              disabled={!canAdvance()} 
+              className="uppercase" 
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
               PRÓXIMO <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           ) : (
