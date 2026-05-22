@@ -5,6 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, FileText, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Assessment {
   id: string;
@@ -21,19 +32,57 @@ export default function Assessments() {
   const { toast } = useToast();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const load = async () => {
-    const { data } = await supabase.from('assessments').select('*').order('created_at', { ascending: false });
-    setAssessments((data as Assessment[]) || []);
-    setLoading(false);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setAssessments((data as Assessment[]) || []);
+    } catch (error) {
+      console.error('Error loading assessments:', error);
+      toast({ title: 'Erro ao carregar provas', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { load(); }, []);
 
   const handleDelete = async (id: string) => {
-    await supabase.from('assessments').delete().eq('id', id);
-    load();
-    toast({ title: 'Prova excluída' });
+    setDeletingId(id);
+    try {
+      const { error } = await supabase.from('assessments').delete().eq('id', id);
+      if (error) throw error;
+      
+      setAssessments(prev => prev.filter(a => a.id !== id));
+      toast({ title: 'Prova excluída com sucesso' });
+    } catch (error) {
+      console.error('Error deleting assessment:', error);
+      toast({ title: 'Erro ao excluir prova', variant: 'destructive' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      // Check if it's a valid date
+      if (isNaN(date.getTime())) return dateString;
+      return date.toLocaleDateString('pt-BR');
+    } catch {
+      return dateString;
+    }
   };
 
   return (
@@ -67,17 +116,50 @@ export default function Assessments() {
                     {a.institution_name && <span>{a.institution_name}</span>}
                     {a.teacher_name && <span>Prof. {a.teacher_name}</span>}
                     {a.class_name && <span>Turma: {a.class_name}</span>}
-                    {a.assessment_date && <span>{a.assessment_date}</span>}
+                    {a.assessment_date && <span>{formatDate(a.assessment_date)}</span>}
                     <span>{(a.question_ids as string[])?.length || 0} questões</span>
                   </div>
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <Link to={`/provas/${a.id}`}>
-                    <Button variant="ghost" size="sm"><Pencil size={16} /></Button>
+                    <Button variant="ghost" size="sm" disabled={deletingId === a.id}>
+                      <Pencil size={16} />
+                    </Button>
                   </Link>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(a.id)} className="text-destructive hover:text-destructive">
-                    <Trash2 size={16} />
-                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        disabled={deletingId === a.id}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        {deletingId === a.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Tem certeza que deseja excluir esta prova?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta ação não pode ser desfeita. A prova será removida permanentemente de nossos servidores.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={() => handleDelete(a.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Sim, excluir
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </CardContent>
             </Card>
