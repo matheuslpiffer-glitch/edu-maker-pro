@@ -295,11 +295,11 @@ export default function HubPlanejamento() {
                     <div>
                       <p className="text-sm font-semibold mb-1">Específicos:</p>
                       <ul className="list-disc pl-5 space-y-1">
-                        {plan.objective.specific.map((s, i) => <li key={i} className="text-sm text-muted-foreground">{s}</li>)}
+                        {(plan?.objective?.specific || []).map((s, i) => <li key={`${s}-${i}`} className="text-sm text-muted-foreground">{s}</li>)}
                       </ul>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      {plan.objective.bnccSkills.map((sk, i) => <Badge key={i} variant="outline" className="text-xs">{sk}</Badge>)}
+                      {(plan?.objective?.bnccSkills || []).map((sk, i) => <Badge key={`${sk}-${i}`} variant="outline" className="text-xs">{sk}</Badge>)}
                     </div>
                   </div>
                 )}
@@ -314,7 +314,7 @@ export default function HubPlanejamento() {
                   <div className="pl-7 space-y-2">
                     <p className="text-sm"><strong>Abordagem:</strong> {plan.methodology.approach}</p>
                     <ul className="list-disc pl-5 space-y-1">
-                      {plan.methodology.strategies.map((s, i) => <li key={i} className="text-sm text-muted-foreground">{s}</li>)}
+                      {(plan?.methodology?.strategies || []).map((s, i) => <li key={`${s}-${i}`} className="text-sm text-muted-foreground">{s}</li>)}
                     </ul>
                   </div>
                 )}
@@ -327,7 +327,7 @@ export default function HubPlanejamento() {
                 <SectionHeader icon={BookOpen} title="Desenvolvimento" sectionKey="development" />
                 {expandedSections.development && (
                   <div className="pl-7 space-y-4">
-                    {plan.development.map(step => (
+                    {(plan?.development || []).map((step, i) => (
                       <div key={step.step} className="border-l-2 border-primary/30 pl-4 space-y-1">
                         <div className="flex items-center gap-2">
                           <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">Etapa {step.step}</Badge>
@@ -337,7 +337,7 @@ export default function HubPlanejamento() {
                         <p className="text-sm text-muted-foreground">{step.description}</p>
                         {step.resources?.length > 0 && (
                           <div className="flex flex-wrap gap-1">
-                            {step.resources.map((r, j) => <Badge key={j} variant="outline" className="text-[10px]">{r}</Badge>)}
+                            {(step.resources || []).map((r, j) => <Badge key={`${r}-${j}`} variant="outline" className="text-[10px]">{r}</Badge>)}
                           </div>
                         )}
                       </div>
@@ -358,7 +358,7 @@ export default function HubPlanejamento() {
                     <div>
                       <p className="text-sm font-semibold mb-1">Perguntas provocativas:</p>
                       <ul className="list-decimal pl-5 space-y-1">
-                        {plan.caseStudy.questions.map((q, i) => <li key={i} className="text-sm text-muted-foreground">{q}</li>)}
+                        {(plan?.caseStudy?.questions || []).map((q, i) => <li key={`${q}-${i}`} className="text-sm text-muted-foreground">{q}</li>)}
                       </ul>
                     </div>
                     <p className="text-sm"><strong>Resultado esperado:</strong> {plan.caseStudy.expectedOutcome}</p>
@@ -376,7 +376,7 @@ export default function HubPlanejamento() {
                     <div>
                       <p className="text-sm font-semibold mb-1">Avaliação Formativa:</p>
                       <ul className="list-disc pl-5 space-y-1">
-                        {plan.assessment.formative.map((f, i) => <li key={i} className="text-sm text-muted-foreground">{f}</li>)}
+                        {(plan?.assessment?.formative || []).map((f, i) => <li key={`${f}-${i}`} className="text-sm text-muted-foreground">{f}</li>)}
                       </ul>
                     </div>
                     <p className="text-sm"><strong>Avaliação Somativa:</strong> {plan.assessment.summative}</p>
@@ -392,7 +392,7 @@ export default function HubPlanejamento() {
                             </tr>
                           </thead>
                           <tbody>
-                            {plan.assessment.rubric.map((r, i) => (
+                            {(plan?.assessment?.rubric || []).map((r, i) => (
                               <tr key={i} className="border-b border-border last:border-0">
                                 <td className="p-2 font-medium">{r.criteria}</td>
                                 <td className="p-2 text-muted-foreground">{r.excellent}</td>
