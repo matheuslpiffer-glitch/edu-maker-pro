@@ -270,7 +270,7 @@ export default function CreateQuestion() {
                 </div>
               ))}
               {options.length < 5 && (
-                <Button type="button" variant="outline" size="sm" onClick={addOption}>
+                 <Button type="button" variant="outline" size="sm" onClick={addOption} disabled={saving}>
                   <Plus size={14} className="mr-1" />Adicionar alternativa
                 </Button>
               )}
