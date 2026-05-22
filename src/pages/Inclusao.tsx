@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,14 +9,28 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
   ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
+  Trash2, Library,
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { buildPinUrl } from '@/lib/public-links';
 import QRCodeModal from '@/components/QRCodeModal';
 import TriagemNeuro from '@/components/TriagemNeuro';
@@ -286,7 +300,158 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
   );
 }
 
-/* ── Coming Soon Card ── */
+/* ── Activities List Component ── */
+function ActivitiesList() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const { data: activities = [], isLoading } = useQuery({
+    queryKey: ['aee_activities', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('aee_activities')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      setDeletingId(id);
+      const { error } = await supabase.from('aee_activities').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aee_activities'] });
+      toast({ title: 'Atividade excluída com sucesso.' });
+    },
+    onError: (e: any) => {
+      toast({ title: 'Erro ao excluir', description: e.message, variant: 'destructive' });
+    },
+    onSettled: () => setDeletingId(null),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      </div>
+    );
+  }
+
+  if (activities.length === 0) {
+    return (
+      <div className="text-center py-20 border-2 border-dashed rounded-[3rem] bg-muted/20">
+        <Accessibility className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+        <p className="text-muted-foreground font-medium">Você ainda não salvou nenhuma atividade inclusiva.</p>
+      </div>
+    );
+  }
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('pt-BR');
+  };
+
+  const getProfileBadges = (profileStr: string) => {
+    if (!profileStr) return null;
+    const profiles = profileStr.split(',');
+    return profiles.map(p => {
+      const config = AEE_PROFILES.find(ap => ap.value === p);
+      if (!config) return null;
+      const colors: Record<string, string> = {
+        amber: 'bg-amber-100 text-amber-700 border-amber-200',
+        rose: 'bg-rose-100 text-rose-700 border-rose-200',
+        violet: 'bg-violet-100 text-violet-700 border-violet-200',
+        sky: 'bg-sky-100 text-sky-700 border-sky-200',
+        emerald: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        orange: 'bg-orange-100 text-orange-700 border-orange-200',
+        indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+      };
+      const colorClass = colors[config.color] || 'bg-gray-100 text-gray-700 border-gray-200';
+      return (
+        <Badge key={p} variant="outline" className={`rounded-lg px-2 py-0 text-[10px] border ${colorClass}`}>
+          {config.label}
+        </Badge>
+      );
+    });
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {activities.map((activity) => (
+        <Card key={activity.id} className="rounded-[2rem] border-purple-100 hover:shadow-xl transition-all group overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-start gap-2">
+              <div className="space-y-1">
+                <CardTitle className="text-lg font-black group-hover:text-purple-600 transition-colors">
+                  {activity.topic || 'Atividade AEE'}
+                </CardTitle>
+                <CardDescription className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  {activity.subject} · {formatDate(activity.created_at)}
+                </CardDescription>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    disabled={deletingId === activity.id}
+                    className="text-destructive hover:bg-destructive/10 rounded-xl h-8 w-8"
+                  >
+                    {deletingId === activity.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-[2rem]">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Tem certeza que deseja excluir esta avaliação inclusiva?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. A atividade será removida permanentemente do seu histórico.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => deleteMutation.mutate(activity.id)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+                    >
+                      Sim, excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-1.5">
+              {getProfileBadges(activity.profile)}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-2">
+                {Array.isArray(activity.questions) && activity.questions.length > 0 && Array.from({ length: Math.min(3, activity.questions.length) }).map((_, i) => (
+                  <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
+                    Q{i+1}
+                  </div>
+                ))}
+              </div>
+              <span className="text-[10px] font-medium text-muted-foreground">
+                {(Array.isArray(activity.questions) ? activity.questions.length : 0)} questões adaptadas
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+
 function ComingSoonView({ title, icon: Icon, onBack }: { title: string; icon: React.ElementType; onBack: () => void }) {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -310,9 +475,10 @@ function ComingSoonView({ title, icon: Icon, onBack }: { title: string; icon: Re
 export default function Inclusao() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { addQuestions } = useSavedQuestionsBank();
 
-  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
+  const [activeView, setActiveView] = useState<ActiveView | 'minhas_atividades'>('dashboard');
   const [subject, setSubject] = useState('');
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [aeeMode, setAeeMode] = useState<'gerar_novas' | 'adaptar_antigas' | 'texto_resumo'>('gerar_novas');
@@ -406,8 +572,11 @@ export default function Inclusao() {
         ...q,
         generatedImageUrl: generatedImages[i] || q.imageUrl || null,
       }));
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Usuário não autenticado");
+
       const { error } = await supabase.from('aee_activities').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         profile: selectedProfiles.join(','),
         subject,
         topic,
@@ -429,8 +598,11 @@ export default function Inclusao() {
     setSaving(true);
     try {
       const profileLabels = selectedProfiles.map(p => AEE_PROFILES.find(ap => ap.value === p)?.label || p).join(' + ');
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Usuário não autenticado");
+
       const { data, error } = await supabase.from('question_banks').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         subject,
         topic: `AEE: ${profileLabels} — ${topic}`,
         grade: 'AEE',
@@ -531,10 +703,52 @@ export default function Inclusao() {
     indigo: { bg: 'bg-indigo-50', border: 'border-indigo-500', text: 'text-indigo-600', shadow: 'shadow-indigo-500/20' },
   };
 
+  /* ── My Activities View ── */
+  if (activeView === 'minhas_atividades') {
+    return (
+      <div className="max-w-7xl mx-auto space-y-8">
+        <Button variant="ghost" onClick={() => setActiveView('dashboard')} className="gap-2 rounded-xl">
+          <ArrowLeft className="h-4 w-4" /> Voltar para Inclusão
+        </Button>
+
+        <div className="bg-[#0F172A] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 to-teal-600/10 pointer-events-none" />
+          <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                  <Library className="h-6 w-6 text-white" />
+                </div>
+                <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px] uppercase tracking-widest font-bold">
+                  Histórico AEE
+                </Badge>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black leading-tight">Minhas Atividades Adaptadas</h2>
+              <p className="text-sm text-slate-400 mt-2">Gerencie as avaliações e materiais inclusivos gerados por você.</p>
+            </div>
+          </div>
+        </div>
+
+        <ActivitiesList />
+      </div>
+    );
+  }
+
   /* ── Dashboard View ── */
   if (activeView === 'dashboard') {
     return (
       <div className="max-w-7xl mx-auto space-y-8">
+        {/* Top Actions */}
+        <div className="flex justify-end mb-4">
+          <Button 
+            variant="outline" 
+            onClick={() => setActiveView('minhas_atividades')}
+            className="rounded-2xl gap-2 border-indigo-200 hover:bg-indigo-50 text-indigo-700"
+          >
+            <Library className="h-4 w-4" /> Minhas Atividades
+          </Button>
+        </div>
+
         {/* Hero */}
         <div className="bg-[#0F172A] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 to-teal-600/10 pointer-events-none" />
