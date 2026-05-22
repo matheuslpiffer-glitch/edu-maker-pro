@@ -956,8 +956,7 @@ export default function AltaPerformance() {
                 </div>
 
                 <div className="space-y-6">
-
-                {Array.from({ length: 3 }).map((_, i) => (
+                  {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="space-y-3">
                     <Skeleton className="h-5 w-32" />
                     <Skeleton className="h-16 w-full" />
