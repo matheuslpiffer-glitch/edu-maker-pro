@@ -184,7 +184,7 @@ export default function GeradorInfograficoProcesso() {
           </div>
           <Button 
             onClick={generateInfographic} 
-            disabled={loading} 
+            disabled={loading || !subject.trim()} 
             className="w-full sm:w-auto"
           >
             {loading ? (
@@ -235,7 +235,7 @@ export default function GeradorInfograficoProcesso() {
                           suppressContentEditableWarning
                           onBlur={(e) => updateStep(index, 'title', e.currentTarget.textContent || '')}
                         >
-                          {step.title}
+                          {step?.title || 'PASSO'}
                         </span>
                       </div>
 
@@ -247,7 +247,7 @@ export default function GeradorInfograficoProcesso() {
                           suppressContentEditableWarning
                           onBlur={(e) => updateStep(index, 'mainInstruction', e.currentTarget.textContent || '')}
                         >
-                          {step.mainInstruction}
+                          {step?.mainInstruction || 'Instrução não fornecida.'}
                         </div>
                         <div 
                           className="bg-white border border-slate-100 rounded p-2 text-sm mt-2 text-slate-600 shadow-sm outline-none focus:ring-1 ring-slate-200"
@@ -255,14 +255,14 @@ export default function GeradorInfograficoProcesso() {
                           suppressContentEditableWarning
                           onBlur={(e) => updateStep(index, 'subInstruction', e.currentTarget.textContent || '')}
                         >
-                          {step.subInstruction}
+                          {step?.subInstruction || 'Detalhes adicionais em breve.'}
                         </div>
                       </div>
 
                       {/* Coluna 3: Direita - Visual/Apoio */}
                       <div className="w-full md:w-[200px] flex-shrink-0 flex items-center justify-center md:justify-start gap-3 pl-0 md:pl-4 border-l-0 md:border-l border-slate-200/50 print-w-64 print-border-l print-pl-4">
                         <div className="flex-shrink-0">
-                          <IconRenderer name={step.iconName} className="w-16 h-16 text-slate-700" />
+                          <IconRenderer name={step?.iconName || 'help-circle'} className="w-16 h-16 text-slate-700" />
                         </div>
                         <div className="relative">
                           <div 
@@ -271,7 +271,7 @@ export default function GeradorInfograficoProcesso() {
                             suppressContentEditableWarning
                             onBlur={(e) => updateStep(index, 'thoughtBubble', e.currentTarget.textContent || '')}
                           >
-                            {step.thoughtBubble}
+                            {step?.thoughtBubble || 'Continue aprendendo!'}
                           </div>
                         </div>
                       </div>
