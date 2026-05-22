@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Hook de Persistência Ativa - EduCreator Pro
@@ -28,6 +29,34 @@ export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, (v
         }, 500);
 
         return () => clearTimeout(handler);
+    }, [state, storageKey]);
+
+    // 3. Sincronização com a nuvem quando a aba perde o foco
+    useEffect(() => {
+        const handleVisibilityChange = async () => {
+            if (document.visibilityState === 'hidden') {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    
+                    if (user) {
+                        // Professor saiu da aba: Salva silenciosamente na nuvem
+                        await supabase
+                            .from('materials_drafts')
+                            .upsert({ 
+                                user_id: user.id, 
+                                storage_key: storageKey,
+                                content: state as any, 
+                                updated_at: new Date().toISOString()
+                            });
+                    }
+                } catch (error) {
+                    console.error("Erro ao sincronizar rascunho com a nuvem:", error);
+                }
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
     }, [state, storageKey]);
 
     return [state, setState];
