@@ -11,6 +11,7 @@ import { Loader2, Trophy, BarChart3, Users, AlertTriangle, Award, FileDown, Tren
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 
 // ── Types ──
 interface EssaySub {
@@ -158,6 +159,7 @@ export default function CoordView() {
   const [filterBanca, setFilterBanca] = useState('all');
   const [certStudent, setCertStudent] = useState<MeritStudent | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
 
   // Load data
   useEffect(() => {
@@ -297,7 +299,7 @@ export default function CoordView() {
   // Export PDF report
   const handleExportReport = async () => {
     if (!reportRef.current) return;
-    toast.info('Gerando relatório PDF...');
+    setExporting(true);
     try {
       const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, logging: false });
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -306,9 +308,12 @@ export default function CoordView() {
       const imgH = (canvas.height * imgW) / canvas.width;
       pdf.addImage(imgData, 'PNG', 10, 10, imgW, imgH);
       pdf.save('Relatorio_Coordenacao_Abril2026.pdf');
-      toast.success('Relatório exportado!');
-    } catch {
+      toast.success('✅ Relatório exportado com sucesso!');
+    } catch (err) {
+      console.error('[handleExportReport] error:', err);
       toast.error('Erro ao gerar relatório');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -345,8 +350,8 @@ export default function CoordView() {
               {['Banca Nacional', 'Banca Acadêmica', 'Avaliação Técnica', 'Banca de Excelência'].map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={handleExportReport}>
-            <FileDown className="h-4 w-4 mr-1" /> Exportar PDF
+          <Button variant="outline" onClick={handleExportReport} disabled={exporting}>
+            {exporting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <FileDown className="h-4 w-4 mr-1" />} Exportar PDF
           </Button>
         </div>
       </div>
@@ -545,6 +550,7 @@ export default function CoordView() {
 
       {/* Certificate modal */}
       {certStudent && <MeritCertificate student={certStudent} onClose={() => setCertStudent(null)} />}
+      <ExportLoadingOverlay isOpen={exporting} />
     </div>
   );
 }
