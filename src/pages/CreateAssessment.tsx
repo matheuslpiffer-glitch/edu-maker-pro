@@ -225,7 +225,7 @@ export default function CreateAssessment() {
             <CardHeader>
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <CardTitle className="text-lg">Selecionar Questões</CardTitle>
-                <Select value={filterSubject} onValueChange={setFilterSubject}>
+                <Select value={filterSubject} onValueChange={setFilterSubject} disabled={saving}>
                   <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas</SelectItem>
