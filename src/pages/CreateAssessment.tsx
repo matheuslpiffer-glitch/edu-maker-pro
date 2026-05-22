@@ -284,29 +284,30 @@ export default function CreateAssessment() {
                   variant={mestreMode ? 'default' : 'outline'}
                   onClick={() => setMestreMode(v => !v)}
                   className="gap-1"
+                  disabled={saving}
                 >
                   <Sparkles size={16} /> Diagramação Mestre
                 </Button>
                 <div className="flex items-center gap-2">
-                  <Checkbox id="gabarito" checked={showGabarito} onCheckedChange={(v) => setShowGabarito(!!v)} />
+                  <Checkbox id="gabarito" checked={showGabarito} onCheckedChange={(v) => setShowGabarito(!!v)} disabled={saving} />
                   <Label htmlFor="gabarito" className="text-sm cursor-pointer">Gabarito</Label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Switch id="twocol" checked={twoColumns} onCheckedChange={setTwoColumns} />
+                  <Switch id="twocol" checked={twoColumns} onCheckedChange={setTwoColumns} disabled={saving} />
                   <Label htmlFor="twocol" className="text-sm cursor-pointer flex items-center gap-1">
                     <Columns2 size={14} /> Colunas
                   </Label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Switch id="ecoprint" checked={ecoPrint} onCheckedChange={setEcoPrint} />
+                  <Switch id="ecoprint" checked={ecoPrint} onCheckedChange={setEcoPrint} disabled={saving} />
                   <Label htmlFor="ecoprint" className="text-sm cursor-pointer flex items-center gap-1">
                     <Leaf size={14} /> Eco-Print
                   </Label>
                 </div>
                 <div className="flex-1" />
-                <Button variant="outline" size="sm" onClick={handlePrint}><Printer size={16} className="mr-2" />Imprimir</Button>
-                <Button variant="outline" size="sm" onClick={handlePDF}><Download size={16} className="mr-2" />PDF</Button>
-                <Button variant="outline" size="sm" onClick={handleDocx}><FileText size={16} className="mr-2" />DOCX</Button>
+                <Button variant="outline" size="sm" onClick={handlePrint} disabled={saving}><Printer size={16} className="mr-2" />Imprimir</Button>
+                <Button variant="outline" size="sm" onClick={handlePDF} disabled={saving}><Download size={16} className="mr-2" />PDF</Button>
+                <Button variant="outline" size="sm" onClick={handleDocx} disabled={saving}><FileText size={16} className="mr-2" />DOCX</Button>
               </CardContent>
             </Card>
 
