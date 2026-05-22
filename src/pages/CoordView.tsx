@@ -587,7 +587,7 @@ export default function CoordView() {
       </div>
 
       {/* Sim results summary */}
-      {simResults.length > 0 && (
+      {simSummary && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -597,24 +597,24 @@ export default function CoordView() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold">{simResults.length}</p>
+                <p className="text-2xl font-bold">{simSummary.total}</p>
                 <p className="text-xs text-muted-foreground">Resultados</p>
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {(simResults.reduce((a, b) => a + b.percentage, 0) / simResults.length).toFixed(0)}%
+                  {simSummary.avg.toFixed(0)}%
                 </p>
                 <p className="text-xs text-muted-foreground">Média Geral</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-emerald-500">
-                  {simResults.filter(r => r.proficiency_level === 'avancado').length}
+                  {simSummary.advanced}
                 </p>
                 <p className="text-xs text-muted-foreground">Avançados</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-red-500">
-                  {simResults.filter(r => r.proficiency_level === 'abaixo_basico').length}
+                  {simSummary.belowBasic}
                 </p>
                 <p className="text-xs text-muted-foreground">Abaixo Básico</p>
               </div>
