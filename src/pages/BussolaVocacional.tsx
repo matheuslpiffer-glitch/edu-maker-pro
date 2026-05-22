@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,6 +124,7 @@ export default function BussolaVocacional() {
   const { customAvatar, zoom, offsetX, offsetY } = useMatAvatar();
   const matAvatar = customAvatar || defaultMatAvatar;
   const [step, setStep] = useState(0); // 0-2 = form steps, 3 = results
+  const [isExporting, setIsExporting] = useState(false);
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({});
   const [isLoaded, setIsLoaded] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -158,8 +160,24 @@ export default function BussolaVocacional() {
   };
 
   const handleExportPrint = () => {
-    window.print();
+    setIsExporting(true);
+    // Pequena pausa para o overlay aparecer antes do print bloquear a UI
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsExporting(false);
+      toast({ 
+        title: 'Impressão Concluída', 
+        description: 'O documento foi processado com sucesso.' 
+      });
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   const handleSlider = (id: string, val: number[]) => {
     setSliderValues(prev => ({ ...prev, [id]: val[0] }));
@@ -877,6 +895,7 @@ export default function BussolaVocacional() {
         EDUCREATOR PRO © MATHEUS PIFFER
       </div>
       </div>
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }

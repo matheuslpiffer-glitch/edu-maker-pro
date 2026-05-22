@@ -24,6 +24,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { buildPublicAppUrl } from '@/lib/public-links';
 import { exportToPDF } from '@/lib/export';
 import PisaPrintPreview from '@/components/PisaPrintPreview';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import React from 'react';
 import {
   Loader2, Search, FolderOpen, Folder, Trash2, FileDown, Eye,
@@ -170,19 +171,26 @@ export default function BibliotecaAvaliacoes() {
     if (selected.size === 0) return;
     setIsExporting(true);
     try {
+      let count = 0;
       for (const id of selected) {
         const sim = simulators.find(s => s.id === id);
         if (sim) {
           setPdfSim(sim);
-          await new Promise(resolve => setTimeout(resolve, 800));
+          // Pequena pausa para garantir renderização do componente oculto
+          await new Promise(resolve => setTimeout(resolve, 1500));
           if (pdfRef.current) {
             await exportToPDF(pdfRef.current, sim.title || 'simulado');
+            count++;
           }
         }
       }
       setPdfSim(null);
-      toast({ title: `${selected.size} PDF(s) exportados.` });
+      toast({ 
+        title: 'Exportação Concluída', 
+        description: `${count} PDF(s) gerados e baixados com sucesso.` 
+      });
     } catch (error) {
+      console.error('Batch export error:', error);
       toast({ 
         title: 'Erro ao exportar', 
         description: 'Ocorreu um problema ao gerar os arquivos.',
@@ -204,11 +212,17 @@ export default function BibliotecaAvaliacoes() {
     setIsExporting(true);
     setPdfSim(sim);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Pequena pausa para garantir renderização do componente oculto
+      await new Promise(resolve => setTimeout(resolve, 1500));
       if (pdfRef.current) {
         await exportToPDF(pdfRef.current, sim.title || 'simulado-pisa');
+        toast({ 
+          title: 'Download Iniciado', 
+          description: 'O PDF do simulado foi gerado com sucesso.' 
+        });
       }
     } catch (error) {
+      console.error('PDF export error:', error);
       toast({ 
         title: 'Erro ao exportar', 
         description: 'Ocorreu um problema ao gerar o PDF.',
@@ -464,6 +478,8 @@ export default function BibliotecaAvaliacoes() {
           />
         </div>
       )}
+
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }

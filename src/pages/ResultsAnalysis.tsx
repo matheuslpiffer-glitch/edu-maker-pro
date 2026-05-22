@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -57,6 +58,7 @@ export default function ResultsAnalysis() {
   const [selectedSimId, setSelectedSimId] = useState('');
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [saving, setSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingResults, setLoadingResults] = useState(false);
   const [insights, setInsights] = useState<AIInsights | null>(null);
@@ -68,6 +70,18 @@ export default function ResultsAnalysis() {
 
   useEffect(() => {
     loadSimulators();
+  }, []);
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsExporting(false);
+      toast({ 
+        title: 'Relatório Gerado', 
+        description: 'O documento foi processado com sucesso.' 
+      });
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
   }, []);
 
   useEffect(() => {
@@ -456,7 +470,7 @@ export default function ResultsAnalysis() {
           {/* PRINT REPORT */}
           <TabsContent value="report">
             <div className="no-print mb-4">
-              <Button variant="outline" onClick={() => window.print()}><Printer size={16} className="mr-2" />Imprimir Relatório</Button>
+              <Button variant="outline" onClick={() => { setIsExporting(true); setTimeout(() => window.print(), 100); }}><Printer size={16} className="mr-2" />Imprimir Relatório</Button>
             </div>
             <Card>
               <CardContent className="p-0">
@@ -608,6 +622,7 @@ export default function ResultsAnalysis() {
           </div>
         )}
       </div>
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }
