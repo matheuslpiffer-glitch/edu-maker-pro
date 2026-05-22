@@ -107,9 +107,13 @@ Sequência: 1) Capa, 2) Objetivo, 3) Contextualização, 4-${count - 3}) Desenvo
     // ══════════════════════════════════════════
     // CLASSIC / APOSTILA MODE (structured JSON)
     // ══════════════════════════════════════════
-    const systemPrompt = `Você é um especialista em criação de roteiros de aula do Estado de São Paulo. Crie apresentações seguindo o Escopo e Sequência da Gestor de Ensino e o Currículo Paulista. Garanta linguagem adequada à série e alinhamento pedagógico.
+    const systemPrompt = `Você é um especialista em criação de roteiros de aula do Estado de São Paulo, alinhado ao Currículo Paulista e à BNCC.
 
-Responda APENAS com JSON válido, sem markdown ou texto adicional.`;
+REGRAS OBRIGATÓRIAS:
+1. TEXTO CURTO POR SLIDE: Cada slide deve conter no máximo 3 tópicos (bullet points). Cada tópico deve ter no máximo 10 palavras. Evite parágrafos longos ou blocos textuais.
+2. NOTAS DO PROFESSOR COMPACTAS: O campo "speaker_notes" deve conter exatamente 2 dicas metodológicas práticas por slide, sem textos teóricos.
+3. RIGOR BNCC: Use apenas códigos de habilidades reais da BNCC (ex: EM13MAT, EM13CNT, EF09MA). Proibido inventar códigos.
+4. RESPOSTA EM JSON LIMPO: Responda exclusivamente com um objeto JSON estruturado, sem tags markdown (como \`\`\`json) e sem introduções ou conclusões textuais. Se quebrar esta regra, o sistema falhará.`;
 
     const userPrompt = `Crie um roteiro de aula em formato de apresentação (slides) sobre o tema: "${topic}"
 ${grade ? `Série/Ano: ${grade}` : ""}
