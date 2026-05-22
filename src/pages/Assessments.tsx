@@ -1,10 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, FileText, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { 
+  Plus, 
+  FileText, 
+  Pencil, 
+  Trash2, 
+  Loader2, 
+  Search, 
+  FilterX 
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +49,23 @@ export default function Assessments() {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedClass, setSelectedClass] = useState("all");
+
+  const filteredAssessments = useMemo(() => {
+    return assessments.filter(a => {
+      const titleMatch = (a.title || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const classMatch = selectedClass === "all" || a.class_name === selectedClass;
+      return titleMatch && classMatch;
+    });
+  }, [assessments, searchTerm, selectedClass]);
+
+  const uniqueClasses = useMemo(() => {
+    const classes = assessments
+      .map(a => a.class_name)
+      .filter((name): name is string => Boolean(name));
+    return Array.from(new Set(classes)).sort();
+  }, [assessments]);
 
   const load = async () => {
     try {
@@ -97,6 +130,34 @@ export default function Assessments() {
         </Link>
       </div>
 
+      {/* Barra de Busca e Filtro */}
+      {!loading && assessments.length > 0 && (
+        <div className="flex flex-col md:flex-row gap-3 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar prova por título..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Select value={selectedClass} onValueChange={setSelectedClass}>
+            <SelectTrigger className="w-full md:w-[200px]">
+              <SelectValue placeholder="Filtrar por turma" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as turmas</SelectItem>
+              {uniqueClasses.map((c) => (
+                <SelectItem key={c} value={c}>
+                  {c}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
       ) : assessments.length === 0 ? (
@@ -105,9 +166,21 @@ export default function Assessments() {
           <p className="text-muted-foreground">Nenhuma prova criada ainda.</p>
           <Link to="/provas/nova"><Button variant="outline" className="mt-4">Criar Primeira Prova</Button></Link>
         </div>
+      ) : filteredAssessments.length === 0 ? (
+        <div className="text-center py-16 border rounded-lg bg-muted/10">
+          <FilterX className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+          <p className="text-muted-foreground">Nenhuma prova encontrada para essa busca. Tente digitar outro termo.</p>
+          <Button 
+            variant="link" 
+            className="mt-2" 
+            onClick={() => { setSearchTerm(""); setSelectedClass("all"); }}
+          >
+            Limpar filtros
+          </Button>
+        </div>
       ) : (
         <div className="space-y-3">
-          {assessments.map(a => (
+          {filteredAssessments.map(a => (
             <Card key={a.id} className="hover:shadow-md transition-shadow">
               <CardContent className="flex items-center justify-between p-4">
                 <div>
