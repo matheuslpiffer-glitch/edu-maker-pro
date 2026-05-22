@@ -191,7 +191,7 @@ export default function CreateAssessment() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Nome da Instituição</Label>
-                  <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Escola Municipal..." />
+                  <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Escola Municipal..." disabled={saving} />
                 </div>
                 <div className="space-y-2">
                   <Label>Título da Avaliação</Label>
