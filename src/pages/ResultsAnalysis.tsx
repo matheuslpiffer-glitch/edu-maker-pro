@@ -64,6 +64,8 @@ export default function ResultsAnalysis() {
   const [insights, setInsights] = useState<AIInsights | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [idespMeta, setIdespMeta] = useState(60);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const selectedSim = simulators.find(s => s.id === selectedSimId);
   const totalQuestions = selectedSim ? (selectedSim.questions as any[])?.length || 0 : 0;
