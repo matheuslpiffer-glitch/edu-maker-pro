@@ -207,34 +207,34 @@ export default function BibliotecaAvaliacoes() {
   };
 
   return (
-    <div className=\"max-w-5xl mx-auto space-y-6\">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className=\"text-3xl font-bold text-foreground flex items-center gap-2\">
-          <Library className=\"h-8 w-8 text-primary\" />
+        <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+          <Library className="h-8 w-8 text-primary" />
           Biblioteca de Avaliações
         </h1>
-        <p className=\"text-muted-foreground mt-1\">Organize, busque e exporte seus simulados PISA e Elite.</p>
+        <p className="text-muted-foreground mt-1">Organize, busque e exporte seus simulados PISA e Elite.</p>
       </div>
 
       {/* Search + Folder Toggles */}
-      <div className=\"flex flex-col sm:flex-row gap-3\">
-        <div className=\"relative flex-1\">
-          <Search className=\"absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground\" />
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder=\"Buscar por título ou habilidade OCDE...\"
-            className=\"pl-10 min-h-[44px]\"
+            placeholder="Buscar por título ou habilidade OCDE..."
+            className="pl-10 min-h-[44px]"
           />
         </div>
-        <div className=\"flex gap-2\">
+        <div className="flex gap-2">
           {([['month', 'Mês/Ano'], ['turma', 'Turma'], ['type', 'Tipo']] as const).map(([key, label]) => (
             <Button
               key={key}
-              size=\"sm\"
+              size="sm"
               variant={folderView === key ? 'default' : 'outline'}
               onClick={() => { setFolderView(key); setOpenFolder(null); }}
-              className=\"min-h-[44px]\"
+              className="min-h-[44px]"
             >
               {label}
             </Button>
@@ -244,28 +244,28 @@ export default function BibliotecaAvaliacoes() {
 
       {/* Batch Actions */}
       {selected.size > 0 && (
-        <Card className=\"border-primary/30 bg-primary/5\">
-          <CardContent className=\"flex flex-wrap items-center gap-3 p-3\">
-            <Badge variant=\"secondary\">{selected.size} selecionada(s)</Badge>
-            <Button size=\"sm\" variant=\"outline\" onClick={selectAll}>
-              <CheckSquare className=\"h-4 w-4 mr-1\" />
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex flex-wrap items-center gap-3 p-3">
+            <Badge variant="secondary">{selected.size} selecionada(s)</Badge>
+            <Button size="sm" variant="outline" onClick={selectAll}>
+              <CheckSquare className="h-4 w-4 mr-1" />
               {selected.size === filtered.length ? 'Desmarcar' : 'Selecionar Tudo'}
             </Button>
             <Button 
-              size=\"sm\" 
-              variant=\"outline\" 
-              className=\"text-cyan-700 border-cyan-300 hover:bg-cyan-50\" 
+              size="sm" 
+              variant="outline" 
+              className="text-cyan-700 border-cyan-300 hover:bg-cyan-50" 
               onClick={handleBatchExport}
               disabled={isExporting}
             >
-              {isExporting ? <Loader2 className=\"h-4 w-4 mr-1 animate-spin\" /> : <FileDown className=\"h-4 w-4 mr-1\" />}
+              {isExporting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileDown className="h-4 w-4 mr-1" />}
               {isExporting ? 'Gerando PDF...' : 'Exportar em Lote'}
             </Button>
             
             <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
               <AlertDialogTrigger asChild>
-                <Button size=\"sm\" variant=\"destructive\" disabled={deleteMutation.isPending}>
-                  <Trash2 className=\"h-4 w-4 mr-1\" /> Excluir
+                <Button size="sm" variant="destructive" disabled={deleteMutation.isPending}>
+                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -277,15 +277,15 @@ export default function BibliotecaAvaliacoes() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleBatchDelete} className=\"bg-destructive text-destructive-foreground hover:bg-destructive/90\">
+                  <AlertDialogAction onClick={handleBatchDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                     Sim, excluir
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
             
-            <Button size=\"sm\" variant=\"ghost\" onClick={() => setSelected(new Set())}>
-              <X className=\"h-4 w-4\" />
+            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
+              <X className="h-4 w-4" />
             </Button>
           </CardContent>
         </Card>
@@ -293,63 +293,63 @@ export default function BibliotecaAvaliacoes() {
 
       {/* Folder List */}
       {isLoading ? (
-        <div className=\"flex justify-center py-12\"><Loader2 className=\"h-8 w-8 animate-spin text-primary\" /></div>
+        <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : folders.length === 0 ? (
-        <Card><CardContent className=\"py-12 text-center text-muted-foreground\">Nenhuma avaliação encontrada.</CardContent></Card>
+        <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhuma avaliação encontrada.</CardContent></Card>
       ) : (
-        <div className=\"space-y-3\">
+        <div className="space-y-3">
           {folders.map(([folderName, sims]) => {
             const isOpen = openFolder === folderName;
             return (
               <Card key={folderName}>
                 <button
                   onClick={() => setOpenFolder(isOpen ? null : folderName)}
-                  className=\"w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors rounded-t-lg\"
+                  className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors rounded-t-lg"
                 >
                   {isOpen
                     ? <FolderOpen className={`h-6 w-6 ${isMobile ? 'h-8 w-8' : ''} text-primary`} />
                     : <Folder className={`h-6 w-6 ${isMobile ? 'h-8 w-8' : ''} text-primary`} />
                   }
                   <span className={`font-semibold flex-1 text-left ${isMobile ? 'text-base' : 'text-sm'}`}>{folderName}</span>
-                  <Badge variant=\"outline\">{sims.length}</Badge>
+                  <Badge variant="outline">{sims.length}</Badge>
                   <ChevronRight className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
                 </button>
                 {isOpen && (
-                  <CardContent className=\"pt-0 space-y-2\">
+                  <CardContent className="pt-0 space-y-2">
                     {sims.map(sim => (
-                      <div key={sim.id} className=\"flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-muted/20 transition-colors\">
+                      <div key={sim.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-muted/20 transition-colors">
                         <Checkbox
                           checked={selected.has(sim.id)}
                           onCheckedChange={() => toggleSelect(sim.id)}
                         />
-                        <div className=\"flex-1 min-w-0\">
-                          <p className=\"font-medium text-sm truncate\">{sim.title}</p>
-                          <div className=\"flex flex-wrap gap-1 mt-1\">
-                            <Badge variant=\"outline\" className=\"text-[10px]\">Nível {sim.proficiency_level}</Badge>
-                            <Badge variant=\"secondary\" className=\"text-[10px]\">{COMPETENCY_LABELS[sim.competency] || sim.competency}</Badge>
-                            {sim.class_name && <Badge variant=\"outline\" className=\"text-[10px]\">{sim.class_name}</Badge>}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{sim.title}</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            <Badge variant="outline" className="text-[10px]">Nível {sim.proficiency_level}</Badge>
+                            <Badge variant="secondary" className="text-[10px]">{COMPETENCY_LABELS[sim.competency] || sim.competency}</Badge>
+                            {sim.class_name && <Badge variant="outline" className="text-[10px]">{sim.class_name}</Badge>}
                           </div>
-                          <p className=\"text-xs text-muted-foreground mt-0.5\">{new Date(sim.created_at).toLocaleDateString('pt-BR')}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{new Date(sim.created_at).toLocaleDateString('pt-BR')}</p>
                         </div>
-                        <div className=\"flex gap-1\">
-                          <Button size=\"icon\" variant=\"ghost\" className=\"h-8 w-8\" onClick={() => setPreviewSim(sim)}>
-                            <Eye className=\"h-4 w-4\" />
+                        <div className="flex gap-1">
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setPreviewSim(sim)}>
+                            <Eye className="h-4 w-4" />
                           </Button>
                           <Button 
-                            size=\"icon\" 
-                            variant=\"ghost\" 
-                            className=\"h-8 w-8 text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50\" 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-8 w-8 text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50" 
                             onClick={() => handleExportPDF(sim)}
                             disabled={isExporting}
                           >
                             {isExporting && pdfSim?.id === sim.id ? (
-                              <Loader2 className=\"h-4 w-4 animate-spin\" />
+                              <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                              <FileDown className=\"h-4 w-4\" />
+                              <FileDown className="h-4 w-4" />
                             )}
                           </Button>
-                          <Button size=\"icon\" variant=\"ghost\" className=\"h-8 w-8\" onClick={() => handleShare(sim)}>
-                            <Share2 className=\"h-4 w-4\" />
+                          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleShare(sim)}>
+                            <Share2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
@@ -364,23 +364,23 @@ export default function BibliotecaAvaliacoes() {
 
       {/* Preview Dialog */}
       <Dialog open={!!previewSim} onOpenChange={() => setPreviewSim(null)}>
-        <DialogContent className=\"max-w-3xl max-h-[90vh] overflow-y-auto\">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{previewSim?.title}</DialogTitle>
           </DialogHeader>
           {previewSim && (
-            <div className=\"space-y-4\">
-              <div className=\"flex flex-wrap gap-2\">
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
                 <Badge>Nível {previewSim.proficiency_level}</Badge>
-                <Badge variant=\"secondary\">{COMPETENCY_LABELS[previewSim.competency]}</Badge>
-                <Badge variant=\"outline\">{previewSim.questions.length} questões</Badge>
+                <Badge variant="secondary">{COMPETENCY_LABELS[previewSim.competency]}</Badge>
+                <Badge variant="outline">{previewSim.questions.length} questões</Badge>
               </div>
               {previewSim.questions.map((q: any, i: number) => (
                 <Card key={i}>
-                  <CardContent className=\"p-4 space-y-2\">
-                    <p className=\"font-semibold text-sm\">Questão {i + 1}</p>
-                    {q.scenario && <p className=\"text-sm italic text-muted-foreground bg-muted/50 p-2 rounded whitespace-pre-wrap\">{q.scenario}</p>}
-                    <p className=\"text-sm whitespace-pre-wrap\">{q.content}</p>
+                  <CardContent className="p-4 space-y-2">
+                    <p className="font-semibold text-sm">Questão {i + 1}</p>
+                    {q.scenario && <p className="text-sm italic text-muted-foreground bg-muted/50 p-2 rounded whitespace-pre-wrap">{q.scenario}</p>}
+                    <p className="text-sm whitespace-pre-wrap">{q.content}</p>
                     {q.options?.map((opt: any) => (
                       <p key={opt.letter} className={`text-sm ${opt.isCorrect ? 'font-semibold text-cyan-700' : ''}`}>({opt.letter}) {opt.text}</p>
                     ))}
