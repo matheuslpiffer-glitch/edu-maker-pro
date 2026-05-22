@@ -205,7 +205,7 @@ export default function CreateAssessment() {
                 </div>
                 <div className="space-y-2">
                   <Label>Data</Label>
-                  <Input type="date" value={assessmentDate} onChange={e => setAssessmentDate(e.target.value)} />
+                  <Input type="date" value={assessmentDate} onChange={e => setAssessmentDate(e.target.value)} disabled={saving} />
                 </div>
                 <div className="space-y-2">
                   <Label>Turma</Label>
