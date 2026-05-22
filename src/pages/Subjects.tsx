@@ -7,6 +7,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Pencil, Trash2, Loader2, Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { ALL_DEFAULT_SUBJECTS, SUBJECT_CATEGORIES, getSubjectIcon } from '@/lib/subjects-data';
 
 const COLORS = ['blue', 'amber', 'rose', 'indigo', 'purple', 'cyan', 'orange', 'pink'];
