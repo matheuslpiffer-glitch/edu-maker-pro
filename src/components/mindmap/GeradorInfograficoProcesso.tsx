@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
