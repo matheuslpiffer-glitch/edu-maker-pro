@@ -1,14 +1,24 @@
 import { useMemo } from 'react';
-import type { MindMapData } from './MindMapVisual';
 
-interface MindMapBranch {
+export interface MindMapBranch {
   id: string;
   label: string;
   summary: string;
   children?: { label: string }[];
 }
 
-export default function MindMapVisual({ data }: { data: MindMapData | null }) {
+export interface MindMapData {
+  center: { label: string };
+  branches: MindMapBranch[];
+}
+
+export interface MindMapQuestion {
+  number: number;
+  question: string;
+  answer: string;
+}
+
+export default function MindMapVisual({ data, mode, aee, institutionName }: { data: MindMapData | null, mode?: string, aee?: boolean, institutionName?: string }) {
   const branches = useMemo(() => data?.branches || [], [data]);
   
   if (!data) return null;
@@ -88,15 +98,4 @@ export default function MindMapVisual({ data }: { data: MindMapData | null }) {
       </svg>
     </div>
   );
-}
-
-export interface MindMapData {
-  center: { label: string };
-  branches: MindMapBranch[];
-}
-
-export interface MindMapQuestion {
-  number: number;
-  question: string;
-  answer: string;
 }
