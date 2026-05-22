@@ -166,8 +166,8 @@ export default function MindMapGenerator() {
     if (!mapData) return;
     setGeneratingQuestions(true);
     try {
-      const branchSummary = mapData.branches.map(b =>
-        `${b.label}: ${b.summary}${b.children?.length ? ' (' + b.children.map(c => c.label).join(', ') + ')' : ''}`
+      const branchSummary = (mapData?.branches || []).map(b =>
+        `${b.label}: ${b.summary}${b.children?.length ? ' (' + (b.children || []).map(c => c.label).join(', ') + ')' : ''}`
       ).join('\n');
 
       const prompt = `Analise o infográfico pedagógico sobre "${mapData.center.label}" com os seguintes tópicos:\n${branchSummary}\n\nGere exatamente 5 perguntas de análise e interpretação que exijam que o aluno observe as conexões visuais do infográfico.`;
@@ -197,7 +197,7 @@ export default function MindMapGenerator() {
     if (!mapData) return;
     setGeneratingSchedule(true);
     try {
-      const branchLabels = mapData.branches.map(b => b.label).join(', ');
+      const branchLabels = (mapData?.branches || []).map(b => b.label).join(', ');
       const hasQuestions = questions.length > 0;
 
       const schedulePrompt = `Crie um cronograma de estudo semanal (Segunda a Sexta) para um aluno que está estudando o tema "${mapData.center.label}" usando um infográfico pedagógico com os seguintes tópicos: ${branchLabels}.${hasQuestions ? ' O aluno também tem questões de interpretação do infográfico para resolver.' : ''}
@@ -298,7 +298,7 @@ TUDO EM MAIÚSCULAS.`;
   };
 
   const selectedMode = MODES.find(m => m.id === mode);
-  const hasFullContent = questions.length > 0 || schedule.length > 0;
+  const hasFullContent = (questions?.length || 0) > 0 || (schedule?.length || 0) > 0;
 
    return (
      <div className="space-y-6 pb-12">

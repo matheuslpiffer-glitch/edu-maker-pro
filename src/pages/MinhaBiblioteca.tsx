@@ -71,6 +71,10 @@ export default function MinhaBiblioteca() {
   const [tab, setTab] = useState<TabCategory>('todos');
   const [previewItem, setPreviewItem] = useState<LibItem | null>(null);
   const [qrItem, setQrItem] = useState<LibItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
+
+  useEffect(() => { setCurrentPage(1); }, [search, tab]);
 
   useEffect(() => { loadItems(); }, []);
 
@@ -128,6 +132,13 @@ export default function MinhaBiblioteca() {
 
   const formatDate = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filtered.slice(start, start + ITEMS_PER_PAGE);
+  }, [filtered, currentPage]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+
   const countByCategory = (cat: TabCategory) => {
     if (cat === 'todos') return allItems.length;
     return allItems.filter(i => getItemCategory(i) === cat).length;
@@ -178,7 +189,7 @@ export default function MinhaBiblioteca() {
             </div>
           ) : (
             <div className="space-y-3">
-              {filtered.map(item => (
+              {paginated.map(item => (
                 <div key={`${item._source}-${item.id}`} className="rounded-xl border border-border bg-card p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -218,6 +229,30 @@ export default function MinhaBiblioteca() {
                   </div>
                 </div>
               ))}
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => prev - 1)}
+                  >
+                    Anterior
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => prev + 1)}
+                  >
+                    Próxima
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
