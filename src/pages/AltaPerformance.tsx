@@ -1031,8 +1031,8 @@ export default function AltaPerformance() {
 
             {!loading && questions.length > 0 && (
               <div className="space-y-4" ref={previewRef}>
-                {/* Action bar */}
-                <div className="flex flex-wrap items-center gap-2 sticky top-0 bg-card/90 backdrop-blur-sm py-2 z-10">
+                {/* Header title for questions */}
+                <div className="flex flex-wrap items-center gap-2 py-2">
                   <h2 className="text-lg font-bold flex-1">
                     {disciplina === 'Todos' ? '📅 SIMULADO SEMANAL INTEGRADO' : `${questions.length} Questões ${isDiscursiva ? 'Discursivas' : ''} Geradas`}
                   </h2>
@@ -1041,32 +1041,37 @@ export default function AltaPerformance() {
                       Áreas do Conhecimento: Linguagens, Matemática, Ciências da Natureza e Humanas
                     </p>
                   )}
-                  <Button variant="outline" size="sm" onClick={handleSaveQuestions} className="gap-1.5">
-                    <Save size={14} /> 💾 Salvar na minha biblioteca
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleSaveGabarito} className="gap-1.5">
-                    <Save size={14} /> Salvar Gabarito
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5">
-                    <FileDown size={14} /> Exportar PDF
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleWhatsApp} className="gap-1.5">
-                    <MessageCircle size={14} /> WhatsApp
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={copyToClipboard} className="gap-1.5">
-                    <Copy size={14} /> Copiar
-                  </Button>
-                   <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5">
-                     <Link2 size={14} /> Link do Aluno
-                   </Button>
-                   <Button variant="outline" size="sm" onClick={() => {
-                     if (!savedBankId) {
-                       toast({ title: 'Salve as questões primeiro para gerar o QR Code.', variant: 'destructive' });
-                       return;
-                     }
-                     setQrOpen(true);
-                   }} className="gap-1.5">
-                     <QrCode size={14} /> QR Code
+                </div>
+
+                {/* Sticky Action Bar */}
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                  <div className="flex flex-wrap items-center justify-center gap-2 p-3 rounded-2xl border border-white/20 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-2xl shadow-primary/20">
+                    <Button variant="outline" size="sm" onClick={handleSaveQuestions} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
+                      <Save size={14} /> 💾 Salvar na minha biblioteca
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleSaveGabarito} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
+                      <Save size={14} /> Salvar Gabarito
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
+                      <FileDown size={14} /> Exportar PDF
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleWhatsApp} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
+                      <MessageCircle size={14} /> WhatsApp
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={copyToClipboard} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
+                      <Copy size={14} /> Copiar
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
+                      <Link2 size={14} /> Link do Aluno
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => {
+                      if (!savedBankId) {
+                        toast({ title: 'Salve as questões primeiro para gerar o QR Code.', variant: 'destructive' });
+                        return;
+                      }
+                      setQrOpen(true);
+                    }} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
+                      <QrCode size={14} /> QR Code
                     </Button>
                     <Button
                       size="sm"
@@ -1077,12 +1082,13 @@ export default function AltaPerformance() {
                         }
                         setLaunchOpen(true);
                       }}
-                      className="gap-1.5 text-gray-900 font-bold border-0"
+                      className="gap-1.5 h-9 text-xs md:text-sm text-gray-900 font-bold border-0 shadow-lg"
                       style={{ background: 'linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7)' }}
                     >
                       <Rocket size={14} /> Lançar Simulado
                     </Button>
                   </div>
+                </div>
 
                 {/* Access Code Display */}
                 {savedAccessCode && (
