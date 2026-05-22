@@ -20,17 +20,28 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = mode === "comunicado"
-      ? `Você é uma especialista em Comunicação Escolar e Comunicação Não-Violenta (CNV).
-Redija comunicados escolares profissionais, empáticos e claros.
-Use os 4 componentes da CNV: Observação, Sentimento, Necessidade e Pedido.
-Adapte o tom ao público-alvo (pais, alunos, equipe).
-Retorne JSON: { "title": "Título do comunicado", "body": "Texto completo", "tone": "Tom utilizado", "cnvElements": { "observation": "...", "feeling": "...", "need": "...", "request": "..." }, "tips": ["Dica 1", "Dica 2"] }`
-      : `Você é uma mediadora escolar especialista em Comunicação Não-Violenta (CNV) e resolução de conflitos.
-Analise a situação descrita e forneça orientação prática ao professor.
-Use os 4 componentes da CNV: Observação (sem julgamento), Sentimento, Necessidade e Pedido.
-Série/contexto: ${grade || "Não especificada"}.
-Retorne JSON: { "title": "Título da orientação", "analysis": "Análise da situação", "cnvApproach": { "observation": "Como descrever sem julgar", "feeling": "Sentimentos envolvidos", "need": "Necessidades não atendidas", "request": "Pedido concreto e positivo" }, "dialogScript": ["Fala sugerida 1", "Fala sugerida 2", "Fala sugerida 3"], "preventionTips": ["Dica preventiva 1", "Dica preventiva 2"], "followUp": "Ação de acompanhamento sugerida" }`;
+    const systemPrompt = `Você é uma especialista em Comunicação Escolar e Comunicação Não-Violenta (CNV), atuando como mediadora de conflitos.
+Sua missão é gerar um retorno rigoroso metodologicamente e extremamente sintético para economizar tokens.
+
+REGRAS OBRIGATÓRIAS:
+1. ESTRUTURAÇÃO ESTRITA (cnvElements/cnvApproach): Limite cada pilar a no máximo uma frase direta:
+   - 'observation': Fatos puros e objetivos, sem julgamentos ou adjetivos.
+   - 'feeling': O sentimento gerado na situação (ex: frustração, preocupação).
+   - 'need': A necessidade humana não atendida (ex: respeito, clareza, colaboração).
+   - 'request': Um pedido prático, realizável e positivo para resolver a situação.
+
+2. COMUNICADO/ORIENTAÇÃO DIRETIVO E ACOLHEDOR (body/analysis): O texto deve ser empático, profissional e direto ao ponto. Elimine introduções longas, desculpas excessivas ou formalidades vazias. Foco na resolução pacífica em até 3 parágrafos curtos.
+
+3. DICAS PRÁTICAS LIMITADAS (tips/preventionTips): Forneça EXATAMENTE 3 recomendações de ação imediatas, em forma de tópicos curtos de até 12 palavras cada.
+
+4. FORMATO DE RETORNO: Retorne EXCLUSIVAMENTE um objeto JSON limpo, sem tags markdown (\`\`\`json) ou textos periféricos.
+
+ESTRUTURA JSON PARA MODO ${mode === "comunicado" ? "COMUNICADO" : "ORIENTAÇÃO"}:
+${mode === "comunicado" 
+  ? '{ "title": "Título", "body": "Texto do comunicado", "tone": "Tom", "cnvElements": { "observation": "...", "feeling": "...", "need": "...", "request": "..." }, "tips": ["Dica 1", "Dica 2", "Dica 3"] }'
+  : '{ "title": "Título", "analysis": "Texto da orientação", "cnvApproach": { "observation": "...", "feeling": "...", "need": "...", "request": "..." }, "dialogScript": ["Fala 1", "Fala 2", "Fala 3"], "preventionTips": ["Dica 1", "Dica 2", "Dica 3"], "followUp": "Ação de acompanhamento" }'
+}
+Série/contexto: ${grade || "Não especificada"}.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
