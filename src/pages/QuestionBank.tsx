@@ -215,7 +215,7 @@ export default function QuestionBank() {
             {activeTab === 'manual' && (
               <>
                 <div className="w-52">
-                  <SubjectSelect value={filterSubject} onValueChange={setFilterSubject} subjects={subjects} placeholder="Disciplina" showAll />
+                  <SubjectSelect value={filterSubject} onValueChange={(v) => { setFilterSubject(v); setPage(1); }} subjects={subjects} placeholder="Disciplina" showAll />
                 </div>
                 <Select value={filterType} onValueChange={setFilterType}>
                   <SelectTrigger className="w-44"><SelectValue placeholder="Tipo" /></SelectTrigger>
