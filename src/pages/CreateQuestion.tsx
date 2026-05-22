@@ -292,7 +292,7 @@ export default function CreateQuestion() {
           )}
 
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={() => navigate('/questoes')}>Cancelar</Button>
+            <Button variant="outline" onClick={handleCancel} disabled={saving}>Cancelar</Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               Salvar
