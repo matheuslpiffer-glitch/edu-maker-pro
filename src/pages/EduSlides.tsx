@@ -523,21 +523,21 @@ export default function EduSlides() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={addSlide}><Plus className="h-4 w-4 mr-1" /> Slide</Button>
-          <Button variant="outline" size="sm" onClick={() => setPresenting(true)}><Play className="h-4 w-4 mr-1" /> Apresentar</Button>
-          <Button variant="outline" size="sm" onClick={saveMeeting} disabled={saving}>
+          <Button variant="outline" size="sm" onClick={addSlide} disabled={exporting}><Plus className="h-4 w-4 mr-1" /> Slide</Button>
+          <Button variant="outline" size="sm" onClick={() => setPresenting(true)} disabled={exporting}><Play className="h-4 w-4 mr-1" /> Apresentar</Button>
+          <Button variant="outline" size="sm" onClick={saveMeeting} disabled={saving || exporting}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
             {meetingId ? 'Atualizar' : 'Salvar'}
           </Button>
           {meetingId && (
-            <Button variant="outline" size="sm" onClick={() => setShowAttendance(true)}><Users className="h-4 w-4 mr-1" /> Presenças</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowAttendance(true)} disabled={exporting}><Users className="h-4 w-4 mr-1" /> Presenças</Button>
           )}
-          <Button variant="outline" size="sm" onClick={exportPdf} disabled={exporting}><FileText className="h-4 w-4 mr-1" /> PDF</Button>
-          <Button size="sm" onClick={exportPptx} disabled={exporting}>
+          <Button variant="outline" size="sm" onClick={exportPdfWrapped} disabled={exporting}><FileText className="h-4 w-4 mr-1" /> PDF</Button>
+          <Button size="sm" onClick={exportPptxWrapped} disabled={exporting}>
             {exporting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
             PPTX
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => { setSlides([]); setMeetingId(null); setFormato(''); }}>Nova Aula</Button>
+          <Button variant="ghost" size="sm" onClick={() => { setSlides([]); setMeetingId(null); setFormato(''); }} disabled={exporting}>Nova Aula</Button>
         </div>
       </div>
 
@@ -663,6 +663,7 @@ export default function EduSlides() {
       {presenting && (
         <SlidePresenter slides={slides} skillCode={skillCode} startIndex={activeSlide} onClose={() => setPresenting(false)} />
       )}
+      <ExportLoadingOverlay isOpen={exporting} />
     </div>
   );
 }
