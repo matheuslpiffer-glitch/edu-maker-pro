@@ -104,18 +104,39 @@ export default function Auth({ preferredPortal }: AuthProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-            <GraduationCap className="h-8 w-8 text-primary-foreground" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8fafc] dark:bg-slate-950 p-4 relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="w-full max-w-md space-y-8 relative z-10">
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="bg-primary/10 p-2 rounded-xl">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+              Piffer EduTech
+            </h1>
           </div>
-          <CardTitle className="text-2xl font-bold">EduCreator Pro</CardTitle>
-          <CardDescription>
-            {isSignUp ? 'Crie sua conta para começar' : 'Entre na sua conta'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          <p className="text-slate-500 dark:text-slate-400 font-medium italic">
+            "A plataforma inteligente para o educador moderno"
+          </p>
+        </div>
+
+        <Card className="border-white/20 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/20">
+              <GraduationCap className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <CardTitle className="text-xl font-bold text-slate-800 dark:text-white">
+              {isSignUp ? 'Criar nova conta' : 'Acesse sua conta'}
+            </CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400">
+              {isSignUp ? 'Junte-se a milhares de educadores' : 'Bem-vindo de volta!'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-4">
           {/* Portal Selection */}
           {!selectedPortal && (
             <div className="space-y-3">
