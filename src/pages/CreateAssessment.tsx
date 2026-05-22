@@ -349,7 +349,7 @@ export default function CreateAssessment() {
       </div>
 
       <div className="flex justify-end gap-3 mt-6 no-print">
-        <Button variant="outline" onClick={() => navigate('/provas')}>Cancelar</Button>
+        <Button variant="outline" onClick={handleCancel} disabled={saving}>Cancelar</Button>
         <Button onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
           Salvar Prova
