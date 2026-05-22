@@ -185,7 +185,7 @@ export default function CreateQuestion() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Dados da Questão</CardTitle>
-          <Button variant="outline" onClick={() => setAiOpen(true)}>
+          <Button variant="outline" onClick={() => setAiOpen(true)} disabled={saving}>
             <Sparkles className="h-4 w-4 mr-2" />Gerar com IA
           </Button>
         </CardHeader>
