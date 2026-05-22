@@ -95,28 +95,32 @@ export default function QuestionBank() {
   }, [savedQuestions]);
 
   // Filtered manual questions
-  const filteredManual = questions.filter(q => {
-    if (filterSubject !== 'all' && q.subject_id !== filterSubject) return false;
-    if (filterType !== 'all' && q.type !== filterType) return false;
-    if (filterDifficulty !== 'all' && q.difficulty !== filterDifficulty) return false;
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      const text = stripHtml(q.content).toLowerCase();
-      if (!text.includes(term) && !q.topic?.toLowerCase().includes(term)) return false;
-    }
-    return true;
-  });
+  const filteredManual = useMemo(() => {
+    return questions.filter(q => {
+      if (filterSubject !== 'all' && q.subject_id !== filterSubject) return false;
+      if (filterType !== 'all' && q.type !== filterType) return false;
+      if (filterDifficulty !== 'all' && q.difficulty !== filterDifficulty) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const text = stripHtml(q.content).toLowerCase();
+        if (!text.includes(term) && !q.topic?.toLowerCase().includes(term)) return false;
+      }
+      return true;
+    });
+  }, [questions, filterSubject, filterType, filterDifficulty, searchTerm]);
 
   // Filtered auto-saved questions
-  const filteredAuto = savedQuestions.filter(q => {
-    if (filterBanca !== 'all' && q.banca !== filterBanca) return false;
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      const text = stripHtml(q.conteudo).toLowerCase();
-      if (!text.includes(term) && !q.tema?.toLowerCase().includes(term)) return false;
-    }
-    return true;
-  });
+  const filteredAuto = useMemo(() => {
+    return savedQuestions.filter(q => {
+      if (filterBanca !== 'all' && q.banca !== filterBanca) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        const text = stripHtml(q.conteudo).toLowerCase();
+        if (!text.includes(term) && !q.tema?.toLowerCase().includes(term)) return false;
+      }
+      return true;
+    });
+  }, [savedQuestions, filterBanca, searchTerm]);
 
   const handleMontarProva = () => {
     // Collect selected content from both tabs
