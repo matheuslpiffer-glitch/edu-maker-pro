@@ -54,6 +54,30 @@ export default function CreateQuestion() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [aiOpen, setAiOpen] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState<string | null>(null);
+
+  // Dirty state tracking
+  const isDirty = useMemo(() => {
+    return content.trim() !== '' || 
+           topic.trim() !== '' || 
+           answer.trim() !== '' || 
+           options.some(opt => opt.text.trim() !== '');
+  }, [content, topic, answer, options]);
+
+  const handleCancel = () => {
+    if (isDirty) {
+      setPendingRoute('/questoes');
+      setShowExitDialog(true);
+    } else {
+      navigate('/questoes');
+    }
+  };
+
+  const confirmExit = () => {
+    setShowExitDialog(false);
+    if (pendingRoute) navigate(pendingRoute);
+  };
 
   useEffect(() => {
     async function load() {
