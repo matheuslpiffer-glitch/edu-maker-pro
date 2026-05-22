@@ -410,7 +410,7 @@ export default function HubPlanejamento() {
             </Card>
 
             {/* Tecno-Maker */}
-            {plan.tecnoMaker && (
+            {plan?.tecnoMaker && (
               <Card className="border-orange-500/20">
                 <CardContent className="p-4 space-y-3">
                   <SectionHeader icon={Wrench} title="🔧 Atividade Tecno-Maker" sectionKey="tecnoMaker" />
@@ -421,13 +421,13 @@ export default function HubPlanejamento() {
                       <div>
                         <p className="text-sm font-semibold mb-1">Materiais:</p>
                         <div className="flex flex-wrap gap-1.5">
-                          {plan.tecnoMaker.materials.map((m, i) => <Badge key={i} variant="outline" className="text-xs">{m}</Badge>)}
+                          {(plan.tecnoMaker.materials || []).map((m, i) => <Badge key={`${m}-${i}`} variant="outline" className="text-xs">{m}</Badge>)}
                         </div>
                       </div>
                       <div>
                         <p className="text-sm font-semibold mb-1">Passo a passo:</p>
                         <ol className="list-decimal pl-5 space-y-1">
-                          {plan.tecnoMaker.steps.map((s, i) => <li key={i} className="text-sm text-muted-foreground">{s}</li>)}
+                          {(plan.tecnoMaker.steps || []).map((s, i) => <li key={`${s}-${i}`} className="text-sm text-muted-foreground">{s}</li>)}
                         </ol>
                       </div>
                       <div className="bg-muted/50 rounded-lg p-3 mt-2">
@@ -441,7 +441,7 @@ export default function HubPlanejamento() {
             )}
 
             {/* AEE Adaptations */}
-            {plan.aeeAdaptations && (
+            {plan?.aeeAdaptations && (
               <Card className="border-blue-500/20">
                 <CardContent className="p-4 space-y-3">
                   <SectionHeader icon={Accessibility} title="♿ Adaptações AEE" sectionKey="aee" />
@@ -450,7 +450,7 @@ export default function HubPlanejamento() {
                       <div>
                         <p className="text-sm font-semibold mb-1">Atividades Sensoriais:</p>
                         <ul className="list-disc pl-5 space-y-1">
-                          {plan.aeeAdaptations.sensoryActivities.map((a, i) => <li key={i} className="text-sm text-muted-foreground">{a}</li>)}
+                          {(plan.aeeAdaptations.sensoryActivities || []).map((a, i) => <li key={`${a}-${i}`} className="text-sm text-muted-foreground">{a}</li>)}
                         </ul>
                       </div>
                       <div>
@@ -460,7 +460,7 @@ export default function HubPlanejamento() {
                       <div>
                         <p className="text-sm font-semibold mb-1">Materiais de Apoio:</p>
                         <div className="flex flex-wrap gap-1.5">
-                          {plan.aeeAdaptations.supportMaterials.map((m, i) => <Badge key={i} variant="outline" className="text-xs">{m}</Badge>)}
+                          {(plan.aeeAdaptations.supportMaterials || []).map((m, i) => <Badge key={`${m}-${i}`} variant="outline" className="text-xs">{m}</Badge>)}
                         </div>
                       </div>
                     </div>
