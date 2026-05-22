@@ -200,7 +200,7 @@ export default function GeradorInfograficoProcesso() {
           </div>
 
           <div ref={printRef} className="max-w-5xl mx-auto bg-white border-2 border-slate-200 rounded-2xl shadow-xl overflow-hidden print:shadow-none print:border-none">
-            <header className="bg-slate-900 text-white p-6 text-center">
+            <header className="bg-slate-900 text-white p-6 text-center print-bg-slate-900">
               <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-wide">
                 {subject}
               </h1>
@@ -209,12 +209,15 @@ export default function GeradorInfograficoProcesso() {
             <div className="p-4 md:p-6 space-y-2">
               {steps.map((step, index) => {
                 const theme = THEMES[step.colorTheme] || THEMES.blue;
+                const printBgClass = `print-bg-${step.colorTheme}-50`;
+                const printCircleClass = `print-bg-${step.colorTheme}-500`;
+
                 return (
                   <div key={index} className="flex flex-col items-center w-full print-break-inside-avoid">
-                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-4 p-4 border-2 rounded-xl mb-2 ${theme.bg} ${theme.border} print:border-slate-300`}>
+                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-4 p-4 border-2 rounded-xl mb-2 ${theme.bg} ${theme.border} print:border-slate-300 print-flex-row ${printBgClass}`}>
                       {/* Coluna 1: Esquerda - Identificação */}
-                      <div className="flex flex-col items-center justify-center w-full md:w-32 flex-shrink-0 border-r-0 md:border-r border-slate-200/50 pr-0 md:pr-4">
-                        <div className={`w-14 h-14 rounded-full ${theme.circle} flex items-center justify-center text-white text-2xl font-black shadow-md`}>
+                      <div className="flex flex-col items-center justify-center w-full md:w-32 flex-shrink-0 border-r-0 md:border-r border-slate-200/50 pr-0 md:pr-4 print-w-32 print-border-r print-pr-4">
+                        <div className={`w-14 h-14 rounded-full ${theme.circle} flex items-center justify-center text-white text-2xl font-black shadow-md ${printCircleClass}`}>
                           {step.number}
                         </div>
                         <span 
