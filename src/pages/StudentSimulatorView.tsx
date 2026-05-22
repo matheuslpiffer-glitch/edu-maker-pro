@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, GraduationCap, CheckCircle2, Send, XCircle, Clock, Trophy, Target, Timer } from 'lucide-react';
 import MathRenderer from '@/components/MathRenderer';
 
@@ -65,7 +66,33 @@ export default function StudentSimulatorView() {
   const { isStudentMode } = useStudentMode();
   const { isTeacher } = useRole();
   const { user } = useAuth();
+  const { toast } = useToast();
   const isTeacherPreview = isStudentMode && isTeacher;
+
+  const storageKey = useMemo(() => id ? `eduFlow_sim_answers_${id}` : null, [id]);
+
+  // Restore answers from localStorage
+  useEffect(() => {
+    if (storageKey) {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setAnswers(parsed);
+          if (Object.keys(parsed).length > 0) {
+            toast({ title: '🔄 Progresso recuperado', description: 'Suas respostas marcadas anteriormente foram restauradas.' });
+          }
+        } catch { /* ignore */ }
+      }
+    }
+  }, [storageKey, toast]);
+
+  // Save answers to localStorage on change
+  useEffect(() => {
+    if (storageKey && Object.keys(answers).length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify(answers));
+    }
+  }, [answers, storageKey]);
 
   // Timer
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -169,6 +196,7 @@ export default function StudentSimulatorView() {
       setResultData({ correct: correctCount, total: totalQuestions, percentage, timeSeconds: elapsedSeconds });
       setShowResultModal(true);
       setSubmitted(true);
+      if (storageKey) localStorage.removeItem(storageKey);
     } catch (err: any) {
       setError(err.message || 'Não foi possível enviar suas respostas.');
     } finally {
