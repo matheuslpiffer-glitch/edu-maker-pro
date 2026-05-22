@@ -283,9 +283,10 @@ export default function CreateQuestion() {
               <Label>Resposta Esperada (Gabarito)</Label>
               <textarea
                 value={answer}
-                onChange={e => setAnswer(e.target.value)}
+                 onChange={e => setAnswer(e.target.value)}
                 placeholder="Descreva a resposta esperada..."
                 className="w-full min-h-[100px] rounded-lg border bg-card p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                disabled={saving}
               />
             </div>
           )}
