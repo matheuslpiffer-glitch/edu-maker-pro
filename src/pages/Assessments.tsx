@@ -1,10 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, FileText, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { 
+  Plus, 
+  FileText, 
+  Pencil, 
+  Trash2, 
+  Loader2, 
+  Search, 
+  FilterX 
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
