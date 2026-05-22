@@ -386,6 +386,33 @@ export type Database = {
         }
         Relationships: []
       }
+      materials_drafts: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          storage_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          storage_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          storage_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meeting_attendance: {
         Row: {
           created_at: string
