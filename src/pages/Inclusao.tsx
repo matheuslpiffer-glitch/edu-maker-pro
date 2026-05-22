@@ -598,8 +598,11 @@ export default function Inclusao() {
     setSaving(true);
     try {
       const profileLabels = selectedProfiles.map(p => AEE_PROFILES.find(ap => ap.value === p)?.label || p).join(' + ');
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Usuário não autenticado");
+
       const { data, error } = await supabase.from('question_banks').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         subject,
         topic: `AEE: ${profileLabels} — ${topic}`,
         grade: 'AEE',
