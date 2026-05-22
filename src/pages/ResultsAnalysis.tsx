@@ -470,7 +470,7 @@ export default function ResultsAnalysis() {
           {/* PRINT REPORT */}
           <TabsContent value="report">
             <div className="no-print mb-4">
-              <Button variant="outline" onClick={() => window.print()}><Printer size={16} className="mr-2" />Imprimir Relatório</Button>
+              <Button variant="outline" onClick={() => { setIsExporting(true); setTimeout(() => window.print(), 100); }}><Printer size={16} className="mr-2" />Imprimir Relatório</Button>
             </div>
             <Card>
               <CardContent className="p-0">
