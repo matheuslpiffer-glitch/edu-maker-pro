@@ -137,6 +137,7 @@ export default function EssayCorrector() {
   const [rotation, setRotation] = useState(0);
   const [studentName, setStudentName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [result, setResult] = useState<CorrectionResult | null>(null);
 
