@@ -68,6 +68,31 @@ export default function CreateAssessment() {
   const [twoColumns, setTwoColumns] = useState(false);
   const [mestreMode, setMestreMode] = useState(false);
   const [ecoPrint, setEcoPrint] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [pendingRoute, setPendingRoute] = useState<string | null>(null);
+
+  // Dirty state tracking
+  const isDirty = useMemo(() => {
+    return title.trim() !== '' || 
+           institutionName.trim() !== '' || 
+           teacherName.trim() !== '' || 
+           className.trim() !== '' || 
+           selectedIds.length > 0;
+  }, [title, institutionName, teacherName, className, selectedIds]);
+
+  const handleCancel = () => {
+    if (isDirty) {
+      setPendingRoute('/provas');
+      setShowExitDialog(true);
+    } else {
+      navigate('/provas');
+    }
+  };
+
+  const confirmExit = () => {
+    setShowExitDialog(false);
+    if (pendingRoute) navigate(pendingRoute);
+  };
 
   useEffect(() => {
     async function load() {
