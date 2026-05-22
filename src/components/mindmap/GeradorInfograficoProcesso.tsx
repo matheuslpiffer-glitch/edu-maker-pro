@@ -251,7 +251,7 @@ export default function GeradorInfograficoProcesso() {
                       </div>
 
                       {/* Coluna 3: Direita - Visual/Apoio */}
-                      <div className="w-full md:w-[200px] flex-shrink-0 flex items-center justify-center md:justify-start gap-3 pl-0 md:pl-4 border-l-0 md:border-l border-slate-200/50">
+                      <div className="w-full md:w-[200px] flex-shrink-0 flex items-center justify-center md:justify-start gap-3 pl-0 md:pl-4 border-l-0 md:border-l border-slate-200/50 print-w-64 print-border-l print-pl-4">
                         <div className="flex-shrink-0">
                           <IconRenderer name={step.iconName} className="w-16 h-16 text-slate-700" />
                         </div>
