@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Trophy, BarChart3, Users, AlertTriangle, Award, FileDown, TrendingUp, Star, Gem } from 'lucide-react';
+import { Loader2, Trophy, BarChart3, Users, AlertTriangle, Award, FileDown, TrendingUp, Star, Gem, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
