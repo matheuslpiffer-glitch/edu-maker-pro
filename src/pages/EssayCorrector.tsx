@@ -244,7 +244,22 @@ export default function EssayCorrector() {
     }
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    setIsExporting(true);
+    setTimeout(() => window.print(), 100);
+  };
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsExporting(false);
+      toast({ 
+        title: 'Laudo Gerado', 
+        description: 'O documento foi processado com sucesso.' 
+      });
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto">
