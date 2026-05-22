@@ -401,14 +401,14 @@ export default function StudentDashboard() {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              {hasEliteBadge ? <Award className="text-yellow-300" size={24} /> : <Star className="text-yellow-300" size={24} />}
+              {overallAvg && Number(overallAvg) >= 80 ? <Award className="text-yellow-300" size={24} /> : <Star className="text-yellow-300" size={24} />}
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">
                 {user?.user_metadata?.full_name || user?.user_metadata?.name || 'Olá, Estudante!'} 🎓
               </h1>
               <p className="text-white/80 text-sm">
-                {hasEliteBadge ? '⭐ Estudante Elite — Continue brilhando!' : 'Continue treinando para alcançar seus objetivos'}
+                {overallAvg && Number(overallAvg) >= 80 ? '⭐ Estudante Elite — Continue brilhando!' : 'Continue treinando para alcançar seus objetivos'}
               </p>
             </div>
             {user?.user_metadata?.avatar_url && (
@@ -434,7 +434,7 @@ export default function StudentDashboard() {
           <div className="grid grid-cols-4 gap-3 mt-4">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
               <Trophy className="mx-auto text-yellow-300 mb-1" size={20} />
-              <div className="text-xl font-bold">{totalQuizCount + simulatorResults.length}</div>
+              <div className="text-xl font-bold">{(totalQuizCompleted || 0) + simulatorResults.length}</div>
               <div className="text-[10px] text-white/60 uppercase tracking-wider">Atividades</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
@@ -449,7 +449,7 @@ export default function StudentDashboard() {
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
               <BarChart3 className="mx-auto text-cyan-300 mb-1" size={20} />
-              <div className="text-xl font-bold">{weeklyAverage ?? '—'}</div>
+              <div className="text-xl font-bold">{weeklyAvg ?? '—'}</div>
               <div className="text-[10px] text-white/60 uppercase tracking-wider">Média Semanal</div>
             </div>
           </div>
@@ -463,7 +463,7 @@ export default function StudentDashboard() {
             <CardTitle className="flex items-center gap-2 text-lg">
               <BarChart3 size={20} className="text-primary" />
               Meu Progresso
-              {hasEliteBadge && (
+              {overallAvg && Number(overallAvg) >= 80 && (
                 <Badge className="bg-gradient-to-r from-yellow-400 to-amber-600 text-white border-0 ml-2">
                   ⭐ Estudante Elite
                 </Badge>
