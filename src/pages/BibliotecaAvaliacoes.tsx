@@ -5,6 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from \"@/components/ui/alert-dialog\";
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -62,6 +73,8 @@ export default function BibliotecaAvaliacoes() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [previewSim, setPreviewSim] = useState<PisaSimulator | null>(null);
   const [pdfSim, setPdfSim] = useState<PisaSimulator | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const pdfRef = React.useRef<HTMLDivElement>(null);
 
   const { data: simulators = [], isLoading } = useQuery({
@@ -135,23 +148,38 @@ export default function BibliotecaAvaliacoes() {
 
   const handleBatchDelete = () => {
     if (selected.size === 0) return;
-    deleteMutation.mutate(Array.from(selected));
+    deleteMutation.mutate(Array.from(selected), {
+      onSuccess: () => {
+        setShowDeleteConfirm(false);
+      }
+    });
   };
 
   const handleBatchExport = async () => {
     if (selected.size === 0) return;
-    for (const id of selected) {
-      const sim = simulators.find(s => s.id === id);
-      if (sim) {
-        setPdfSim(sim);
-        await new Promise(resolve => setTimeout(resolve, 600));
-        if (pdfRef.current) {
-          await exportToPDF(pdfRef.current, sim.title || 'simulado');
+    setIsExporting(true);
+    try {
+      for (const id of selected) {
+        const sim = simulators.find(s => s.id === id);
+        if (sim) {
+          setPdfSim(sim);
+          await new Promise(resolve => setTimeout(resolve, 800));
+          if (pdfRef.current) {
+            await exportToPDF(pdfRef.current, sim.title || 'simulado');
+          }
         }
       }
+      setPdfSim(null);
+      toast({ title: `${selected.size} PDF(s) exportados.` });
+    } catch (error) {
+      toast({ 
+        title: 'Erro ao exportar', 
+        description: 'Ocorreu um problema ao gerar os arquivos.',
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsExporting(false);
     }
-    setPdfSim(null);
-    toast({ title: `${selected.size} PDF(s) exportados.` });
   };
 
   const handleShare = (sim: PisaSimulator) => {
@@ -162,13 +190,23 @@ export default function BibliotecaAvaliacoes() {
   };
 
   const handleExportPDF = async (sim: PisaSimulator) => {
+    setIsExporting(true);
     setPdfSim(sim);
-    setTimeout(async () => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
       if (pdfRef.current) {
         await exportToPDF(pdfRef.current, sim.title || 'simulado-pisa');
-        setPdfSim(null);
       }
-    }, 500);
+    } catch (error) {
+      toast({ 
+        title: 'Erro ao exportar', 
+        description: 'Ocorreu um problema ao gerar o PDF.',
+        variant: 'destructive' 
+      });
+    } finally {
+      setPdfSim(null);
+      setIsExporting(false);
+    }
   };
 
   return (
