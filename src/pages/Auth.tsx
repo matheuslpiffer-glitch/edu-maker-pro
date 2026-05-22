@@ -21,13 +21,23 @@ export default function Auth({ preferredPortal }: AuthProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [selectedPortal, setSelectedPortal] = useState<'teacher' | 'student' | null>(preferredPortal ?? null);
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
   const { isTeacher, isStudent, hasRole, loading: roleLoading } = useRole();
   const { setStudentMode } = useStudentMode();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const getErrorMessage = (error: any) => {
+    const message = error?.message || String(error);
+    if (message.includes('Invalid login credentials')) return 'E-mail ou senha incorretos';
+    if (message.includes('User already registered')) return 'Este e-mail já está cadastrado';
+    if (message.includes('Email not confirmed')) return 'Por favor, confirme seu e-mail';
+    if (message.includes('Password should be at least 6 characters')) return 'A senha deve ter pelo menos 6 caracteres';
+    return message;
+  };
 
   useEffect(() => {
     if (!user || roleLoading) return;
