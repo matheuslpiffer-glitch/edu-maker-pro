@@ -59,6 +59,8 @@ export default function QuestionBank() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState<'manual' | 'auto'>('auto');
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const load = async () => {
     const [qRes, sRes] = await Promise.all([
