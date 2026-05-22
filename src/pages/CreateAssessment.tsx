@@ -201,7 +201,7 @@ export default function CreateAssessment() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Professor(a)</Label>
-                  <Input value={teacherName} onChange={e => setTeacherName(e.target.value)} placeholder="Nome do professor" />
+                  <Input value={teacherName} onChange={e => setTeacherName(e.target.value)} placeholder="Nome do professor" disabled={saving} />
                 </div>
                 <div className="space-y-2">
                   <Label>Data</Label>
