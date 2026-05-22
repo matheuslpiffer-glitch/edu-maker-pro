@@ -332,11 +332,12 @@ export default function ResultadosAlunos() {
   }
 
   return (
-    <div className="relative space-y-6 max-w-6xl mx-auto">
+    <>
       <ExportLoadingOverlay 
         isOpen={isExporting} 
         message="Processando dados pedagógicos... Por favor, aguarde." 
       />
+      <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -610,10 +611,10 @@ export default function ResultadosAlunos() {
             </div>
           )}
         </TabsContent>
-        </TabsContent>
       </Tabs>
 
-      <p className="text-center text-[10px] text-muted-foreground">Relatório de Desempenho — Desenvolvido por Matheus Lima Piffer</p>
+      <p className="text-center text-[10px] text-muted-foreground pt-8">Relatório de Desempenho — Desenvolvido por Matheus Lima Piffer</p>
     </div>
+    </>
   );
 }
