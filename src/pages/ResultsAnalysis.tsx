@@ -58,6 +58,7 @@ export default function ResultsAnalysis() {
   const [selectedSimId, setSelectedSimId] = useState('');
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [saving, setSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingResults, setLoadingResults] = useState(false);
   const [insights, setInsights] = useState<AIInsights | null>(null);
