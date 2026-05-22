@@ -213,8 +213,8 @@ export default function CreateQuestion() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select value={type} onValueChange={setType}>
+               <Label>Tipo</Label>
+              <Select value={type} onValueChange={setType} disabled={saving}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="multiple-choice">Múltipla Escolha</SelectItem>
