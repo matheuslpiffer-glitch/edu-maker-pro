@@ -237,7 +237,7 @@ export default function CreateQuestion() {
 
           <div className="space-y-2">
             <Label>Enunciado *</Label>
-            <RichTextEditor value={content} onChange={setContent} placeholder="Digite o enunciado da questão..." />
+            <RichTextEditor value={content} onChange={setContent} placeholder="Digite o enunciado da questão..." disabled={saving} />
           </div>
 
           {type === 'multiple-choice' && (
