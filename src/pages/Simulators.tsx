@@ -832,21 +832,38 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const handlePDF = async () => {
     const container = printContainerRef.current;
     if (!container) return;
-    toast({ title: 'Gerando PDF...' });
+    
+    setIsExporting(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set({
         margin: [15, 15, 15, 15] as [number, number, number, number],
         filename: `${title || 'simulado'}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true, 
+          backgroundColor: '#ffffff', 
+          windowWidth: 794,
+          removeContainer: true // Garante limpeza de elementos clonados
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       } as any).from(container).save();
-      toast({ title: 'PDF gerado!' });
+      
+      toast({ 
+        title: 'PDF Gerado com Sucesso', 
+        description: 'O download foi iniciado automaticamente.' 
+      });
     } catch (e: any) {
       console.error('PDF error:', e);
-      toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
+      toast({ 
+        title: 'Erro ao gerar PDF', 
+        description: e.message, 
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsExporting(false);
     }
   };
 
