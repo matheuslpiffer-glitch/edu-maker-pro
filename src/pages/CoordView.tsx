@@ -305,6 +305,18 @@ export default function CoordView() {
     return result.sort((a, b) => b.improvement - a.improvement);
   }, [filtered]);
 
+  const simSummary = useMemo(() => {
+    if (!simResults.length) return null;
+    const avg = simResults.reduce((a, b) => a + b.percentage, 0) / simResults.length;
+    const advanced = simResults.filter(r => r.proficiency_level === 'avancado').length;
+    const belowBasic = simResults.filter(r => r.proficiency_level === 'abaixo_basico').length;
+    return { avg, advanced, belowBasic, total: simResults.length };
+  }, [simResults]);
+
+  const pendingEssays = useMemo(() => {
+    return filtered.filter(e => !e.teacher_validated);
+  }, [filtered]);
+
   // Export PDF report
   const handleExportReport = async () => {
     if (!reportRef.current) return;
