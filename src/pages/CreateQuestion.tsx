@@ -255,11 +255,12 @@ export default function CreateQuestion() {
                   >
                     {String.fromCharCode(65 + i)}
                   </button>
-                  <Input
+                   <Input
                     value={opt.text}
                     onChange={e => updateOption(i, e.target.value)}
                     placeholder={`Alternativa ${String.fromCharCode(65 + i)}`}
                     className="flex-1"
+                    disabled={saving}
                   />
                   {options.length > 2 && (
                     <Button type="button" variant="ghost" size="sm" onClick={() => removeOption(i)}>
