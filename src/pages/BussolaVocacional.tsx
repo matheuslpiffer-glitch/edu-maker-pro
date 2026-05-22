@@ -730,7 +730,7 @@ export default function BussolaVocacional() {
       })()}
 
       <div className="flex flex-col sm:flex-row justify-center gap-3">
-        <Button onClick={handleExportPDF} className="gap-2">
+        <Button onClick={handleExportPrint} className="gap-2 print:hidden">
           <Download className="w-4 h-4" /> Baixar meu Plano de Carreira (PDF)
         </Button>
         <Button onClick={handleShare} variant="secondary" className="gap-2">
