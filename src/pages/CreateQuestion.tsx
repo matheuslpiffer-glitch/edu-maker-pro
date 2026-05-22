@@ -263,7 +263,7 @@ export default function CreateQuestion() {
                     disabled={saving}
                   />
                   {options.length > 2 && (
-                    <Button type="button" variant="ghost" size="sm" onClick={() => removeOption(i)}>
+                     <Button type="button" variant="ghost" size="sm" onClick={() => removeOption(i)} className="ml-2" disabled={saving}>
                       <Trash2 size={14} />
                     </Button>
                   )}
