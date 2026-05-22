@@ -480,30 +480,57 @@ export default function CoordView() {
               </p>
             ) : (
               <div className="space-y-2">
-                {meritStudents.map((s, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border bg-gradient-to-r from-amber-50/50 to-transparent dark:from-amber-950/10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 font-bold text-sm">
-                        {i + 1}
+                {meritStudents.slice((pageMerit - 1) * itemsPerPage, pageMerit * itemsPerPage).map((s, i) => {
+                  const rank = (pageMerit - 1) * itemsPerPage + i + 1;
+                  return (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border bg-gradient-to-r from-amber-50/50 to-transparent dark:from-amber-950/10">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 font-bold text-sm">
+                          {rank}
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{s.name}</p>
+                          <p className="text-xs text-muted-foreground">Turma {s.turma} • {s.banca}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">{s.name}</p>
-                        <p className="text-xs text-muted-foreground">Turma {s.turma} • {s.banca}</p>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right text-xs">
+                          <span className="text-red-400">{s.notaV1}</span>
+                          <span className="mx-1">→</span>
+                          <span className="text-emerald-600 font-bold">{s.notaV2}</span>
+                          <Badge className="ml-2 bg-amber-500 text-white">+{s.improvement.toFixed(0)}%</Badge>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={() => setCertStudent(s)}>
+                          <Gem className="h-3 w-3 mr-1" /> Certificado
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right text-xs">
-                        <span className="text-red-400">{s.notaV1}</span>
-                        <span className="mx-1">→</span>
-                        <span className="text-emerald-600 font-bold">{s.notaV2}</span>
-                        <Badge className="ml-2 bg-amber-500 text-white">+{s.improvement.toFixed(0)}%</Badge>
-                      </div>
-                      <Button size="sm" variant="outline" onClick={() => setCertStudent(s)}>
-                        <Gem className="h-3 w-3 mr-1" /> Certificado
-                      </Button>
-                    </div>
+                  );
+                })}
+
+                {meritStudents.length > itemsPerPage && (
+                  <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPageMerit(p => Math.max(1, p - 1))}
+                      disabled={pageMerit === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                    </Button>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Página {pageMerit} de {Math.ceil(meritStudents.length / itemsPerPage)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPageMerit(p => Math.min(Math.ceil(meritStudents.length / itemsPerPage), p + 1))}
+                      disabled={pageMerit >= Math.ceil(meritStudents.length / itemsPerPage)}
+                    >
+                      Próximo <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
                   </div>
-                ))}
+                )}
               </div>
             )}
           </CardContent>
