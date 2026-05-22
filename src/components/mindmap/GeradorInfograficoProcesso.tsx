@@ -45,10 +45,10 @@ const IconRenderer = ({ name, className }: { name: string; className?: string })
 
 export default function GeradorInfograficoProcesso() {
   const { toast } = useToast();
-  const [subject, setSubject] = useState('');
+  const [subject, setSubject] = useAutoSaveDraft('infographic-subject', '');
   const [loading, setLoading] = useState(false);
-  const [steps, setSteps] = useState<Step[]>([]);
-  const [footerTips, setFooterTips] = useState<string[]>([]);
+  const [steps, setSteps] = useAutoSaveDraft<Step[]>('infographic-steps', []);
+  const [footerTips, setFooterTips] = useAutoSaveDraft<string[]>('infographic-footer-tips', []);
   const printRef = useRef<HTMLDivElement>(null);
 
   const generateInfographic = async () => {
