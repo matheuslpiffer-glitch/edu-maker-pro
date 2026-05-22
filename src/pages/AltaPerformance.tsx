@@ -622,7 +622,7 @@ export default function AltaPerformance() {
     container.innerHTML += `<div style="page-break-before:always;"></div>`;
     container.innerHTML += `<h2 style="text-align:center;color:#1e3a5f;margin-bottom:16px;">Gabarito e Critérios de Avaliação</h2>`;
 
-    questions.forEach((q, i) => {
+    sanitizedQuestions.forEach((q, i) => {
       if (isDiscursiva) {
         container.innerHTML += `<div style="margin-bottom:16px;page-break-inside:avoid;border:1px solid #e5e7eb;border-radius:8px;padding:12px;">
           <p style="font-weight:bold;margin:0 0 4px;">Questão ${i + 1}</p>
