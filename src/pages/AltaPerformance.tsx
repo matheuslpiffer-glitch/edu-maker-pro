@@ -848,28 +848,71 @@ export default function AltaPerformance() {
               <Slider min={5} max={30} step={1} value={[totalQuestoes]} onValueChange={v => setTotalQuestoes(v[0])} />
             </div>
 
-            <div className="space-y-3 rounded-xl border border-border/50 bg-muted/30 p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Distribuição de Níveis</p>
-              {([
-                { key: 'abaixo' as const, label: 'Abaixo do Básico', color: 'bg-red-500' },
-                { key: 'basico' as const, label: 'Básico', color: 'bg-amber-500' },
-                { key: 'proficiente' as const, label: 'Proficiente', color: 'bg-emerald-500' },
-                { key: 'avancado' as const, label: 'Avançado (Elite)', color: 'bg-purple-500' },
-              ]).map(n => (
-                <div key={n.key} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${n.color}`} />
-                      {n.label}
-                    </span>
-                    <span className="font-bold">{niveis[n.key]}%</span>
-                  </div>
-                  <Slider min={0} max={100} step={5} value={[niveis[n.key]]} onValueChange={v => updateNivel(n.key, v[0])} />
+            <div className="space-y-4 rounded-xl border border-border/50 bg-muted/30 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Equilíbrio de Níveis</p>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[10px] font-bold text-primary uppercase">Tempo Real</span>
                 </div>
-              ))}
-              <p className="text-[10px] text-muted-foreground italic mt-1">
-                🎯 Avançado (Elite): questões interdisciplinares com raciocínio profundo — nível acadêmico de excelência.
-              </p>
+              </div>
+
+              {/* Mini Chart Visualization */}
+              <div className="flex h-12 gap-1 px-1 py-1.5 bg-card/50 rounded-lg border border-border/40 overflow-hidden shadow-inner">
+                <div 
+                  className="h-full bg-emerald-500 rounded-sm transition-all duration-500 ease-out relative group"
+                  style={{ width: `${niveis.abaixo}%` }}
+                >
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                    Fácil: {niveis.abaixo}%
+                  </div>
+                </div>
+                <div 
+                  className="h-full bg-amber-500 rounded-sm transition-all duration-500 ease-out relative group"
+                  style={{ width: `${niveis.basico + niveis.proficiente}%` }}
+                >
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                    Médio: {niveis.basico + niveis.proficiente}%
+                  </div>
+                </div>
+                <div 
+                  className="h-full bg-rose-500 rounded-sm transition-all duration-500 ease-out relative group"
+                  style={{ width: `${niveis.avancado}%` }}
+                >
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
+                    Difícil: {niveis.avancado}%
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {([
+                  { key: 'abaixo' as const, label: 'Fácil (Abaixo do Básico)', color: 'bg-emerald-500' },
+                  { key: 'basico' as const, label: 'Básico', color: 'bg-amber-400' },
+                  { key: 'proficiente' as const, label: 'Proficiente', color: 'bg-amber-600' },
+                  { key: 'avancado' as const, label: 'Difícil (Avançado)', color: 'bg-rose-500' },
+                ]).map(n => (
+                  <div key={n.key} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${n.color}`} />
+                        {n.label}
+                      </span>
+                      <span className="font-bold">{niveis[n.key]}%</span>
+                    </div>
+                    <Slider min={0} max={100} step={5} value={[niveis[n.key]]} onValueChange={v => updateNivel(n.key, v[0])} />
+                  </div>
+                ))}
+              </div>
+              
+              <div className="space-y-1.5 mt-2">
+                <p className="text-[10px] text-muted-foreground italic">
+                  💡 Os níveis se autoajustam para manter o total em 100% conforme você configura seu simulado.
+                </p>
+                <p className="text-[10px] text-muted-foreground/80 italic">
+                  🎯 Avançado (Elite): questões interdisciplinares com raciocínio profundo — nível acadêmico de excelência.
+                </p>
+              </div>
             </div>
 
             {disciplina === 'Todos' && (
