@@ -335,7 +335,7 @@ export default function StudentDashboard() {
               <TrendingUp className="text-white" size={22} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{overallAverage ? `${overallAverage}%` : '—'}</p>
+              <p className="text-2xl font-bold text-foreground">{overallAvg ? `${overallAvg}%` : '—'}</p>
               <p className="text-xs text-muted-foreground font-medium">Média Geral</p>
             </div>
           </CardContent>

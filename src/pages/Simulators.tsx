@@ -32,8 +32,8 @@ import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError } from '@
 import { buildBatchPlan, createSimulatorGenerationJob, updateSimulatorGenerationJob } from '@/lib/simulator-generation';
 
 interface SimOption { letter: string; text: string; isCorrect: boolean; }
-interface SimQuestion { content: string; options?: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; }
-interface SavedSimulator { id: string; title: string; exam_type: string; subject_area: string; grade: string; questions?: SimQuestion[]; created_at: string; }
+interface SimQuestion { content: string; options: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; }
+interface SavedSimulator { id: string; title: string; exam_type: string; subject_area: string; grade: string; questions: SimQuestion[]; created_at: string; }
 
 const EXAM_TYPES = [
   { value: 'saresp', label: 'Avaliação de Larga Escala' },
@@ -2366,7 +2366,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         <div className="flex gap-2 mt-1 flex-wrap">
                           <Badge variant="outline" className="text-xs">{EXAM_TYPES.find(e => e.value === sim.exam_type)?.label}</Badge>
                           <span className="text-xs text-muted-foreground">{sim.subject_area} · {sim.grade}</span>
-                          <span className="text-xs text-muted-foreground">{(sim.questions as any[])?.length || 0} questões</span>
+                          <span className="text-xs text-muted-foreground">{(sim.questions || []).length} questões</span>
                           <span className="text-xs font-mono text-muted-foreground">ID: {sim.id.slice(0, 8).toUpperCase()}</span>
                         </div>
                       </div>
@@ -2384,14 +2384,14 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       </Tabs>
       </div>{/* end unified workspace card */}
       {/* Print-only view */}
-      <div className="print-only">
-        {questions.length > 0 && (
-          <>
-            <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions} isDiscursiva={isDiscursiva} columns={columns} isSenaiMode={isSenaiMode} />
-            {!isDiscursiva && <AnswerSheet questionCount={questions.length} simulatorId={currentId} title={title} institutionName={institutionName} />}
-            {!isDiscursiva && showGabarito && <GabaritoOficial questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />}
-            {isDiscursiva && <EspelhoCorrecao questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} />}
-          </>
+      <div className="print-only fixed inset-0 z-[999] bg-white overflow-hidden p-0 m-0">
+        {(questions || []).length > 0 && (
+          <div className="w-full h-full">
+            <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions || []} isDiscursiva={isDiscursiva} columns={columns} isSenaiMode={isSenaiMode} />
+            {!isDiscursiva && <AnswerSheet questionCount={(questions || []).length} simulatorId={currentId} title={title} institutionName={institutionName} />}
+            {!isDiscursiva && showGabarito && <GabaritoOficial questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />}
+            {isDiscursiva && <EspelhoCorrecao questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} />}
+          </div>
         )}
       </div>
 
