@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -25,6 +25,7 @@ import PisaFeedbackPanel, { type FeedbackResult } from '@/components/PisaFeedbac
 import PisaPedagogicalHighlights from '@/components/PisaPedagogicalHighlights';
 import PisaPrintPreview from '@/components/PisaPrintPreview';
 import { exportToPDF } from '@/lib/export';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 
 // --- Types ---
 interface PisaOption {
@@ -201,6 +202,7 @@ export default function PisaSimulators() {
   const [eliteOption, setEliteOption] = useState(ELITE_OPTIONS[0].value);
   const [eliteDrawerOpen, setEliteDrawerOpen] = useState(false);
   const [collectedErrors, setCollectedErrors] = useState<string[]>([]);
+  const [isExporting, setIsExporting] = useState(false);
   const [pdfSim, setPdfSim] = useState<PisaSimulator | null>(null);
   const pdfRef = React.useRef<HTMLDivElement>(null);
 
@@ -313,13 +315,21 @@ export default function PisaSimulators() {
   };
 
   const handleExportPDF = async (sim: PisaSimulator) => {
+    setIsExporting(true);
     setPdfSim(sim);
     // Wait for render then export
     setTimeout(async () => {
-      if (pdfRef.current) {
-        await exportToPDF(pdfRef.current, sim.title || 'simulado-pisa');
-        setPdfSim(null);
-        toast({ title: '✅ PDF gerado com sucesso!', description: 'Simulado Elite pronto para impressão.' });
+      try {
+        if (pdfRef.current) {
+          await exportToPDF(pdfRef.current, sim.title || 'simulado-pisa');
+          setPdfSim(null);
+          toast({ title: '✅ PDF gerado com sucesso!', description: 'Simulado Elite pronto para impressão.' });
+        }
+      } catch (error) {
+        console.error('PDF export error:', error);
+        toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
+      } finally {
+        setIsExporting(false);
       }
     }, 500);
   };
@@ -340,6 +350,7 @@ export default function PisaSimulators() {
 
   const handleSaveToHistory = async () => {
     if (!pendingSaveId) return;
+    setIsExporting(true); // Reusing as general loading overlay
     try {
       const { error } = await supabase.from('pisa_simulators').update({
         class_name: saveClassName.trim(),
@@ -356,6 +367,8 @@ export default function PisaSimulators() {
       setPendingSaveId(null);
     } catch (e: any) {
       toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+    } finally {
+      setIsExporting(false);
     }
   };
 

@@ -166,30 +166,40 @@ export default function ResultsAnalysis() {
   };
 
   // Analytics computations
-  const computedStudents = useMemo(() => {
-    return validStudents.map(s => {
+  const { computedStudents, average, highest, lowest, distribution } = useMemo(() => {
+    const computed = validStudents.map(s => {
       const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
       return { ...s, percentage: pct, proficiency: getProficiency(pct) };
     });
-  }, [validStudents, totalQuestions]);
 
-  const { average, highest, lowest } = useMemo(() => {
-    if (computedStudents.length === 0) return { average: 0, highest: 0, lowest: 0 };
+    if (computed.length === 0) {
+      return { 
+        computedStudents: [], 
+        average: 0, 
+        highest: 0, 
+        lowest: 0,
+        distribution: PROFICIENCY_LEVELS.map(level => ({ ...level, count: 0 }))
+      };
+    }
     
-    const sum = computedStudents.reduce((acc, s) => acc + s.percentage, 0);
-    const avg = sum / computedStudents.length;
-    const high = Math.max(...computedStudents.map(s => s.percentage));
-    const low = Math.min(...computedStudents.map(s => s.percentage));
+    const sum = computed.reduce((acc, s) => acc + s.percentage, 0);
+    const avg = sum / computed.length;
+    const high = Math.max(...computed.map(s => s.percentage));
+    const low = Math.min(...computed.map(s => s.percentage));
     
-    return { average: avg, highest: high, lowest: low };
-  }, [computedStudents]);
-
-  const distribution = useMemo(() => {
-    return PROFICIENCY_LEVELS.map(level => ({
+    const dist = PROFICIENCY_LEVELS.map(level => ({
       ...level,
-      count: computedStudents.filter(s => s.proficiency.key === level.key).length,
+      count: computed.filter(s => s.proficiency.key === level.key).length,
     }));
-  }, [computedStudents]);
+
+    return { 
+      computedStudents: computed, 
+      average: avg, 
+      highest: high, 
+      lowest: low, 
+      distribution: dist 
+    };
+  }, [validStudents, totalQuestions]);
 
   const gaugePercentage = useMemo(() => Math.min(100, (average / idespMeta) * 100), [average, idespMeta]);
 
