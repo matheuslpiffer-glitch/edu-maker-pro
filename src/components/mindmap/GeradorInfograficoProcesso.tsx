@@ -126,7 +126,7 @@ export default function GeradorInfograficoProcesso() {
     <div className="space-y-8 max-w-4xl mx-auto p-4 print:p-0 print:max-w-none">
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          @page { size: portrait; margin: 1.5cm; }
+          @page { size: portrait; margin: 1.2cm; }
           body { background-color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
           .print-break-inside-avoid { break-inside: avoid; }
@@ -148,14 +148,22 @@ export default function GeradorInfograficoProcesso() {
           .print-bg-pink-500 { background-color: #ec4899 !important; }
           .print-bg-teal-500 { background-color: #14b8a6 !important; }
 
+          /* Cores de texto específicas para print */
+          .print-text-slate-500 { color: #64748b !important; }
+          .print-text-blue-800 { color: #1e40af !important; }
+          .print-text-blue-500 { color: #3b82f6 !important; }
+
           /* Garantir que as colunas fiquem horizontais no papel */
-          .print-flex-row { flex-direction: row !important; }
-          .print-w-32 { width: 8rem !important; }
-          .print-w-64 { width: 16rem !important; }
-          .print-border-r { border-right-width: 1px !important; }
-          .print-border-l { border-left-width: 1px !important; }
+          .print-flex-row { display: flex !important; flex-direction: row !important; align-items: stretch !important; }
+          .print-items-center { align-items: center !important; }
+          .print-w-32 { width: 8rem !important; flex-shrink: 0 !important; }
+          .print-w-64 { width: 14rem !important; flex-shrink: 0 !important; }
+          .print-flex-1 { flex: 1 1 0% !important; }
+          .print-border-r { border-right: 1px solid #e2e8f0 !important; }
+          .print-border-l { border-left: 1px solid #e2e8f0 !important; }
           .print-pr-4 { padding-right: 1rem !important; }
           .print-pl-4 { padding-left: 1rem !important; }
+          .print-m-0 { margin: 0 !important; }
           
           .shadow-xl, .shadow-md, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
