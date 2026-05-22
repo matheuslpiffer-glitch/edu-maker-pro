@@ -287,15 +287,15 @@ export default function GeradorInfograficoProcesso() {
 
               {/* Rodapé "LEMBRE-SE!" - print-break-inside-avoid para não quebrar a caixa */}
               {footerTips.length > 0 && (
-                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6 print:m-2 print:border-blue-400 print-break-inside-avoid print-flex-row print-bg-blue-50">
+                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6 print:m-2 print:border-blue-400 print-break-inside-avoid print-flex-row print-items-center print-bg-blue-50">
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <LucideIcons.Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
-                    <span className="text-lg font-black text-blue-800">LEMBRE-SE!</span>
+                    <span className="text-lg font-black text-blue-800 print-text-blue-800">LEMBRE-SE!</span>
                   </div>
-                  <div className="flex-1 flex flex-wrap justify-between gap-4">
+                  <div className="flex-1 flex flex-wrap justify-between gap-4 print-flex-row">
                     {footerTips.map((tip, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <LucideIcons.CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <LucideIcons.CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0 print-text-blue-500" />
                         <span 
                           className="text-xs font-medium text-slate-700 outline-none focus:bg-white p-1 rounded"
                           contentEditable
