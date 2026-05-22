@@ -40,23 +40,27 @@ export default function Auth({ preferredPortal }: AuthProps) {
   };
 
   useEffect(() => {
-    if (!user || roleLoading) return;
+    // Se o auth ainda está carregando a sessão inicial, esperamos
+    if (authLoading) return;
+
+    if (!user) {
+      setIsChecking(false);
+      return;
+    }
+
+    if (roleLoading) return;
 
     if (isTeacher) {
       setStudentMode(false);
       navigate('/dashboard-professor', { replace: true });
-      return;
-    }
-
-    if (isStudent) {
+    } else if (isStudent) {
       navigate('/portal-aluno', { replace: true });
-      return;
-    }
-
-    if (!hasRole) {
+    } else if (!hasRole) {
       navigate('/', { replace: true });
     }
-  }, [user, roleLoading, isTeacher, isStudent, hasRole, navigate, preferredPortal, setStudentMode]);
+    
+    setIsChecking(false);
+  }, [user, authLoading, roleLoading, isTeacher, isStudent, hasRole, navigate, setStudentMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +68,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
     const { error } = isSignUp ? await signUp(email, password) : await signIn(email, password);
     setLoading(false);
     if (error) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro de Autenticação', description: getErrorMessage(error), variant: 'destructive' });
     } else if (isSignUp) {
       toast({ title: 'Conta criada!', description: 'Verifique seu e-mail para confirmar o cadastro.' });
     }
@@ -79,14 +83,25 @@ export default function Auth({ preferredPortal }: AuthProps) {
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.href,
-      });
-    setGoogleLoading(false);
+    const { error } = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.href,
+    });
     if (error) {
-      toast({ title: 'Erro', description: String(error), variant: 'destructive' });
+      setGoogleLoading(false);
+      toast({ title: 'Erro', description: getErrorMessage(error), variant: 'destructive' });
     }
   };
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse font-medium">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
