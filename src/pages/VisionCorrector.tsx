@@ -31,9 +31,15 @@ export default function VisionCorrector() {
 
   const handleFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
-      toast({ title: 'Formato inválido', description: 'Envie uma foto (JPG, PNG, etc.)', variant: 'destructive' });
+      toast({ title: 'Formato inválido', description: 'Envie uma foto (JPG, JPEG ou PNG)', variant: 'destructive' });
       return;
     }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Arquivo muito grande', description: 'A imagem deve ter no máximo 5MB.', variant: 'destructive' });
+      return;
+    }
+
     setImage(file);
     const reader = new FileReader();
     reader.onload = (e) => setImagePreview(e.target?.result as string);
