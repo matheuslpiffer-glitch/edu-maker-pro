@@ -47,7 +47,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Digite 
       </div>
       <div
         ref={editorRef}
-        contentEditable
+        contentEditable={!disabled}
         className="p-3 min-h-[120px] focus:outline-none text-sm leading-relaxed [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-muted-foreground"
         data-placeholder={placeholder}
         onInput={handleInput}
