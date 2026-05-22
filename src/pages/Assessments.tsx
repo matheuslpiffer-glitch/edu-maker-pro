@@ -49,6 +49,23 @@ export default function Assessments() {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedClass, setSelectedClass] = useState("all");
+
+  const filteredAssessments = useMemo(() => {
+    return assessments.filter(a => {
+      const titleMatch = (a.title || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const classMatch = selectedClass === "all" || a.class_name === selectedClass;
+      return titleMatch && classMatch;
+    });
+  }, [assessments, searchTerm, selectedClass]);
+
+  const uniqueClasses = useMemo(() => {
+    const classes = assessments
+      .map(a => a.class_name)
+      .filter((name): name is string => Boolean(name));
+    return Array.from(new Set(classes)).sort();
+  }, [assessments]);
 
   const load = async () => {
     try {
