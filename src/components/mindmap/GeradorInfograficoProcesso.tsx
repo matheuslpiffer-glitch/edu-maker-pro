@@ -126,24 +126,37 @@ export default function GeradorInfograficoProcesso() {
     <div className="space-y-8 max-w-4xl mx-auto p-4 print:p-0 print:max-w-none">
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          @page { size: portrait; margin: 1cm; }
+          @page { size: portrait; margin: 1.5cm; }
           body { background-color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
           .print-break-inside-avoid { break-inside: avoid; }
-          header { background-color: #0f172a !important; color: white !important; }
-          .bg-blue-50 { background-color: #eff6ff !important; }
-          .bg-green-50 { background-color: #f0fdf4 !important; }
-          .bg-orange-50 { background-color: #fff7ed !important; }
-          .bg-purple-50 { background-color: #faf5ff !important; }
-          .bg-pink-50 { background-color: #fdf2f8 !important; }
-          .bg-teal-50 { background-color: #f0fdfa !important; }
-          .border-blue-200 { border-color: #bfdbfe !important; }
-          .bg-blue-500 { background-color: #3b82f6 !important; }
-          .bg-green-500 { background-color: #22c55e !important; }
-          .bg-orange-500 { background-color: #f97316 !important; }
-          .bg-purple-500 { background-color: #a855f7 !important; }
-          .bg-pink-500 { background-color: #ec4899 !important; }
-          .bg-teal-500 { background-color: #14b8a6 !important; }
+          
+          /* Forçar cores de fundo no PDF/Impressão */
+          .print-bg-slate-900 { background-color: #0f172a !important; color: white !important; }
+          .print-bg-blue-50 { background-color: #eff6ff !important; }
+          .print-bg-green-50 { background-color: #f0fdf4 !important; }
+          .print-bg-orange-50 { background-color: #fff7ed !important; }
+          .print-bg-purple-50 { background-color: #faf5ff !important; }
+          .print-bg-pink-50 { background-color: #fdf2f8 !important; }
+          .print-bg-teal-50 { background-color: #f0fdfa !important; }
+          
+          /* Forçar cores de círculos */
+          .print-bg-blue-500 { background-color: #3b82f6 !important; }
+          .print-bg-green-500 { background-color: #22c55e !important; }
+          .print-bg-orange-500 { background-color: #f97316 !important; }
+          .print-bg-purple-500 { background-color: #a855f7 !important; }
+          .print-bg-pink-500 { background-color: #ec4899 !important; }
+          .print-bg-teal-500 { background-color: #14b8a6 !important; }
+
+          /* Garantir que as colunas fiquem horizontais no papel */
+          .print-flex-row { flex-direction: row !important; }
+          .print-w-32 { width: 8rem !important; }
+          .print-w-64 { width: 16rem !important; }
+          .print-border-r { border-right-width: 1px !important; }
+          .print-border-l { border-left-width: 1px !important; }
+          .print-pr-4 { padding-right: 1rem !important; }
+          .print-pl-4 { padding-left: 1rem !important; }
+          
           .shadow-xl, .shadow-md, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
