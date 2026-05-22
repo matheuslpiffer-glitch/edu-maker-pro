@@ -196,6 +196,7 @@ export default function StudentSimulatorView() {
       setResultData({ correct: correctCount, total: totalQuestions, percentage, timeSeconds: elapsedSeconds });
       setShowResultModal(true);
       setSubmitted(true);
+      if (storageKey) localStorage.removeItem(storageKey);
     } catch (err: any) {
       setError(err.message || 'Não foi possível enviar suas respostas.');
     } finally {
