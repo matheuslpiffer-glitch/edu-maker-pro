@@ -333,49 +333,75 @@ export default function QuestionBank() {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredManual.map(q => {
-              const subject = subjects.find(s => s.id === q.subject_id);
-              const isSelected = selectedIds.has(q.id);
-              return (
-                <Card key={q.id} className={`transition-all ${isSelected ? 'ring-2 ring-teal-500 shadow-md' : 'hover:shadow-md'}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => toggleSelect(q.id)}
-                        className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          {subject && (
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${COLOR_CLASSES[subject.color] || COLOR_CLASSES.blue}`}>
-                              {getSubjectIcon(subject.name)} {subject.name}
+            <div className="space-y-3">
+              {filteredManual.slice((page - 1) * itemsPerPage, page * itemsPerPage).map(q => {
+                const subject = subjects.find(s => s.id === q.subject_id);
+                const isSelected = selectedIds.has(q.id);
+                return (
+                  <Card key={q.id} className={`transition-all ${isSelected ? 'ring-2 ring-teal-500 shadow-md' : 'hover:shadow-md'}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleSelect(q.id)}
+                          className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            {subject && (
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${COLOR_CLASSES[subject.color] || COLOR_CLASSES.blue}`}>
+                                {getSubjectIcon(subject.name)} {subject.name}
+                              </span>
+                            )}
+                            <Badge variant="outline" className="text-xs gap-1">
+                              {q.type === 'multiple-choice' ? <ListChecks size={12} /> : <AlignLeft size={12} />}
+                              {q.type === 'multiple-choice' ? 'Múltipla Escolha' : 'Dissertativa'}
+                            </Badge>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${DIFFICULTY_COLORS[q.difficulty]}`}>
+                              {DIFFICULTY_LABELS[q.difficulty]}
                             </span>
-                          )}
-                          <Badge variant="outline" className="text-xs gap-1">
-                            {q.type === 'multiple-choice' ? <ListChecks size={12} /> : <AlignLeft size={12} />}
-                            {q.type === 'multiple-choice' ? 'Múltipla Escolha' : 'Dissertativa'}
-                          </Badge>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${DIFFICULTY_COLORS[q.difficulty]}`}>
-                            {DIFFICULTY_LABELS[q.difficulty]}
-                          </span>
+                          </div>
+                          <p className="text-sm text-foreground line-clamp-2">{stripHtml(q.content)}</p>
+                          {q.topic && <p className="text-xs text-muted-foreground mt-1">Tópico: {q.topic}</p>}
                         </div>
-                        <p className="text-sm text-foreground line-clamp-2">{stripHtml(q.content)}</p>
-                        {q.topic && <p className="text-xs text-muted-foreground mt-1">Tópico: {q.topic}</p>}
+                        <div className="flex gap-1 shrink-0">
+                          <Link to={`/questoes/${q.id}/editar`}>
+                            <Button variant="ghost" size="sm"><Pencil size={16} /></Button>
+                          </Link>
+                          <Button variant="ghost" size="sm" onClick={() => handleDelete(q.id)} className="text-destructive hover:text-destructive">
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex gap-1 shrink-0">
-                        <Link to={`/questoes/${q.id}/editar`}>
-                          <Button variant="ghost" size="sm"><Pencil size={16} /></Button>
-                        </Link>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(q.id)} className="text-destructive hover:text-destructive">
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {filteredManual.length > itemsPerPage && (
+              <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                </Button>
+                <span className="text-xs text-muted-foreground font-medium">
+                  Página {page} de {Math.ceil(filteredManual.length / itemsPerPage)}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.min(Math.ceil(filteredManual.length / itemsPerPage), p + 1))}
+                  disabled={page >= Math.ceil(filteredManual.length / itemsPerPage)}
+                >
+                  Próximo <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            )}
           </div>
         )
       )}
