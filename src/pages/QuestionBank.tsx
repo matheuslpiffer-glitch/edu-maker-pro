@@ -237,7 +237,7 @@ export default function QuestionBank() {
               </>
             )}
             {activeTab === 'auto' && allBancas.length > 0 && (
-              <Select value={filterBanca} onValueChange={setFilterBanca}>
+              <Select value={filterBanca} onValueChange={(v) => { setFilterBanca(v); setPage(1); }}>
                 <SelectTrigger className="w-48"><SelectValue placeholder="Filtrar por Banca" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as Bancas</SelectItem>
