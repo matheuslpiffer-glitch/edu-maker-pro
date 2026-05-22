@@ -7,7 +7,7 @@ interface ExportLoadingOverlayProps {
 
 export function ExportLoadingOverlay({ 
   isOpen, 
-  message = "Processando dados e gerando documento... Por favor, aguarde." 
+  message = "A processar dados e a gerar documento... Por favor, aguarde." 
 }: ExportLoadingOverlayProps) {
   if (!isOpen) return null;
 
@@ -17,7 +17,7 @@ export function ExportLoadingOverlay({
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="text-lg font-medium text-foreground">{message}</p>
         <p className="text-sm text-muted-foreground italic">
-          Isso pode levar alguns segundos dependendo do tamanho do documento.
+          Isto pode levar alguns segundos dependendo do tamanho do documento.
         </p>
       </div>
     </div>
