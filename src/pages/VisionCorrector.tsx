@@ -187,8 +187,17 @@ export default function VisionCorrector() {
               disabled={loading || !image || !gabarito.trim()}
               className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg shadow-indigo-500/20"
             >
-              {loading ? <Loader2 className="mr-2 animate-spin" size={18} /> : <Sparkles className="mr-2" size={18} />}
-              {loading ? 'Analisando com IA...' : 'Corrigir com Visão IA'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 animate-spin" size={18} />
+                  A IA está lendo o gabarito...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2" size={18} />
+                  Corrigir com Visão IA
+                </>
+              )}
             </Button>
             {result && (
               <Button onClick={reset} variant="outline" className="rounded-2xl">
