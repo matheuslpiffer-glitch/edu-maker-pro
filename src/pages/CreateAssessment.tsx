@@ -166,7 +166,14 @@ export default function CreateAssessment() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-6 no-print">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/provas')}><ArrowLeft size={18} /></Button>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleCancel}
+          disabled={saving}
+        >
+          <ArrowLeft size={18} />
+        </Button>
         <h1 className="text-2xl font-bold">{id ? 'Editar Prova' : 'Nova Prova'}</h1>
       </div>
 
