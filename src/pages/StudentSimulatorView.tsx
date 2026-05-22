@@ -65,7 +65,33 @@ export default function StudentSimulatorView() {
   const { isStudentMode } = useStudentMode();
   const { isTeacher } = useRole();
   const { user } = useAuth();
+  const { toast } = useToast();
   const isTeacherPreview = isStudentMode && isTeacher;
+
+  const storageKey = useMemo(() => id ? `eduFlow_sim_answers_${id}` : null, [id]);
+
+  // Restore answers from localStorage
+  useEffect(() => {
+    if (storageKey) {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setAnswers(parsed);
+          if (Object.keys(parsed).length > 0) {
+            toast({ title: '🔄 Progresso recuperado', description: 'Suas respostas marcadas anteriormente foram restauradas.' });
+          }
+        } catch { /* ignore */ }
+      }
+    }
+  }, [storageKey, toast]);
+
+  // Save answers to localStorage on change
+  useEffect(() => {
+    if (storageKey && Object.keys(answers).length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify(answers));
+    }
+  }, [answers, storageKey]);
 
   // Timer
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
