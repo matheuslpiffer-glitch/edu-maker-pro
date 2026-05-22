@@ -355,6 +355,25 @@ export default function CreateAssessment() {
           Salvar Prova
         </Button>
       </div>
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Alterações não salvas
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem alterações não salvas nesta prova. Deseja realmente sair? Os dados digitados serão perdidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar Editando</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmExit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Sair sem Salvar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
