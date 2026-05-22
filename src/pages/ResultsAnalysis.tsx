@@ -73,6 +73,18 @@ export default function ResultsAnalysis() {
   }, []);
 
   useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsExporting(false);
+      toast({ 
+        title: 'Relatório Gerado', 
+        description: 'O documento foi processado com sucesso.' 
+      });
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
+
+  useEffect(() => {
     if (selectedSimId) loadResults();
   }, [selectedSimId]);
 
