@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Save, Plus, Trash2, BarChart3, Sparkles, Printer, TrendingUp, TrendingDown, Target, Users } from 'lucide-react';
+import { Loader2, Save, Plus, Trash2, BarChart3, Sparkles, Printer, TrendingUp, TrendingDown, Target, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -64,6 +64,8 @@ export default function ResultsAnalysis() {
   const [insights, setInsights] = useState<AIInsights | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [idespMeta, setIdespMeta] = useState(60);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
 
   const selectedSim = simulators.find(s => s.id === selectedSimId);
   const totalQuestions = selectedSim ? (selectedSim.questions as any[])?.length || 0 : 0;
@@ -157,23 +159,32 @@ export default function ResultsAnalysis() {
   };
 
   // Analytics computations
-  const computedStudents = validStudents.map(s => {
-    const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
-    return { ...s, percentage: pct, proficiency: getProficiency(pct) };
-  });
+  const computedStudents = useMemo(() => {
+    return validStudents.map(s => {
+      const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
+      return { ...s, percentage: pct, proficiency: getProficiency(pct) };
+    });
+  }, [validStudents, totalQuestions]);
 
-  const average = computedStudents.length > 0
-    ? computedStudents.reduce((sum, s) => sum + s.percentage, 0) / computedStudents.length
-    : 0;
-  const highest = computedStudents.length > 0 ? Math.max(...computedStudents.map(s => s.percentage)) : 0;
-  const lowest = computedStudents.length > 0 ? Math.min(...computedStudents.map(s => s.percentage)) : 0;
+  const { average, highest, lowest } = useMemo(() => {
+    if (computedStudents.length === 0) return { average: 0, highest: 0, lowest: 0 };
+    
+    const sum = computedStudents.reduce((acc, s) => acc + s.percentage, 0);
+    const avg = sum / computedStudents.length;
+    const high = Math.max(...computedStudents.map(s => s.percentage));
+    const low = Math.min(...computedStudents.map(s => s.percentage));
+    
+    return { average: avg, highest: high, lowest: low };
+  }, [computedStudents]);
 
-  const distribution = PROFICIENCY_LEVELS.map(level => ({
-    ...level,
-    count: computedStudents.filter(s => s.proficiency.key === level.key).length,
-  }));
+  const distribution = useMemo(() => {
+    return PROFICIENCY_LEVELS.map(level => ({
+      ...level,
+      count: computedStudents.filter(s => s.proficiency.key === level.key).length,
+    }));
+  }, [computedStudents]);
 
-  const gaugePercentage = Math.min(100, (average / idespMeta) * 100);
+  const gaugePercentage = useMemo(() => Math.min(100, (average / idespMeta) * 100), [average, idespMeta]);
 
   const generateInsights = async () => {
     if (!selectedSim || computedStudents.length === 0) return;
@@ -274,15 +285,16 @@ export default function ResultsAnalysis() {
                     <span className="text-center">Nível</span>
                     <span></span>
                   </div>
-                  {students.map((s, i) => {
+                  {students.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((s, i) => {
+                    const actualIdx = (page - 1) * itemsPerPage + i;
                     const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
                     const level = getProficiency(pct);
                     return (
-                      <div key={i} className="grid grid-cols-[1fr_100px_100px_80px_40px] gap-2 items-center">
+                      <div key={actualIdx} className="grid grid-cols-[1fr_100px_100px_80px_40px] gap-2 items-center">
                         <Input
                           value={s.student_name}
-                          onChange={e => updateRow(i, 'student_name', e.target.value)}
-                          placeholder={`Aluno ${i + 1}`}
+                          onChange={e => updateRow(actualIdx, 'student_name', e.target.value)}
+                          placeholder={`Aluno ${actualIdx + 1}`}
                           maxLength={200}
                         />
                         <Input
@@ -290,7 +302,7 @@ export default function ResultsAnalysis() {
                           min={0}
                           max={totalQuestions}
                           value={s.correct_count}
-                          onChange={e => updateRow(i, 'correct_count', Math.min(+e.target.value, totalQuestions))}
+                          onChange={e => updateRow(actualIdx, 'correct_count', Math.min(+e.target.value, totalQuestions))}
                           className="text-center"
                         />
                         <div className="text-center text-sm font-medium">{pct.toFixed(1)}%</div>
@@ -301,13 +313,37 @@ export default function ResultsAnalysis() {
                         >
                           {level.label.split(' ').pop()}
                         </Badge>
-                        <Button variant="ghost" size="sm" onClick={() => removeRow(i)} className="text-destructive h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" onClick={() => removeRow(actualIdx)} className="text-destructive h-8 w-8 p-0">
                           <Trash2 size={14} />
                         </Button>
                       </div>
                     );
                   })}
                 </div>
+
+                {students.length > itemsPerPage && (
+                  <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                    </Button>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Página {page} de {Math.ceil(students.length / itemsPerPage)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.min(Math.ceil(students.length / itemsPerPage), p + 1))}
+                      disabled={page >= Math.ceil(students.length / itemsPerPage)}
+                    >
+                      Próximo <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                )}
 
                 <div className="flex justify-end mt-4 gap-2">
                   <Button onClick={handleSave} disabled={saving || validStudents.length === 0}>
