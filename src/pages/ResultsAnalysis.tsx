@@ -65,6 +65,7 @@ export default function ResultsAnalysis() {
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [idespMeta, setIdespMeta] = useState(60);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const itemsPerPage = 10;
 
   const selectedSim = simulators.find(s => s.id === selectedSimId);
