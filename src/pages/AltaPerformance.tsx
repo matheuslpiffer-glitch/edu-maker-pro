@@ -1107,6 +1107,9 @@ export default function AltaPerformance() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
             {/* Mat Assistant */}
             <div className="mt-6 flex items-start gap-4 rounded-2xl border border-border/50 bg-muted/30 p-4">
               <img src={matAvatar} alt="Mat - Assistente EduCreator" className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/30 shadow-md flex-shrink-0" />
