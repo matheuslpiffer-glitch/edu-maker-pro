@@ -245,12 +245,12 @@ export default function CreateAssessment() {
                     return (
                       <div
                         key={q.id}
-                        onClick={() => toggleQuestion(q.id)}
+                        onClick={() => !saving && toggleQuestion(q.id)}
                         className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                           isSelected ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
-                        }`}
+                        } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
-                        <Checkbox checked={isSelected} className="mt-1" />
+                        <Checkbox checked={isSelected} className="mt-1" disabled={saving} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             {subject && (
