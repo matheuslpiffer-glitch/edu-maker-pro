@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
@@ -32,8 +32,8 @@ import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError } from '@
 import { buildBatchPlan, createSimulatorGenerationJob, updateSimulatorGenerationJob } from '@/lib/simulator-generation';
 
 interface SimOption { letter: string; text: string; isCorrect: boolean; }
-interface SimQuestion { content: string; options: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; }
-interface SavedSimulator { id: string; title: string; exam_type: string; subject_area: string; grade: string; questions: SimQuestion[]; created_at: string; }
+interface SimQuestion { content: string; options?: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; }
+interface SavedSimulator { id: string; title: string; exam_type: string; subject_area: string; grade: string; questions?: SimQuestion[]; created_at: string; }
 
 const EXAM_TYPES = [
   { value: 'saresp', label: 'Avaliação de Larga Escala' },

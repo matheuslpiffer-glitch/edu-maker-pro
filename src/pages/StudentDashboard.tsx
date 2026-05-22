@@ -180,28 +180,45 @@ export default function StudentDashboard() {
   const xpForNextLevel = studentLevel * 500;
   const xpProgress = ((studentXP % 500) / 500) * 100;
 
-  // Weekly average
-  const weeklyAverage = useMemo(() => {
+  // Protected calculations
+  const { totalQuizCompleted, totalCorrect, unlockedBadges, weeklyAvg, overallAvg } = useMemo(() => {
+    const quizCount = progress.reduce((s, d) => s + (d.quizzes_completed || 0), 0);
+    const correctCount = progress.reduce((s, d) => s + (d.correct_answers || 0), 0);
+    
+    // Weekly average
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const weekResults = simulatorResults.filter(r => new Date(r.created_at) >= oneWeekAgo);
-    if (weekResults.length === 0) return null;
-    return (weekResults.reduce((s, r) => s + r.percentage, 0) / weekResults.length).toFixed(1);
-  }, [simulatorResults]);
+    const wAvg = weekResults.length === 0 
+      ? null 
+      : (weekResults.reduce((s, r) => s + (r.percentage || 0), 0) / weekResults.length).toFixed(1);
 
-  // Has elite badge
-  const hasEliteBadge = simulatorResults.some(r => r.percentage >= 80);
+    // Overall average
+    const oAvg = simulatorResults.length === 0 
+      ? null 
+      : (simulatorResults.reduce((s, r) => s + (r.percentage || 0), 0) / simulatorResults.length).toFixed(1);
 
-  const unlockedBadges = BADGES.filter(b => {
-    if (b.id === 'elite') return hasEliteBadge;
-    if ((b as any).totalQuizzes) return totalQuizCount >= (b as any).totalQuizzes;
-    if ((b as any).requiredQuizzes && (b as any).examType) return (quizCountByExam[(b as any).examType] || 0) >= (b as any).requiredQuizzes;
-    if ((b as any).requiredAccuracy && (b as any).subject) {
-      const p = progress.find(pr => pr.subject.includes('mat') || pr.subject.includes('Matem'));
-      return p && p.total_answers > 0 && (p.correct_answers / p.total_answers) * 100 >= (b as any).requiredAccuracy;
-    }
-    return false;
-  });
+    // Badges logic
+    const hasElite = simulatorResults.some(r => (r.percentage || 0) >= 80);
+    const badges = BADGES.filter(b => {
+      if (b.id === 'elite') return hasElite;
+      if ((b as any).totalQuizzes) return quizCount >= (b as any).totalQuizzes;
+      if ((b as any).requiredQuizzes && (b as any).examType) return (quizCountByExam[(b as any).examType] || 0) >= (b as any).requiredQuizzes;
+      if ((b as any).requiredAccuracy && (b as any).subject) {
+        const p = progress.find(pr => pr.subject?.includes('mat') || pr.subject?.includes('Matem'));
+        return p && p.total_answers > 0 && (p.correct_answers / p.total_answers) * 100 >= (b as any).requiredAccuracy;
+      }
+      return false;
+    });
+
+    return { 
+      totalQuizCompleted: quizCount, 
+      totalCorrect: correctCount, 
+      unlockedBadges: badges, 
+      weeklyAvg: wAvg,
+      overallAvg: oAvg 
+    };
+  }, [progress, simulatorResults, quizCountByExam]);
 
   // Generate AI study suggestion based on errors
   const generateStudySuggestion = async () => {
@@ -307,7 +324,7 @@ export default function StudentDashboard() {
               <ClipboardList className="text-white" size={22} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{totalQuizCount + simulatorResults.length}</p>
+              <p className="text-2xl font-bold text-foreground">{(totalQuizCompleted || 0) + simulatorResults.length}</p>
               <p className="text-xs text-muted-foreground font-medium">Realizados</p>
             </div>
           </CardContent>
