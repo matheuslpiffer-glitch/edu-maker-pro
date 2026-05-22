@@ -239,7 +239,7 @@ export default function GeradorInfograficoProcesso() {
                       </div>
 
                       {/* Coluna 2: Centro - Conteúdo */}
-                      <div className="flex-1 flex flex-col justify-center py-2">
+                      <div className="flex-1 flex flex-col justify-center py-2 print-flex-1">
                         <div 
                           className="text-base md:text-lg font-medium text-slate-800 leading-tight outline-none focus:bg-white p-1 rounded"
                           contentEditable
