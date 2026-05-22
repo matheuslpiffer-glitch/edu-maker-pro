@@ -247,10 +247,11 @@ export default function CreateQuestion() {
                 <div key={opt.id} className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setCorrect(i)}
+                     onClick={() => setCorrect(i)}
+                    disabled={saving}
                     className={`flex items-center justify-center h-8 w-8 rounded-full border-2 text-xs font-bold shrink-0 transition-colors ${
                       opt.isCorrect ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:border-primary/50'
-                    }`}
+                    } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     {String.fromCharCode(65 + i)}
                   </button>
