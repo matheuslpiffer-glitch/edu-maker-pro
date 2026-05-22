@@ -193,7 +193,7 @@ export default function CreateQuestion() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Disciplina *</Label>
-              <SubjectSelect value={subjectId} onValueChange={setSubjectId} subjects={subjects} />
+              <SubjectSelect value={subjectId} onValueChange={setSubjectId} subjects={subjects} disabled={saving} />
               {bnccPrefix && (
                 <p className="text-xs text-muted-foreground">
                   💡 Prefixo BNCC: <span className="font-mono font-semibold text-primary">{bnccPrefix}</span>
