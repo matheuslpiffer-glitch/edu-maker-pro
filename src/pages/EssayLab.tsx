@@ -807,7 +807,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
   const [wordCount, setWordCount] = useState(0);
   const lsKey = `eduflow_draft_redacao_${accessCode}`;
   const ssKey = `eduflow_session_redacao_${accessCode}`;
-  const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
   const dbSyncTimer = useRef<ReturnType<typeof setInterval>>();
   const lastSyncedText = useRef('');
 
