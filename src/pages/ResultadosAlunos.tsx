@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer, Gamepad2 } from 'lucide-react';
+import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer, Gamepad2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 
 interface ActivityResult {
   id: string;
@@ -68,6 +69,9 @@ export default function ResultadosAlunos() {
   const [activeTab, setActiveTab] = useState('todos');
   const [aiTips, setAiTips] = useState<string[]>([]);
   const [loadingTips, setLoadingTips] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
   const extrasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadData(); }, []);
@@ -262,11 +266,14 @@ export default function ResultadosAlunos() {
       return;
     }
     try {
+      setIsExporting(true);
       const { generatePdfFromElement } = await import('@/lib/pdf-utils');
       await generatePdfFromElement(el, 'atividades-extras-pos-simulado', { margins: [10, 10, 10, 10] });
       toast({ title: '📄 PDF gerado com sucesso!' });
     } catch (e: any) {
       toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
+    } finally {
+      setIsExporting(false);
     }
   };
 

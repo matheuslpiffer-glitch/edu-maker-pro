@@ -125,7 +125,7 @@ export default function PisaStudentView() {
         </Card>
 
         {/* Questions */}
-        {questions.map((q, i) => (
+        {(questions || []).map((q, i) => (
           <Card key={i}>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2 flex-wrap">
@@ -147,9 +147,9 @@ export default function PisaStudentView() {
 
               <p className="text-sm leading-relaxed">{q.content}</p>
 
-              {q.type === 'multiple-choice' && q.options && (
+              {q.type === 'multiple-choice' && (q.options || []).length > 0 && (
                 <div className="space-y-2">
-                  {q.options.map(opt => (
+                  {(q.options || []).map(opt => (
                     <label
                       key={opt.letter}
                       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${

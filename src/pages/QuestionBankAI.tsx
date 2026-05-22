@@ -12,6 +12,7 @@ import { Loader2, Sparkles, Save, Printer, Eye, Trash2, BookOpen, Download, Sear
 import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 
 interface QBQuestion {
   content: string;
@@ -74,6 +75,7 @@ export default function QuestionBankAI() {
   const [questions, setQuestions] = useState<QBQuestion[]>([]);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // History
   const [history, setHistory] = useState<SavedBank[]>([]);
@@ -174,42 +176,49 @@ export default function QuestionBankAI() {
   const handlePDF = async () => {
     const container = printContainerRef.current;
     if (!container) return;
+    setIsExporting(true);
     toast({ title: 'Gerando PDF...' });
 
-    const sections = container.querySelectorAll<HTMLElement>('[data-pdf-section]');
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const MARGIN_H = 20;
-    const MARGIN_W = 15;
-    const CONTENT_W = 210 - MARGIN_W * 2;
-    let firstPage = true;
+    try {
+      const sections = container.querySelectorAll<HTMLElement>('[data-pdf-section]');
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const MARGIN_H = 20;
+      const MARGIN_W = 15;
+      const CONTENT_W = 210 - MARGIN_W * 2;
+      let firstPage = true;
 
-    for (const section of Array.from(sections)) {
-      const canvas = await html2canvas(section, {
-        scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794,
-      });
-      const imgW = CONTENT_W;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      const imgData = canvas.toDataURL('image/png');
+      for (const section of Array.from(sections)) {
+        const canvas = await html2canvas(section, {
+          scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794,
+        });
+        const imgW = CONTENT_W;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        const imgData = canvas.toDataURL('image/png');
 
-      if (!firstPage) pdf.addPage();
-      firstPage = false;
+        if (!firstPage) pdf.addPage();
+        firstPage = false;
 
-      const pageH = 297 - MARGIN_H * 2;
-      if (imgH <= pageH) {
-        pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H, imgW, imgH);
-      } else {
-        let y = 0;
-        let isFirst = true;
-        while (y < imgH) {
-          if (!isFirst) pdf.addPage();
-          isFirst = false;
-          pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H - y, imgW, imgH);
-          y += pageH;
+        const pageH = 297 - MARGIN_H * 2;
+        if (imgH <= pageH) {
+          pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H, imgW, imgH);
+        } else {
+          let y = 0;
+          let isFirst = true;
+          while (y < imgH) {
+            if (!isFirst) pdf.addPage();
+            isFirst = false;
+            pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H - y, imgW, imgH);
+            y += pageH;
+          }
         }
       }
+      pdf.save(`atividade-${topic || 'lista'}.pdf`);
+      toast({ title: 'PDF gerado!' });
+    } catch (e: any) {
+      toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
+    } finally {
+      setIsExporting(false);
     }
-    pdf.save(`atividade-${topic || 'lista'}.pdf`);
-    toast({ title: 'PDF gerado!' });
   };
 
   const totalQuestions = easyCount + mediumCount + hardCount;
@@ -218,6 +227,10 @@ export default function QuestionBankAI() {
 
   return (
     <div className="max-w-5xl mx-auto">
+      <ExportLoadingOverlay 
+        isOpen={isExporting} 
+        message="Processando dados pedagógicos... Por favor, aguarde." 
+      />
       <div className="flex items-center gap-3 mb-6 no-print">
         <BookOpen className="h-7 w-7 text-primary" />
         <div>
