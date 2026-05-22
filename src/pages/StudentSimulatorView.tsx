@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2, GraduationCap, CheckCircle2, Send, XCircle, Clock, Trophy, Target, Timer } from 'lucide-react';
 import MathRenderer from '@/components/MathRenderer';
 
