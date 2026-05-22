@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Loader2, Eye, EyeOff, BookOpen } from 'lucide-react';
+import { GraduationCap, Loader2, Eye, EyeOff, BookOpen, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthProps {
@@ -21,32 +21,46 @@ export default function Auth({ preferredPortal }: AuthProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [selectedPortal, setSelectedPortal] = useState<'teacher' | 'student' | null>(preferredPortal ?? null);
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
   const { isTeacher, isStudent, hasRole, loading: roleLoading } = useRole();
   const { setStudentMode } = useStudentMode();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const getErrorMessage = (error: any) => {
+    const message = error?.message || String(error);
+    if (message.includes('Invalid login credentials')) return 'E-mail ou senha incorretos';
+    if (message.includes('User already registered')) return 'Este e-mail já está cadastrado';
+    if (message.includes('Email not confirmed')) return 'Por favor, confirme seu e-mail';
+    if (message.includes('Password should be at least 6 characters')) return 'A senha deve ter pelo menos 6 caracteres';
+    return message;
+  };
+
   useEffect(() => {
-    if (!user || roleLoading) return;
+    // Se o auth ainda está carregando a sessão inicial, esperamos
+    if (authLoading) return;
+
+    if (!user) {
+      setIsChecking(false);
+      return;
+    }
+
+    if (roleLoading) return;
 
     if (isTeacher) {
       setStudentMode(false);
       navigate('/dashboard-professor', { replace: true });
-      return;
-    }
-
-    if (isStudent) {
+    } else if (isStudent) {
       navigate('/portal-aluno', { replace: true });
-      return;
-    }
-
-    if (!hasRole) {
+    } else if (!hasRole) {
       navigate('/', { replace: true });
     }
-  }, [user, roleLoading, isTeacher, isStudent, hasRole, navigate, preferredPortal, setStudentMode]);
+    
+    setIsChecking(false);
+  }, [user, authLoading, roleLoading, isTeacher, isStudent, hasRole, navigate, setStudentMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +68,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
     const { error } = isSignUp ? await signUp(email, password) : await signIn(email, password);
     setLoading(false);
     if (error) {
-      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
+      toast({ title: 'Erro de Autenticação', description: getErrorMessage(error), variant: 'destructive' });
     } else if (isSignUp) {
       toast({ title: 'Conta criada!', description: 'Verifique seu e-mail para confirmar o cadastro.' });
     }
@@ -69,28 +83,60 @@ export default function Auth({ preferredPortal }: AuthProps) {
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.href,
-      });
-    setGoogleLoading(false);
+    const { error } = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.href,
+    });
     if (error) {
-      toast({ title: 'Erro', description: String(error), variant: 'destructive' });
+      setGoogleLoading(false);
+      toast({ title: 'Erro', description: getErrorMessage(error), variant: 'destructive' });
     }
   };
 
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <p className="text-muted-foreground animate-pulse font-medium">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-            <GraduationCap className="h-8 w-8 text-primary-foreground" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8fafc] dark:bg-slate-950 p-4 relative overflow-hidden">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="w-full max-w-md space-y-8 relative z-10">
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="bg-primary/10 p-2 rounded-xl">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+              Piffer EduTech
+            </h1>
           </div>
-          <CardTitle className="text-2xl font-bold">EduCreator Pro</CardTitle>
-          <CardDescription>
-            {isSignUp ? 'Crie sua conta para começar' : 'Entre na sua conta'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          <p className="text-slate-500 dark:text-slate-400 font-medium italic">
+            "A plataforma inteligente para o educador moderno"
+          </p>
+        </div>
+
+        <Card className="border-white/20 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/20">
+              <GraduationCap className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <CardTitle className="text-xl font-bold text-slate-800 dark:text-white">
+              {isSignUp ? 'Criar nova conta' : 'Acesse sua conta'}
+            </CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400">
+              {isSignUp ? 'Junte-se a milhares de educadores' : 'Bem-vindo de volta!'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-4">
           {/* Portal Selection */}
           {!selectedPortal && (
             <div className="space-y-3">
@@ -193,17 +239,29 @@ export default function Auth({ preferredPortal }: AuthProps) {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSignUp ? 'Criar Conta' : 'Entrar'}
+            <Button 
+              type="submit" 
+              className="w-full py-6 text-base font-semibold transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-95" 
+              disabled={loading}
+            >
+              {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              {isSignUp ? 'Criar Minha Conta' : 'Entrar na Plataforma'}
             </Button>
           </form>
-          <div className="text-center text-sm space-y-2">
-            <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline">
-              {isSignUp ? 'Já tem conta? Entre aqui' : 'Não tem conta? Cadastre-se'}
+          <div className="text-center text-sm space-y-4 pt-2">
+            <button 
+              type="button" 
+              onClick={() => setIsSignUp(!isSignUp)} 
+              className="text-primary font-semibold hover:text-primary/80 transition-colors"
+            >
+              {isSignUp ? 'Já tem uma conta? Faça login' : 'Ainda não tem conta? Comece agora'}
             </button>
-            <div>
-              <button type="button" onClick={() => setSelectedPortal(null)} className="text-xs text-muted-foreground hover:underline">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button 
+                type="button" 
+                onClick={() => setSelectedPortal(null)} 
+                className="text-xs text-muted-foreground hover:text-slate-900 dark:hover:text-slate-200 transition-colors inline-flex items-center gap-1"
+              >
                 ← Trocar tipo de acesso ({selectedPortal === 'teacher' ? 'Professor' : 'Aluno'})
               </button>
             </div>
@@ -211,6 +269,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
           </>)}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
