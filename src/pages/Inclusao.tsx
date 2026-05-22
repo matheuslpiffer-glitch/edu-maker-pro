@@ -323,9 +323,10 @@ function ComingSoonView({ title, icon: Icon, onBack }: { title: string; icon: Re
 export default function Inclusao() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { addQuestions } = useSavedQuestionsBank();
 
-  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
+  const [activeView, setActiveView] = useState<ActiveView | 'minhas_atividades'>('dashboard');
   const [subject, setSubject] = useState('');
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [aeeMode, setAeeMode] = useState<'gerar_novas' | 'adaptar_antigas' | 'texto_resumo'>('gerar_novas');
