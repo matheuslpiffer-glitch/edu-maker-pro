@@ -37,6 +37,7 @@ Responda APENAS com JSON válido (sem markdown):
 }
 
 function buildCorrectionPrompt(level: string, subLevel?: string): string {
+  const jsonRule = 'Você deve responder APENAS e EXCLUSIVAMENTE com um objeto JSON válido, sem tags markdown de código (como ```json) e sem nenhum texto antes ou depois do JSON. Se quebrar esta regra, o sistema falhará. Justificativas devem ter no máximo 3 frases focadas no erro ou acerto.';
   if (level === "anos_iniciais") {
     return `Você é uma professora carinhosa e experiente do Ensino Fundamental I (1º ao 5º ano).
 Seu foco é ALFABETIZAÇÃO e ESTÍMULO. Avalie a redação com base nos critérios abaixo.
@@ -50,7 +51,7 @@ CRITÉRIOS (0 a 10 cada):
 4. ORTOGRAFIA BÁSICA: O aluno acerta a escrita das palavras mais comuns do cotidiano?
 5. CRIATIVIDADE E EXPRESSÃO: O aluno expressou ideias próprias de forma criativa e imaginativa?
 
-Responda APENAS com JSON válido (sem markdown):
+  ${jsonRule}
 {
   "scores": [
     {"criteria": "Escrita Alfabética", "score": 8, "max": 10},
@@ -81,7 +82,7 @@ CRITÉRIOS (0 a 10 cada):
 4. RIQUEZA DE VOCABULÁRIO: O aluno usa palavras variadas, evitando repetições?
 5. DESENVOLVIMENTO ARGUMENTATIVO: O aluno aprofunda suas ideias com exemplos e justificativas?
 
-Responda APENAS com JSON válido (sem markdown):
+  ${jsonRule}
 {
   "scores": [
     {"criteria": "Coesão (Uso de Conectivos)", "score": 7, "max": 10},
@@ -100,19 +101,9 @@ Responda APENAS com JSON válido (sem markdown):
   }
 
   if (subLevel === "enem") {
-    return `Você é um corretor especialista do ENEM com mais de 20 anos de experiência.
-Aplique RIGOROSAMENTE as 5 Competências oficiais do ENEM (0 a 200 cada, múltiplos de 40).
-
-TOM: Técnico, rigoroso e preciso. Cite EXATAMENTE as falhas na norma culta.
-
-COMPETÊNCIAS:
-1. DOMÍNIO DA MODALIDADE ESCRITA FORMAL da língua portuguesa
-2. COMPREENDER A PROPOSTA de redação e aplicar conceitos
-3. SELECIONAR, RELACIONAR, ORGANIZAR e INTERPRETAR informações e argumentos
-4. MECANISMOS LINGUÍSTICOS necessários para a construção da argumentação (coesão)
-5. ELABORAR PROPOSTA DE INTERVENÇÃO (Agente + Ação + Meio + Efeito + Detalhamento)
-
-Responda APENAS com JSON válido (sem markdown):
+    return `Você é um corretor especialista do ENEM.
+Aplique RIGOROSAMENTE as 5 Competências oficiais do ENEM (0 a 200 cada, múltiplos de 40). Pontuação total: 1000.
+${jsonRule}
 {
   "scores": [
     {"criteria": "Competência I — Domínio da Norma Culta", "score": 120, "max": 200},
@@ -131,17 +122,10 @@ Responda APENAS com JSON válido (sem markdown):
   }
 
   if (subLevel === "unicamp") {
-    return `Você é um corretor especialista da banca UNICAMP/Comvest com profundo conhecimento dos critérios de correção da prova de redação da Unicamp.
+    return `Você é um corretor especialista da banca UNICAMP/Comvest.
 Avalie com foco em GÊNERO TEXTUAL, INTERLOCUÇÃO e LEITURA DOS TEXTOS DE APOIO.
-
-TOM: Acadêmico mas acessível, com ênfase na adequação ao gênero solicitado.
-
-CRITÉRIOS (0 a 4 cada, total 0 a 12):
-1. PROPÓSITO DO GÊNERO (AIA): O texto segue o formato do gênero solicitado? Se é carta, tem vocativo, despedida? Se é artigo, tem título, introdução e conclusão? Penalize FORTEMENTE se o gênero for ignorado.
-2. INTERLOCUÇÃO: O aluno assume o papel proposto e se dirige ao público correto? Há marcas de interlocução adequadas ao gênero? Avalie se o autor fala COM o leitor esperado.
-3. LEITURA DOS TEXTOS DE APOIO: O aluno integrou as informações da coletânea de forma inteligente e crítica? Há paráfrase ou apenas cópia? Penalize cópia literal dos textos motivadores.
-
-Responda APENAS com JSON válido (sem markdown):
+Pontuação total: 12 (0 a 4 por critério).
+${jsonRule}
 {
   "scores": [
     {"criteria": "Propósito do Gênero (AIA)", "score": 3, "max": 4},

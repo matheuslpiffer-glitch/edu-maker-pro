@@ -34,26 +34,19 @@ ${COURSE_BONUS_INSTRUCTIONS}
 `;
 
 const BANCA_PROMPTS: Record<string, string> = {
-  BANCA_NACIONAL: `Você é um corretor oficial de redação padrão nacional com 20+ anos de experiência.
-Avalie a redação nas 5 competências oficiais (0 a 200 cada, múltiplos de 40: 0, 40, 80, 120, 160, 200):
-- C1: Domínio da modalidade escrita formal da língua portuguesa
-- C2: Compreender a proposta de redação e aplicar conceitos das várias áreas de conhecimento
-- C3: Selecionar, relacionar, organizar e interpretar informações, fatos, opiniões e argumentos em defesa de um ponto de vista
-- C4: Demonstrar conhecimento dos mecanismos linguísticos necessários para a construção da argumentação
-- C5: Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos
-
-REGRA C5 (OBRIGATÓRIA): A proposta de intervenção DEVE conter 5 elementos: Agente (quem), Ação (o quê), Meio/Modo (como), Efeito/Finalidade (para quê) e Detalhamento de um dos anteriores. Para cada elemento ausente, desconte 40 pontos da C5.
+  BANCA_NACIONAL: `Você é um corretor oficial de redação padrão nacional (ENEM).
+Avalie a redação nas 5 competências oficiais (0 a 200 cada, múltiplos de 40). Pontuação total: 1000.
 
 ${COMMON_INSTRUCTIONS}
 
-Responda APENAS com JSON válido (sem markdown):
+Responda APENAS com o JSON:
 {
   "competencies": [
     {"name": "C1 - Norma Culta", "score": 120, "max": 200, "justification": "..."},
     {"name": "C2 - Compreensão do Tema", "score": 160, "max": 200, "justification": "..."},
     {"name": "C3 - Argumentação", "score": 120, "max": 200, "justification": "..."},
     {"name": "C4 - Coesão", "score": 80, "max": 200, "justification": "..."},
-    {"name": "C5 - Proposta de Intervenção", "score": 120, "max": 200, "justification": "... Elementos encontrados: Agente(sim/não), Ação(...), Meio(...), Efeito(...), Detalhamento(...)"}
+    {"name": "C5 - Proposta de Intervenção", "score": 120, "max": 200, "justification": "..."}
   ],
   "total_score": 600,
   "suggestions": "...",
@@ -62,18 +55,12 @@ Responda APENAS com JSON válido (sem markdown):
   "originality": {"score": 85, "flags": [], "ai_generated_probability": 10}
 }`,
 
-  BANCA_ACADEMICA: `Você é um corretor de banca acadêmica de excelência com expertise em redação dissertativa.
-Avalie nas 4 dimensões da banca acadêmica (0 a 25 cada, total 100):
-- Tema e texto: Adequação ao tema proposto e gênero dissertativo
-- Estrutura: Organização textual (introdução, desenvolvimento, conclusão)
-- Argumentação: Qualidade dos argumentos, consistência e uso de repertório erudito
-- Expressão: Domínio da norma culta e recursos expressivos
-
-CRITÉRIO ACADÊMICO: Valorize especialmente analogias, metáforas e repertório erudito (filosofia, literatura clássica, ciências). Seja rigoroso com a norma culta formal e coesão textual refinada.
+  BANCA_ACADEMICA: `Você é um corretor de banca acadêmica (FUVEST/Elite).
+Avalie nas 4 dimensões da banca acadêmica (0 a 25 cada). Pontuação total: 100.
 
 ${COMMON_INSTRUCTIONS}
 
-Responda APENAS com JSON válido (sem markdown):
+Responda APENAS com o JSON:
 {
   "competencies": [
     {"name": "Tema e Texto", "score": 20, "max": 25, "justification": "..."},
@@ -136,20 +123,12 @@ Responda APENAS com JSON válido (sem markdown):
   "originality": {"score": 85, "flags": [], "ai_generated_probability": 10}
 }`,
 
-  UNICAMP: `Você é um corretor da banca UNICAMP (Comvest) com expertise em gêneros textuais diversos.
-A UNICAMP exige adequação ao gênero textual solicitado (carta, artigo, crônica, podcast, etc.), interlocução clara e leitura produtiva dos textos de apoio.
-
-Avalie nas 4 dimensões da banca UNICAMP (0 a 3 cada, total até 12):
-- Adequação ao Gênero (AIA): O aluno respeitou o gênero solicitado? Se for Carta Aberta, há vocativo, interlocutor explícito e despedida? Se for Artigo, há título e linguagem adequada? Se for Podcast/Roteiro, há marcas de oralidade planejada? (0-3)
-- Interlocução: O texto dialoga com o interlocutor proposto? Há marcas de direcionamento e tom adequados ao público-alvo? (0-3)
-- Conteúdo e Leitura: O aluno leu e utilizou produtivamente os textos de apoio da coletânea? A tese é consistente? (0-3)
-- Articulação Linguística: Coesão, coerência, norma culta e recursos expressivos adequados ao gênero (0-3)
-
-CRITÉRIO UNICAMP: Seja rigoroso com a adequação ao gênero. Se o gênero exige vocativo e não há, a nota de "Adequação ao Gênero" deve ser no máximo 1. Se o aluno ignorou a coletânea, "Conteúdo e Leitura" deve ser no máximo 1.
+  UNICAMP: `Você é um corretor da banca UNICAMP (Comvest).
+Avalie nas 4 dimensões (0 a 3 cada). Pontuação total: 12.
 
 ${COMMON_INSTRUCTIONS}
 
-Responda APENAS com JSON válido (sem markdown):
+Responda APENAS com o JSON:
 {
   "competencies": [
     {"name": "Adequação ao Gênero (AIA)", "score": 2, "max": 3, "justification": "..."},
