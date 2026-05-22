@@ -223,8 +223,8 @@ export default function CreateQuestion() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Dificuldade</Label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
+               <Label>Dificuldade</Label>
+              <Select value={difficulty} onValueChange={setDifficulty} disabled={saving}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="easy">Fácil</SelectItem>
