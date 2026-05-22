@@ -781,12 +781,39 @@ export default function BussolaVocacional() {
 
       {/* Navigation */}
       {step < 3 && (
-        <div className="flex justify-between pt-2">
-          <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={step === 0} className="uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
-            <ChevronLeft className="w-4 h-4 mr-1" /> VOLTAR
-          </Button>
+        <div className="flex justify-between items-center pt-2">
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                setStep(s => Math.max(0, s - 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              disabled={step === 0} 
+              className="uppercase" 
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" /> VOLTAR
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetTest}
+              className="text-muted-foreground text-[10px] uppercase tracking-wider"
+            >
+              Reiniciar Teste
+            </Button>
+          </div>
           {step < 2 ? (
-            <Button onClick={() => setStep(s => s + 1)} disabled={!canAdvance()} className="uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <Button 
+              onClick={() => {
+                setStep(s => s + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              disabled={!canAdvance()} 
+              className="uppercase" 
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
               PRÓXIMO <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           ) : (
