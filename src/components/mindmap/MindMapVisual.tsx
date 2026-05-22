@@ -1,29 +1,97 @@
-import { Badge } from '@/components/ui/badge';
-import { useState, useMemo } from 'react';
-import {
-  BookOpen, Beaker, Calculator, Globe, Music, Palette as PaletteIcon,
-  Leaf, Cpu, Heart, Scale, Landmark, Atom, Dna, Languages, PenTool, Lightbulb
-} from 'lucide-react';
+import { useMemo } from 'react';
+import type { MindMapData } from './MindMapVisual';
 
-export interface MindMapChild {
+interface MindMapBranch {
+  id: string;
   label: string;
-  detail?: string;
+  summary: string;
+  children?: { label: string }[];
 }
 
-export interface MindMapBranch {
-  label: string;
-  emoji: string;
-  color: string;
-  summary: string;
-  connector: string;
-  memory_trick?: string;
-  aee_hint?: string;
-  cross_link?: string;
-  children?: MindMapChild[];
+export default function MindMapVisual({ data }: { data: MindMapData | null }) {
+  const branches = useMemo(() => data?.branches || [], [data]);
+  
+  if (!data) return null;
+
+  return (
+    <div className="relative p-8 bg-white min-h-[600px] flex items-center justify-center overflow-auto">
+      <div className="relative flex items-center justify-center">
+        {/* Center Node */}
+        <div className="z-10 bg-primary text-primary-foreground px-8 py-4 rounded-full shadow-xl font-bold text-xl border-4 border-primary/20 animate-in zoom-in duration-500">
+          {data.center?.label || 'TEMA CENTRAL'}
+        </div>
+
+        {/* Branches */}
+        {(data.branches || []).map((branch, idx) => {
+          const angle = (idx * 360) / (data.branches?.length || 1);
+          const radius = 240;
+          const x = Math.cos((angle * Math.PI) / 180) * radius;
+          const y = Math.sin((angle * Math.PI) / 180) * radius;
+
+          return (
+            <div
+              key={branch.id || idx}
+              className="absolute transition-all duration-700 delay-150 animate-in fade-in zoom-in"
+              style={{
+                transform: `translate(${x}px, ${y}px)`,
+              }}
+            >
+              {/* Connector line could go here with SVG */}
+              <div className="bg-white border-2 border-primary/30 p-4 rounded-2xl shadow-lg max-w-[200px] hover:border-primary transition-colors group">
+                <h3 className="font-bold text-primary text-sm mb-1 uppercase tracking-tight">
+                  {branch.label || 'TÓPICO'}
+                </h3>
+                <p className="text-[10px] text-muted-foreground leading-tight line-clamp-3 group-hover:line-clamp-none transition-all">
+                  {branch.summary || 'Resumo não disponível.'}
+                </p>
+                
+                {(branch.children || []).length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap gap-1">
+                    {(branch.children || []).map((child, cIdx) => (
+                      <span key={cIdx} className="bg-slate-50 text-[8px] px-1.5 py-0.5 rounded border border-slate-200 text-slate-500">
+                        {child.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* SVG Connections (Basic straight lines for now) */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" style={{ zIndex: 0 }}>
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+            <path d="M0,0 L10,5 L0,10 Z" fill="currentColor" className="text-primary/30" />
+          </marker>
+        </defs>
+        {(data.branches || []).map((branch, idx) => {
+          const angle = (idx * 360) / (data.branches?.length || 1);
+          const radius = 240;
+          const x2 = 400 + Math.cos((angle * Math.PI) / 180) * radius;
+          const y2 = 300 + Math.sin((angle * Math.PI) / 180) * radius;
+          return (
+            <line
+              key={`line-${idx}`}
+              x1="50%" y1="50%"
+              x2={`${50 + (Math.cos((angle * Math.PI) / 180) * 30)}%`}
+              y2={`${50 + (Math.sin((angle * Math.PI) / 180) * 30)}%`}
+              stroke="currentColor"
+              className="text-primary"
+              strokeWidth="2"
+              strokeDasharray="5,5"
+            />
+          );
+        })}
+      </svg>
+    </div>
+  );
 }
 
 export interface MindMapData {
-  center: { label: string; emoji: string };
+  center: { label: string };
   branches: MindMapBranch[];
 }
 
@@ -31,351 +99,4 @@ export interface MindMapQuestion {
   number: number;
   question: string;
   answer: string;
-}
-
-/* ─── Pastel palette (print-friendly, high contrast on white) ─── */
-const BRANCH_PALETTE = [
-  { bg: '#EEF2FF', border: '#818CF8', text: '#312E81' },
-  { bg: '#FEF9C3', border: '#FACC15', text: '#713F12' },
-  { bg: '#D1FAE5', border: '#34D399', text: '#064E3B' },
-  { bg: '#FFE4E6', border: '#FB7185', text: '#881337' },
-  { bg: '#E0F2FE', border: '#38BDF8', text: '#0C4A6E' },
-  { bg: '#F3E8FF', border: '#C084FC', text: '#581C87' },
-  { bg: '#FFEDD5', border: '#FB923C', text: '#7C2D12' },
-  { bg: '#DCFCE7', border: '#4ADE80', text: '#14532D' },
-];
-
-function getPalette(i: number) {
-  return BRANCH_PALETTE[i % BRANCH_PALETTE.length];
-}
-
-/* ─── Lucide icon mapping by keyword ─── */
-const ICON_MAP: Record<string, React.ComponentType<any>> = {
-  livro: BookOpen, leitura: BookOpen, texto: BookOpen, literatura: BookOpen,
-  ciência: Beaker, química: Beaker, experimento: Beaker, laboratório: Beaker,
-  matemática: Calculator, número: Calculator, cálculo: Calculator,
-  geografia: Globe, mundo: Globe, planeta: Globe, terra: Globe,
-  música: Music, som: Music, arte: PaletteIcon, pintura: PaletteIcon,
-  natureza: Leaf, biologia: Dna, ecologia: Leaf, meio: Leaf,
-  tecnologia: Cpu, computador: Cpu, digital: Cpu, programa: Cpu,
-  saúde: Heart, corpo: Heart, física: Atom, energia: Atom,
-  direito: Scale, lei: Scale, justiça: Scale,
-  história: Landmark, sociedade: Landmark, política: Landmark,
-  língua: Languages, idioma: Languages, inglês: Languages,
-  escrita: PenTool, redação: PenTool, gramática: PenTool,
-  ideia: Lightbulb, conceito: Lightbulb, teoria: Lightbulb,
-};
-
-function getIconForLabel(label: string) {
-  const lower = label.toLowerCase();
-  for (const [key, Icon] of Object.entries(ICON_MAP)) {
-    if (lower.includes(key)) return Icon;
-  }
-  return BookOpen;
-}
-
-/* ─── Layout engine ─── */
-interface PlacedBranch {
-  branch: MindMapBranch;
-  col: 'left' | 'right';
-  row: number;
-  palette: typeof BRANCH_PALETTE[number];
-}
-
-function computeLayout(branches: MindMapBranch[]): PlacedBranch[] {
-  const placed: PlacedBranch[] = [];
-  let leftRow = 0;
-  let rightRow = 0;
-  branches.forEach((branch, i) => {
-    if (i % 2 === 0) {
-      placed.push({ branch, col: 'left', row: leftRow, palette: getPalette(i) });
-      leftRow++;
-    } else {
-      placed.push({ branch, col: 'right', row: rightRow, palette: getPalette(i) });
-      rightRow++;
-    }
-  });
-  return placed;
-}
-
-/* ─── Infographic Branch Card ─── */
-function BranchCard({ branch, mode, aee, palette }: {
-  branch: MindMapBranch; mode: string; aee: boolean;
-  palette: typeof BRANCH_PALETTE[number];
-}) {
-  const [hovered, setHovered] = useState(false);
-  const isInfantil = mode === 'infantil';
-  const isMedio = mode === 'medio';
-  const Icon = getIconForLabel(branch.label);
-
-  return (
-    <div
-      className="rounded-xl transition-all duration-300 cursor-default"
-      style={{
-        background: '#FFFFFF',
-        border: `2px solid ${palette.border}`,
-        borderLeft: `6px solid ${palette.border}`,
-        boxShadow: hovered
-          ? `0 8px 24px ${palette.border}30`
-          : `0 2px 8px rgba(0,0,0,0.06)`,
-        transform: hovered ? 'translateY(-2px)' : 'none',
-        padding: isInfantil ? '14px 16px' : '10px 14px',
-      }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {/* Connector badge */}
-      {branch.connector && !isInfantil && (
-        <Badge
-          variant="outline"
-          className="mb-2 font-bold tracking-wider"
-          style={{
-            borderColor: palette.border,
-            color: palette.text,
-            background: palette.bg,
-            fontSize: '9px',
-            textTransform: 'uppercase',
-            fontFamily: 'Arial, Helvetica, sans-serif',
-          }}
-        >
-          {branch.connector}
-        </Badge>
-      )}
-
-      {/* Header */}
-      <div className="flex items-start gap-2">
-        <div className="flex flex-col items-center gap-1">
-          <span className={aee ? 'text-3xl' : isInfantil ? 'text-3xl' : 'text-xl'} style={{ lineHeight: 1 }}>
-            {branch.emoji}
-          </span>
-          <Icon size={aee ? 20 : 16} color={palette.border} strokeWidth={2} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p style={{
-            color: palette.text,
-            fontFamily: 'Arial, Helvetica, sans-serif',
-            fontSize: aee ? '14px' : isInfantil ? '13px' : '11pt',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            lineHeight: '1.15',
-            letterSpacing: aee ? '0.5px' : undefined,
-          }}>
-            {branch.label}
-          </p>
-          {!isInfantil && branch.summary && (
-            <p style={{
-              color: '#374151',
-              fontFamily: 'Arial, Helvetica, sans-serif',
-              fontSize: '10px',
-              lineHeight: '1.4',
-              marginTop: '4px',
-              textTransform: 'uppercase',
-            }}>
-              {branch.summary}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Memory trick */}
-      {branch.memory_trick && (
-        <p style={{
-          color: '#92400E',
-          fontFamily: 'Arial, Helvetica, sans-serif',
-          fontSize: '9px',
-          fontStyle: 'italic',
-          marginTop: '6px',
-          lineHeight: '1.3',
-        }}>
-          💡 {branch.memory_trick}
-        </p>
-      )}
-
-      {/* AEE hint */}
-      {aee && branch.aee_hint && (
-        <p style={{
-          color: '#1E40AF',
-          fontFamily: 'Arial, Helvetica, sans-serif',
-          fontSize: '10px',
-          fontWeight: 600,
-          marginTop: '4px',
-        }}>
-          👁 {branch.aee_hint}
-        </p>
-      )}
-
-      {/* Children sub-concepts */}
-      {branch.children && branch.children.length > 0 && (isMedio || mode === 'fundamental') && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {branch.children.slice(0, isMedio ? 4 : 3).map((child, ci) => (
-            <div
-              key={ci}
-              className="rounded-md px-2 py-1 border"
-              style={{
-                background: palette.bg,
-                borderColor: `${palette.border}40`,
-                color: palette.text,
-                fontFamily: 'Arial, Helvetica, sans-serif',
-                fontSize: '9px',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-              }}
-            >
-              {child.label}
-              {child.detail && isMedio && (
-                <span className="block mt-0.5" style={{ color: '#6B7280', fontSize: '8px', fontWeight: 400 }}>
-                  {child.detail}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Cross-link */}
-      {branch.cross_link && isMedio && (
-        <p style={{
-          color: '#7C3AED',
-          fontFamily: 'Arial, Helvetica, sans-serif',
-          fontSize: '9px',
-          marginTop: '6px',
-        }}>
-          🔗 {branch.cross_link}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/* ─── SVG connector lines ─── */
-function ConnectorLines({
-  layout, centerX, centerY, rowHeight, startY, aee, mode,
-}: {
-  layout: PlacedBranch[]; centerX: number; centerY: number;
-  rowHeight: number; startY: number; aee: boolean; mode: string;
-}) {
-  const gap = 24;
-  return (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ overflow: 'visible' }}>
-      {layout.map((item, i) => {
-        const cardY = startY + item.row * rowHeight + rowHeight / 2;
-        const isLeft = item.col === 'left';
-        const endX = isLeft ? centerX - gap : centerX + gap;
-        const cx1 = centerX + (isLeft ? -gap * 0.3 : gap * 0.3);
-        const cx2 = endX + (isLeft ? gap * 0.3 : -gap * 0.3);
-
-        return (
-          <path
-            key={i}
-            d={`M ${centerX},${centerY} C ${cx1},${centerY} ${cx2},${cardY} ${endX},${cardY}`}
-            stroke={item.palette.border}
-            strokeWidth={aee ? 4 : mode === 'infantil' ? 3 : 2}
-            fill="none"
-            strokeLinecap="round"
-            strokeDasharray={mode === 'infantil' ? '6 4' : 'none'}
-            opacity={0.6}
-          />
-        );
-      })}
-    </svg>
-  );
-}
-
-/* ─── Main component ─── */
-export default function MindMapVisual({ data, mode, aee = false, institutionName }: {
-  data: MindMapData; mode: string; aee?: boolean; institutionName?: string;
-}) {
-  const branches = data.branches || [];
-  const layout = useMemo(() => computeLayout(branches), [branches]);
-
-  const isInfantil = mode === 'infantil';
-  const cardWidth = isInfantil ? 200 : 260;
-  const rowHeight = isInfantil ? 130 : mode === 'medio' ? 170 : 150;
-  const gap = 24;
-  const centerNodeSize = isInfantil ? 140 : 150;
-
-  const leftCount = layout.filter(l => l.col === 'left').length;
-  const rightCount = layout.filter(l => l.col === 'right').length;
-  const maxRows = Math.max(leftCount, rightCount, 1);
-
-  const totalWidth = cardWidth * 2 + centerNodeSize + gap * 4;
-  const totalHeight = Math.max(maxRows * rowHeight + 40, centerNodeSize + 80);
-  const centerX = totalWidth / 2;
-  const centerY = totalHeight / 2;
-  const startY = (totalHeight - maxRows * rowHeight) / 2;
-
-  return (
-    <div
-      className="relative mx-auto infographic-mindmap"
-      style={{ width: totalWidth, minHeight: totalHeight + 30, background: '#FFFFFF' }}
-    >
-      {/* Connector lines */}
-      <ConnectorLines
-        layout={layout} centerX={centerX} centerY={centerY}
-        rowHeight={rowHeight} startY={startY}
-        aee={aee} mode={mode}
-      />
-
-      {/* Center node */}
-      <div
-        className="absolute z-20 flex flex-col items-center justify-center rounded-full"
-        style={{
-          width: centerNodeSize,
-          height: centerNodeSize,
-          left: centerX - centerNodeSize / 2,
-          top: centerY - centerNodeSize / 2,
-          background: aee ? '#F59E0B' : '#6366F1',
-          border: `4px solid ${aee ? '#D97706' : '#4F46E5'}`,
-          boxShadow: `0 4px 20px ${aee ? 'rgba(245,158,11,0.3)' : 'rgba(99,102,241,0.3)'}`,
-        }}
-      >
-        <span className="text-3xl">{data.center.emoji}</span>
-        <span style={{
-          color: '#FFFFFF',
-          fontFamily: 'Arial, Helvetica, sans-serif',
-          fontWeight: 800,
-          fontSize: '11px',
-          textTransform: 'uppercase',
-          textAlign: 'center',
-          padding: '0 10px',
-          lineHeight: '1.15',
-        }}>
-          {data.center.label}
-        </span>
-      </div>
-
-      {/* Branch cards */}
-      {layout.map((item, i) => {
-        const isLeft = item.col === 'left';
-        const x = isLeft
-          ? centerX - gap - centerNodeSize / 2 - cardWidth
-          : centerX + gap + centerNodeSize / 2;
-        const y = startY + item.row * rowHeight;
-
-        return (
-          <div key={i} className="absolute z-10" style={{ left: x, top: y, width: cardWidth }}>
-            <BranchCard branch={item.branch} mode={mode} aee={aee} palette={item.palette} />
-          </div>
-        );
-      })}
-
-      {/* Footer watermark with school name */}
-      <div style={{
-        position: 'absolute',
-        bottom: 4,
-        left: 0,
-        right: 0,
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontFamily: 'Arial, Helvetica, sans-serif',
-        fontSize: '7pt',
-        color: '#9CA3AF',
-        textTransform: 'uppercase',
-        padding: '0 8px',
-      }}>
-        <span>{institutionName || 'EDUCREATOR PRO'}</span>
-        <span>INFOGRÁFICO PEDAGÓGICO — EDUCREATOR PRO</span>
-      </div>
-    </div>
-  );
 }
