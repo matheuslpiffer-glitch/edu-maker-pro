@@ -202,10 +202,11 @@ export default function CreateQuestion() {
             </div>
             <div className="space-y-2">
               <Label>Tópico / Habilidade</Label>
-              <Input
+               <Input
                 value={topic}
                 onChange={e => setTopic(e.target.value)}
                 placeholder={bnccPrefix ? `Ex: ${bnccPrefix}01 – Tema...` : 'Ex: Potenciação'}
+                disabled={saving}
               />
             </div>
           </div>
