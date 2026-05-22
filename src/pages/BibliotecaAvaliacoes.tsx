@@ -5,6 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -62,6 +73,8 @@ export default function BibliotecaAvaliacoes() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [previewSim, setPreviewSim] = useState<PisaSimulator | null>(null);
   const [pdfSim, setPdfSim] = useState<PisaSimulator | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const pdfRef = React.useRef<HTMLDivElement>(null);
 
   const { data: simulators = [], isLoading } = useQuery({
@@ -94,6 +107,7 @@ export default function BibliotecaAvaliacoes() {
       queryClient.invalidateQueries({ queryKey: ['biblioteca-pisa'] });
       setSelected(new Set());
       toast({ title: 'Avaliações excluídas com sucesso.' });
+      setShowDeleteConfirm(false);
     },
   });
 
@@ -140,18 +154,29 @@ export default function BibliotecaAvaliacoes() {
 
   const handleBatchExport = async () => {
     if (selected.size === 0) return;
-    for (const id of selected) {
-      const sim = simulators.find(s => s.id === id);
-      if (sim) {
-        setPdfSim(sim);
-        await new Promise(resolve => setTimeout(resolve, 600));
-        if (pdfRef.current) {
-          await exportToPDF(pdfRef.current, sim.title || 'simulado');
+    setIsExporting(true);
+    try {
+      for (const id of selected) {
+        const sim = simulators.find(s => s.id === id);
+        if (sim) {
+          setPdfSim(sim);
+          await new Promise(resolve => setTimeout(resolve, 800));
+          if (pdfRef.current) {
+            await exportToPDF(pdfRef.current, sim.title || 'simulado');
+          }
         }
       }
+      setPdfSim(null);
+      toast({ title: `${selected.size} PDF(s) exportados.` });
+    } catch (error) {
+      toast({ 
+        title: 'Erro ao exportar', 
+        description: 'Ocorreu um problema ao gerar os arquivos.',
+        variant: 'destructive' 
+      });
+    } finally {
+      setIsExporting(false);
     }
-    setPdfSim(null);
-    toast({ title: `${selected.size} PDF(s) exportados.` });
   };
 
   const handleShare = (sim: PisaSimulator) => {
@@ -162,13 +187,23 @@ export default function BibliotecaAvaliacoes() {
   };
 
   const handleExportPDF = async (sim: PisaSimulator) => {
+    setIsExporting(true);
     setPdfSim(sim);
-    setTimeout(async () => {
+    try {
+      await new Promise(resolve => setTimeout(resolve, 800));
       if (pdfRef.current) {
         await exportToPDF(pdfRef.current, sim.title || 'simulado-pisa');
-        setPdfSim(null);
       }
-    }, 500);
+    } catch (error) {
+      toast({ 
+        title: 'Erro ao exportar', 
+        description: 'Ocorreu um problema ao gerar o PDF.',
+        variant: 'destructive' 
+      });
+    } finally {
+      setPdfSim(null);
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -216,12 +251,39 @@ export default function BibliotecaAvaliacoes() {
               <CheckSquare className="h-4 w-4 mr-1" />
               {selected.size === filtered.length ? 'Desmarcar' : 'Selecionar Tudo'}
             </Button>
-            <Button size="sm" variant="outline" className="text-cyan-700 border-cyan-300 hover:bg-cyan-50" onClick={handleBatchExport}>
-              <FileDown className="h-4 w-4 mr-1" /> Exportar em Lote
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="text-cyan-700 border-cyan-300 hover:bg-cyan-50" 
+              onClick={handleBatchExport}
+              disabled={isExporting}
+            >
+              {isExporting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileDown className="h-4 w-4 mr-1" />}
+              {isExporting ? 'Gerando PDF...' : 'Exportar em Lote'}
             </Button>
-            <Button size="sm" variant="destructive" onClick={handleBatchDelete} disabled={deleteMutation.isPending}>
-              <Trash2 className="h-4 w-4 mr-1" /> Excluir
-            </Button>
+            
+            <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="destructive" disabled={deleteMutation.isPending}>
+                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmar exclusão em massa</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem certeza que deseja excluir os {selected.size} simulados selecionados? Esta ação não poderá ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleBatchDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Sim, excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
               <X className="h-4 w-4" />
             </Button>
@@ -273,8 +335,18 @@ export default function BibliotecaAvaliacoes() {
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setPreviewSim(sim)}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50" onClick={() => handleExportPDF(sim)}>
-                            <FileDown className="h-4 w-4" />
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-8 w-8 text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50" 
+                            onClick={() => handleExportPDF(sim)}
+                            disabled={isExporting}
+                          >
+                            {isExporting && pdfSim?.id === sim.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <FileDown className="h-4 w-4" />
+                            )}
                           </Button>
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleShare(sim)}>
                             <Share2 className="h-4 w-4" />
@@ -307,8 +379,8 @@ export default function BibliotecaAvaliacoes() {
                 <Card key={i}>
                   <CardContent className="p-4 space-y-2">
                     <p className="font-semibold text-sm">Questão {i + 1}</p>
-                    {q.scenario && <p className="text-sm italic text-muted-foreground bg-muted/50 p-2 rounded">{q.scenario}</p>}
-                    <p className="text-sm">{q.content}</p>
+                    {q.scenario && <p className="text-sm italic text-muted-foreground bg-muted/50 p-2 rounded whitespace-pre-wrap">{q.scenario}</p>}
+                    <p className="text-sm whitespace-pre-wrap">{q.content}</p>
                     {q.options?.map((opt: any) => (
                       <p key={opt.letter} className={`text-sm ${opt.isCorrect ? 'font-semibold text-cyan-700' : ''}`}>({opt.letter}) {opt.text}</p>
                     ))}
