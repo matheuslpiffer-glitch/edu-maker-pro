@@ -239,17 +239,29 @@ export default function Auth({ preferredPortal }: AuthProps) {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSignUp ? 'Criar Conta' : 'Entrar'}
+            <Button 
+              type="submit" 
+              className="w-full py-6 text-base font-semibold transition-all duration-300 shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:scale-95" 
+              disabled={loading}
+            >
+              {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+              {isSignUp ? 'Criar Minha Conta' : 'Entrar na Plataforma'}
             </Button>
           </form>
-          <div className="text-center text-sm space-y-2">
-            <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline">
-              {isSignUp ? 'Já tem conta? Entre aqui' : 'Não tem conta? Cadastre-se'}
+          <div className="text-center text-sm space-y-4 pt-2">
+            <button 
+              type="button" 
+              onClick={() => setIsSignUp(!isSignUp)} 
+              className="text-primary font-semibold hover:text-primary/80 transition-colors"
+            >
+              {isSignUp ? 'Já tem uma conta? Faça login' : 'Ainda não tem conta? Comece agora'}
             </button>
-            <div>
-              <button type="button" onClick={() => setSelectedPortal(null)} className="text-xs text-muted-foreground hover:underline">
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button 
+                type="button" 
+                onClick={() => setSelectedPortal(null)} 
+                className="text-xs text-muted-foreground hover:text-slate-900 dark:hover:text-slate-200 transition-colors inline-flex items-center gap-1"
+              >
                 ← Trocar tipo de acesso ({selectedPortal === 'teacher' ? 'Professor' : 'Aluno'})
               </button>
             </div>
@@ -257,6 +269,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
           </>)}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
