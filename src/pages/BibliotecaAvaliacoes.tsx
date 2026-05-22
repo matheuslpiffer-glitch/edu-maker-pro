@@ -27,7 +27,7 @@ import PisaPrintPreview from '@/components/PisaPrintPreview';
 import React from 'react';
 import {
   Loader2, Search, FolderOpen, Folder, Trash2, FileDown, Eye,
-  Share2, ChevronRight, CheckSquare, X, Library
+  Share2, ChevronRight, CheckSquare, X, Library, ChevronLeft
 } from 'lucide-react';
 
 interface PisaSimulator {
@@ -75,17 +75,25 @@ export default function BibliotecaAvaliacoes() {
   const [pdfSim, setPdfSim] = useState<PisaSimulator | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [page, setPage] = useState(0);
+  const ITEMS_PER_PAGE = 10;
   const pdfRef = React.useRef<HTMLDivElement>(null);
 
-  const { data: simulators = [], isLoading } = useQuery({
-    queryKey: ['biblioteca-pisa'],
+  const { data, isLoading } = useQuery({
+    queryKey: ['biblioteca-pisa', page],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const from = page * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+
+      const { data, error, count } = await supabase
         .from('pisa_simulators')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
       if (error) throw error;
-      return (data || []).map((s: any) => ({
+      
+      const mapped = (data || []).map((s: any) => ({
         ...s,
         questions: Array.isArray(s.questions) ? s.questions : [],
         student_results: Array.isArray(s.student_results) ? s.student_results : [],
@@ -93,8 +101,14 @@ export default function BibliotecaAvaliacoes() {
         bimester: s.bimester || 1,
         institution_name: s.institution_name || '',
       })) as PisaSimulator[];
+
+      return { simulators: mapped, totalCount: count || 0 };
     },
   });
+
+  const simulators = data?.simulators || [];
+  const totalCount = data?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const deleteMutation = useMutation({
     mutationFn: async (ids: string[]) => {
@@ -112,8 +126,8 @@ export default function BibliotecaAvaliacoes() {
   });
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return simulators;
-    const q = search.toLowerCase();
+    const q = search.trim().toLowerCase();
+    if (!q) return simulators;
     return simulators.filter(s =>
       s.title.toLowerCase().includes(q) ||
       (COMPETENCY_LABELS[s.competency] || '').toLowerCase().includes(q) ||
@@ -295,9 +309,23 @@ export default function BibliotecaAvaliacoes() {
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : folders.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhuma avaliação encontrada.</CardContent></Card>
+        <Card>
+          <CardContent className="py-12 text-center space-y-4">
+            <p className="text-muted-foreground">Etsimääsi simulaatiota ei löytynyt. Kokeile eri hakusanaa.</p>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearch('');
+                setSelected(new Set());
+              }}
+            >
+              Tyhjennä suodattimet
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-6">
+          <div className="space-y-3">
           {folders.map(([folderName, sims]) => {
             const isOpen = openFolder === folderName;
             return (
@@ -359,6 +387,36 @@ export default function BibliotecaAvaliacoes() {
               </Card>
             );
           })}
+          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-4 py-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="flex items-center gap-1"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Edellinen
+              </Button>
+              <div className="text-sm font-medium">
+                Sivu {page + 1} / {totalPages}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="flex items-center gap-1"
+              >
+                Seuraava
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
