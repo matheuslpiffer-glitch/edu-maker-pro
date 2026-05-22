@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
+import DOMPurify from 'dompurify';
 import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket, PlusCircle } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
@@ -306,7 +307,7 @@ export default function AltaPerformance() {
   const [totalQuestoes, setTotalQuestoes] = useState(stored?.totalQuestoes || 10);
   const [niveis, setNiveis] = useState(stored?.niveis || { abaixo: 15, basico: 30, proficiente: 35, avancado: 20 });
   const [loading, setLoading] = useState(false);
-  const [questions, setQuestions] = useState<GeneratedQuestion[]>(stored?.questions || []);
+  const [questions, setQuestions] = useState<GeneratedQuestion[]>([]); // Don't restore full array from localStorage to save space
   const [formato, setFormato] = useState(stored?.formato || 'objetiva');
   const [matrizRef, setMatrizRef] = useState(stored?.matrizRef || 'bncc');
   const previewRef = useRef<HTMLDivElement>(null);
@@ -315,12 +316,40 @@ export default function AltaPerformance() {
   const [qrOpen, setQrOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
 
-  // Restore background generation on mount
+  // Restore background generation on mount and fetch saved questions if ID exists
   useEffect(() => {
+    // 1. Fetch questions if we have a saved ID but no questions in state
+    const fetchSavedQuestions = async (id: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('question_banks')
+          .select('questions, question_type')
+          .eq('id', id)
+          .maybeSingle();
+        
+        if (error) throw error;
+        if (data && data.questions) {
+          setQuestions(data.questions as any);
+          if (data.question_type) {
+            setFormato(data.question_type === 'discursiva' ? 'discursiva' : 'objetiva');
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao recuperar questões salvas:', err);
+      }
+    };
+
+    if (savedBankId && questions.length === 0) {
+      fetchSavedQuestions(savedBankId);
+    }
+
+    // 2. Background generation check
     const bg = getGeneration('alta_performance');
+    let interval: any;
+
     if (bg.status === 'running') {
       setLoading(true);
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         const c = getGeneration('alta_performance');
         if (c.status === 'done') {
           const parsed = Array.isArray(c.result) ? c.result : c.result?.questions || [];
@@ -332,7 +361,6 @@ export default function AltaPerformance() {
           toast({ title: 'Erro ao gerar simulado', description: c.error || '', variant: 'destructive' }); clearInterval(interval);
         }
       }, 500);
-      return () => clearInterval(interval);
     } else if (bg.status === 'done') {
       const parsed = Array.isArray(bg.result) ? bg.result : bg.result?.questions || [];
       setQuestions(parsed); clearGeneration('alta_performance');
@@ -340,13 +368,17 @@ export default function AltaPerformance() {
       toast({ title: 'Erro ao gerar simulado', description: bg.error || '', variant: 'destructive' });
       clearGeneration('alta_performance');
     }
-  }, []);
 
-  // Persist state to sessionStorage on changes
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [savedBankId]); // Added savedBankId to deps to trigger fetch on reload/restore
+
+  // Persist state to localStorage on changes (excluding heavy question array)
   useEffect(() => {
-    const state = { rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode };
+    const state = { rede, serie, disciplina, topicos, totalQuestoes, niveis, formato, matrizRef, savedBankId, savedAccessCode };
     localStorage.setItem('alta_perf_state', JSON.stringify(state));
-  }, [rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode]);
+  }, [rede, serie, disciplina, topicos, totalQuestoes, niveis, formato, matrizRef, savedBankId, savedAccessCode]);
 
   // Map specific series to content suggestion segment
   const serieSegment = SERIES_ESPECIFICAS.find(s => s.value === serie)?.segment || '';
@@ -379,6 +411,22 @@ export default function AltaPerformance() {
   };
 
   const redeInfo = redesEnsino.find(r => r.value === rede);
+
+  const sanitizedQuestions = useMemo(() => {
+    return questions.map(q => ({
+      ...q,
+      content: DOMPurify.sanitize(q.content)
+    }));
+  }, [questions]);
+
+  const generationIntervalRef = useRef<any>(null);
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (generationIntervalRef.current) clearInterval(generationIntervalRef.current);
+    };
+  }, []);
 
   const handleGenerate = async () => {
     const isMulti = disciplina === 'Todos';
@@ -415,13 +463,16 @@ export default function AltaPerformance() {
       return data;
     });
 
-    const interval = setInterval(() => {
+    if (generationIntervalRef.current) clearInterval(generationIntervalRef.current);
+    
+    generationIntervalRef.current = setInterval(() => {
       const c = getGeneration('alta_performance');
       if (c.status === 'done') {
         const parsed = Array.isArray(c.result) ? c.result : c.result?.questions || [];
         setQuestions(parsed); setLoading(false); clearGeneration('alta_performance');
         if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
-        clearInterval(interval);
+        clearInterval(generationIntervalRef.current);
+        generationIntervalRef.current = null;
       } else if (c.status === 'error') {
         setLoading(false); clearGeneration('alta_performance');
         const msg = c.error || 'Erro ao gerar simulado';
@@ -431,7 +482,8 @@ export default function AltaPerformance() {
           description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento.',
           variant: 'destructive',
         });
-        clearInterval(interval);
+        clearInterval(generationIntervalRef.current);
+        generationIntervalRef.current = null;
       }
     }, 500);
   };
@@ -635,8 +687,8 @@ export default function AltaPerformance() {
             <Trophy size={28} className="text-white" />
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-extrabold tracking-tight">Gerador de Simulados — Alta Performance</h1>
-            <p className="text-sm text-slate-300 mt-1">Crie avaliações com o rigor pedagógico das maiores franquias do país</p>
+            <h1 className="text-2xl font-extrabold tracking-tight">Simulados que impressionam</h1>
+            <p className="text-sm text-slate-300 mt-1">Em 2 minutos, crie avaliações no nível das melhores redes de ensino do Brasil</p>
           </div>
           <Button
             onClick={handleNewSimulado}
@@ -808,9 +860,14 @@ export default function AltaPerformance() {
                 {loading ? 'Gerando Simulado Semanal...' : '📅 Gerar Simulado Semanal Integrado'}
               </Button>
             )}
-            <Button onClick={handleGenerate} disabled={loading} size="lg" className={`w-full text-base font-bold gap-2 h-14 bg-gradient-to-r from-primary to-[hsl(260,80%,55%)] hover:from-primary/90 hover:to-[hsl(260,80%,50%)] shadow-lg shadow-primary/20 ${disciplina === 'Todos' ? 'hidden' : ''}`}>
+            <Button 
+              onClick={handleGenerate} 
+              disabled={loading} 
+              size="lg" 
+              className={`w-full text-base font-bold gap-2 h-14 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 ${disciplina === 'Todos' ? 'hidden' : ''}`}
+            >
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Wand2 size={20} />}
-              {loading ? 'Gerando Simulado...' : 'Gerar Simulado Premium'}
+              {loading ? 'Gerando Simulado...' : '✨ Gerar meu simulado agora'}
             </Button>
           </div>
         </div>
@@ -856,7 +913,7 @@ export default function AltaPerformance() {
                     </p>
                   )}
                   <Button variant="outline" size="sm" onClick={handleSaveQuestions} className="gap-1.5">
-                    <Save size={14} /> Salvar Questões
+                    <Save size={14} /> 💾 Salvar na minha biblioteca
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleSaveGabarito} className="gap-1.5">
                     <Save size={14} /> Salvar Gabarito
@@ -928,7 +985,7 @@ export default function AltaPerformance() {
                         {q.skillCode && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{q.skillCode}</span>}
                         {isDiscursiva && <span className="text-[10px] font-semibold text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded">Discursiva</span>}
                       </div>
-                      <div className="text-sm leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: q.content }} />
+                      <div className="text-sm leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: sanitizedQuestions[i].content }} />
                       {!isDiscursiva && q.options && q.options.length > 0 && (
                         <div className="space-y-1 pl-2">
                           {q.options.map((o, j) => (
@@ -977,7 +1034,7 @@ export default function AltaPerformance() {
                 <p className="text-xs text-muted-foreground mt-1">
                   {disciplina === 'Todos'
                     ? `Para este Simulado Semanal das turmas de ${serie || 'sua série'}, você prefere focar nas competências socioemocionais da BNCC ou quer um reforço nos conteúdos básicos de Português e Matemática? 📅`
-                    : 'Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀'}
+                    : 'Oi! Vi que você está preparando uma avaliação. Quer que eu sugira os temas mais cobrados nesta série?'}
                 </p>
                 <p className="text-[10px] text-muted-foreground/60 mt-2 italic">EduCreator Pro | Tecnologia de Elite por Matheus Lima Piffer</p>
               </div>
