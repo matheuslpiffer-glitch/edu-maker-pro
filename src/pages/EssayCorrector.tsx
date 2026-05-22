@@ -362,6 +362,7 @@ export default function EssayCorrector() {
           </div>
         </>
       )}
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }
