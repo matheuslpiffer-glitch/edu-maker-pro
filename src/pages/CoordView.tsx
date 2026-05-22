@@ -157,9 +157,13 @@ export default function CoordView() {
   const [simResults, setSimResults] = useState<StudentResult[]>([]);
   const [filterClass, setFilterClass] = useState('all');
   const [filterBanca, setFilterBanca] = useState('all');
+  const [search, setSearch] = useState('');
   const [certStudent, setCertStudent] = useState<MeritStudent | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
+  const [pageMerit, setPageMerit] = useState(1);
+  const [pagePending, setPagePending] = useState(1);
+  const itemsPerPage = 10;
 
   // Load data
   useEffect(() => {
