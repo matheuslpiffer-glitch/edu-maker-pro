@@ -178,7 +178,7 @@ export default function QuestionBank() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
+          onChange={e => { setSearchTerm(e.target.value); setPage(1); }}
           placeholder="Pesquisar por tema, conteúdo ou banca..."
           className="pl-10 rounded-2xl bg-white border-slate-200"
         />
