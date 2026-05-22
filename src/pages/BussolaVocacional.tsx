@@ -895,6 +895,7 @@ export default function BussolaVocacional() {
         EDUCREATOR PRO © MATHEUS PIFFER
       </div>
       </div>
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }
