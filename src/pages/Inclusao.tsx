@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,14 +9,27 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
   ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
+  Trash2,
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { buildPinUrl } from '@/lib/public-links';
 import QRCodeModal from '@/components/QRCodeModal';
 import TriagemNeuro from '@/components/TriagemNeuro';
