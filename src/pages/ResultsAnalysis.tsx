@@ -65,6 +65,7 @@ export default function ResultsAnalysis() {
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [idespMeta, setIdespMeta] = useState(60);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const itemsPerPage = 10;
 
   const selectedSim = simulators.find(s => s.id === selectedSimId);
@@ -126,7 +127,13 @@ export default function ResultsAnalysis() {
     setStudents(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
   };
 
-  const validStudents = students.filter(s => s.student_name.trim() !== '');
+  const filteredStudents = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return students;
+    return students.filter(s => s.student_name.toLowerCase().includes(q));
+  }, [students, search]);
+
+  const validStudents = useMemo(() => students.filter(s => s.student_name.trim() !== ''), [students]);
 
   const handleSave = async () => {
     if (!user || !selectedSimId || validStudents.length === 0) return;
@@ -273,7 +280,18 @@ export default function ResultsAnalysis() {
                     Lançamento de Acertos — {selectedSim?.title}
                     <span className="text-sm font-normal text-muted-foreground ml-2">({totalQuestions} questões)</span>
                   </CardTitle>
-                  <Button size="sm" variant="outline" onClick={addRow}><Plus size={16} className="mr-1" />Aluno</Button>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Buscar aluno..." 
+                      className="w-48 h-8"
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                    <Button size="sm" variant="outline" onClick={addRow}><Plus size={16} className="mr-1" />Aluno</Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -285,16 +303,17 @@ export default function ResultsAnalysis() {
                     <span className="text-center">Nível</span>
                     <span></span>
                   </div>
-                  {students.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((s, i) => {
-                    const actualIdx = (page - 1) * itemsPerPage + i;
+                  {filteredStudents.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((s, i) => {
+                    const actualIdx = students.findIndex(orig => orig === s);
+                    const displayIdx = (page - 1) * itemsPerPage + i;
                     const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
                     const level = getProficiency(pct);
                     return (
-                      <div key={actualIdx} className="grid grid-cols-[1fr_100px_100px_80px_40px] gap-2 items-center">
+                      <div key={actualIdx === -1 ? displayIdx : actualIdx} className="grid grid-cols-[1fr_100px_100px_80px_40px] gap-2 items-center">
                         <Input
                           value={s.student_name}
-                          onChange={e => updateRow(actualIdx, 'student_name', e.target.value)}
-                          placeholder={`Aluno ${actualIdx + 1}`}
+                          onChange={e => updateRow(actualIdx === -1 ? displayIdx : actualIdx, 'student_name', e.target.value)}
+                          placeholder={`Aluno ${displayIdx + 1}`}
                           maxLength={200}
                         />
                         <Input
@@ -302,7 +321,7 @@ export default function ResultsAnalysis() {
                           min={0}
                           max={totalQuestions}
                           value={s.correct_count}
-                          onChange={e => updateRow(actualIdx, 'correct_count', Math.min(+e.target.value, totalQuestions))}
+                          onChange={e => updateRow(actualIdx === -1 ? displayIdx : actualIdx, 'correct_count', Math.min(+e.target.value, totalQuestions))}
                           className="text-center"
                         />
                         <div className="text-center text-sm font-medium">{pct.toFixed(1)}%</div>
@@ -313,7 +332,7 @@ export default function ResultsAnalysis() {
                         >
                           {level.label.split(' ').pop()}
                         </Badge>
-                        <Button variant="ghost" size="sm" onClick={() => removeRow(actualIdx)} className="text-destructive h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" onClick={() => removeRow(actualIdx === -1 ? displayIdx : actualIdx)} className="text-destructive h-8 w-8 p-0">
                           <Trash2 size={14} />
                         </Button>
                       </div>
@@ -321,7 +340,7 @@ export default function ResultsAnalysis() {
                   })}
                 </div>
 
-                {students.length > itemsPerPage && (
+                {filteredStudents.length > itemsPerPage && (
                   <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
                     <Button
                       variant="outline"
@@ -332,13 +351,13 @@ export default function ResultsAnalysis() {
                       <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
                     </Button>
                     <span className="text-xs text-muted-foreground font-medium">
-                      Página {page} de {Math.ceil(students.length / itemsPerPage)}
+                      Página {page} de {Math.ceil(filteredStudents.length / itemsPerPage)}
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage(p => Math.min(Math.ceil(students.length / itemsPerPage), p + 1))}
-                      disabled={page >= Math.ceil(students.length / itemsPerPage)}
+                      onClick={() => setPage(p => Math.min(Math.ceil(filteredStudents.length / itemsPerPage), p + 1))}
+                      disabled={page >= Math.ceil(filteredStudents.length / itemsPerPage)}
                     >
                       Próximo <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
