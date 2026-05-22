@@ -187,7 +187,7 @@ export default function QuestionBank() {
       {/* Tab Switcher */}
       <div className="flex gap-2 mb-4">
         <button
-          onClick={() => setActiveTab('auto')}
+          onClick={() => { setActiveTab('auto'); setPage(1); }}
           className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             activeTab === 'auto'
               ? 'bg-teal-600 text-white shadow-sm'
@@ -197,7 +197,7 @@ export default function QuestionBank() {
           🤖 Auto-Salvas ({savedQuestions.length})
         </button>
         <button
-          onClick={() => setActiveTab('manual')}
+          onClick={() => { setActiveTab('manual'); setPage(1); }}
           className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
             activeTab === 'manual'
               ? 'bg-teal-600 text-white shadow-sm'
