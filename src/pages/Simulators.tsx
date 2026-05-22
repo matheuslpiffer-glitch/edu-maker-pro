@@ -2405,6 +2405,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
           bankId={savedId}
         />
       )}
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }
