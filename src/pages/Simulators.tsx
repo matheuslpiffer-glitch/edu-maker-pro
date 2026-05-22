@@ -399,6 +399,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [selectedFormat, setSelectedFormat] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [grade, setGrade] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
   const [title, setTitle] = useState('');
   const [institutionName, setInstitutionName] = useState('');
   const [specificTopic, setSpecificTopic] = useState('');
