@@ -572,8 +572,11 @@ export default function Inclusao() {
         ...q,
         generatedImageUrl: generatedImages[i] || q.imageUrl || null,
       }));
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Usuário não autenticado");
+
       const { error } = await supabase.from('aee_activities').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         profile: selectedProfiles.join(','),
         subject,
         topic,
