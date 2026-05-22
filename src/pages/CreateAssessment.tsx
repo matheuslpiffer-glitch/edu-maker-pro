@@ -214,7 +214,7 @@ export default function CreateAssessment() {
               </div>
               <div className="space-y-2">
                 <Label>URL do Logo (opcional)</Label>
-                <Input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." />
+                <Input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." disabled={saving} />
               </div>
             </CardContent>
           </Card>
