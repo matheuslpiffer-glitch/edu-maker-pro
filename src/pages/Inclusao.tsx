@@ -15,7 +15,8 @@ import {
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
   ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
-  Trash2, Library,
+  Trash2, Library, Search, X
+
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -306,6 +307,9 @@ function ActivitiesList() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [profileFilter, setProfileFilter] = useState('all');
+
 
   const { data: activities = [], isLoading } = useQuery({
     queryKey: ['aee_activities', user?.id],
@@ -338,6 +342,22 @@ function ActivitiesList() {
     onSettled: () => setDeletingId(null),
   });
 
+  const filteredActivities = useMemo(() => {
+    return activities.filter((activity: any) => {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        searchTerm === '' ||
+        activity.topic?.toLowerCase().includes(searchLower) ||
+        activity.subject?.toLowerCase().includes(searchLower);
+      
+      const matchesProfile = 
+        profileFilter === 'all' || 
+        (activity.profile && activity.profile.includes(profileFilter));
+        
+      return matchesSearch && matchesProfile;
+    });
+  }, [activities, searchTerm, profileFilter]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
@@ -354,6 +374,7 @@ function ActivitiesList() {
       </div>
     );
   }
+
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('pt-BR');
@@ -384,8 +405,65 @@ function ActivitiesList() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {activities.map((activity) => (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-1 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-purple-600" />
+          <Input
+            placeholder="Buscar por título ou disciplina..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 rounded-2xl border-purple-100 focus-visible:ring-purple-500"
+          />
+        </div>
+        <Select value={profileFilter} onValueChange={setProfileFilter}>
+          <SelectTrigger className="w-full md:w-[240px] rounded-2xl border-purple-100 focus:ring-purple-500">
+            <SelectValue placeholder="Tipo de Adaptação" />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl border-purple-100">
+            <SelectItem value="all">Todas as adaptações</SelectItem>
+            {AEE_PROFILES.map((profile) => (
+              <SelectItem key={profile.value} value={profile.value}>
+                {profile.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(searchTerm || profileFilter !== 'all') && (
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              setSearchTerm('');
+              setProfileFilter('all');
+            }}
+            className="rounded-2xl gap-2 text-muted-foreground hover:text-purple-600"
+          >
+            <X className="h-4 w-4" /> Limpar Filtros
+          </Button>
+        )}
+      </div>
+
+      {filteredActivities.length === 0 ? (
+        <div className="text-center py-20 border-2 border-dashed rounded-[3rem] bg-muted/20">
+          <div className="bg-white/50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="h-8 w-8 text-muted-foreground/30" />
+          </div>
+          <p className="text-muted-foreground font-medium mb-4">Nenhuma avaliação adaptada encontrada para os filtros selecionados.</p>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setSearchTerm('');
+              setProfileFilter('all');
+            }}
+            className="rounded-2xl border-purple-200 hover:bg-purple-50 text-purple-700"
+          >
+            Limpar filtros de busca
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredActivities.map((activity) => (
+
         <Card key={activity.id} className="rounded-[2rem] border-purple-100 hover:shadow-xl transition-all group overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start gap-2">
@@ -446,8 +524,11 @@ function ActivitiesList() {
             </div>
           </CardContent>
         </Card>
-      ))}
+          ))}
+        </div>
+      )}
     </div>
+
   );
 }
 
