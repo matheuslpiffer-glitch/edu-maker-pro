@@ -461,7 +461,6 @@ function CorrectionDashboard({ result, studentName }: { result: CorrectionResult
           </CardContent>
         </Card>
       )}
-      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }
