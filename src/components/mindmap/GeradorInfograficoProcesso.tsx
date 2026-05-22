@@ -277,7 +277,7 @@ export default function GeradorInfograficoProcesso() {
                     </div>
 
                     {index < steps.length - 1 && (
-                      <div className="my-1 text-slate-300">
+                      <div className="my-1 text-slate-300 print-text-slate-500">
                         <ArrowDown className="w-6 h-6" />
                       </div>
                     )}
