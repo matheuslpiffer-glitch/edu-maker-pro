@@ -37,6 +37,7 @@ Responda APENAS com JSON válido (sem markdown):
 }
 
 function buildCorrectionPrompt(level: string, subLevel?: string): string {
+  const jsonRule = 'Você deve responder APENAS e EXCLUSIVAMENTE com um objeto JSON válido, sem tags markdown de código (como ```json) e sem nenhum texto antes ou depois do JSON. Se quebrar esta regra, o sistema falhará. Justificativas devem ter no máximo 3 frases focadas no erro ou acerto.';
   if (level === "anos_iniciais") {
     return `Você é uma professora carinhosa e experiente do Ensino Fundamental I (1º ao 5º ano).
 Seu foco é ALFABETIZAÇÃO e ESTÍMULO. Avalie a redação com base nos critérios abaixo.
@@ -50,7 +51,7 @@ CRITÉRIOS (0 a 10 cada):
 4. ORTOGRAFIA BÁSICA: O aluno acerta a escrita das palavras mais comuns do cotidiano?
 5. CRIATIVIDADE E EXPRESSÃO: O aluno expressou ideias próprias de forma criativa e imaginativa?
 
-Responda APENAS com JSON válido (sem markdown):
+  ${jsonRule}
 {
   "scores": [
     {"criteria": "Escrita Alfabética", "score": 8, "max": 10},
@@ -81,7 +82,7 @@ CRITÉRIOS (0 a 10 cada):
 4. RIQUEZA DE VOCABULÁRIO: O aluno usa palavras variadas, evitando repetições?
 5. DESENVOLVIMENTO ARGUMENTATIVO: O aluno aprofunda suas ideias com exemplos e justificativas?
 
-Responda APENAS com JSON válido (sem markdown):
+  ${jsonRule}
 {
   "scores": [
     {"criteria": "Coesão (Uso de Conectivos)", "score": 7, "max": 10},
