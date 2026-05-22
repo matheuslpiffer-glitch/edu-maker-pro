@@ -127,7 +127,13 @@ export default function ResultsAnalysis() {
     setStudents(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
   };
 
-  const validStudents = students.filter(s => s.student_name.trim() !== '');
+  const filteredStudents = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return students;
+    return students.filter(s => s.student_name.toLowerCase().includes(q));
+  }, [students, search]);
+
+  const validStudents = useMemo(() => students.filter(s => s.student_name.trim() !== ''), [students]);
 
   const handleSave = async () => {
     if (!user || !selectedSimId || validStudents.length === 0) return;
