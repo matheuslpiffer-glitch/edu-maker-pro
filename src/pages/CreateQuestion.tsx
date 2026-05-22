@@ -171,7 +171,14 @@ export default function CreateQuestion() {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/questoes')}><ArrowLeft size={18} /></Button>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleCancel}
+          disabled={saving}
+        >
+          <ArrowLeft size={18} />
+        </Button>
         <h1 className="text-2xl font-bold">{id ? 'Editar Questão' : 'Nova Questão'}</h1>
       </div>
 
