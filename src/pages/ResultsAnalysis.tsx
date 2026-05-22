@@ -622,6 +622,7 @@ export default function ResultsAnalysis() {
           </div>
         )}
       </div>
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }
