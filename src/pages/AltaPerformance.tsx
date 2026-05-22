@@ -1157,6 +1157,8 @@ export default function AltaPerformance() {
                     </div>
                   ))}
                 </div>
+                {/* Spacer for Sticky Action Bar */}
+                <div className="h-24 md:h-20" />
               </div>
             )}
 
