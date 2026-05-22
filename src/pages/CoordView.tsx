@@ -343,7 +343,13 @@ export default function CoordView() {
           </h1>
           <p className="text-sm text-muted-foreground">Relatório de Evolução Pedagógica — Abril/2026</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap flex-1 justify-end">
+          <Input 
+            placeholder="Buscar aluno..." 
+            className="w-full md:w-48"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
           <Select value={filterClass} onValueChange={setFilterClass}>
             <SelectTrigger className="w-36"><SelectValue placeholder="Turma" /></SelectTrigger>
             <SelectContent>
