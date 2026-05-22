@@ -982,6 +982,7 @@ export default function AltaPerformance() {
                       {isDiscursiva && <Skeleton className="h-32 w-full" />}
                     </div>
                   ))}
+                </div>
               </div>
             )}
 
