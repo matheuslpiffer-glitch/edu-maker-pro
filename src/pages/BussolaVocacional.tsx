@@ -160,8 +160,24 @@ export default function BussolaVocacional() {
   };
 
   const handleExportPrint = () => {
-    window.print();
+    setIsExporting(true);
+    // Pequena pausa para o overlay aparecer antes do print bloquear a UI
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsExporting(false);
+      toast({ 
+        title: 'Impressão Concluída', 
+        description: 'O documento foi processado com sucesso.' 
+      });
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   const handleSlider = (id: string, val: number[]) => {
     setSliderValues(prev => ({ ...prev, [id]: val[0] }));
