@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
 import DOMPurify from 'dompurify';
-import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket, PlusCircle } from 'lucide-react';
+import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket, PlusCircle, CheckCircle2, Circle } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
 import matAvatar from '@/assets/mat-avatar.png';
@@ -315,6 +315,8 @@ export default function AltaPerformance() {
   const [savedAccessCode, setSavedAccessCode] = useState<string | null>(stored?.savedAccessCode || null);
   const [qrOpen, setQrOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
+  const [generationStep, setGenerationStep] = useState<0 | 1 | 2 | 3>(0);
+
 
   // Restore background generation on mount and fetch saved questions if ID exists
   useEffect(() => {
@@ -437,8 +439,10 @@ export default function AltaPerformance() {
     }
     setLoading(true);
     setQuestions([]);
+    setGenerationStep(1);
 
     const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
+
     const currentParams = {
       examType: isMulti ? 'simulado_semanal' : 'alta_performance',
       subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
@@ -468,14 +472,27 @@ export default function AltaPerformance() {
     
     generationIntervalRef.current = setInterval(() => {
       const c = getGeneration('alta_performance');
+      
+      // Update generation step based on elapsed time or status
+      setGenerationStep(prev => {
+        if (c.status === 'done') return 3;
+        if (prev === 1) return 2; // Move to step 2 after starting
+        return prev;
+      });
+
       if (c.status === 'done') {
         const parsed = Array.isArray(c.result) ? c.result : c.result?.questions || [];
-        setQuestions(parsed); setLoading(false); clearGeneration('alta_performance');
+        setQuestions(parsed); 
+        setLoading(false); 
+        setGenerationStep(3);
+        clearGeneration('alta_performance');
         if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
         clearInterval(generationIntervalRef.current);
         generationIntervalRef.current = null;
       } else if (c.status === 'error') {
-        setLoading(false); clearGeneration('alta_performance');
+        setLoading(false);
+        setGenerationStep(0);
+        clearGeneration('alta_performance');
         const msg = c.error || 'Erro ao gerar simulado';
         const isFriendly = msg.includes('processando') || msg.includes('Tente novamente');
         toast({
@@ -877,27 +894,95 @@ export default function AltaPerformance() {
         <div className="lg:col-span-3">
           <div className="rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 min-h-[400px]">
             {!loading && questions.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-[400px] text-center">
-                <Trophy size={48} className="text-muted-foreground/30 mb-4" />
-                <p className="text-muted-foreground text-sm">Configure os parâmetros e clique em <strong>Gerar Simulado Premium</strong></p>
+              <div className="flex flex-col items-center justify-center h-[400px] text-center space-y-6">
+                <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-2">
+                  <Trophy size={32} className="text-muted-foreground/40" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-foreground/80">Para começar:</h3>
+                  <div className="flex flex-col gap-3 max-w-xs mx-auto text-left">
+                    <div className="flex items-center gap-3 bg-card border border-border/40 p-3 rounded-xl shadow-sm">
+                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">1</span>
+                      <p className="text-sm font-medium text-muted-foreground">Escolha a rede de ensino</p>
+                    </div>
+                    <div className="flex items-center gap-3 bg-card border border-border/40 p-3 rounded-xl shadow-sm">
+                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">2</span>
+                      <p className="text-sm font-medium text-muted-foreground">Selecione a série e disciplina</p>
+                    </div>
+                    <div className="flex items-center gap-3 bg-card border border-border/40 p-3 rounded-xl shadow-sm">
+                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">3</span>
+                      <p className="text-sm font-medium text-muted-foreground">Clique em Gerar — pronto!</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
             {loading && (
-              <div className="space-y-6">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="space-y-3">
-                    <Skeleton className="h-5 w-32" />
-                    <Skeleton className="h-16 w-full" />
-                    {!isDiscursiva && (
-                      <div className="grid grid-cols-2 gap-2">
-                        <Skeleton className="h-8" /><Skeleton className="h-8" />
-                        <Skeleton className="h-8" /><Skeleton className="h-8" />
-                      </div>
-                    )}
-                    {isDiscursiva && <Skeleton className="h-32 w-full" />}
+              <div className="space-y-8 py-4">
+                {/* Generation Steps UI */}
+                <div className="max-w-md mx-auto space-y-4">
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-sm">
+                    <div className="flex items-center gap-3">
+                      {generationStep > 1 ? (
+                        <CheckCircle2 className="text-emerald-500" size={20} />
+                      ) : generationStep === 1 ? (
+                        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      ) : (
+                        <Circle className="text-muted-foreground/30" size={20} />
+                      )}
+                      <span className={`text-sm font-medium ${generationStep === 1 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
+                        1️⃣ Analisando parâmetros pedagógicos
+                      </span>
+                    </div>
                   </div>
-                ))}
+
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-sm">
+                    <div className="flex items-center gap-3">
+                      {generationStep > 2 ? (
+                        <CheckCircle2 className="text-emerald-500" size={20} />
+                      ) : generationStep === 2 ? (
+                        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      ) : (
+                        <Circle className="text-muted-foreground/30" size={20} />
+                      )}
+                      <span className={`text-sm font-medium ${generationStep === 2 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
+                        2️⃣ Gerando questões personalizadas
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-sm">
+                    <div className="flex items-center gap-3">
+                      {generationStep > 3 ? (
+                        <CheckCircle2 className="text-emerald-500" size={20} />
+                      ) : generationStep === 3 ? (
+                        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      ) : (
+                        <Circle className="text-muted-foreground/30" size={20} />
+                      )}
+                      <span className={`text-sm font-medium ${generationStep === 3 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
+                        3️⃣ Validando gabarito e critérios de qualidade
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="h-5 w-32" />
+                      <Skeleton className="h-16 w-full" />
+                      {!isDiscursiva && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <Skeleton className="h-8" /><Skeleton className="h-8" />
+                          <Skeleton className="h-8" /><Skeleton className="h-8" />
+                        </div>
+                      )}
+                      {isDiscursiva && <Skeleton className="h-32 w-full" />}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
