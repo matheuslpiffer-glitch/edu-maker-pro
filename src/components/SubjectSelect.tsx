@@ -29,7 +29,7 @@ export default function SubjectSelect({ value, onValueChange, subjects, placehol
   );
 
   return (
-    <Select value={value} onValueChange={onValueChange}>
+    <Select value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectTrigger className="min-h-[44px]">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
