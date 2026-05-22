@@ -124,6 +124,7 @@ export default function BussolaVocacional() {
   const { customAvatar, zoom, offsetX, offsetY } = useMatAvatar();
   const matAvatar = customAvatar || defaultMatAvatar;
   const [step, setStep] = useState(0); // 0-2 = form steps, 3 = results
+  const [isExporting, setIsExporting] = useState(false);
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({});
   const [isLoaded, setIsLoaded] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
