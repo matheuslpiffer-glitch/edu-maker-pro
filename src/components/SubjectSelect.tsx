@@ -13,9 +13,10 @@ interface Props {
   subjects: SubjectOption[];
   placeholder?: string;
   showAll?: boolean; // show "Todas Disciplinas" option
+  disabled?: boolean;
 }
 
-export default function SubjectSelect({ value, onValueChange, subjects, placeholder = 'Selecione...', showAll = false }: Props) {
+export default function SubjectSelect({ value, onValueChange, subjects, placeholder = 'Selecione...', showAll = false, disabled = false }: Props) {
   // Group subjects by category based on name matching
   const categorized = SUBJECT_CATEGORIES.map(cat => ({
     label: cat.label,
