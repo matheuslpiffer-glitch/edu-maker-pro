@@ -217,7 +217,7 @@ export default function QuestionBank() {
                 <div className="w-52">
                   <SubjectSelect value={filterSubject} onValueChange={(v) => { setFilterSubject(v); setPage(1); }} subjects={subjects} placeholder="Disciplina" showAll />
                 </div>
-                <Select value={filterType} onValueChange={setFilterType}>
+                <Select value={filterType} onValueChange={(v) => { setFilterType(v); setPage(1); }}>
                   <SelectTrigger className="w-44"><SelectValue placeholder="Tipo" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os Tipos</SelectItem>
@@ -225,7 +225,7 @@ export default function QuestionBank() {
                     <SelectItem value="essay">Dissertativa</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={filterDifficulty} onValueChange={setFilterDifficulty}>
+                <Select value={filterDifficulty} onValueChange={(v) => { setFilterDifficulty(v); setPage(1); }}>
                   <SelectTrigger className="w-36"><SelectValue placeholder="Dificuldade" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas</SelectItem>
