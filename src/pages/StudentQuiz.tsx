@@ -84,6 +84,46 @@ export default function StudentQuiz() {
   const [showConfetti, setShowConfetti] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Restore quiz state from localStorage on mount
+  useEffect(() => {
+    if (!user) return;
+    const storageKey = `eduFlow_quiz_state_${user.id}`;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved.questions?.length && saved.phase === 'quiz') {
+          setQuestions(saved.questions);
+          setCurrentIdx(saved.currentIdx || 0);
+          setAnswers(saved.answers || {});
+          setExamType(saved.examType);
+          setQuestionCount(saved.questionCount);
+          setTimeLeft(saved.timeLeft);
+          setTotalTime(saved.totalTime);
+          setPhase('quiz');
+          toast({ title: '🔄 Quiz restaurado', description: 'Você voltou de onde parou!' });
+        }
+      }
+    } catch { /* ignore */ }
+  }, [user]);
+
+  // Persist quiz state to localStorage
+  useEffect(() => {
+    if (!user || phase !== 'quiz') return;
+    const storageKey = `eduFlow_quiz_state_${user.id}`;
+    const state = {
+      phase,
+      questions,
+      currentIdx,
+      answers,
+      examType,
+      questionCount,
+      timeLeft,
+      totalTime
+    };
+    localStorage.setItem(storageKey, JSON.stringify(state));
+  }, [user, phase, questions, currentIdx, answers, examType, questionCount, timeLeft, totalTime]);
+
   // Auto-start fast-track from URL params
   useEffect(() => {
     const ft = searchParams.get('fast');
@@ -236,6 +276,7 @@ export default function StudentQuiz() {
           level: Math.floor(xpGained / 500) + 1,
         });
       }
+      localStorage.removeItem(`eduFlow_quiz_state_${user.id}`);
     }
   }, [questions, answers, examType, user, timeLeft, totalTime, addXP]);
 

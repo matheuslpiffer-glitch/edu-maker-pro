@@ -66,7 +66,7 @@ export default function StudentEssayArena() {
   const [correction, setCorrection] = useState<CorrectionResult | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const draftKey = user ? `arena_draft_${user.id}` : 'arena_draft_anon';
+  const draftKey = user ? `eduFlow_essay_draft_${user.id}` : 'eduFlow_essay_draft_anon';
   const saveTimer = useRef<ReturnType<typeof setInterval>>();
 
   // Restore draft
@@ -80,18 +80,16 @@ export default function StudentEssayArena() {
         if (parsed.theme) {
           setTheme(parsed.theme);
           setStep('write');
+          toast({ title: '🔄 Redação recuperada', description: 'Seu rascunho foi restaurado com sucesso.' });
         }
       } catch { /* ignore */ }
     }
-  }, [draftKey]);
+  }, [draftKey, toast]);
 
-  // Auto-save every 5s
+  // Auto-save draft
   useEffect(() => {
     if (step !== 'write') return;
-    saveTimer.current = setInterval(() => {
-      localStorage.setItem(draftKey, JSON.stringify({ text: essayText, banca, theme }));
-    }, 5000);
-    return () => clearInterval(saveTimer.current);
+    localStorage.setItem(draftKey, JSON.stringify({ text: essayText, banca, theme }));
   }, [essayText, banca, theme, step, draftKey]);
 
   const lineCount = essayText.split('\n').filter(l => l.trim().length > 0).length;
