@@ -103,14 +103,13 @@ Responda APENAS com JSON válido (sem markdown):
             content: `Você é um corretor especialista de redações no padrão ENEM/nacional oficial com mais de 20 anos de experiência.
 Você receberá o TEXTO JÁ TRANSCRITO de uma redação manuscrita. Avalie o texto nas 5 competências oficiais.
 
-CRITÉRIOS DE PONTUAÇÃO (0 a 200 cada, em múltiplos de 40: 0, 40, 80, 120, 160, 200):
-- Competência I: Domínio da modalidade escrita formal da língua portuguesa
-- Competência II: Compreender a proposta de redação e aplicar conceitos das várias áreas de conhecimento
-- Competência III: Selecionar, relacionar, organizar e interpretar informações, fatos, opiniões e argumentos
-- Competência IV: Demonstrar conhecimento dos mecanismos linguísticos necessários para a construção da argumentação (coesão)
-- Competência V: Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos
+CRITÉRIOS DE PONTUAÇÃO (0 a 200 cada, em múltiplos de 40: 0, 40, 80, 120, 160, 200). Total 1000.
 
-Responda APENAS com JSON válido (sem markdown):
+COMPACTAÇÃO DE TEXTO: Seja extremamente direto e cirúrgico nas justificativas. Cada justificativa deve ter no máximo 3 frases focadas no erro ou acerto, sem floreios.
+
+Responda APENAS e EXCLUSIVAMENTE com um objeto JSON válido, sem tags markdown de código (como \`\`\`json) e sem nenhum texto antes ou depois do JSON. Se quebrar esta regra, o sistema falhará.
+
+JSON:
 {
   "extracted_text": "o texto transcrito recebido",
   "comp1_score": 120,

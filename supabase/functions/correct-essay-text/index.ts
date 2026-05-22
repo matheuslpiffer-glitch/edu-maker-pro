@@ -46,7 +46,7 @@ REGRA C5 (OBRIGATÓRIA): A proposta de intervenção DEVE conter 5 elementos: Ag
 
 ${COMMON_INSTRUCTIONS}
 
-Responda APENAS com JSON válido (sem markdown):
+  ${jsonRule}
 {
   "competencies": [
     {"name": "C1 - Norma Culta", "score": 120, "max": 200, "justification": "..."},
@@ -73,7 +73,7 @@ CRITÉRIO ACADÊMICO: Valorize especialmente analogias, metáforas e repertório
 
 ${COMMON_INSTRUCTIONS}
 
-Responda APENAS com JSON válido (sem markdown):
+  ${jsonRule}
 {
   "competencies": [
     {"name": "Tema e Texto", "score": 20, "max": 25, "justification": "..."},
