@@ -478,6 +478,8 @@ export default function BibliotecaAvaliacoes() {
           />
         </div>
       )}
+
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }
