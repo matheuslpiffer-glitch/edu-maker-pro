@@ -303,16 +303,17 @@ export default function ResultsAnalysis() {
                     <span className="text-center">Nível</span>
                     <span></span>
                   </div>
-                  {students.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((s, i) => {
-                    const actualIdx = (page - 1) * itemsPerPage + i;
+                  {filteredStudents.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((s, i) => {
+                    const actualIdx = students.findIndex(orig => orig === s);
+                    const displayIdx = (page - 1) * itemsPerPage + i;
                     const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
                     const level = getProficiency(pct);
                     return (
-                      <div key={actualIdx} className="grid grid-cols-[1fr_100px_100px_80px_40px] gap-2 items-center">
+                      <div key={actualIdx === -1 ? displayIdx : actualIdx} className="grid grid-cols-[1fr_100px_100px_80px_40px] gap-2 items-center">
                         <Input
                           value={s.student_name}
-                          onChange={e => updateRow(actualIdx, 'student_name', e.target.value)}
-                          placeholder={`Aluno ${actualIdx + 1}`}
+                          onChange={e => updateRow(actualIdx === -1 ? displayIdx : actualIdx, 'student_name', e.target.value)}
+                          placeholder={`Aluno ${displayIdx + 1}`}
                           maxLength={200}
                         />
                         <Input
@@ -320,7 +321,7 @@ export default function ResultsAnalysis() {
                           min={0}
                           max={totalQuestions}
                           value={s.correct_count}
-                          onChange={e => updateRow(actualIdx, 'correct_count', Math.min(+e.target.value, totalQuestions))}
+                          onChange={e => updateRow(actualIdx === -1 ? displayIdx : actualIdx, 'correct_count', Math.min(+e.target.value, totalQuestions))}
                           className="text-center"
                         />
                         <div className="text-center text-sm font-medium">{pct.toFixed(1)}%</div>
@@ -331,7 +332,7 @@ export default function ResultsAnalysis() {
                         >
                           {level.label.split(' ').pop()}
                         </Badge>
-                        <Button variant="ghost" size="sm" onClick={() => removeRow(actualIdx)} className="text-destructive h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" onClick={() => removeRow(actualIdx === -1 ? displayIdx : actualIdx)} className="text-destructive h-8 w-8 p-0">
                           <Trash2 size={14} />
                         </Button>
                       </div>
@@ -339,7 +340,7 @@ export default function ResultsAnalysis() {
                   })}
                 </div>
 
-                {students.length > itemsPerPage && (
+                {filteredStudents.length > itemsPerPage && (
                   <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
                     <Button
                       variant="outline"
@@ -350,13 +351,13 @@ export default function ResultsAnalysis() {
                       <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
                     </Button>
                     <span className="text-xs text-muted-foreground font-medium">
-                      Página {page} de {Math.ceil(students.length / itemsPerPage)}
+                      Página {page} de {Math.ceil(filteredStudents.length / itemsPerPage)}
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setPage(p => Math.min(Math.ceil(students.length / itemsPerPage), p + 1))}
-                      disabled={page >= Math.ceil(students.length / itemsPerPage)}
+                      onClick={() => setPage(p => Math.min(Math.ceil(filteredStudents.length / itemsPerPage), p + 1))}
+                      disabled={page >= Math.ceil(filteredStudents.length / itemsPerPage)}
                     >
                       Próximo <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
