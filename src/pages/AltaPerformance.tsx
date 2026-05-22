@@ -415,7 +415,8 @@ export default function AltaPerformance() {
   const sanitizedQuestions = useMemo(() => {
     return questions.map(q => ({
       ...q,
-      content: DOMPurify.sanitize(q.content)
+      content: DOMPurify.sanitize(q.content),
+      correctionMirror: q.correctionMirror ? DOMPurify.sanitize(q.correctionMirror) : undefined
     }));
   }, [questions]);
 
@@ -598,7 +599,7 @@ export default function AltaPerformance() {
     `;
 
     // Questions
-    questions.forEach((q, i) => {
+    sanitizedQuestions.forEach((q, i) => {
       let qHtml = `<div style="margin-bottom:20px;page-break-inside:avoid;">
         <h3 style="margin:0 0 8px;color:#1e3a5f;">Questão ${i + 1}</h3>
         <div style="word-wrap:break-word;overflow-wrap:break-word;">${q.content}</div>`;
@@ -1013,7 +1014,7 @@ export default function AltaPerformance() {
                     <div key={i} className="rounded-lg border border-border/40 bg-card p-3 space-y-1" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                       <p className="text-sm font-bold text-foreground">Questão {i + 1}</p>
                       {isDiscursiva ? (
-                        <p className="text-sm text-muted-foreground break-words">{q.correctionMirror || 'Critérios de correção não disponíveis.'}</p>
+                        <p className="text-sm text-muted-foreground break-words">{sanitizedQuestions[i].correctionMirror || 'Critérios de correção não disponíveis.'}</p>
                       ) : (
                         <p className="text-sm text-muted-foreground">
                           Resposta: <strong className="text-emerald-600 dark:text-emerald-400">{q.options?.find(o => o.isCorrect)?.letter || '—'}</strong>
