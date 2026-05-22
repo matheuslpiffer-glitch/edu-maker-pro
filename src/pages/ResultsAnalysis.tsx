@@ -280,7 +280,18 @@ export default function ResultsAnalysis() {
                     Lançamento de Acertos — {selectedSim?.title}
                     <span className="text-sm font-normal text-muted-foreground ml-2">({totalQuestions} questões)</span>
                   </CardTitle>
-                  <Button size="sm" variant="outline" onClick={addRow}><Plus size={16} className="mr-1" />Aluno</Button>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Buscar aluno..." 
+                      className="w-48 h-8"
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                    <Button size="sm" variant="outline" onClick={addRow}><Plus size={16} className="mr-1" />Aluno</Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
