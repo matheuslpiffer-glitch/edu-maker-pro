@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import {
   ScanLine, History, BookText, HelpCircle,
   Sparkles, BookOpen, FileText, Layers,
   Landmark, Cpu, Accessibility, PenLine,
   Presentation, Map, CalendarDays, Gamepad2, Library,
+  Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { Badge } from '@/components/ui/badge';
 import WelcomeModal from '@/components/WelcomeModal';
+import { useQuery } from '@tanstack/react-query';
 
 export default function Index() {
   const { isStudentMode } = useStudentMode();
