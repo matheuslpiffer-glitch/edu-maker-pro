@@ -261,36 +261,62 @@ export default function QuestionBank() {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredAuto.map(q => {
-              const isSelected = selectedIds.has(q.id);
-              return (
-                <Card key={q.id} className={`transition-all cursor-pointer ${isSelected ? 'ring-2 ring-teal-500 shadow-md' : 'hover:shadow-md'}`}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => toggleSelect(q.id)}
-                        className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${BANCA_COLORS[q.banca] || 'bg-slate-100 text-slate-700'}`}>
-                            {q.banca}
-                          </span>
-                          <Badge variant="outline" className="text-xs">{q.tipo}</Badge>
-                          {q.tema && <span className="text-xs text-muted-foreground">📌 {q.tema}</span>}
+            <div className="space-y-3">
+              {filteredAuto.slice((page - 1) * itemsPerPage, page * itemsPerPage).map(q => {
+                const isSelected = selectedIds.has(q.id);
+                return (
+                  <Card key={q.id} className={`transition-all cursor-pointer ${isSelected ? 'ring-2 ring-teal-500 shadow-md' : 'hover:shadow-md'}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleSelect(q.id)}
+                          className="mt-1 data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${BANCA_COLORS[q.banca] || 'bg-slate-100 text-slate-700'}`}>
+                              {q.banca}
+                            </span>
+                            <Badge variant="outline" className="text-xs">{q.tipo}</Badge>
+                            {q.tema && <span className="text-xs text-muted-foreground">📌 {q.tema}</span>}
+                          </div>
+                          <p className="text-sm text-foreground line-clamp-3">{stripHtml(q.conteudo)}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">{new Date(q.dataCriacao).toLocaleDateString('pt-BR')}</p>
                         </div>
-                        <p className="text-sm text-foreground line-clamp-3">{stripHtml(q.conteudo)}</p>
-                        <p className="text-[10px] text-muted-foreground mt-1">{new Date(q.dataCriacao).toLocaleDateString('pt-BR')}</p>
+                        <Button variant="ghost" size="sm" onClick={() => removeSaved(q.id)} className="text-destructive hover:text-destructive shrink-0">
+                          <Trash2 size={16} />
+                        </Button>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => removeSaved(q.id)} className="text-destructive hover:text-destructive shrink-0">
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {filteredAuto.length > itemsPerPage && (
+              <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                </Button>
+                <span className="text-xs text-muted-foreground font-medium">
+                  Página {page} de {Math.ceil(filteredAuto.length / itemsPerPage)}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage(p => Math.min(Math.ceil(filteredAuto.length / itemsPerPage), p + 1))}
+                  disabled={page >= Math.ceil(filteredAuto.length / itemsPerPage)}
+                >
+                  Próximo <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            )}
           </div>
         )
       )}
