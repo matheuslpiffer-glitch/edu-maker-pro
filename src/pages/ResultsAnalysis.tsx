@@ -159,23 +159,32 @@ export default function ResultsAnalysis() {
   };
 
   // Analytics computations
-  const computedStudents = validStudents.map(s => {
-    const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
-    return { ...s, percentage: pct, proficiency: getProficiency(pct) };
-  });
+  const computedStudents = useMemo(() => {
+    return validStudents.map(s => {
+      const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
+      return { ...s, percentage: pct, proficiency: getProficiency(pct) };
+    });
+  }, [validStudents, totalQuestions]);
 
-  const average = computedStudents.length > 0
-    ? computedStudents.reduce((sum, s) => sum + s.percentage, 0) / computedStudents.length
-    : 0;
-  const highest = computedStudents.length > 0 ? Math.max(...computedStudents.map(s => s.percentage)) : 0;
-  const lowest = computedStudents.length > 0 ? Math.min(...computedStudents.map(s => s.percentage)) : 0;
+  const { average, highest, lowest } = useMemo(() => {
+    if (computedStudents.length === 0) return { average: 0, highest: 0, lowest: 0 };
+    
+    const sum = computedStudents.reduce((acc, s) => acc + s.percentage, 0);
+    const avg = sum / computedStudents.length;
+    const high = Math.max(...computedStudents.map(s => s.percentage));
+    const low = Math.min(...computedStudents.map(s => s.percentage));
+    
+    return { average: avg, highest: high, lowest: low };
+  }, [computedStudents]);
 
-  const distribution = PROFICIENCY_LEVELS.map(level => ({
-    ...level,
-    count: computedStudents.filter(s => s.proficiency.key === level.key).length,
-  }));
+  const distribution = useMemo(() => {
+    return PROFICIENCY_LEVELS.map(level => ({
+      ...level,
+      count: computedStudents.filter(s => s.proficiency.key === level.key).length,
+    }));
+  }, [computedStudents]);
 
-  const gaugePercentage = Math.min(100, (average / idespMeta) * 100);
+  const gaugePercentage = useMemo(() => Math.min(100, (average / idespMeta) * 100), [average, idespMeta]);
 
   const generateInsights = async () => {
     if (!selectedSim || computedStudents.length === 0) return;
