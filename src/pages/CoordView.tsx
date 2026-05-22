@@ -542,19 +542,44 @@ export default function CoordView() {
             <CardTitle className="text-sm">Redações Pendentes de Validação</CardTitle>
           </CardHeader>
           <CardContent>
-            {filtered.filter(e => !e.teacher_validated).length === 0 ? (
+            {pendingEssays.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">Nenhuma redação pendente. 🎉</p>
             ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {filtered.filter(e => !e.teacher_validated).slice(0, 20).map(e => (
-                  <div key={e.id} className="flex items-center justify-between p-2 rounded border text-sm">
-                    <div>
-                      <span className="font-medium">{e.student_name || 'Anônimo'}</span>
-                      <span className="text-muted-foreground ml-2">• {e.student_class} • {e.banca}</span>
+              <div className="space-y-2">
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                  {pendingEssays.slice((pagePending - 1) * itemsPerPage, pagePending * itemsPerPage).map(e => (
+                    <div key={e.id} className="flex items-center justify-between p-2 rounded border text-sm">
+                      <div>
+                        <span className="font-medium">{e.student_name || 'Anônimo'}</span>
+                        <span className="text-muted-foreground ml-2">• {e.student_class} • {e.banca}</span>
+                      </div>
+                      <Badge variant="secondary">{e.status}</Badge>
                     </div>
-                    <Badge variant="secondary">{e.status}</Badge>
+                  ))}
+                </div>
+                {pendingEssays.length > itemsPerPage && (
+                  <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPagePending(p => Math.max(1, p - 1))}
+                      disabled={pagePending === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                    </Button>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Página {pagePending} de {Math.ceil(pendingEssays.length / itemsPerPage)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPagePending(p => Math.min(Math.ceil(pendingEssays.length / itemsPerPage), p + 1))}
+                      disabled={pagePending >= Math.ceil(pendingEssays.length / itemsPerPage)}
+                    >
+                      Próximo <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
                   </div>
-                ))}
+                )}
               </div>
             )}
           </CardContent>
