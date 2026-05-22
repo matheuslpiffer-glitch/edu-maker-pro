@@ -545,10 +545,52 @@ export default function Inclusao() {
     indigo: { bg: 'bg-indigo-50', border: 'border-indigo-500', text: 'text-indigo-600', shadow: 'shadow-indigo-500/20' },
   };
 
+  /* ── My Activities View ── */
+  if (activeView === 'minhas_atividades') {
+    return (
+      <div className="max-w-7xl mx-auto space-y-8">
+        <Button variant="ghost" onClick={() => setActiveView('dashboard')} className="gap-2 rounded-xl">
+          <ArrowLeft className="h-4 w-4" /> Voltar para Inclusão
+        </Button>
+
+        <div className="bg-[#0F172A] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 to-teal-600/10 pointer-events-none" />
+          <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                  <Library className="h-6 w-6 text-white" />
+                </div>
+                <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px] uppercase tracking-widest font-bold">
+                  Histórico AEE
+                </Badge>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black leading-tight">Minhas Atividades Adaptadas</h2>
+              <p className="text-sm text-slate-400 mt-2">Gerencie as avaliações e materiais inclusivos gerados por você.</p>
+            </div>
+          </div>
+        </div>
+
+        <ActivitiesList />
+      </div>
+    );
+  }
+
   /* ── Dashboard View ── */
   if (activeView === 'dashboard') {
     return (
       <div className="max-w-7xl mx-auto space-y-8">
+        {/* Top Actions */}
+        <div className="flex justify-end mb-4">
+          <Button 
+            variant="outline" 
+            onClick={() => setActiveView('minhas_atividades')}
+            className="rounded-2xl gap-2 border-indigo-200 hover:bg-indigo-50 text-indigo-700"
+          >
+            <Library className="h-4 w-4" /> Minhas Atividades
+          </Button>
+        </div>
+
         {/* Hero */}
         <div className="bg-[#0F172A] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 to-teal-600/10 pointer-events-none" />
