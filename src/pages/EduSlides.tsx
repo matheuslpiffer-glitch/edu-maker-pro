@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { Sparkles, Loader2, Plus, Trash2, Download, FileText, ChevronLeft, ChevronRight, Presentation, Edit3, MessageSquare, Play, Save, Users, BookOpen, Palette, CheckCircle2, ImageIcon } from 'lucide-react';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import SkillSearch from '@/components/SkillSearch';
 import SlidePresenter from '@/components/SlidePresenter';
 import AttendancePanel from '@/components/AttendancePanel';
@@ -195,7 +196,7 @@ export default function EduSlides() {
         s.addText(`${i + 1}/${slides.length}`, { x: '90%', y: '93%', w: 0.8, h: 0.3, fontSize: 10, color: '999999', align: 'right' });
       });
       await pres.writeFile({ fileName: `${topic || 'aula'}.pptx` });
-      toast({ title: 'PPTX exportado com sucesso!' });
+      toast({ title: '✅ PPTX exportado com sucesso!' });
     } catch (e: any) {
       toast({ title: 'Erro ao exportar', description: e.message, variant: 'destructive' });
     } finally {
@@ -218,9 +219,27 @@ export default function EduSlides() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: formato === 'slides' ? 'landscape' as const : 'portrait' as const },
       };
       await html2pdf().set(opts).from(el).save();
-      toast({ title: 'PDF exportado com sucesso!' });
+      toast({ title: '✅ PDF exportado com sucesso!' });
     } catch (e: any) {
       toast({ title: 'Erro ao exportar PDF', description: e.message, variant: 'destructive' });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportPdfWrapped = async () => {
+    setExporting(true);
+    try {
+      await exportPdf();
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportPptxWrapped = async () => {
+    setExporting(true);
+    try {
+      await exportPptx();
     } finally {
       setExporting(false);
     }
