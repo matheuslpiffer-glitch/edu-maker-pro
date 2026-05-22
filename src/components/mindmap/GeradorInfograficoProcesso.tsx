@@ -126,24 +126,45 @@ export default function GeradorInfograficoProcesso() {
     <div className="space-y-8 max-w-4xl mx-auto p-4 print:p-0 print:max-w-none">
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          @page { size: portrait; margin: 1cm; }
+          @page { size: portrait; margin: 1.2cm; }
           body { background-color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
           .print-break-inside-avoid { break-inside: avoid; }
-          header { background-color: #0f172a !important; color: white !important; }
-          .bg-blue-50 { background-color: #eff6ff !important; }
-          .bg-green-50 { background-color: #f0fdf4 !important; }
-          .bg-orange-50 { background-color: #fff7ed !important; }
-          .bg-purple-50 { background-color: #faf5ff !important; }
-          .bg-pink-50 { background-color: #fdf2f8 !important; }
-          .bg-teal-50 { background-color: #f0fdfa !important; }
-          .border-blue-200 { border-color: #bfdbfe !important; }
-          .bg-blue-500 { background-color: #3b82f6 !important; }
-          .bg-green-500 { background-color: #22c55e !important; }
-          .bg-orange-500 { background-color: #f97316 !important; }
-          .bg-purple-500 { background-color: #a855f7 !important; }
-          .bg-pink-500 { background-color: #ec4899 !important; }
-          .bg-teal-500 { background-color: #14b8a6 !important; }
+          
+          /* Forçar cores de fundo no PDF/Impressão */
+          .print-bg-slate-900 { background-color: #0f172a !important; color: white !important; }
+          .print-bg-blue-50 { background-color: #eff6ff !important; }
+          .print-bg-green-50 { background-color: #f0fdf4 !important; }
+          .print-bg-orange-50 { background-color: #fff7ed !important; }
+          .print-bg-purple-50 { background-color: #faf5ff !important; }
+          .print-bg-pink-50 { background-color: #fdf2f8 !important; }
+          .print-bg-teal-50 { background-color: #f0fdfa !important; }
+          
+          /* Forçar cores de círculos */
+          .print-bg-blue-500 { background-color: #3b82f6 !important; }
+          .print-bg-green-500 { background-color: #22c55e !important; }
+          .print-bg-orange-500 { background-color: #f97316 !important; }
+          .print-bg-purple-500 { background-color: #a855f7 !important; }
+          .print-bg-pink-500 { background-color: #ec4899 !important; }
+          .print-bg-teal-500 { background-color: #14b8a6 !important; }
+
+          /* Cores de texto específicas para print */
+          .print-text-slate-500 { color: #64748b !important; }
+          .print-text-blue-800 { color: #1e40af !important; }
+          .print-text-blue-500 { color: #3b82f6 !important; }
+
+          /* Garantir que as colunas fiquem horizontais no papel */
+          .print-flex-row { display: flex !important; flex-direction: row !important; align-items: stretch !important; }
+          .print-items-center { align-items: center !important; }
+          .print-w-32 { width: 8rem !important; flex-shrink: 0 !important; }
+          .print-w-64 { width: 14rem !important; flex-shrink: 0 !important; }
+          .print-flex-1 { flex: 1 1 0% !important; }
+          .print-border-r { border-right: 1px solid #e2e8f0 !important; }
+          .print-border-l { border-left: 1px solid #e2e8f0 !important; }
+          .print-pr-4 { padding-right: 1rem !important; }
+          .print-pl-4 { padding-left: 1rem !important; }
+          .print-m-0 { margin: 0 !important; }
+          
           .shadow-xl, .shadow-md, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
@@ -187,7 +208,7 @@ export default function GeradorInfograficoProcesso() {
           </div>
 
           <div ref={printRef} className="max-w-5xl mx-auto bg-white border-2 border-slate-200 rounded-2xl shadow-xl overflow-hidden print:shadow-none print:border-none">
-            <header className="bg-slate-900 text-white p-6 text-center">
+            <header className="bg-slate-900 text-white p-6 text-center print-bg-slate-900">
               <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-wide">
                 {subject}
               </h1>
@@ -196,12 +217,15 @@ export default function GeradorInfograficoProcesso() {
             <div className="p-4 md:p-6 space-y-2">
               {steps.map((step, index) => {
                 const theme = THEMES[step.colorTheme] || THEMES.blue;
+                const printBgClass = `print-bg-${step.colorTheme}-50`;
+                const printCircleClass = `print-bg-${step.colorTheme}-500`;
+
                 return (
                   <div key={index} className="flex flex-col items-center w-full print-break-inside-avoid">
-                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-4 p-4 border-2 rounded-xl mb-2 ${theme.bg} ${theme.border} print:border-slate-300`}>
+                    <div className={`w-full flex flex-col md:flex-row items-stretch gap-4 p-4 border-2 rounded-xl mb-2 ${theme.bg} ${theme.border} print:border-slate-300 print-flex-row ${printBgClass}`}>
                       {/* Coluna 1: Esquerda - Identificação */}
-                      <div className="flex flex-col items-center justify-center w-full md:w-32 flex-shrink-0 border-r-0 md:border-r border-slate-200/50 pr-0 md:pr-4">
-                        <div className={`w-14 h-14 rounded-full ${theme.circle} flex items-center justify-center text-white text-2xl font-black shadow-md`}>
+                      <div className="flex flex-col items-center justify-center w-full md:w-32 flex-shrink-0 border-r-0 md:border-r border-slate-200/50 pr-0 md:pr-4 print-w-32 print-border-r print-pr-4">
+                        <div className={`w-14 h-14 rounded-full ${theme.circle} flex items-center justify-center text-white text-2xl font-black shadow-md ${printCircleClass}`}>
                           {step.number}
                         </div>
                         <span 
@@ -215,7 +239,7 @@ export default function GeradorInfograficoProcesso() {
                       </div>
 
                       {/* Coluna 2: Centro - Conteúdo */}
-                      <div className="flex-1 flex flex-col justify-center py-2">
+                      <div className="flex-1 flex flex-col justify-center py-2 print-flex-1">
                         <div 
                           className="text-base md:text-lg font-medium text-slate-800 leading-tight outline-none focus:bg-white p-1 rounded"
                           contentEditable
@@ -235,7 +259,7 @@ export default function GeradorInfograficoProcesso() {
                       </div>
 
                       {/* Coluna 3: Direita - Visual/Apoio */}
-                      <div className="w-full md:w-[200px] flex-shrink-0 flex items-center justify-center md:justify-start gap-3 pl-0 md:pl-4 border-l-0 md:border-l border-slate-200/50">
+                      <div className="w-full md:w-[200px] flex-shrink-0 flex items-center justify-center md:justify-start gap-3 pl-0 md:pl-4 border-l-0 md:border-l border-slate-200/50 print-w-64 print-border-l print-pl-4">
                         <div className="flex-shrink-0">
                           <IconRenderer name={step.iconName} className="w-16 h-16 text-slate-700" />
                         </div>
@@ -253,7 +277,7 @@ export default function GeradorInfograficoProcesso() {
                     </div>
 
                     {index < steps.length - 1 && (
-                      <div className="my-1 text-slate-300">
+                      <div className="my-1 text-slate-300 print-text-slate-500">
                         <ArrowDown className="w-6 h-6" />
                       </div>
                     )}
@@ -263,15 +287,15 @@ export default function GeradorInfograficoProcesso() {
 
               {/* Rodapé "LEMBRE-SE!" - print-break-inside-avoid para não quebrar a caixa */}
               {footerTips.length > 0 && (
-                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6 print:m-2 print:border-blue-400 print-break-inside-avoid">
+                <div className="border-2 border-dashed border-blue-300 bg-blue-50/50 p-4 m-4 rounded-xl flex flex-col md:flex-row items-center gap-6 print:m-2 print:border-blue-400 print-break-inside-avoid print-flex-row print-items-center print-bg-blue-50">
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <LucideIcons.Star className="w-8 h-8 text-yellow-400 fill-yellow-400" />
-                    <span className="text-lg font-black text-blue-800">LEMBRE-SE!</span>
+                    <span className="text-lg font-black text-blue-800 print-text-blue-800">LEMBRE-SE!</span>
                   </div>
-                  <div className="flex-1 flex flex-wrap justify-between gap-4">
+                  <div className="flex-1 flex flex-wrap justify-between gap-4 print-flex-row">
                     {footerTips.map((tip, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <LucideIcons.CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <LucideIcons.CheckCircle2 className="w-4 h-4 text-blue-500 flex-shrink-0 print-text-blue-500" />
                         <span 
                           className="text-xs font-medium text-slate-700 outline-none focus:bg-white p-1 rounded"
                           contentEditable
