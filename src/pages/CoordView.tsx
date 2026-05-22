@@ -193,10 +193,14 @@ export default function CoordView() {
 
   const filtered = useMemo(() => {
     let e = essays;
+    const q = search.trim().toLowerCase();
+    if (q) {
+      e = e.filter(x => x.student_name?.toLowerCase().includes(q));
+    }
     if (filterClass !== 'all') e = e.filter(x => x.student_class === filterClass);
     if (filterBanca !== 'all') e = e.filter(x => x.banca === filterBanca);
     return e;
-  }, [essays, filterClass, filterBanca]);
+  }, [essays, filterClass, filterBanca, search]);
 
   // KPIs
   const totalEssays = filtered.length;
