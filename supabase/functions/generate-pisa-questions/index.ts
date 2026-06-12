@@ -10,8 +10,8 @@ serve(async (req) => {
 
   try {
     const { proficiencyLevel, competency, questionCount, eliteMode, eliteCategory } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const competencyLabels: Record<string, string> = {
       letramento_matematico: "Letramento Matemático",
@@ -57,14 +57,14 @@ Níveis PISA de referência:
 
     const userPrompt = `Gere ${count} questões PISA ${eliteMode ? 'ELITE (níveis 5-6)' : `nível ${proficiencyLevel}`} para "${competencyLabel}". Retorne APENAS o JSON.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },

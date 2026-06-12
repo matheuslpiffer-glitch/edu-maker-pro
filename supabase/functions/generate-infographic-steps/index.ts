@@ -17,8 +17,8 @@ function extractJson(raw: string): any {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!apiKey) throw new Error("GEMINI_API_KEY not set");
     const { subject } = await req.json();
     if (!subject) {
       return new Response(JSON.stringify({ error: "Assunto obrigatório" }), {
@@ -55,7 +55,7 @@ serve(async (req) => {
       "footerTips": ["Dica 1", "Dica 2", "Dica 3", "Dica 4"]
     }`;
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
