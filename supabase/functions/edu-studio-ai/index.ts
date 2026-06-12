@@ -170,31 +170,46 @@ Formato:
       return new Response(JSON.stringify({ error: "Ferramenta desconhecida: " + tool }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-      }),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      if (res.status === 429) {
-        return new Response(JSON.stringify({ error: "Limite de requisições excedido. Aguarde alguns segundos e tente novamente." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-      if (res.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de IA insuficientes. Adicione créditos em Configurações > Workspace > Uso." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
-      throw new Error(`AI error ${res.status}: ${errText}`);
+    let res;
+    for (let i = 0; i < 4; i++) {
+      res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+        }),
+      });
+      if (res.ok || (res.status !== 503 && res.status !== 500 && res.status !== 429)) break;
+      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
     }
 
-    const data = await res.json();
+    if (!res!.ok) {
+      const errText = await res!.text();
+      if (res!.status === 429) {
+        return new Response(JSON.stringify({ error: "Limite de requisições excedido. Aguarde alguns segundos e tente novamente." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      if (res!.status === 402) {
+        return new Response(JSON.stringify({ error: "Créditos de IA insuficientes. Adicione créditos em Configurações > Workspace > Uso." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      throw new Error(`AI error ${res!.status}: ${errText}`);
+    }
+
+    const data = await res!.json();
     let raw = data.choices?.[0]?.message?.content || "";
-    raw = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-    const result = JSON.parse(raw);
+    let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+    const start = cleaned.search(/[\{\[]/);
+    const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
+    if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
+
+    let result;
+    try {
+      result = JSON.parse(cleaned);
+    } catch (e) {
+      console.error("Failed to parse AI response:", raw);
+      throw e;
+    }
 
     return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e: any) {
