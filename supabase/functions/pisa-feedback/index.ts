@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -43,6 +44,16 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Resposta do aluno não pode estar vazia." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    const userId = getUserIdFromAuth(req.headers.get("Authorization"));
+    if (userId) {
+      const creditCheck = await checkAndDecrementCredits(userId);
+      if (!creditCheck.allowed) {
+        return new Response(JSON.stringify({ error: creditCheck.error }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const systemPrompt = `Você é um avaliador pedagógico especializado no PISA (OCDE). Analise a resposta dissertativa do aluno e forneça feedback construtivo.
