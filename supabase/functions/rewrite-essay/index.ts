@@ -19,18 +19,20 @@ serve(async (req) => {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: `Você é um especialista em redação da banca ${banca || "Banca Padrão Nacional"} com nota máxima.
+    let response;
+    for (let i = 0; i < 4; i++) {
+      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: `Você é um especialista em redação da banca ${banca || "Banca Padrão Nacional"} com nota máxima.
 Sua tarefa é REESCREVER a redação do aluno transformando-a em uma versão "Nota Máxima" (1000 na banca nacional, 100 na banca acadêmica, 12 na banca de excelência).
 
 REGRAS:
@@ -48,50 +50,56 @@ Responda APENAS com JSON válido (sem markdown):
   "changes_summary": "Resumo das principais alterações feitas...",
   "key_improvements": ["Melhoria 1", "Melhoria 2", "Melhoria 3"]
 }`,
-          },
-          {
-            role: "user",
-            content: `Tema: "${(theme || "Tema livre").slice(0, 500)}"
+            },
+            {
+              role: "user",
+              content: `Tema: "${(theme || "Tema livre").slice(0, 500)}"
 
 Redação original do aluno:
 ${essayText}
 
 ${suggestions ? `\nSugestões da correção anterior:\n${suggestions}` : ""}`,
-          },
-        ],
-        temperature: 0.4,
-        max_tokens: 5000,
-      }),
-    });
+            },
+          ],
+          temperature: 0.4,
+          max_tokens: 5000,
+        }),
+      });
+      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
+      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+    }
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    if (!response!.ok) {
+      if (response!.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (response!.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos insuficientes." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI error:", response.status, t);
+      const t = await response!.text();
+      console.error("AI error:", response!.status, t);
       return new Response(JSON.stringify({ error: "Erro ao gerar reescrita" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await response.json();
+    const data = await response!.json();
     const content = data.choices?.[0]?.message?.content || "";
+    let cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+    const start = cleaned.search(/[\{\[]/);
+    const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
+    if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
+
     let parsed;
     try {
-      parsed = JSON.parse(content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
-    } catch {
-      console.error("Parse error:", content);
-      return new Response(JSON.stringify({ error: "Erro ao interpretar reescrita" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      parsed = JSON.parse(cleaned);
+    } catch (e) {
+      console.error("Parse error:", cleaned);
+      throw e;
     }
 
     return new Response(JSON.stringify(parsed), {
