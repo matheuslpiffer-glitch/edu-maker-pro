@@ -1,14 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "../_shared/cors.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    const userId = getUserIdFromAuth(authHeader);
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { essayText, banca, theme, suggestions } = await req.json();
     if (!essayText || typeof essayText !== "string" || essayText.trim().length < 50) {
       return new Response(JSON.stringify({ error: "Texto muito curto." }), {
@@ -16,8 +23,17 @@ serve(async (req) => {
       });
     }
 
+
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     let response;
     for (let i = 0; i < 4; i++) {
@@ -68,6 +84,7 @@ ${suggestions ? `\nSugestões da correção anterior:\n${suggestions}` : ""}`,
       if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
       await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
     }
+
 
     if (!response!.ok) {
       if (response!.status === 429) {

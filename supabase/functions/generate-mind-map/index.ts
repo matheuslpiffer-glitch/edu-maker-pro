@@ -1,19 +1,27 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "../_shared/cors.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    const userId = getUserIdFromAuth(authHeader);
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) throw new Error("GEMINI_API_KEY not set");
 
     const { theme, mode, subject, grade, aee, questionPrompt } = await req.json();
     if (!theme) return new Response(JSON.stringify({ error: "Tema obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
 
     // Question generation mode
     if (mode === 'questions' && questionPrompt) {
@@ -187,6 +195,14 @@ Retorne um JSON PURO (sem markdown, sem crases) com esta estrutura:
   ]
 }`;
 
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     let res;
     for (let i = 0; i < 4; i++) {
       res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
@@ -201,6 +217,7 @@ Retorne um JSON PURO (sem markdown, sem crases) com esta estrutura:
       if (res.ok || (res.status !== 503 && res.status !== 500 && res.status !== 429)) break;
       await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
     }
+
 
     if (!res!.ok) {
       const errText = await res!.text();
