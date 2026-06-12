@@ -73,6 +73,7 @@ const EssayLabStudentPage = lazy(() => import("@/pages/EssayLabStudentPage"));
 const StudentEssayPortal = lazy(() => import("@/pages/StudentEssayPortal"));
 const CoordView = lazy(() => import("@/pages/CoordView"));
 const StudentEssayArena = lazy(() => import("@/pages/StudentEssayArena"));
+const Pricing = lazy(() => import("@/pages/Pricing"));
 
 const queryClient = new QueryClient();
 
@@ -126,6 +127,7 @@ function AppRoutes() {
             <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
             <Route path="/portal-aluno/literatura" element={<LiteraturaView />} />
             <Route path="/infograficos" element={<Infograficos />} />
+            <Route path="/planos" element={<Pricing />} />
             <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
             <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
             <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
@@ -183,6 +185,7 @@ function AppRoutes() {
           <Route path="/manual-aluno" element={<ManualAluno />} />
           <Route path="/corretor-visao" element={<VisionCorrector />} />
           <Route path="/referencias" element={<ReferenciasBibliograficas />} />
+          <Route path="/planos" element={<Pricing />} />
           <Route path="/portal-aluno" element={<StudentDashboard />} />
           <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
           <Route path="/portal-aluno/arena-redacao" element={<StudentEssayArena />} />
