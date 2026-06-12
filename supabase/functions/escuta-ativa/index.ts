@@ -43,28 +43,43 @@ ${mode === "comunicado"
 }
 Série/contexto: ${grade || "Não especificada"}.`;
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: context },
-        ],
-      }),
-    });
+    let response;
+    for (let i = 0; i < 4; i++) {
+      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: context },
+          ],
+        }),
+      });
+      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
+      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+    }
 
-    if (!response.ok) {
-      const s = response.status;
+    if (!response!.ok) {
+      const s = response!.status;
       if (s === 429) return new Response(JSON.stringify({ error: "Limite de requisições. Tente novamente." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (s === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       return new Response(JSON.stringify({ error: "Erro ao processar." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const data = await response.json();
-    const raw = (data.choices?.[0]?.message?.content || "").replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-    const result = JSON.parse(raw);
+    const data = await response!.json();
+    let cleaned = (data.choices?.[0]?.message?.content || "").replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+    const start = cleaned.search(/[\{\[]/);
+    const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
+    if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
+
+    let result;
+    try {
+      result = JSON.parse(cleaned);
+    } catch (e) {
+      console.error("Failed to parse:", cleaned);
+      throw e;
+    }
 
     return new Response(JSON.stringify({ result }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
