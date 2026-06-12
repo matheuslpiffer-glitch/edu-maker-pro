@@ -39,7 +39,7 @@ Retorne JSON PURO (sem markdown):
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "gemini-2.5-flash",
           messages: [{ role: "user", content: qPrompt }],
           temperature: 0.6,
         }),
@@ -86,7 +86,7 @@ Retorne JSON PURO (sem markdown):
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "gemini-2.5-flash",
           messages: [{ role: "user", content: sPrompt }],
           temperature: 0.6,
         }),
@@ -191,7 +191,7 @@ Retorne um JSON PURO (sem markdown, sem crases) com esta estrutura:
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gemini-2.5-flash",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
       }),
