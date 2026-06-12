@@ -9,8 +9,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     const { imageUrl, gabarito } = await req.json();
 
@@ -45,14 +45,14 @@ Responda APENAS com JSON válido no formato:
   "observations": "Caligrafia legível na maioria das questões. Questão 5 teve leitura ambígua entre B e D."
 }`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const callGemini = async () => fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           {
@@ -67,6 +67,14 @@ Responda APENAS com JSON válido no formato:
       }),
     });
 
+    let response = await callGemini();
+    let attempts = 0;
+    while (!response.ok && [429, 500, 503].includes(response.status) && attempts < 2) {
+      attempts++;
+      await new Promise((r) => setTimeout(r, 800 * attempts));
+      response = await callGemini();
+    }
+
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), {
@@ -79,7 +87,7 @@ Responda APENAS com JSON válido no formato:
         });
       }
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("Gemini API error:", response.status, t);
       return new Response(JSON.stringify({ error: "Erro ao processar imagem com IA" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
