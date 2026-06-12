@@ -4,11 +4,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useCredits } from '@/hooks/useCredits';
 
-// TODO: substituir pelo número real (formato internacional sem +, sem espaços)
-const WHATSAPP_NUMBER = '5511999999999';
-
-const waLink = (text: string) =>
-  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+const WA_PRO = 'https://wa.me/5519981636948?text=Quero%20assinar%20o%20EduCreator%20Pro';
+const WA_ESCOLA = 'https://wa.me/5519981636948?text=Quero%20saber%20sobre%20o%20plano%20Escola';
 
 interface PlanProps {
   name: string;
@@ -144,7 +141,7 @@ export default function Pricing() {
               'Suporte prioritário',
             ]}
             cta={isPro ? 'Plano atual' : 'Assinar Pro'}
-            ctaHref={waLink('Olá! Quero assinar o EduCreator Pro.')}
+            ctaHref={WA_PRO}
             ctaDisabled={isPro}
           />
 
@@ -161,7 +158,7 @@ export default function Pricing() {
               'Logo e marca personalizados',
             ]}
             cta="Falar com a equipe"
-            ctaHref={waLink('Olá! Quero saber sobre o plano Escola do EduCreator.')}
+            ctaHref={WA_ESCOLA}
           />
         </div>
 
