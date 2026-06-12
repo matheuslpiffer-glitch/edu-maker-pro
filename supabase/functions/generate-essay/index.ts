@@ -1,9 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "../_shared/cors.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const NIVEL_PROMPTS: Record<string, string> = {
   "Ensino Fundamental I (1º ao 5º)": "Use linguagem simples, lúdica e frases curtas. Adapte o vocabulário para crianças de 6 a 10 anos.",
@@ -15,6 +12,16 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    const userId = getUserIdFromAuth(authHeader);
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
@@ -23,6 +30,15 @@ serve(async (req) => {
     if (!genero || !tema || !nivel) {
       return new Response(JSON.stringify({ error: "Gênero, tema e nível de ensino são obrigatórios." }), {
         status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -74,6 +90,7 @@ Responda em JSON:
       if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
       await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
     }
+
 
     if (!response!.ok) {
       if (response!.status === 429) {
