@@ -1,0 +1,175 @@
+import { Link } from 'react-router-dom';
+import { Check, Sparkles, Building2, Zap, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useCredits } from '@/hooks/useCredits';
+
+// TODO: substituir pelo número real (formato internacional sem +, sem espaços)
+const WHATSAPP_NUMBER = '5511999999999';
+
+const waLink = (text: string) =>
+  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+
+interface PlanProps {
+  name: string;
+  price: string;
+  period?: string;
+  yearly?: string;
+  description: string;
+  features: string[];
+  cta: string;
+  ctaHref?: string;
+  ctaDisabled?: boolean;
+  highlight?: boolean;
+  icon: React.ReactNode;
+}
+
+function PlanCard({ name, price, period, yearly, description, features, cta, ctaHref, ctaDisabled, highlight, icon }: PlanProps) {
+  return (
+    <div
+      className={cn(
+        'relative flex flex-col rounded-3xl p-6 sm:p-8 border backdrop-blur-sm transition-all duration-300',
+        highlight
+          ? 'bg-gradient-to-br from-indigo-600/20 via-purple-600/15 to-blue-600/20 border-indigo-400/40 shadow-[0_0_60px_-15px_rgba(99,102,241,0.5)] lg:scale-105 lg:-translate-y-2'
+          : 'bg-slate-900/60 border-slate-700/60 hover:border-slate-600',
+      )}
+    >
+      {highlight && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full shadow-lg">
+          ⭐ Mais Popular
+        </div>
+      )}
+      <div className={cn(
+        'w-12 h-12 rounded-2xl flex items-center justify-center mb-4',
+        highlight ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white' : 'bg-slate-800 text-slate-300'
+      )}>
+        {icon}
+      </div>
+      <h3 className="text-xl font-black text-white">{name}</h3>
+      <p className="text-xs text-slate-400 mt-1 min-h-[32px]">{description}</p>
+
+      <div className="mt-5 mb-6">
+        <div className="flex items-baseline gap-1">
+          <span className="text-4xl font-black text-white">{price}</span>
+          {period && <span className="text-sm text-slate-400 font-medium">/{period}</span>}
+        </div>
+        {yearly && <p className="text-xs text-slate-500 mt-1">ou {yearly}</p>}
+      </div>
+
+      <ul className="space-y-3 mb-8 flex-1">
+        {features.map((f) => (
+          <li key={f} className="flex items-start gap-2.5 text-sm text-slate-300">
+            <Check size={16} className={cn('mt-0.5 shrink-0', highlight ? 'text-indigo-400' : 'text-emerald-400')} />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+
+      {ctaHref && !ctaDisabled ? (
+        <Button
+          asChild
+          size="lg"
+          className={cn(
+            'w-full font-bold',
+            highlight
+              ? 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white shadow-lg shadow-indigo-500/30'
+              : 'bg-slate-800 hover:bg-slate-700 text-white border border-slate-700'
+          )}
+        >
+          <a href={ctaHref} target="_blank" rel="noopener noreferrer">{cta}</a>
+        </Button>
+      ) : (
+        <Button size="lg" disabled className="w-full font-bold bg-slate-800 text-slate-500 cursor-not-allowed">
+          {cta}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+export default function Pricing() {
+  const { isPro, loading } = useCredits();
+  const isFree = !loading && !isPro;
+
+  return (
+    <div className="min-h-screen -m-4 md:-m-6 lg:-m-8 bg-gradient-to-br from-[#0a0e27] via-[#0F172A] to-[#1a1247] text-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+        <Link to="/dashboard-professor" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white mb-8 transition-colors">
+          <ArrowLeft size={16} /> Voltar
+        </Link>
+
+        <div className="text-center mb-12 sm:mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-xs font-bold uppercase tracking-widest mb-5">
+            <Sparkles size={14} /> Planos & Preços
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+            Potencialize sua sala de aula
+          </h1>
+          <p className="mt-4 text-base sm:text-lg text-slate-400 max-w-2xl mx-auto">
+            Escolha o plano ideal para o seu uso. Comece grátis e evolua quando precisar de mais poder de IA.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+          <PlanCard
+            name="Grátis"
+            price="R$ 0"
+            period="mês"
+            description="Para conhecer a plataforma."
+            icon={<Zap size={22} />}
+            features={[
+              '10 créditos por mês',
+              'Acesso às ferramentas básicas',
+              'Banco de questões',
+              'Suporte por e-mail',
+            ]}
+            cta={isFree ? 'Plano atual' : 'Começar grátis'}
+            ctaDisabled={isFree}
+          />
+
+          <PlanCard
+            name="Pro"
+            price="R$ 19,90"
+            period="mês"
+            yearly="R$ 238,80/ano"
+            description="Para professores que usam IA todos os dias."
+            icon={<Sparkles size={22} />}
+            highlight
+            features={[
+              'Créditos para uso intenso (ilimitado prático)',
+              'Todas as ferramentas de IA',
+              'Correção de redação ilimitada',
+              'Simulados, mapas mentais e slides',
+              'Mat PhD — Assistente Pedagógico IA',
+              'Suporte prioritário',
+            ]}
+            cta={isPro ? 'Plano atual' : 'Assinar Pro'}
+            ctaHref={waLink('Olá! Quero assinar o EduCreator Pro.')}
+            ctaDisabled={isPro}
+          />
+
+          <PlanCard
+            name="Escola"
+            price="Sob consulta"
+            description="Para escolas e redes de ensino."
+            icon={<Building2 size={22} />}
+            features={[
+              'Acesso para vários professores',
+              'Painel de coordenação',
+              'Implantação e treinamento',
+              'Suporte dedicado',
+              'Logo e marca personalizados',
+            ]}
+            cta="Falar com a equipe"
+            ctaHref={waLink('Olá! Quero saber sobre o plano Escola do EduCreator.')}
+          />
+        </div>
+
+        <div className="mt-16 text-center text-xs text-slate-500">
+          <p>Pagamento via PIX, cartão ou boleto. Sem fidelidade. Cancele quando quiser.</p>
+          <p className="mt-1">Dúvidas? Fale com a gente no WhatsApp pelos botões acima.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
