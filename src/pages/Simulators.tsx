@@ -810,7 +810,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       grade, subject_area: selectedSubjects.join(', '),
     };
     const { data, error } = await supabase.from('simulators').insert(payload).select('id').single();
-    if (error) { showAiErrorToast(error, toast, 'Erro ao salvar') setSaving(false); return; }
+    if (error) { showAiErrorToast(error, toast, 'Erro ao salvar'); setSaving(false); return; }
     setSavedId(data.id);
     toast({ title: 'Simulado e gabarito salvos!', description: `ID: ${data.id.slice(0, 8).toUpperCase()}` });
     loadHistory(); setSaving(false);

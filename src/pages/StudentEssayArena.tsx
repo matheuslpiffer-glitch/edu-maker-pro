@@ -153,7 +153,7 @@ export default function StudentEssayArena() {
 
       localStorage.removeItem(draftKey);
     } catch (err: any) {
-      showAiErrorToast(err?, toast, 'Erro na correção')
+      showAiErrorToast(err, toast, 'Erro na correção');
     } finally {
       setCorrecting(false);
     }
