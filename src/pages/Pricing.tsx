@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Check, Sparkles, Building2, Zap, ArrowLeft } from 'lucide-react';
+import { Check, Sparkles, Building2, Zap, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useCredits } from '@/hooks/useCredits';
@@ -85,8 +85,10 @@ function PlanCard({ name, price, period, yearly, description, features, cta, cta
 }
 
 export default function Pricing() {
-  const { isPro, loading } = useCredits();
+  const { isPro, loading, credits, freeLimit } = useCredits();
   const isFree = !loading && !isPro;
+  const safeCredits = Math.max(0, credits ?? 0);
+  const low = isFree && safeCredits <= 2;
 
   return (
     <div className="min-h-screen -m-4 md:-m-6 lg:-m-8 bg-gradient-to-br from-[#0a0e27] via-[#0F172A] to-[#1a1247] text-white">
@@ -94,6 +96,28 @@ export default function Pricing() {
         <Link to="/dashboard-professor" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white mb-8 transition-colors">
           <ArrowLeft size={16} /> Voltar
         </Link>
+
+        {!loading && (
+          <div className="flex justify-center mb-6">
+            {isPro ? (
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-950 px-3 py-1.5 text-xs font-black shadow-sm">
+                <Sparkles size={14} /> PLANO PRO ATIVO
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  'inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold border',
+                  low
+                    ? 'bg-red-500/10 text-red-300 border-red-400/30 animate-pulse'
+                    : 'bg-indigo-500/10 text-indigo-300 border-indigo-400/20',
+                )}
+              >
+                {low ? <AlertTriangle size={14} /> : <Zap size={14} />}
+                <span>Seu plano: Grátis · {safeCredits}/{freeLimit} créditos</span>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="text-center mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-xs font-bold uppercase tracking-widest mb-5">
@@ -141,7 +165,7 @@ export default function Pricing() {
               'Suporte prioritário',
             ]}
             cta={isPro ? 'Plano atual' : 'Assinar Pro'}
-            ctaHref={WA_PRO}
+            ctaHref={isPro ? undefined : WA_PRO}
             ctaDisabled={isPro}
           />
 
