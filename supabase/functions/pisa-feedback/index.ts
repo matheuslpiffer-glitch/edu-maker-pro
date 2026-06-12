@@ -72,65 +72,70 @@ INSTRUÇÕES DE AVALIAÇÃO:
 
 Responda APENAS com JSON válido no formato especificado.`;
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: "Analise a resposta do aluno e retorne o feedback estruturado." },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "return_feedback",
-            description: "Return structured feedback for student answer",
-            parameters: {
-              type: "object",
-              properties: {
-                clarity_score: { type: "number", description: "Nota 0-10 para Clareza do Raciocínio" },
-                evidence_score: { type: "number", description: "Nota 0-10 para Uso de Evidências" },
-                accuracy_score: { type: "number", description: "Nota 0-10 para Precisão Técnica" },
-                overall_level: { type: "number", description: "Nível PISA estimado da resposta (1-6)" },
-                summary: { type: "string", description: "Resumo geral do desempenho (2-3 frases motivadoras)" },
-                constructive_provocation: { type: "string", description: "Provocação pedagógica para incentivar melhoria (apenas se nível 3-4)" },
-                study_hints: {
-                  type: "array",
-                  items: { type: "string" },
-                  description: "Lista de pistas de estudo para cada ponto fraco identificado",
+    let response;
+    for (let i = 0; i < 4; i++) {
+      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: "Analise a resposta do aluno e retorne o feedback estruturado." },
+          ],
+          tools: [{
+            type: "function",
+            function: {
+              name: "return_feedback",
+              description: "Return structured feedback for student answer",
+              parameters: {
+                type: "object",
+                properties: {
+                  clarity_score: { type: "number", description: "Nota 0-10 para Clareza do Raciocínio" },
+                  evidence_score: { type: "number", description: "Nota 0-10 para Uso de Evidências" },
+                  accuracy_score: { type: "number", description: "Nota 0-10 para Precisão Técnica" },
+                  overall_level: { type: "number", description: "Nível PISA estimado da resposta (1-6)" },
+                  summary: { type: "string", description: "Resumo geral do desempenho (2-3 frases motivadoras)" },
+                  constructive_provocation: { type: "string", description: "Provocação pedagógica para incentivar melhoria (apenas se nível 3-4)" },
+                  study_hints: {
+                    type: "array",
+                    items: { type: "string" },
+                    description: "Lista de pistas de estudo para cada ponto fraco identificado",
+                  },
+                  main_error: { type: "string", description: "Principal erro conceitual identificado (para análise da turma)" },
+                  strengths: { type: "string", description: "Pontos fortes da resposta do aluno" },
                 },
-                main_error: { type: "string", description: "Principal erro conceitual identificado (para análise da turma)" },
-                strengths: { type: "string", description: "Pontos fortes da resposta do aluno" },
+                required: ["clarity_score", "evidence_score", "accuracy_score", "overall_level", "summary", "study_hints", "main_error", "strengths"],
               },
-              required: ["clarity_score", "evidence_score", "accuracy_score", "overall_level", "summary", "study_hints", "main_error", "strengths"],
             },
-          },
-        }],
-        tool_choice: { type: "function", function: { name: "return_feedback" } },
-      }),
-    });
+          }],
+          tool_choice: { type: "function", function: { name: "return_feedback" } },
+        }),
+      });
+      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
+      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+    }
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    if (!response!.ok) {
+      if (response!.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (response!.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI error:", response.status, t);
+      const t = await response!.text();
+      console.error("AI error:", response!.status, t);
       throw new Error("Erro no gateway de IA");
     }
 
-    const result = await response.json();
+    const result = await response!.json();
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
     
     let feedback;
@@ -139,7 +144,17 @@ Responda APENAS com JSON válido no formato especificado.`;
     } else {
       // Fallback: try to extract from content
       const content = result.choices?.[0]?.message?.content || '';
-      feedback = extractJsonFromResponse(content);
+      let cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+      const start = cleaned.search(/[\{\[]/);
+      const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
+      if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
+      
+      try {
+        feedback = JSON.parse(cleaned);
+      } catch (e) {
+        console.error("Failed to parse fallback content:", content);
+        throw e;
+      }
     }
 
     return new Response(JSON.stringify(feedback), {
