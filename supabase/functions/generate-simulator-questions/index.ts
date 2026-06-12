@@ -265,6 +265,16 @@ serve(async (req) => {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
+    const userId = getUserIdFromAuth(req.headers.get("Authorization"));
+    if (userId) {
+      const creditCheck = await checkAndDecrementCredits(userId);
+      if (!creditCheck.allowed) {
+        return new Response(JSON.stringify({ error: creditCheck.error }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
      const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo, senaiSpMatrix, senaiVestibulinho, nivelComplexidade, subject } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
