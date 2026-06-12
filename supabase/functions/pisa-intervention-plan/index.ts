@@ -30,66 +30,73 @@ O plano deve conter:
 
 Seja prático, motivador e focado em metodologias ativas.`;
 
-    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: "Gere o plano de intervenção pedagógica." },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "return_intervention_plan",
-            description: "Return a structured intervention plan",
-            parameters: {
-              type: "object",
-              properties: {
-                objective: { type: "string" },
-                duration: { type: "string" },
-                activities: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      title: { type: "string" },
-                      description: { type: "string" },
-                      duration: { type: "string" },
+    let response;
+    for (let i = 0; i < 4; i++) {
+      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: "Gere o plano de intervenção pedagógica." },
+          ],
+          tools: [{
+            type: "function",
+            function: {
+              name: "return_intervention_plan",
+              description: "Return a structured intervention plan",
+              parameters: {
+                type: "object",
+                properties: {
+                  objective: { type: "string" },
+                  duration: { type: "string" },
+                  activities: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: { type: "string" },
+                        description: { type: "string" },
+                        duration: { type: "string" },
+                      },
+                      required: ["title", "description", "duration"],
                     },
-                    required: ["title", "description", "duration"],
                   },
+                  resources: { type: "array", items: { type: "string" } },
+                  evaluation_criteria: { type: "string" },
                 },
-                resources: { type: "array", items: { type: "string" } },
-                evaluation_criteria: { type: "string" },
+                required: ["objective", "duration", "activities", "resources", "evaluation_criteria"],
               },
-              required: ["objective", "duration", "activities", "resources", "evaluation_criteria"],
             },
-          },
-        }],
-        tool_choice: { type: "function", function: { name: "return_intervention_plan" } },
-      }),
-    });
+          }],
+          tool_choice: { type: "function", function: { name: "return_intervention_plan" } },
+        }),
+      });
+      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
+      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+    }
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    if (!response!.ok) {
+      if (response!.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (response!.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      const t = await response!.text();
+      console.error("AI error:", response!.status, t);
       throw new Error("Erro no gateway de IA");
     }
 
-    const result = await response.json();
+    const result = await response!.json();
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) throw new Error("Sem dados estruturados");
 
