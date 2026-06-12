@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { Heart, Send, FileText, Loader2, MessageCircle, Copy, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,7 +32,7 @@ export default function EscutaAtiva() {
       setResult(data.result);
       toast({ title: '✅ Orientação gerada!' });
     } catch (err: any) {
-      toast({ title: 'Erro', description: err.message, variant: 'destructive' });
+      showAiErrorToast(err, toast, 'Erro')
     } finally {
       setLoading(false);
     }
