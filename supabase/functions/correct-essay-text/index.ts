@@ -247,12 +247,15 @@ serve(async (req) => {
       );
     }
 
-    const creditCheck = await checkAndDecrementCredits(userId);
-    if (!creditCheck.allowed) {
-      return new Response(JSON.stringify({ error: creditCheck.error }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const userId = getUserIdFromAuth(req.headers.get("Authorization"));
+    if (userId) {
+      const creditCheck = await checkAndDecrementCredits(userId);
+      if (!creditCheck.allowed) {
+        return new Response(JSON.stringify({ error: creditCheck.error }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     let response;
