@@ -929,6 +929,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      decrement_user_credits: { Args: { user_id: string }; Returns: boolean }
       get_my_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
