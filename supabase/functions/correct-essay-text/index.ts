@@ -246,6 +246,14 @@ serve(async (req) => {
       );
     }
 
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     let response;
     for (let i = 0; i < 4; i++) {
       response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
@@ -270,6 +278,7 @@ serve(async (req) => {
       if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
       await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
     }
+
 
     if (!response!.ok) {
       if (response!.status === 429) {
