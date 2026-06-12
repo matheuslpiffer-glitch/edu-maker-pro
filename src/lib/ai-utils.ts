@@ -1,3 +1,5 @@
+import * as React from 'react';
+import { ToastAction } from '@/components/ui/toast';
 import {
   FunctionsFetchError,
   FunctionsHttpError,
@@ -117,6 +119,17 @@ export async function showAiErrorToast(
       description: PAYWALL_DESCRIPTION,
       variant: 'destructive',
       duration: 8000,
+      action: React.createElement(
+        ToastAction,
+        {
+          altText: 'Ver planos',
+          onClick: () => {
+            try { window.location.assign('/planos'); } catch { /* noop */ }
+          },
+          className: 'bg-white text-slate-900 hover:bg-slate-100 font-bold',
+        },
+        'Assine o Pro',
+      ),
     });
     return { handled: true, status: 402 as const };
   }
