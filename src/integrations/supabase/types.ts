@@ -533,28 +533,37 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          credits: number
           display_name: string | null
           email: string | null
           id: string
           institution_name: string | null
+          plan: string
+          plan_expires_at: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          credits?: number
           display_name?: string | null
           email?: string | null
           id: string
           institution_name?: string | null
+          plan?: string
+          plan_expires_at?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          credits?: number
           display_name?: string | null
           email?: string | null
           id?: string
           institution_name?: string | null
+          plan?: string
+          plan_expires_at?: string | null
           updated_at?: string
         }
         Relationships: []
