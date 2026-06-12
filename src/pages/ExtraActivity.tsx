@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -131,7 +132,7 @@ export default function ExtraActivity() {
       }
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Erro ao gerar atividade', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar atividade')
     } finally {
       setGenerating(false);
     }

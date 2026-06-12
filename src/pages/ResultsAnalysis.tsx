@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -158,7 +159,7 @@ export default function ResultsAnalysis() {
 
     const { error } = await supabase.from('student_results').insert(rows);
     if (error) {
-      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
+      showAiErrorToast(error, toast, 'Erro ao salvar')
     } else {
       toast({ title: 'Notas salvas com sucesso!' });
     }
@@ -228,7 +229,7 @@ export default function ResultsAnalysis() {
       setInsights(data as AIInsights);
       toast({ title: 'Insights gerados!' });
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar insights', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar insights')
     } finally {
       setLoadingInsights(false);
     }

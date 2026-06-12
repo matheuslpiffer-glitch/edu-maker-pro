@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -127,7 +128,7 @@ export default function QuestionBankAI() {
       setQuestions(allQuestions);
       toast({ title: `${allQuestions.length} questões geradas com gabarito comentado!` });
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar')
     } finally {
       setGenerating(false);
     }
@@ -147,7 +148,7 @@ export default function QuestionBankAI() {
       institution_name: institutionName,
     });
     if (error) {
-      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
+      showAiErrorToast(error, toast, 'Erro ao salvar')
     } else {
       toast({ title: 'Lista salva com sucesso!' });
       loadHistory();
