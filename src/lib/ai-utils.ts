@@ -80,3 +80,60 @@ export function isAiRateLimitError(message: string, status?: number) {
   const normalized = message.toLowerCase();
   return status === 429 || normalized.includes('limite de requisições') || normalized.includes('rate limit');
 }
+
+const PAYWALL_TITLE = '🔒 Créditos esgotados';
+const PAYWALL_DESCRIPTION =
+  'Seus créditos do plano grátis acabaram. Assine o Pro para continuar usando.';
+
+/**
+ * Show a friendly toast for any AI edge-function error.
+ * - Status 402 (or "créditos esgotados") → paywall message, NEVER a technical/processing error.
+ * - Otherwise → normal destructive toast with extracted message.
+ *
+ * Accepts either a raw thrown error (FunctionsHttpError, Error, etc.) or an
+ * already-normalized { message, status } shape (e.g. from background generation).
+ */
+export async function showAiErrorToast(
+  error: unknown,
+  toast: (opts: any) => void,
+  fallbackTitle = 'Erro ao gerar conteúdo',
+) {
+  let message = '';
+  let status: number | undefined;
+
+  if (error && typeof error === 'object' && 'message' in (error as any) && !((error as any) instanceof Error)) {
+    const obj = error as any;
+    message = String(obj.message ?? '');
+    status = typeof obj.status === 'number' ? obj.status : undefined;
+  } else {
+    const details = await getFunctionErrorDetails(error, fallbackTitle);
+    message = details.message;
+    status = details.status;
+  }
+
+  if (isAiCreditsError(message, status) || /créditos.*(acabaram|esgotad|insuficientes)/i.test(message)) {
+    toast({
+      title: PAYWALL_TITLE,
+      description: PAYWALL_DESCRIPTION,
+      variant: 'destructive',
+      duration: 8000,
+    });
+    return { handled: true, status: 402 as const };
+  }
+
+  if (isAiRateLimitError(message, status)) {
+    toast({
+      title: 'Limite de requisições excedido',
+      description: 'Aguarde alguns segundos e tente novamente.',
+      variant: 'destructive',
+    });
+    return { handled: true, status: 429 as const };
+  }
+
+  toast({
+    title: fallbackTitle,
+    description: message || 'Tente novamente em instantes.',
+    variant: 'destructive',
+  });
+  return { handled: true, status };
+}
