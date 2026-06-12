@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2, Dices, Gem, Workflow } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2, Dices, Gem, Workflow, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
@@ -47,6 +47,7 @@ const teacherLinks = [
   { to: '/manual', icon: BookMarked, label: 'Manual do Professor', section: '📖 Documentação' },
   { to: '/manual-aluno', icon: GraduationCap, label: 'Manual do Aluno', section: '📖 Documentação' },
   { to: '/referencias', icon: BookOpenCheck, label: 'Referências Bibliográficas', section: '📖 Documentação' },
+  { to: '/planos', icon: Crown, label: '⭐ Planos & Preços', section: '📖 Documentação' },
 ];
 
 const studentLinks = [

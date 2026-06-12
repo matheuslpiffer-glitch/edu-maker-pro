@@ -185,6 +185,7 @@ function AppRoutes() {
           <Route path="/manual-aluno" element={<ManualAluno />} />
           <Route path="/corretor-visao" element={<VisionCorrector />} />
           <Route path="/referencias" element={<ReferenciasBibliograficas />} />
+          <Route path="/planos" element={<Pricing />} />
           <Route path="/portal-aluno" element={<StudentDashboard />} />
           <Route path="/portal-aluno/quiz" element={<StudentQuiz />} />
           <Route path="/portal-aluno/arena-redacao" element={<StudentEssayArena />} />
