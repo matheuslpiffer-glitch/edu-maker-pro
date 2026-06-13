@@ -2,15 +2,3 @@ project_id = "wmpahctvjywovcagqhab"
 
 [functions.student-activity]
 verify_jwt = false
-
-[functions.generate-simulator-questions]
-verify_jwt = false
-
-[functions.generate-exercise-list]
-verify_jwt = false
-
-[functions.generate-illustration]
-verify_jwt = false
-
-[functions.generate-question]
-verify_jwt = false
