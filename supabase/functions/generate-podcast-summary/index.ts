@@ -20,7 +20,7 @@ serve(async (req) => {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
-    const userId = getUserIdFromAuth(req.headers.get("Authorization"));
+    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
     if (userId) {
       const creditCheck = await checkAndDecrementCredits(userId);
       if (!creditCheck.allowed) {

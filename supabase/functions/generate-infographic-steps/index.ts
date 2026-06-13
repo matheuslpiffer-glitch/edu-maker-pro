@@ -27,7 +27,7 @@ serve(async (req) => {
       });
     }
 
-    const userId = getUserIdFromAuth(req.headers.get("Authorization"));
+    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
     if (userId) {
       const creditCheck = await checkAndDecrementCredits(userId);
       if (!creditCheck.allowed) {
