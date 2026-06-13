@@ -19,21 +19,37 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     const aiHeaders = {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      Authorization: `Bearer ${GEMINI_API_KEY}`,
       "Content-Type": "application/json",
     };
-    const gateway = "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const gateway = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+    const callGemini = async (body: unknown) => {
+      let response = await fetch(gateway, {
+        method: "POST",
+        headers: aiHeaders,
+        body: JSON.stringify(body),
+      });
+      let attempts = 0;
+      while (!response.ok && [429, 500, 503].includes(response.status) && attempts < 2) {
+        attempts++;
+        await new Promise((r) => setTimeout(r, 800 * attempts));
+        response = await fetch(gateway, {
+          method: "POST",
+          headers: aiHeaders,
+          body: JSON.stringify(body),
+        });
+      }
+      return response;
+    };
 
     // ========== PHASE 1: Faithful Transcription ==========
-    const phase1Response = await fetch(gateway, {
-      method: "POST",
-      headers: aiHeaders,
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const phase1Response = await callGemini({
+        model: "gemini-2.5-flash",
         messages: [
           {
             role: "system",
@@ -60,15 +76,14 @@ Responda APENAS com JSON válido (sem markdown):
         ],
         temperature: 0.1,
         max_tokens: 3000,
-      }),
-    });
+      });
 
     if (!phase1Response.ok) {
       const status = phase1Response.status;
       if (status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao workspace." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const t = await phase1Response.text();
-      console.error("Phase 1 AI error:", status, t);
+      console.error("Phase 1 Gemini error:", status, t);
       return new Response(JSON.stringify({ error: "Erro na fase de transcrição. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -92,11 +107,8 @@ Responda APENAS com JSON válido (sem markdown):
     const transcribedText = phase1Parsed.transcribed_text;
 
     // ========== PHASE 2: Pedagogical Correction ==========
-    const phase2Response = await fetch(gateway, {
-      method: "POST",
-      headers: aiHeaders,
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const phase2Response = await callGemini({
+        model: "gemini-2.5-flash",
         messages: [
           {
             role: "system",
@@ -136,15 +148,14 @@ JSON:
         ],
         temperature: 0.3,
         max_tokens: 4000,
-      }),
-    });
+      });
 
     if (!phase2Response.ok) {
       const status = phase2Response.status;
       if (status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao workspace." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const t = await phase2Response.text();
-      console.error("Phase 2 AI error:", status, t);
+      console.error("Phase 2 Gemini error:", status, t);
       return new Response(JSON.stringify({ error: "Erro na fase de correção. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
