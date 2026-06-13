@@ -13,7 +13,7 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    const userId = getUserIdFromAuth(authHeader);
+    const userId = await getUserIdFromAuth(authHeader);
 
     if (!userId) {
       return new Response(JSON.stringify({ error: "Não autorizado" }), {

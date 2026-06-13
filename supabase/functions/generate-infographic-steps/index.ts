@@ -27,14 +27,17 @@ serve(async (req) => {
       });
     }
 
-    const userId = getUserIdFromAuth(req.headers.get("Authorization"));
-    if (userId) {
-      const creditCheck = await checkAndDecrementCredits(userId);
-      if (!creditCheck.allowed) {
-        return new Response(JSON.stringify({ error: creditCheck.error }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const systemPrompt = `Você é um Designer Instrucional Premium especializado em Infográficos Pedagógicos de alta conversão.
