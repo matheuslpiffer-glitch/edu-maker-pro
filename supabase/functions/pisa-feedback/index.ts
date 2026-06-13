@@ -47,13 +47,16 @@ serve(async (req) => {
     }
 
     const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
-    if (userId) {
-      const creditCheck = await checkAndDecrementCredits(userId);
-      if (!creditCheck.allowed) {
-        return new Response(JSON.stringify({ error: creditCheck.error }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const systemPrompt = `Você é um avaliador pedagógico especializado no PISA (OCDE). Analise a resposta dissertativa do aluno e forneça feedback construtivo.
