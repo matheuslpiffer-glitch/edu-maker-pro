@@ -90,7 +90,7 @@ Toda notação matemática (cenário, enunciado, alternativas, modelAnswer, data
       body: JSON.stringify({
         model: "gemini-2.5-flash",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: systemPrompt + latexRule },
           { role: "user", content: userPrompt },
         ],
         tools: [{
