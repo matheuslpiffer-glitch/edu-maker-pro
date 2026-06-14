@@ -69,6 +69,16 @@ Níveis PISA de referência:
 - Nível 5: Modelagem avançada, pensamento estratégico
 - Nível 6: Conceituação e generalização, raciocínio matemático avançado${eliteAddendum}`;
 
+    const latexRule = `
+
+FORMATAÇÃO MATEMÁTICA — USE LATEX SEMPRE:
+Toda notação matemática (cenário, enunciado, alternativas, modelAnswer, dataTable) DEVE ser escrita em LaTeX (a interface renderiza com KaTeX).
+- Inline: $...$  (ex.: $x^2$, $\\frac{a}{b}$, $\\sqrt{2}$, $\\pi r^2$)
+- Bloco/destaque: $$...$$ (ex.: $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$)
+- Use LaTeX para: frações (\\frac), expoentes (^), raízes (\\sqrt), índices (_), funções,
+  somatórios, integrais, letras gregas, sistemas (\\begin{cases}), matrizes, conjuntos.
+- NUNCA escreva fórmula em texto corrido; sempre delimite em $...$ ou $$...$$.`;
+
     const userPrompt = `Gere ${count} questões PISA ${eliteMode ? 'ELITE (níveis 5-6)' : `nível ${proficiencyLevel}`} para "${competencyLabel}". Retorne APENAS o JSON.`;
 
     const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
