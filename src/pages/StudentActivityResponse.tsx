@@ -268,7 +268,8 @@ export default function StudentActivityResponse() {
                             : 'border-border hover:border-primary/40 text-foreground'
                         } ${result ? 'cursor-default' : 'cursor-pointer'}`}
                       >
-                        <strong>{o.letter})</strong> {o.text}
+                        <strong>{o.letter})</strong>{' '}
+                        <MathRenderer content={o.text} className="inline" />
                       </button>
                     );
                   })}
