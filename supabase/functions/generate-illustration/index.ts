@@ -24,8 +24,8 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const creditCheck = await checkAndDecrementCredits(userId);
     if (!creditCheck.allowed) {
@@ -34,23 +34,25 @@ serve(async (req) => {
       });
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3.1-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: `Generate a high-quality educational illustration: ${prompt}. The image should be clean, colorful, and suitable for a school document or presentation. No text in the image.`,
-          },
-        ],
-        modalities: ["image", "text"],
-      }),
-    });
+    const model = "gemini-2.5-flash-image-preview";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+    const fullPrompt = `Generate a high-quality educational illustration: ${prompt}. The image should be clean, colorful, and suitable for a school document or presentation. No text in the image.`;
+
+    let response: Response | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+          generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+        }),
+      });
+      if (response.ok) break;
+      if (![429, 500, 503].includes(response.status)) break;
+      await new Promise((r) => setTimeout(r, 500 * Math.pow(2, attempt)));
+    }
+    if (!response) throw new Error("No response from Gemini");
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -71,9 +73,15 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    const imagePart = parts.find((p: any) => p.inline_data || p.inlineData);
+    const inline = imagePart?.inline_data ?? imagePart?.inlineData;
+    const imageUrl = inline?.data
+      ? `data:${inline.mime_type ?? inline.mimeType ?? "image/png"};base64,${inline.data}`
+      : null;
 
     if (!imageUrl) {
+      console.error("No image in Gemini response:", JSON.stringify(data).slice(0, 500));
       return new Response(JSON.stringify({ error: "Nenhuma imagem gerada" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
