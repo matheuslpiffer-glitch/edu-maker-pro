@@ -399,8 +399,7 @@ export default function StudentSimulatorView() {
                               : 'border-border bg-background text-foreground hover:border-primary/40'
                           }`}
                         >
-                          <span className="font-semibold">{option.letter})</span>{' '}
-                          <MathRenderer content={option.text} className="inline" />
+                          <span className="font-semibold">{option.letter})</span> {option.text}
                         </button>
                       );
                     })}

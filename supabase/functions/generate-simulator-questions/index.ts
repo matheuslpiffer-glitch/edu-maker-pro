@@ -246,14 +246,16 @@ async function parseAIResponse(response: Response, label: string) {
 const NO_IMG_RULE = `
 REGRA ABSOLUTA: NÃO inclua NENHUMA tag <img>, link de imagem ou URL de imagem. Todo o conteúdo deve ser 100% textual. NUNCA use blocos de código markdown (\`\`\`html). Retorne somente HTML cru nos campos de conteúdo.
 
-FORMATAÇÃO MATEMÁTICA — USE LATEX SEMPRE:
-Toda notação matemática (enunciado E alternativas) DEVE ser escrita em LaTeX (a interface renderiza com KaTeX).
-- Inline: $...$  (ex.: $x^2 + 2x + 1$, $\\frac{a}{b}$, $\\sqrt{2}$, $\\pi r^2$)
-- Bloco/destaque: $$...$$ (ex.: $$\\int_0^1 x\\,dx$$, $$\\begin{cases} x+y=1 \\\\ x-y=3 \\end{cases}$$)
-- Use LaTeX para: frações (\\frac), expoentes (^), raízes (\\sqrt), índices (_), funções,
-  somatórios (\\sum), integrais (\\int), letras gregas (\\pi, \\alpha), sistemas, matrizes, conjuntos.
-- NUNCA escreva fórmula em texto corrido (não use "x^2" fora de $, nem "raiz de 2" textual).
-- Em alternativas, qualquer fórmula deve ir delimitada em $...$.
+FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL (por Matheus Lima Piffer):
+Está TERMINANTEMENTE PROIBIDO o uso de:
+- Delimitadores LaTeX: $...$ , $$...$$ , \\( ... \\) , \\[ ... \\]
+- Tags HTML de formatação inline: <sup>, <sub>, <b>, <i>, <em>, <strong> (EXCETO quando explicitamente permitido para AEE/inclusão)
+Use EXCLUSIVAMENTE caracteres Unicode para símbolos matemáticos:
+- π (pi), ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ⁰ ¹ (sobrescritos), ₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉ (subscritos)
+- √ (raiz), ∛ (raiz cúbica), ± ∓ × ÷ ≠ ≤ ≥ ≈ ∞ ∑ ∏ ∫ ∂ Δ ∈ ∉ ⊂ ⊃ ∪ ∩ ∅ ∀ ∃ ⟹ ⟺ ⊥ ∠ ∥ ≡ ∝ ℝ ℕ ℤ ℚ
+- Frações Unicode: ½ ⅓ ⅔ ¼ ¾ ⅕ ⅖ ⅗ ⅘ ⅙ ⅚ ⅛ ⅜ ⅝ ⅞ — para outras frações use barra: 1/3, 2/7
+- Letras gregas: α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ σ τ υ φ χ ψ ω Γ Δ Θ Λ Ξ Π Σ Φ Ψ Ω
+VALIDAÇÃO: Antes de retornar, verifique que NENHUM caractere $ ou sequência <sup>, <sub>, <b>, <i> exista no texto das questões e alternativas.
 `;
 
 serve(async (req) => {
