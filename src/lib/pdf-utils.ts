@@ -83,7 +83,10 @@ export async function generatePdfFromElement(
     orientation?: 'portrait' | 'landscape';
   }
 ): Promise<void> {
-  const margins = options?.margins ?? [0, 0, 0, 0];
+  // Default margins in mm (top, left, bottom, right) — safe area to avoid
+  // text being clipped at page edges. A4 = 210mm wide, so with 12mm side
+  // margins the usable content width is 186mm (~703px @ 96dpi).
+  const margins = options?.margins ?? [12, 12, 12, 12];
   const orientation = options?.orientation ?? 'portrait';
 
   // Step 1: Convert all images to base64
@@ -96,6 +99,22 @@ export async function generatePdfFromElement(
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
   try {
+    // Compute usable content width in px based on margins (A4 portrait = 210mm,
+    // landscape = 297mm). 1mm ≈ 3.7795px at 96dpi.
+    const pageWidthMm = orientation === 'landscape' ? 297 : 210;
+    const sideMarginsMm = (margins[1] ?? 12) + (margins[3] ?? 12);
+    const contentWidthPx = Math.floor((pageWidthMm - sideMarginsMm) * 3.7795);
+
+    // Force word-wrap on the element so long words/URLs/numbers don't overflow.
+    const prevWordWrap = element.style.wordWrap;
+    const prevOverflowWrap = (element.style as any).overflowWrap;
+    const prevWordBreak = element.style.wordBreak;
+    const prevMaxWidth = element.style.maxWidth;
+    element.style.wordWrap = 'break-word';
+    (element.style as any).overflowWrap = 'break-word';
+    element.style.wordBreak = 'break-word';
+    element.style.maxWidth = `${contentWidthPx}px`;
+
     // Step 4: Generate PDF
     const html2pdf = (await import('html2pdf.js')).default;
     const opts: any = {
@@ -108,17 +127,25 @@ export async function generatePdfFromElement(
         useCORS: true,
         logging: false,
         allowTaint: true,
-        windowWidth: 794,
+        windowWidth: contentWidthPx,
         scrollX: 0,
         scrollY: 0,
         letterRendering: true,
-        width: 794,
+        width: contentWidthPx,
         height: element.scrollHeight,
         removeContainer: true,
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation },
     };
-    await html2pdf().set(opts).from(element).save();
+    try {
+      await html2pdf().set(opts).from(element).save();
+    } finally {
+      // Restore inline styles
+      element.style.wordWrap = prevWordWrap;
+      (element.style as any).overflowWrap = prevOverflowWrap;
+      element.style.wordBreak = prevWordBreak;
+      element.style.maxWidth = prevMaxWidth;
+    }
   } finally {
     // Step 5: Restore original image URLs
     restoreImages();
