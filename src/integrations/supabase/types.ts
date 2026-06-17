@@ -533,28 +533,37 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          credits: number
           display_name: string | null
           email: string | null
           id: string
           institution_name: string | null
+          plan: string
+          plan_expires_at: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          credits?: number
           display_name?: string | null
           email?: string | null
           id: string
           institution_name?: string | null
+          plan?: string
+          plan_expires_at?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          credits?: number
           display_name?: string | null
           email?: string | null
           id?: string
           institution_name?: string | null
+          plan?: string
+          plan_expires_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -920,6 +929,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      decrement_user_credits: { Args: { user_id: string }; Returns: boolean }
       get_my_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]

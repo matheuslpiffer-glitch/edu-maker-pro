@@ -33,6 +33,10 @@ function repairAndParse(json: string): unknown {
     .replace(/"\s*\n\s*/g, '" ')
     .replace(/\t/g, " ");
 
+  // Fix invalid JSON escape sequences (e.g. \p, \f inside LaTeX, stray backslashes)
+  // Valid escapes: \" \\ \/ \b \f \n \r \t \uXXXX — anything else must be doubled.
+  cleaned = cleaned.replace(/\\(?!["\\\/bfnrtu])/g, "\\\\");
+
   // Fix truncated strings: if we end mid-string, close it
   const quoteCount = (cleaned.match(/(?<!\\)"/g) || []).length;
   if (quoteCount % 2 !== 0) {
