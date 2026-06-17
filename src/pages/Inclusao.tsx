@@ -1237,7 +1237,6 @@ export default function Inclusao() {
                         <SelectContent>
                           <SelectItem value="multipla_visual">Múltipla Escolha Visual</SelectItem>
                           <SelectItem value="verdadeiro_falso">Verdadeiro ou Falso</SelectItem>
-                          <SelectItem value="ligar_colunas">Ligar Colunas</SelectItem>
                           <SelectItem value="perguntas_diretas">Perguntas Diretas</SelectItem>
                         </SelectContent>
                       </Select>
