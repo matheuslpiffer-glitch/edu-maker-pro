@@ -28,6 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError, showAiErrorToast } from '@/lib/ai-utils';
 import { buildBatchPlan, createSimulatorGenerationJob, updateSimulatorGenerationJob } from '@/lib/simulator-generation';
 
@@ -2224,7 +2225,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                           <Badge variant="outline" className="shrink-0 text-xs">{String(i + 1).padStart(2, '0')}</Badge>
                           <div className="flex-1 min-w-0">
                             {q.skillCode && <span className="text-xs text-muted-foreground">[{q.skillCode}]</span>}
-                            <div className="text-xs mt-0.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                            <div className="text-xs mt-0.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
                           </div>
                         </div>
                       </div>
@@ -2335,7 +2336,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: podcastScript }} />
+                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeHtml(podcastScript) }} />
                     </CardContent>
                   </Card>
                 )}
