@@ -189,7 +189,7 @@ async function fetchAIWithRetry(
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ model: currentModel, messages, temperature }),
+        body: JSON.stringify({ model: currentModel, messages, temperature, max_tokens: 8192 }),
         signal: controller.signal,
       });
       clearTimeout(timer);
