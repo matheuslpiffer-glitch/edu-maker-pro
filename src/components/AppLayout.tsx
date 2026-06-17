@@ -4,7 +4,6 @@ import { Menu, Eye, ArrowLeft, ArrowLeftRight } from 'lucide-react';
 import AppSidebar from './AppSidebar';
 import SaveStatusIndicator from './SaveStatusIndicator';
 import SyncButton from './SyncButton';
-import CreditBadge from './CreditBadge';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { useRole } from '@/hooks/useRole';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,16 +66,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
           <span className="ml-3 font-bold text-lg text-slate-900">EduCreator</span>
           <div className="ml-auto flex items-center gap-2">
-            <CreditBadge />
             <SyncButton />
             <SaveStatusIndicator />
           </div>
         </header>
-        <div className="hidden lg:flex items-center justify-end gap-3 px-6 h-12 border-b border-slate-200 bg-white no-print shrink-0">
-          <CreditBadge />
-          <SyncButton />
-          <SaveStatusIndicator />
-        </div>
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto min-h-[60vh]">{children}</main>
         <footer className="text-center py-3 border-t no-print space-y-0.5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Piffer EduTech</p>

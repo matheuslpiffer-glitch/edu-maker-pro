@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -123,7 +122,7 @@ export default function EduSlides() {
         toast({ title: `${data.slides.length} slides gerados com sucesso!` });
       }
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao gerar slides')
+      toast({ title: 'Erro ao gerar slides', description: e.message, variant: 'destructive' });
     } finally {
       setGenerating(false);
     }
@@ -151,7 +150,7 @@ export default function EduSlides() {
         toast({ title: 'Aula salva com sucesso!' });
       }
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao salvar')
+      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -199,7 +198,7 @@ export default function EduSlides() {
       await pres.writeFile({ fileName: `${topic || 'aula'}.pptx` });
       toast({ title: '✅ PPTX exportado com sucesso!' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao exportar')
+      toast({ title: 'Erro ao exportar', description: e.message, variant: 'destructive' });
     } finally {
       setExporting(false);
     }
@@ -222,7 +221,7 @@ export default function EduSlides() {
       await html2pdf().set(opts).from(el).save();
       toast({ title: '✅ PDF exportado com sucesso!' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao exportar PDF')
+      toast({ title: 'Erro ao exportar PDF', description: e.message, variant: 'destructive' });
     } finally {
       setExporting(false);
     }

@@ -1,25 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
-import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    const userId = await getUserIdFromAuth(authHeader);
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const { errors } = await req.json();
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
-
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const errorList = (errors || []).slice(0, 5).map((e: string, i: number) => `${i + 1}. ${e}`).join('\n');
 
@@ -38,82 +30,66 @@ O plano deve conter:
 
 Seja prático, motivador e focado em metodologias ativas.`;
 
-    const creditCheck = await checkAndDecrementCredits(userId);
-    if (!creditCheck.allowed) {
-      return new Response(JSON.stringify({ error: creditCheck.error }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    let response;
-    for (let i = 0; i < 4; i++) {
-      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${GEMINI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gemini-2.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: "Gere o plano de intervenção pedagógica." },
-          ],
-          tools: [{
-            type: "function",
-            function: {
-              name: "return_intervention_plan",
-              description: "Return a structured intervention plan",
-              parameters: {
-                type: "object",
-                properties: {
-                  objective: { type: "string" },
-                  duration: { type: "string" },
-                  activities: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        title: { type: "string" },
-                        description: { type: "string" },
-                        duration: { type: "string" },
-                      },
-                      required: ["title", "description", "duration"],
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: "Gere o plano de intervenção pedagógica." },
+        ],
+        tools: [{
+          type: "function",
+          function: {
+            name: "return_intervention_plan",
+            description: "Return a structured intervention plan",
+            parameters: {
+              type: "object",
+              properties: {
+                objective: { type: "string" },
+                duration: { type: "string" },
+                activities: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      title: { type: "string" },
+                      description: { type: "string" },
+                      duration: { type: "string" },
                     },
+                    required: ["title", "description", "duration"],
                   },
-                  resources: { type: "array", items: { type: "string" } },
-                  evaluation_criteria: { type: "string" },
                 },
-                required: ["objective", "duration", "activities", "resources", "evaluation_criteria"],
+                resources: { type: "array", items: { type: "string" } },
+                evaluation_criteria: { type: "string" },
               },
+              required: ["objective", "duration", "activities", "resources", "evaluation_criteria"],
             },
-          }],
-          tool_choice: { type: "function", function: { name: "return_intervention_plan" } },
-        }),
-      });
-      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
-      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-    }
+          },
+        }],
+        tool_choice: { type: "function", function: { name: "return_intervention_plan" } },
+      }),
+    });
 
-
-    if (!response!.ok) {
-      if (response!.status === 429) {
+    if (!response.ok) {
+      if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response!.status === 402) {
+      if (response.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response!.text();
-      console.error("AI error:", response!.status, t);
       throw new Error("Erro no gateway de IA");
     }
 
-    const result = await response!.json();
+    const result = await response.json();
     const toolCall = result.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) throw new Error("Sem dados estruturados");
 

@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -232,8 +231,8 @@ serve(async (req) => {
       });
     }
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const bancaKey = resolveBancaKey(banca);
     let systemPrompt = BANCA_PROMPTS[bancaKey] || BANCA_PROMPTS["BANCA_NACIONAL"];
@@ -247,72 +246,50 @@ serve(async (req) => {
       );
     }
 
-    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const creditCheck = await checkAndDecrementCredits(userId);
-    if (!creditCheck.allowed) {
-      return new Response(JSON.stringify({ error: creditCheck.error }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: `Tema da proposta: "${safeTheme}"\n\nRedação do aluno (texto integral):\n\n${essayText}`,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 6000,
+      }),
+    });
 
-    let response;
-    for (let i = 0; i < 4; i++) {
-      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${GEMINI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "gemini-2.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            {
-              role: "user",
-              content: `Tema da proposta: "${safeTheme}"\n\nRedação do aluno (texto integral):\n\n${essayText}`,
-            },
-          ],
-          temperature: 0.3,
-          max_tokens: 6000,
-        }),
-      });
-      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
-      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-    }
-
-
-    if (!response!.ok) {
-      if (response!.status === 429) {
+    if (!response.ok) {
+      if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response!.status === 402) {
+      if (response.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao workspace." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response!.text();
-      console.error("AI gateway error:", response!.status, t);
+      const t = await response.text();
+      console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "Erro ao processar correção" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await response!.json();
+    const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
     let parsed;
     try {
-      let cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-      const start = cleaned.search(/[\{\[]/);
-      const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
-      if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
+      const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       parsed = JSON.parse(cleaned);
     } catch {
       console.error("Failed to parse AI response:", content);

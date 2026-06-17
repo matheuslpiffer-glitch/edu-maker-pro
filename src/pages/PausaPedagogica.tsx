@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { Coffee, Loader2, RefreshCw, Music, Brain, Flame, Sparkles, BookHeart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,7 +45,7 @@ export default function PausaPedagogica() {
       setDynamics(prev => [data.result, ...prev]);
       toast({ title: '✅ Dinâmica gerada!' });
     } catch (err: any) {
-      showAiErrorToast(err, toast, 'Erro')
+      toast({ title: 'Erro', description: err.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }

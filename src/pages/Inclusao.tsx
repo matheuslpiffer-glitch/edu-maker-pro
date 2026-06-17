@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -338,7 +337,7 @@ function ActivitiesList() {
       toast({ title: 'Atividade excluída com sucesso.' });
     },
     onError: (e: any) => {
-      showAiErrorToast(e, toast, 'Erro ao excluir')
+      toast({ title: 'Erro ao excluir', description: e.message, variant: 'destructive' });
     },
     onSettled: () => setDeletingId(null),
   });
@@ -640,7 +639,7 @@ export default function Inclusao() {
       }
     } catch (e: any) {
       console.error(e);
-      showAiErrorToast(e, toast, 'Erro ao gerar conteúdo AEE')
+      toast({ title: 'Erro ao gerar conteúdo AEE', description: e.message, variant: 'destructive' });
     } finally {
       setGenerating(false);
     }
@@ -669,7 +668,7 @@ export default function Inclusao() {
       if (error) throw error;
       toast({ title: '✅ Atividade salva no seu perfil!' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao salvar')
+      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -704,7 +703,7 @@ export default function Inclusao() {
         toast({ title: '✅ Simulado salvo!' });
       }
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao salvar')
+      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -753,7 +752,7 @@ export default function Inclusao() {
       toast({ title: 'PDF gerado com sucesso!' });
     } catch (e: any) {
       document.getElementById('aee-pdf-header')?.remove();
-      showAiErrorToast(e, toast, 'Erro ao gerar PDF')
+      toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
     }
   };
 

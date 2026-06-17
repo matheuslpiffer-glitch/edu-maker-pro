@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2, Dices, Gem, Workflow, Crown } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2, Dices, Gem, Workflow } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useBackgroundGeneration } from '@/hooks/useBackgroundGeneration';
-import { useCredits } from '@/hooks/useCredits';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 
@@ -74,7 +73,6 @@ export default function AppSidebar({ open, onClose }: Props) {
   const { isStudentMode, toggleStudentMode, studentLevel, studentXP } = useStudentMode();
   const { canInstall, install } = usePWAInstall();
   const { isRouteGenerating } = useBackgroundGeneration();
-  const { isPro } = useCredits();
 
   const handleToggleMode = () => {
     const wasStudent = isStudentMode;
@@ -199,23 +197,6 @@ export default function AppSidebar({ open, onClose }: Props) {
 
       {/* Nav */}
       <nav className="flex-1 px-2 mt-3 space-y-0.5 overflow-y-auto">
-        {!isStudentMode && (
-          <Link
-            to="/planos"
-            onClick={onClose}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-bold transition-all duration-200 mb-2',
-              isPro
-                ? location.pathname === '/planos'
-                  ? 'bg-slate-800/70 text-slate-200'
-                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
-                : 'bg-gradient-to-r from-amber-500/20 to-yellow-500/10 border border-amber-500/40 text-amber-300 hover:from-amber-500/30 hover:to-yellow-500/20 shadow-[0_0_18px_-6px_rgba(245,158,11,0.5)]'
-            )}
-          >
-            <Crown size={18} className={isPro ? '' : 'text-amber-400'} />
-            {!collapsed && <span className="flex-1">{isPro ? 'Meu Plano' : '⭐ Seja Pro'}</span>}
-          </Link>
-        )}
         {links.map((link, i) => {
           const isActive = location.pathname === link.to || (link.to !== '/' && link.to !== '/aluno' && link.to !== '/sobre' && location.pathname.startsWith(link.to));
           const section = 'section' in link ? (link as any).section : '';

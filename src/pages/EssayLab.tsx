@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -276,7 +275,7 @@ function TeacherPanel() {
       .select()
       .single();
     if (error) {
-      showAiErrorToast(error, toast, 'Erro')
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     } else if (data) {
       const sub = data as unknown as Submission;
       toast({ title: '✅ Proposta criada!', description: `Código de acesso: ${sub.access_code}` });

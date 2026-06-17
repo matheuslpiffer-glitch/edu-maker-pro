@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -95,7 +94,11 @@ export default function GeradorInfograficoProcesso() {
       toast({ title: 'Infográfico gerado com sucesso!' });
     } catch (err: any) {
       console.error(err);
-      showAiErrorToast(err, toast, 'Erro ao gerar infográfico')
+      toast({ 
+        title: 'Erro ao gerar infográfico', 
+        description: err.message, 
+        variant: 'destructive' 
+      });
     } finally {
       setLoading(false);
     }

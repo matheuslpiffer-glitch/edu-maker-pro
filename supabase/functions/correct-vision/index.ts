@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,15 +9,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const { imageUrl, gabarito } = await req.json();
 
@@ -27,13 +19,6 @@ serve(async (req) => {
         JSON.stringify({ error: "imageUrl e gabarito são obrigatórios." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-    }
-
-    const creditCheck = await checkAndDecrementCredits(userId);
-    if (!creditCheck.allowed) {
-      return new Response(JSON.stringify({ error: creditCheck.error }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
 
     const systemPrompt = `Você é um especialista em OCR (Reconhecimento Óptico de Caracteres) e correção de provas escolares. Sua tarefa:
@@ -60,14 +45,14 @@ Responda APENAS com JSON válido no formato:
   "observations": "Caligrafia legível na maioria das questões. Questão 5 teve leitura ambígua entre B e D."
 }`;
 
-    const callGemini = async () => fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${GEMINI_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemini-2.5-flash",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           {
@@ -82,14 +67,6 @@ Responda APENAS com JSON válido no formato:
       }),
     });
 
-    let response = await callGemini();
-    let attempts = 0;
-    while (!response.ok && [429, 500, 503].includes(response.status) && attempts < 2) {
-      attempts++;
-      await new Promise((r) => setTimeout(r, 800 * attempts));
-      response = await callGemini();
-    }
-
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), {
@@ -102,7 +79,7 @@ Responda APENAS com JSON válido no formato:
         });
       }
       const t = await response.text();
-      console.error("Gemini API error:", response.status, t);
+      console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "Erro ao processar imagem com IA" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

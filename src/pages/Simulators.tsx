@@ -28,7 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
-import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError, showAiErrorToast } from '@/lib/ai-utils';
+import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError } from '@/lib/ai-utils';
 import { buildBatchPlan, createSimulatorGenerationJob, updateSimulatorGenerationJob } from '@/lib/simulator-generation';
 
 interface SimOption { letter: string; text: string; isCorrect: boolean; }
@@ -810,7 +810,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       grade, subject_area: selectedSubjects.join(', '),
     };
     const { data, error } = await supabase.from('simulators').insert(payload).select('id').single();
-    if (error) { showAiErrorToast(error, toast, 'Erro ao salvar'); setSaving(false); return; }
+    if (error) { toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' }); setSaving(false); return; }
     setSavedId(data.id);
     toast({ title: 'Simulado e gabarito salvos!', description: `ID: ${data.id.slice(0, 8).toUpperCase()}` });
     loadHistory(); setSaving(false);
@@ -857,7 +857,11 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       });
     } catch (e: any) {
       console.error('PDF error:', e);
-      showAiErrorToast(e, toast, 'Erro ao gerar PDF')
+      toast({ 
+        title: 'Erro ao gerar PDF', 
+        description: e.message, 
+        variant: 'destructive' 
+      });
     } finally {
       setIsExporting(false);
     }
@@ -906,7 +910,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       setPodcastScript(data.script);
       toast({ title: '🎙️ Roteiro de Podcast gerado!' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao gerar podcast')
+      toast({ title: 'Erro ao gerar podcast', description: e.message, variant: 'destructive' });
     } finally { setMagicLoading(null); }
   };
 
@@ -960,7 +964,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       URL.revokeObjectURL(url);
       toast({ title: '🎮 CSV do Kahoot baixado!' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao exportar Kahoot')
+      toast({ title: 'Erro ao exportar Kahoot', description: e.message, variant: 'destructive' });
     } finally { setMagicLoading(null); }
   };
 
@@ -1792,7 +1796,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                             }
                           } catch (e: any) {
                             console.error(e);
-                            showAiErrorToast(e, toast, 'Erro ao gerar conteúdo AEE')
+                            toast({ title: 'Erro ao gerar conteúdo AEE', description: e.message, variant: 'destructive' });
                           } finally { setGenerating(false); }
                         }}
                         disabled={generating || !aeeTopic}
