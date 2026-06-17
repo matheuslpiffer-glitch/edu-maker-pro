@@ -84,33 +84,6 @@ const INCLUSION_CARDS = [
     bgAccent: 'bg-purple-500/10',
   },
   {
-    id: 'tdah' as const,
-    title: 'Criar Trilha TDAH',
-    desc: 'Conteúdos curtos com estímulos visuais e micro-learning',
-    icon: Zap,
-    gradient: 'from-blue-600 to-cyan-600',
-    shadow: 'shadow-blue-500/30',
-    bgAccent: 'bg-blue-500/10',
-  },
-  {
-    id: 'audio' as const,
-    title: 'Audiodescrição Pedagógica',
-    desc: 'Materiais acessíveis para alunos com deficiência visual',
-    icon: Volume2,
-    gradient: 'from-emerald-600 to-teal-600',
-    shadow: 'shadow-emerald-500/30',
-    bgAccent: 'bg-emerald-500/10',
-  },
-  {
-    id: 'libras' as const,
-    title: 'Tradutor para Libras',
-    desc: 'Geração de imagens e roteiros visuais em Libras',
-    icon: Languages,
-    gradient: 'from-orange-500 to-amber-600',
-    shadow: 'shadow-orange-500/30',
-    bgAccent: 'bg-orange-500/10',
-  },
-  {
     id: 'triagem' as const,
     title: 'Triagem e Anamnese Neuro',
     desc: 'Questionários SNAP-IV e M-CHAT com relatório de apoio pedagógico',
@@ -127,7 +100,7 @@ const INCLUSION_CARDS = [
    { value: 'ensino_medio', label: 'Ensino Médio (1ª a 3ª série)' },
  ];
 
-type ActiveView = 'dashboard' | 'adaptar' | 'tdah' | 'audio' | 'libras' | 'triagem';
+type ActiveView = 'dashboard' | 'adaptar' | 'triagem';
 
 const INCLUSAO_DRAFT_KEYS = {
   result: 'inclusao-result',
@@ -1014,11 +987,6 @@ export default function Inclusao() {
       </div>
     );
   }
-
-  /* ── Coming Soon Views ── */
-  if (activeView === 'tdah') return <ComingSoonView title="Criar Trilha TDAH" icon={Zap} onBack={() => setActiveView('dashboard')} />;
-  if (activeView === 'audio') return <ComingSoonView title="Audiodescrição Pedagógica" icon={Volume2} onBack={() => setActiveView('dashboard')} />;
-  if (activeView === 'libras') return <ComingSoonView title="Tradutor para Libras (Imagens)" icon={Languages} onBack={() => setActiveView('dashboard')} />;
 
   /* ── Triagem Neuro View ── */
   if (activeView === 'triagem') return (
