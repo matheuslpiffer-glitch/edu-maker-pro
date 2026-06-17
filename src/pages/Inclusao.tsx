@@ -594,13 +594,14 @@ export default function Inclusao() {
   const [questionType, setQuestionType] = useState('multipla_visual');
   const [imageMode, setImageMode] = useState<'com_imagem' | 'somente_texto'>('com_imagem');
   const [generating, setGenerating] = useState(false);
-  const [result, setResult] = useAutoSaveDraft<any[] | null>('inclusao-result', null);
+  const restoredCloudDraftRef = useRef(false);
+  const [result, setResult] = useAutoSaveDraft<any[] | null>(INCLUSAO_DRAFT_KEYS.result, null);
   const [saving, setSaving] = useState(false);
-  const [generatedImages, setGeneratedImages] = useAutoSaveDraft<Record<number, string>>('inclusao-generated-images', {});
-  const [savedAccessCode, setSavedAccessCode] = useAutoSaveDraft<string>('inclusao-access-code', '');
+  const [generatedImages, setGeneratedImages] = useAutoSaveDraft<Record<number, string>>(INCLUSAO_DRAFT_KEYS.generatedImages, {});
+  const [savedAccessCode, setSavedAccessCode] = useAutoSaveDraft<string>(INCLUSAO_DRAFT_KEYS.accessCode, '');
   const [qrOpen, setQrOpen] = useState(false);
   const [specificNecessity, setSpecificNecessity] = useState('');
-  const [consultancyTip, setConsultancyTip] = useAutoSaveDraft<string>('inclusao-consultancy-tip', '');
+  const [consultancyTip, setConsultancyTip] = useAutoSaveDraft<string>(INCLUSAO_DRAFT_KEYS.consultancyTip, '');
    const [grade, setGrade] = useState('');
   const [complexity, setComplexity] = useState('basico');
 
@@ -613,8 +614,43 @@ export default function Inclusao() {
   };
 
   const handleImageGenerated = (index: number, url: string) => {
-    setGeneratedImages({ ...generatedImages, [index]: url });
+    setGeneratedImages(prev => ({ ...prev, [index]: url }));
   };
+
+  useEffect(() => {
+    if (!user || restoredCloudDraftRef.current) return;
+
+    restoredCloudDraftRef.current = true;
+    let cancelled = false;
+
+    const restoreCloudDrafts = async () => {
+      const shouldFetch = INCLUSAO_DRAFT_KEY_LIST.some(key => !hasMeaningfulLocalDraft(key));
+      if (!shouldFetch) return;
+
+      const { data, error } = await supabase
+        .from('materials_drafts')
+        .select('storage_key, content')
+        .eq('user_id', user.id)
+        .in('storage_key', INCLUSAO_DRAFT_KEY_LIST);
+
+      if (cancelled) return;
+      if (error) {
+        console.error('Erro ao restaurar rascunho da Inclusão:', error);
+        return;
+      }
+
+      data?.forEach(draft => {
+        if (hasMeaningfulLocalDraft(draft.storage_key)) return;
+        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.result) setResult(draft.content as any[] | null);
+        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.generatedImages) setGeneratedImages((draft.content as Record<number, string>) || {});
+        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.accessCode) setSavedAccessCode((draft.content as string) || '');
+        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.consultancyTip) setConsultancyTip((draft.content as string) || '');
+      });
+    };
+
+    restoreCloudDrafts();
+    return () => { cancelled = true; };
+  }, [user, setResult, setGeneratedImages, setSavedAccessCode, setConsultancyTip]);
 
   const handleGenerate = async () => {
     setGenerating(true);
