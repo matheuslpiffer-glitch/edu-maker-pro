@@ -82,20 +82,44 @@ function extractJsonFromMixedResponse(response: string): unknown {
           const questionsMatch = candidate.match(/"questions"\s*:\s*\[/);
           if (questionsMatch) {
             const arrStart = candidate.indexOf("[", candidate.indexOf('"questions"'));
-            const sub = candidate.slice(arrStart);
-            // Find last complete object (ending with })
-            const lastComplete = sub.lastIndexOf("}");
-            if (lastComplete > 0) {
-              const partial = sub.slice(0, lastComplete + 1) + "]";
+            const sub = candidate.slice(arrStart + 1); // content after the opening [
+            // Walk the string tracking braces while respecting JSON strings,
+            // collecting the end-index of each fully-closed top-level object.
+            const completeEnds: number[] = [];
+            let depth = 0;
+            let inStr = false;
+            let escape = false;
+            for (let i = 0; i < sub.length; i++) {
+              const ch = sub[i];
+              if (escape) { escape = false; continue; }
+              if (inStr) {
+                if (ch === "\\") { escape = true; continue; }
+                if (ch === '"') inStr = false;
+                continue;
+              }
+              if (ch === '"') { inStr = true; continue; }
+              if (ch === "{") depth++;
+              else if (ch === "}") {
+                depth--;
+                if (depth === 0) completeEnds.push(i);
+              }
+            }
+            if (completeEnds.length > 0) {
+              const lastEnd = completeEnds[completeEnds.length - 1];
+              const partial = "[" + sub.slice(0, lastEnd + 1) + "]";
               const repaired = '{"questions":' + partial + "}";
-              const parsed = repairAndParse(repaired);
-              if (parsed && typeof parsed === "object" && "questions" in (parsed as any)) {
-                const qs = (parsed as any).questions;
+              try {
+                const parsed = JSON.parse(repaired);
+                const qs = (parsed as any)?.questions;
                 if (Array.isArray(qs) && qs.length > 0) {
-                  console.warn(`Recovered ${qs.length} questions from truncated response`);
+                  console.warn(`Recovered ${qs.length} complete question(s) from truncated response (dropped trailing incomplete object).`);
                   return parsed;
                 }
+              } catch (e) {
+                console.warn("Partial recovery JSON.parse failed:", (e as Error).message);
               }
+            } else {
+              console.warn("Truncated response had no complete question objects to recover.");
             }
           }
         } catch {
