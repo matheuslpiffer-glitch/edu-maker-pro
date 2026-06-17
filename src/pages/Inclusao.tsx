@@ -16,7 +16,7 @@ import {
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
   ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
-  Trash2, Library, Search, X
+  Trash2, Library, Search, X, Glasses, VolumeX
 
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -47,6 +47,10 @@ const AEE_PROFILES = [
   { value: 'aee_dm', label: 'DM (Def. Múltipla)', icon: Users, color: 'emerald' },
   { value: 'aee_tod', label: 'TOD', icon: Hand, color: 'orange' },
   { value: 'aee_auditiva', label: 'Deficiência Auditiva', icon: Ear, color: 'indigo' },
+  { value: 'aee_dislexia', label: 'Dislexia', icon: Type, color: 'pink' },
+  { value: 'aee_baixa_visao', label: 'Baixa Visão', icon: Glasses, color: 'cyan' },
+  { value: 'aee_surdez', label: 'Surdez', icon: VolumeX, color: 'teal' },
+  { value: 'aee_altas_habilidades', label: 'Altas Habilidades', icon: Lightbulb, color: 'yellow' },
 ];
 
 const AEE_MODES = [
