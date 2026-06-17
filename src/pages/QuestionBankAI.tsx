@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface QBQuestion {
   content: string;
@@ -349,7 +350,7 @@ export default function QuestionBankAI() {
                     <div className="flex items-start gap-2">
                       <Badge variant="outline" className="shrink-0">{i + 1}</Badge>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                        <div className="text-sm" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
                         {q.options && (
                           <div className="mt-2 space-y-0.5">
                             {q.options.map(opt => (
@@ -423,7 +424,7 @@ export default function QuestionBankAI() {
                       <div key={i} className="mb-5" style={{ pageBreakInside: 'avoid' }}>
                         <div className="flex gap-2">
                           <span className="font-bold whitespace-nowrap">{i + 1})</span>
-                          <div className="flex-1" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                          <div className="flex-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
                         </div>
                         {q.options && (
                           <div className="ml-5 mt-2 space-y-1">
@@ -625,7 +626,7 @@ export default function QuestionBankAI() {
                 <div key={i} className="mb-5">
                   <div className="flex gap-2">
                     <span className="font-bold">{i + 1})</span>
-                    <div dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
                   </div>
                   {q.options && (
                     <div className="ml-5 mt-2 space-y-1">
