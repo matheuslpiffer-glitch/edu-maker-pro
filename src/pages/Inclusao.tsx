@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { showAiErrorToast } from '@/lib/ai-utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -128,6 +128,29 @@ const INCLUSION_CARDS = [
  ];
 
 type ActiveView = 'dashboard' | 'adaptar' | 'tdah' | 'audio' | 'libras' | 'triagem';
+
+const INCLUSAO_DRAFT_KEYS = {
+  result: 'inclusao-result',
+  generatedImages: 'inclusao-generated-images',
+  accessCode: 'inclusao-access-code',
+  consultancyTip: 'inclusao-consultancy-tip',
+} as const;
+
+const INCLUSAO_DRAFT_KEY_LIST = Object.values(INCLUSAO_DRAFT_KEYS);
+
+function hasMeaningfulLocalDraft(storageKey: string): boolean {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.length > 0;
+    if (parsed && typeof parsed === 'object') return Object.keys(parsed).length > 0;
+    if (typeof parsed === 'string') return parsed.trim().length > 0;
+    return parsed !== null && parsed !== undefined;
+  } catch {
+    return false;
+  }
+}
 
 function cleanHtml(raw: string): string {
   return raw
