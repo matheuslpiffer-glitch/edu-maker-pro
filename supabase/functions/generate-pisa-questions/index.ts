@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,8 +11,21 @@ serve(async (req) => {
 
   try {
     const { proficiencyLevel, competency, questionCount, eliteMode, eliteCategory } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+
+    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const competencyLabels: Record<string, string> = {
       letramento_matematico: "Letramento Matemático",
@@ -55,18 +69,28 @@ Níveis PISA de referência:
 - Nível 5: Modelagem avançada, pensamento estratégico
 - Nível 6: Conceituação e generalização, raciocínio matemático avançado${eliteAddendum}`;
 
+    const latexRule = `
+
+FORMATAÇÃO MATEMÁTICA — USE LATEX SEMPRE:
+Toda notação matemática (cenário, enunciado, alternativas, modelAnswer, dataTable) DEVE ser escrita em LaTeX (a interface renderiza com KaTeX).
+- Inline: $...$  (ex.: $x^2$, $\\frac{a}{b}$, $\\sqrt{2}$, $\\pi r^2$)
+- Bloco/destaque: $$...$$ (ex.: $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$)
+- Use LaTeX para: frações (\\frac), expoentes (^), raízes (\\sqrt), índices (_), funções,
+  somatórios, integrais, letras gregas, sistemas (\\begin{cases}), matrizes, conjuntos.
+- NUNCA escreva fórmula em texto corrido; sempre delimite em $...$ ou $$...$$.`;
+
     const userPrompt = `Gere ${count} questões PISA ${eliteMode ? 'ELITE (níveis 5-6)' : `nível ${proficiencyLevel}`} para "${competencyLabel}". Retorne APENAS o JSON.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: systemPrompt + latexRule },
           { role: "user", content: userPrompt },
         ],
         tools: [{

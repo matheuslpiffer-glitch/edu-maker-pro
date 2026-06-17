@@ -1,16 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders } from "../_shared/cors.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS")
     return new Response(null, { headers: corsHeaders });
 
   try {
+    const authHeader = req.headers.get("Authorization");
+    const userId = await getUserIdFromAuth(authHeader);
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { theme, grade, subject, aee, tecnoMaker } = await req.json();
     if (!theme) {
       return new Response(JSON.stringify({ error: "Tema é obrigatório." }), {
@@ -19,8 +25,9 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+
 
     let aeeInstruction = "";
     if (aee) {
@@ -106,26 +113,40 @@ Retorne o JSON com esta estrutura:
   }` : ""}
 }`;
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-        }),
-      }
-    );
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    if (!response.ok) {
-      const status = response.status;
+    let response;
+    for (let i = 0; i < 4; i++) {
+      response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${GEMINI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "gemini-2.5-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+          }),
+        }
+      );
+      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
+      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+    }
+
+
+    if (!response!.ok) {
+      const status = response!.status;
       if (status === 429)
         return new Response(
           JSON.stringify({ error: "Limite de requisições atingido. Tente novamente em alguns segundos." }),
@@ -136,7 +157,7 @@ Retorne o JSON com esta estrutura:
           JSON.stringify({ error: "Créditos insuficientes. Adicione créditos em Configurações > Workspace > Uso." }),
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
-      const t = await response.text();
+      const t = await response!.text();
       console.error("AI error:", status, t);
       return new Response(
         JSON.stringify({ error: "Erro ao gerar plano de aula." }),
@@ -144,14 +165,18 @@ Retorne o JSON com esta estrutura:
       );
     }
 
-    const data = await response.json();
+    const data = await response!.json();
     const raw = data.choices?.[0]?.message?.content || "";
-    const cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+    let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+    const start = cleaned.search(/[\{\[]/);
+    const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
+    if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
 
     let plan;
     try {
       plan = JSON.parse(cleaned);
     } catch {
+      console.error("Raw content:", raw);
       return new Response(
         JSON.stringify({ error: "Erro ao processar resposta da IA.", raw: cleaned }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

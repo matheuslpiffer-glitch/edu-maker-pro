@@ -1,16 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders } from "../_shared/cors.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const authHeader = req.headers.get("Authorization");
+    const userId = await getUserIdFromAuth(authHeader);
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     const { skillCode, skillDescription, subjectName, grade, type, difficulty } = await req.json();
 
@@ -20,6 +27,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const questionType = type === "essay" ? "dissertativa" : "de múltipla escolha (4 alternativas, apenas 1 correta)";
     const difficultyMap: Record<string, string> = {
@@ -31,11 +39,15 @@ serve(async (req) => {
 
     const systemPrompt = `Você é um assistente de ensino do Estado de São Paulo. Ao gerar atividades, utilize estritamente o Escopo e Sequência da Gestor de Ensino e o Currículo Paulista. Foque nos Objetos de Conhecimento e Habilidades específicos para o bimestre e série selecionados. Garanta que a linguagem e a complexidade estejam alinhadas com o material digital oficial da rede.
 
-FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL:
-Está TERMINANTEMENTE PROIBIDO o uso de delimitadores LaTeX ($...$, $$...$$, \\(...\\), \\[...\\]) e tags HTML de formatação (<sup>, <sub>, <b>, <i>, <em>, <strong>).
-Use EXCLUSIVAMENTE caracteres Unicode: π, ², ³, √, ±, ×, ÷, ≠, ≤, ≥, ≈, ∞, ½, ⅓, ¼, ¾, α, β, γ, δ, θ, Δ, Σ, Ω, ∈, ⊂, ∪, ∩, ∅, ∀, ∃, ⟹, ℝ, ℕ, ℤ.
-Para frações não-padrão use barra comum: 1/3, 2/7. Para sobrescritos use: ⁰¹²³⁴⁵⁶⁷⁸⁹. Para subscritos: ₀₁₂₃₄₅₆₇₈₉.
-VALIDAÇÃO: Verifique que NENHUM $ ou <sup>/<sub>/<b>/<i> exista no texto final.
+FORMATAÇÃO MATEMÁTICA — USE LATEX SEMPRE:
+Toda notação matemática DEVE ser escrita em LaTeX (a interface renderiza com KaTeX).
+- Inline: $...$  (ex.: $x^2 + 2x + 1$, $\\frac{a}{b}$, $\\sqrt{2}$)
+- Bloco/destaque: $$...$$ (ex.: $$\\int_0^1 x\\,dx = \\frac{1}{2}$$)
+- Use SEMPRE LaTeX para: frações (\\frac), expoentes (^), raízes (\\sqrt), índices (_),
+  funções, somatórios (\\sum), integrais (\\int), letras gregas (\\pi, \\alpha),
+  sistemas lineares (\\begin{cases}...\\end{cases}), matrizes, conjuntos, etc.
+- NUNCA escreva fórmulas em texto corrido (não use "x^2" sem $, nem "raiz de 2" em texto).
+- Em alternativas, números soltos podem ficar em texto puro; qualquer fórmula deve ir em $...$.
 
 Responda APENAS com JSON válido, sem markdown ou texto adicional.`;
 
@@ -67,46 +79,63 @@ Responda em JSON:
 }`;
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        temperature: 0.8,
-      }),
-    });
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    let response;
+    for (let i = 0; i < 4; i++) {
+      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.8,
+        }),
+      });
+      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
+      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+    }
+
+
+    if (!response!.ok) {
+      if (response!.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (response!.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao workspace." }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      const t = await response!.text();
+      console.error("AI gateway error:", response!.status, t);
       return new Response(JSON.stringify({ error: "Erro ao gerar questão" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const data = await response.json();
+    const data = await response!.json();
     const content = data.choices?.[0]?.message?.content || "";
 
     let parsed;
     try {
-      const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      let cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+      const start = cleaned.search(/[\{\[]/);
+      const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
+      if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
       parsed = JSON.parse(cleaned);
     } catch {
       console.error("Failed to parse AI response:", content);

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer, Gamepad2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -252,7 +253,7 @@ export default function ResultadosAlunos() {
       toast({ title: '🤖 Dicas da IA Doutora geradas!' });
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Erro ao gerar dicas', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar dicas')
     } finally {
       setLoadingTips(false);
     }

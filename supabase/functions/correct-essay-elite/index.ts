@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -243,25 +244,53 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { imageBase64, mimeType, level, subLevel, generatePlan, correctionData } = await req.json();
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const aiHeaders = {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      Authorization: `Bearer ${GEMINI_API_KEY}`,
       "Content-Type": "application/json",
     };
-    const gateway = "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const gateway = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+    async function callGemini(body: unknown): Promise<Response> {
+      const maxAttempts = 3;
+      let lastRes: Response | null = null;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const res = await fetch(gateway, {
+          method: "POST",
+          headers: aiHeaders,
+          body: JSON.stringify(body),
+        });
+        if (res.ok) return res;
+        lastRes = res;
+        if (![429, 500, 503].includes(res.status) || attempt === maxAttempts) return res;
+        await new Promise((r) => setTimeout(r, 800 * attempt));
+      }
+      return lastRes as Response;
+    }
 
     // ========== INTERVENTION PLAN ONLY (Phase 3) ==========
     if (generatePlan && correctionData) {
       console.log("Phase 3: Generating intervention plan for level:", level);
-      const phase3 = await fetch(gateway, {
-        method: "POST",
-        headers: aiHeaders,
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+      const phase3 = await callGemini({
+          model: "gemini-2.5-flash",
           messages: [
             { role: "system", content: buildInterventionPrompt(level, subLevel) },
             {
@@ -271,7 +300,6 @@ serve(async (req) => {
           ],
           temperature: 0.4,
           max_tokens: 2000,
-        }),
       });
 
       if (!phase3.ok) {
@@ -349,11 +377,8 @@ serve(async (req) => {
 
     // ========== PHASE 1: Transcription with vision (use flash for speed) ==========
     console.log("Phase 1: Starting paleographic transcription for level:", level);
-    const phase1 = await fetch(gateway, {
-      method: "POST",
-      headers: aiHeaders,
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const phase1 = await callGemini({
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: buildTranscriptionPrompt() },
           {
@@ -366,7 +391,6 @@ serve(async (req) => {
         ],
         temperature: 0.1,
         max_tokens: 3000,
-      }),
     });
 
     if (!phase1.ok) {
@@ -399,11 +423,8 @@ serve(async (req) => {
 
     // ========== PHASE 2: Level-adaptive correction (use flash for speed) ==========
     console.log("Phase 2: Starting correction with level:", level, "subLevel:", subLevel);
-    const phase2 = await fetch(gateway, {
-      method: "POST",
-      headers: aiHeaders,
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const phase2 = await callGemini({
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: buildCorrectionPrompt(level, subLevel) },
           {
@@ -413,7 +434,6 @@ serve(async (req) => {
         ],
         temperature: 0.3,
         max_tokens: 4000,
-      }),
     });
 
     if (!phase2.ok) {

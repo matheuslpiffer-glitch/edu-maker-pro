@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { supabase } from '@/integrations/supabase/client';
@@ -152,7 +153,7 @@ export default function StudentEssayArena() {
 
       localStorage.removeItem(draftKey);
     } catch (err: any) {
-      toast({ title: 'Erro na correção', description: err?.message || 'Tente novamente.', variant: 'destructive' });
+      showAiErrorToast(err, toast, 'Erro na correção');
     } finally {
       setCorrecting(false);
     }

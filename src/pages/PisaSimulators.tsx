@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -366,7 +367,7 @@ export default function PisaSimulators() {
       setSaveInstitution('');
       setPendingSaveId(null);
     } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao salvar')
     } finally {
       setIsExporting(false);
     }

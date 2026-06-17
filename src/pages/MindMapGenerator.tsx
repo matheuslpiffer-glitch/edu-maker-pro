@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -187,7 +188,7 @@ export default function MindMapGenerator() {
         throw new Error('Formato de resposta inválido');
       }
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar questões', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar questões')
     } finally {
       setGeneratingQuestions(false);
     }
@@ -222,7 +223,7 @@ TUDO EM MAIÚSCULAS.`;
         throw new Error('Formato de resposta inválido');
       }
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar cronograma', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar cronograma')
     } finally {
       setGeneratingSchedule(false);
     }
@@ -239,7 +240,7 @@ TUDO EM MAIÚSCULAS.`;
       link.click();
       toast({ title: 'PNG exportado em alta definição! 📸' });
     } catch (e: any) {
-      toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro na exportação')
     }
   };
 
@@ -250,7 +251,7 @@ TUDO EM MAIÚSCULAS.`;
       await generatePdfFromElement(mapRef.current, `infografico-${theme.replace(/\s+/g, '-')}`, { orientation: 'landscape' });
       toast({ title: 'PDF exportado! 📄' });
     } catch (e: any) {
-      toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro na exportação')
     }
   };
 
@@ -261,7 +262,7 @@ TUDO EM MAIÚSCULAS.`;
       await generatePdfFromElement(fullContentRef.current, `pacote-completo-${theme.replace(/\s+/g, '-')}`, { orientation: 'portrait' });
       toast({ title: 'PDF completo exportado! 📄' });
     } catch (e: any) {
-      toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro na exportação')
     }
   };
 
@@ -291,7 +292,7 @@ TUDO EM MAIÚSCULAS.`;
       if (error) throw error;
       toast({ title: 'Infográfico salvo na Biblioteca! 📚' });
     } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao salvar')
     } finally {
       setSaving(false);
     }

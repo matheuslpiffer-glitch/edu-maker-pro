@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import generateCrossword from 'crossword-layout-generator';
 import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
@@ -214,7 +215,7 @@ export default function GameFactory() {
       }
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Erro ao gerar jogo', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar jogo')
     } finally {
       setGenerating(false);
     }

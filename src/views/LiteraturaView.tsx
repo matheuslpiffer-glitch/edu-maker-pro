@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -92,7 +93,7 @@ export default function LiteraturaView() {
       setActiveTab('preview');
       toast({ title: '📚 Dossiê literário gerado!' });
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar dossiê', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar dossiê')
     } finally {
       setGenerating(false);
     }
@@ -120,7 +121,7 @@ export default function LiteraturaView() {
       toast({ title: 'Dossiê salvo!' });
       loadHistory();
     } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao salvar')
     } finally {
       setSaving(false);
     }
@@ -156,7 +157,7 @@ export default function LiteraturaView() {
       } as any).from(container).save();
       toast({ title: 'PDF gerado!' });
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar PDF')
     }
   };
 

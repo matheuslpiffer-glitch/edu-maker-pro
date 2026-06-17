@@ -493,12 +493,12 @@ export default function AltaPerformance() {
         setLoading(false);
         setGenerationStep(0);
         clearGeneration('alta_performance');
-        const msg = c.error || 'Erro ao gerar simulado';
-        const isFriendly = msg.includes('processando') || msg.includes('Tente novamente');
-        toast({
-          title: isFriendly ? '⏳ Processando...' : 'Erro ao gerar simulado',
-          description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento.',
-          variant: 'destructive',
+        import('@/lib/ai-utils').then(({ showAiErrorToast }) => {
+          showAiErrorToast(
+            { message: c.error || '', status: c.errorStatus ?? undefined },
+            toast,
+            'Erro ao gerar simulado',
+          );
         });
         clearInterval(generationIntervalRef.current);
         generationIntervalRef.current = null;

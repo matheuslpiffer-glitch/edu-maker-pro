@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { Search, Sparkles, Download, Save, BookOpen, Lightbulb, Target, GraduationCap, Accessibility, Wrench, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -125,7 +126,7 @@ export default function HubPlanejamento() {
       setPlan(data.plan);
       toast({ title: '✅ Plano de aula gerado!' });
     } catch (err: any) {
-      toast({ title: 'Erro ao gerar', description: err.message || 'Tente novamente.', variant: 'destructive' });
+      showAiErrorToast(err, toast, 'Erro ao gerar')
     } finally {
       setLoading(false);
     }
@@ -148,7 +149,7 @@ export default function HubPlanejamento() {
       if (error) throw error;
       toast({ title: '✅ Salvo na Biblioteca!' });
     } catch (err: any) {
-      toast({ title: 'Erro ao salvar', description: err.message, variant: 'destructive' });
+      showAiErrorToast(err, toast, 'Erro ao salvar')
     } finally {
       setSaving(false);
     }
