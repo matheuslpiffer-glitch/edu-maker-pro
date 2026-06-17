@@ -36,6 +36,7 @@ import {
 import { buildPinUrl } from '@/lib/public-links';
 import QRCodeModal from '@/components/QRCodeModal';
 import TriagemNeuro from '@/components/TriagemNeuro';
+import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
 
 /* ── Profiles ── */
 const AEE_PROFILES = [
@@ -570,13 +571,13 @@ export default function Inclusao() {
   const [questionType, setQuestionType] = useState('multipla_visual');
   const [imageMode, setImageMode] = useState<'com_imagem' | 'somente_texto'>('com_imagem');
   const [generating, setGenerating] = useState(false);
-  const [result, setResult] = useState<any[] | null>(null);
+  const [result, setResult] = useAutoSaveDraft<any[] | null>('inclusao-result', null);
   const [saving, setSaving] = useState(false);
-  const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
-  const [savedAccessCode, setSavedAccessCode] = useState('');
+  const [generatedImages, setGeneratedImages] = useAutoSaveDraft<Record<number, string>>('inclusao-generated-images', {});
+  const [savedAccessCode, setSavedAccessCode] = useAutoSaveDraft<string>('inclusao-access-code', '');
   const [qrOpen, setQrOpen] = useState(false);
   const [specificNecessity, setSpecificNecessity] = useState('');
-  const [consultancyTip, setConsultancyTip] = useState('');
+  const [consultancyTip, setConsultancyTip] = useAutoSaveDraft<string>('inclusao-consultancy-tip', '');
    const [grade, setGrade] = useState('');
   const [complexity, setComplexity] = useState('basico');
 
@@ -589,7 +590,7 @@ export default function Inclusao() {
   };
 
   const handleImageGenerated = (index: number, url: string) => {
-    setGeneratedImages(prev => ({ ...prev, [index]: url }));
+    setGeneratedImages({ ...generatedImages, [index]: url });
   };
 
   const handleGenerate = async () => {
