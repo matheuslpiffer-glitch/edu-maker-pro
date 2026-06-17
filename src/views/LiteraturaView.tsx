@@ -13,6 +13,7 @@ import MathRenderer from '@/components/MathRenderer';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { SimQuestion, SavedSimulator } from './types';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 const LITERATURA_MODELS = [
   { value: 'lit_vestibular', label: 'Foco Vestibular', icon: GraduationCap },
@@ -394,7 +395,7 @@ export default function LiteraturaView() {
             {questions.map((q, i) => (
               <div key={i} className="mb-6 pb-4 border-b border-slate-100 last:border-0">
                 <Badge variant="outline" className="text-xs mb-2">{String(i + 1).padStart(2, '0')}</Badge>
-                <div className="prose prose-sm max-w-none text-sm" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                <div className="prose prose-sm max-w-none text-sm" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
               </div>
             ))}
           </div>
