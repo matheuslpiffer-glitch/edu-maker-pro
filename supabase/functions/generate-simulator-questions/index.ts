@@ -312,6 +312,10 @@ serve(async (req) => {
         aee_dm: `Combine múltiplas adaptações: linguagem simples, passos numerados, emojis como apoio visual, frases curtas (máximo 1 linha), alternativas reduzidas (3 opções) e descrição verbal completa de qualquer contexto visual.`,
         aee_tod: `Use linguagem POSITIVA e motivacional. Evite ordens diretas; prefira convites ("Vamos descobrir juntos?"). Ofereça escolhas ao aluno quando possível. Quebre tarefas grandes em micro-etapas com recompensa visual (⭐) a cada conclusão. Tom acolhedor e sem julgamento.`,
         aee_auditiva: `Priorize instruções VISUAIS e ESCRITAS claras. Use frases curtas na ordem direta. Destaque palavras-chave em <strong>negrito</strong>. Evite trocadilhos ou jogos de palavras sonoros. Cada instrução deve ser auto-explicativa sem depender de explicação oral.`,
+        aee_dislexia: `Use fonte ACESSÍVEL (estilo sans-serif, equivalente a OpenDyslexic/Arial) com ESPAÇAMENTO AMPLIADO entre linhas (line-height ~1.8) e entre palavras (word-spacing aumentado). Frases CURTAS (máximo 12 palavras) e divididas em BLOCOS PEQUENOS de 1 a 2 linhas, com bastante espaço em branco entre eles. DESTAQUE visualmente sílabas tônicas e palavras-chave em <strong>negrito</strong> (ex.: "<strong>fo-tos-sín-te-se</strong>"). EVITE textos longos corridos, justificação e itálico. Prefira alinhamento à ESQUERDA. Cada enunciado deve ser autoexplicativo e segmentado visualmente.`,
+        aee_baixa_visao: `Use FONTE AMPLIADA (equivalente a 18–24pt) e ALTO CONTRASTE (texto escuro em fundo claro ou vice-versa). Forneça DESCRIÇÕES TEXTUAIS DETALHADAS (audiodescrição) de qualquer imagem, gráfico ou elemento visual citado. NUNCA dependa apenas de cor para transmitir informação (ex.: "o item em vermelho" → "o item destacado em vermelho e marcado com ★"). Instruções VERBAIS CLARAS, diretas e objetivas. Espaçamento ampliado entre linhas e blocos. Alinhamento à ESQUERDA, sem itálico e sem efeitos visuais sutis.`,
+        aee_surdez: `Priorize RECURSOS VISUAIS e IMAGENS: sugira pictogramas/emojis ao lado das palavras-chave (ex.: "água 💧", "planta 🌱"). Use linguagem DIRETA e OBJETIVA na estrutura SUJEITO–VERBO–OBJETO (ex.: "A planta absorve a água."). EVITE qualquer dependência de áudio, música, rima ou sonoridade. Use vocabulário CONCRETO e cotidiano, sem metáforas, expressões idiomáticas ou duplo sentido. DESTAQUE verbos de comando em <strong>negrito</strong> (ex.: "<strong>MARQUE</strong>", "<strong>ESCREVA</strong>"). Cada instrução deve ser compreensível apenas pela leitura visual, com apoio de ícones nas palavras-chave.`,
+        aee_altas_habilidades: `ENRIQUEÇA as questões com APROFUNDAMENTO conceitual e DESAFIOS EXTRAS de raciocínio (itens "Desafio +" ao final de cada questão). Eleve a COMPLEXIDADE mantendo o rigor científico/conceitual: use níveis altos da taxonomia de Bloom (analisar, avaliar, criar). Inclua CONEXÕES INTERDISCIPLINARES explícitas (ex.: relacionar o tema com matemática, história, arte ou tecnologia). Proponha INVESTIGAÇÕES abertas ao final ("Pesquise...", "Elabore uma hipótese...", "Justifique com pelo menos dois argumentos."). Evite simplificações; ofereça alternativas plausíveis e sofisticadas, exigindo análise fina.`,
       };
 
       const perfilLabel: Record<string, string> = {
@@ -322,6 +326,10 @@ serve(async (req) => {
         aee_dm: 'Deficiência Múltipla (DM)',
         aee_tod: 'TOD (Transtorno Opositivo Desafiador)',
         aee_auditiva: 'Deficiência Auditiva',
+        aee_dislexia: 'Dislexia',
+        aee_baixa_visao: 'Baixa Visão',
+        aee_surdez: 'Surdez',
+        aee_altas_habilidades: 'Altas Habilidades / Superdotação',
       };
 
       // Support multiple profiles (aeeProfiles array) for crossed adaptations
