@@ -1075,31 +1075,6 @@ export default function Inclusao() {
              </RadioGroup>
            </div>
 
-           {/* Necessidade Específica */}
-           <div className="space-y-2">
-             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-               Defina a Necessidade Específica
-             </Label>
-             <Select value={specificNecessity} onValueChange={setSpecificNecessity}>
-               <SelectTrigger className="rounded-2xl">
-                 <SelectValue placeholder="Selecione a necessidade (opcional)" />
-               </SelectTrigger>
-               <SelectContent>
-                 {NECESSITY_OPTIONS.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-               </SelectContent>
-             </Select>
-             {specificNecessity && (
-               <p className="text-[10px] text-purple-600 font-semibold animate-in fade-in">
-                 ✨ A IA ajustará automaticamente: {specificNecessity === 'TEA' ? 'linguagem literal, sem metáforas' :
-                   specificNecessity === 'TDAH' ? 'instruções curtas, tópicos, negritos' :
-                   specificNecessity === 'Dislexia' ? 'espaçamento amplo, suporte visual' :
-                   specificNecessity === 'Baixa Visão' ? 'fonte 14pt+, alto contraste' :
-                   specificNecessity === 'Surdez' ? 'prioridade visual, linguagem direta' :
-                   'enriquecimento e desafios extras'}
-               </p>
-             )}
-           </div>
-
           {/* STEP 2 — Profile multi-select */}
           {subject && (
             <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
