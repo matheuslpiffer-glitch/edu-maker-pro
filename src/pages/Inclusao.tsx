@@ -531,26 +531,6 @@ function ActivitiesList() {
 }
 
 
-function ComingSoonView({ title, icon: Icon, onBack }: { title: string; icon: React.ElementType; onBack: () => void }) {
-  return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <Button variant="ghost" onClick={onBack} className="gap-2 rounded-xl">
-        <ArrowLeft className="h-4 w-4" /> Voltar
-      </Button>
-      <div className="bg-card rounded-[3rem] border p-12 text-center space-y-4">
-        <div className="h-16 w-16 mx-auto rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-          <Icon className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-black text-foreground">{title}</h2>
-        <p className="text-muted-foreground text-sm max-w-md mx-auto">
-          Este módulo está em desenvolvimento e será liberado em breve. Fique atento às atualizações do EduCreator Pro!
-        </p>
-        <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-xs font-bold">EM BREVE</Badge>
-      </div>
-    </div>
-  );
-}
-
 export default function Inclusao() {
   const { toast } = useToast();
   const { user } = useAuth();
