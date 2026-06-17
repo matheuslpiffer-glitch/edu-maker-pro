@@ -16,7 +16,7 @@ import {
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
   ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
-  Trash2, Library, Search, X
+  Trash2, Library, Search, X, Glasses, VolumeX
 
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -47,6 +47,10 @@ const AEE_PROFILES = [
   { value: 'aee_dm', label: 'DM (Def. Múltipla)', icon: Users, color: 'emerald' },
   { value: 'aee_tod', label: 'TOD', icon: Hand, color: 'orange' },
   { value: 'aee_auditiva', label: 'Deficiência Auditiva', icon: Ear, color: 'indigo' },
+  { value: 'aee_dislexia', label: 'Dislexia', icon: Type, color: 'pink' },
+  { value: 'aee_baixa_visao', label: 'Baixa Visão', icon: Glasses, color: 'cyan' },
+  { value: 'aee_surdez', label: 'Surdez', icon: VolumeX, color: 'teal' },
+  { value: 'aee_altas_habilidades', label: 'Altas Habilidades', icon: Lightbulb, color: 'yellow' },
 ];
 
 const AEE_MODES = [
@@ -1069,31 +1073,6 @@ export default function Inclusao() {
                  <span className="text-[10px] text-muted-foreground">Foco em dedução, avaliação e pensamento crítico</span>
                </label>
              </RadioGroup>
-           </div>
-
-           {/* Necessidade Específica */}
-           <div className="space-y-2">
-             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-               Defina a Necessidade Específica
-             </Label>
-             <Select value={specificNecessity} onValueChange={setSpecificNecessity}>
-               <SelectTrigger className="rounded-2xl">
-                 <SelectValue placeholder="Selecione a necessidade (opcional)" />
-               </SelectTrigger>
-               <SelectContent>
-                 {NECESSITY_OPTIONS.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-               </SelectContent>
-             </Select>
-             {specificNecessity && (
-               <p className="text-[10px] text-purple-600 font-semibold animate-in fade-in">
-                 ✨ A IA ajustará automaticamente: {specificNecessity === 'TEA' ? 'linguagem literal, sem metáforas' :
-                   specificNecessity === 'TDAH' ? 'instruções curtas, tópicos, negritos' :
-                   specificNecessity === 'Dislexia' ? 'espaçamento amplo, suporte visual' :
-                   specificNecessity === 'Baixa Visão' ? 'fonte 14pt+, alto contraste' :
-                   specificNecessity === 'Surdez' ? 'prioridade visual, linguagem direta' :
-                   'enriquecimento e desafios extras'}
-               </p>
-             )}
            </div>
 
           {/* STEP 2 — Profile multi-select */}
