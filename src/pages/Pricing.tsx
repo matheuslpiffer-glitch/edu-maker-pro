@@ -39,6 +39,16 @@ export default function Pricing() {
       toast({ title: 'Pagamentos em ativação', description: 'O checkout estará disponível em breve.', variant: 'destructive' });
       return;
     }
+    // If user already has an active subscription, send them to the portal
+    // to upgrade/downgrade instead of creating a second subscription.
+    if (isActive) {
+      toast({
+        title: 'Você já tem uma assinatura ativa',
+        description: 'Abrindo o portal para trocar de plano…',
+      });
+      openPortal();
+      return;
+    }
     openCheckout({
       priceId,
       quantity,
