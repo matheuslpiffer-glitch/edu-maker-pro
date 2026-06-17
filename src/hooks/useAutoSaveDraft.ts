@@ -36,18 +36,23 @@ export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, (v
         const handleVisibilityChange = async () => {
             if (document.visibilityState === 'hidden') {
                 try {
+                    // Skip cloud sync when there is nothing to persist (avoids 400 on NOT NULL jsonb)
+                    if (state === undefined || state === null) return;
                     const { data: { user } } = await supabase.auth.getUser();
                     
                     if (user) {
                         // Professor saiu da aba: Salva silenciosamente na nuvem
                         await supabase
                             .from('materials_drafts')
-                            .upsert({ 
-                                user_id: user.id, 
-                                storage_key: storageKey,
-                                content: state as any, 
-                                updated_at: new Date().toISOString()
-                            });
+                            .upsert(
+                                {
+                                    user_id: user.id,
+                                    storage_key: storageKey,
+                                    content: state as any,
+                                    updated_at: new Date().toISOString(),
+                                },
+                                { onConflict: 'user_id,storage_key' }
+                            );
                     }
                 } catch (error) {
                     console.error("Erro ao sincronizar rascunho com a nuvem:", error);
