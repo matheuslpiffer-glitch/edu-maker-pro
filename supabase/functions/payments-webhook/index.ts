@@ -49,10 +49,8 @@ async function syncProfilePlan(userId: string, env: StripeEnv) {
     }
   }
 
-  // Only mirror live subscriptions into profiles.plan. Sandbox stays
-  // observable via the subscriptions table but never grants Pro in prod.
-  if (env !== "live") return;
-
+  // Mirror Pro status for BOTH sandbox and live so test-mode checkouts
+  // in the preview actually unlock Pro features end-to-end.
   await getSupabase()
     .from("profiles")
     .update({
