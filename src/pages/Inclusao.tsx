@@ -584,7 +584,9 @@ export default function Inclusao() {
   const queryClient = useQueryClient();
   const { addQuestions } = useSavedQuestionsBank();
 
-  const [activeView, setActiveView] = useState<ActiveView | 'minhas_atividades'>('dashboard');
+  const [activeView, setActiveView] = useState<ActiveView | 'minhas_atividades'>(() => (
+    hasMeaningfulLocalDraft(INCLUSAO_DRAFT_KEYS.result) ? 'adaptar' : 'dashboard'
+  ));
   const [subject, setSubject] = useState('');
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [aeeMode, setAeeMode] = useState<'gerar_novas' | 'adaptar_antigas' | 'texto_resumo'>('gerar_novas');
@@ -641,7 +643,12 @@ export default function Inclusao() {
 
       data?.forEach(draft => {
         if (hasMeaningfulLocalDraft(draft.storage_key)) return;
-        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.result) setResult(draft.content as any[] | null);
+        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.result) {
+          setResult(draft.content as any[] | null);
+          if (Array.isArray(draft.content) && draft.content.length > 0) {
+            setActiveView(prev => prev === 'dashboard' ? 'adaptar' : prev);
+          }
+        }
         if (draft.storage_key === INCLUSAO_DRAFT_KEYS.generatedImages) setGeneratedImages((draft.content as Record<number, string>) || {});
         if (draft.storage_key === INCLUSAO_DRAFT_KEYS.accessCode) setSavedAccessCode((draft.content as string) || '');
         if (draft.storage_key === INCLUSAO_DRAFT_KEYS.consultancyTip) setConsultancyTip((draft.content as string) || '');
