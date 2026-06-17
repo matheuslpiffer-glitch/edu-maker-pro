@@ -590,7 +590,7 @@ export default function Inclusao() {
   };
 
   const handleImageGenerated = (index: number, url: string) => {
-    setGeneratedImages(prev => ({ ...prev, [index]: url }));
+    setGeneratedImages({ ...generatedImages, [index]: url });
   };
 
   const handleGenerate = async () => {
