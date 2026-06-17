@@ -1,11 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Hook de Persistência Ativa - EduCreator Pro
  * Garante resiliência de dados mesmo se a aba fechar ou resetar.
  */
-export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, (value: T) => void] {
+function toJsonContent(value: unknown) {
+    if (value === undefined || value === null) return null;
+    try {
+        return JSON.parse(JSON.stringify(value));
+    } catch (error) {
+        console.error("Erro ao preparar rascunho para sincronização:", error);
+        return null;
+    }
+}
+
+export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, Dispatch<SetStateAction<T>>] {
     
     // 1. Tenta recuperar o rascunho salvo ao iniciar o componente
     const [state, setState] = useState<T>(() => {
@@ -36,8 +46,9 @@ export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, (v
         const handleVisibilityChange = async () => {
             if (document.visibilityState === 'hidden') {
                 try {
+                    const content = toJsonContent(state);
                     // Skip cloud sync when there is nothing to persist (avoids 400 on NOT NULL jsonb)
-                    if (state === undefined || state === null) return;
+                    if (content === null) return;
                     const { data: { user } } = await supabase.auth.getUser();
                     
                     if (user) {
@@ -48,10 +59,10 @@ export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, (v
                                 {
                                     user_id: user.id,
                                     storage_key: storageKey,
-                                    content: state as any,
+                                    content: content as any,
                                     updated_at: new Date().toISOString(),
                                 },
-                                { onConflict: 'user_id,storage_key' }
+                                { onConflict: 'user_id,storage_key', ignoreDuplicates: false }
                             );
                     }
                 } catch (error) {
