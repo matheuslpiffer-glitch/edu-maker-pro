@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import { GraduationCap } from 'lucide-react';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface QuestionOption {
   letter: string;
@@ -109,7 +110,7 @@ const SimulatorPreview = forwardRef<HTMLDivElement, Props>(({ title, institution
                 )}
                 <div
                   style={{ maxWidth: '100%', boxSizing: 'border-box', overflowWrap: 'break-word', wordBreak: 'break-word' }}
-                  dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }}
                 />
               </div>
             </div>
