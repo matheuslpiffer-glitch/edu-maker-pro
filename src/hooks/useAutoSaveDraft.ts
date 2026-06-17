@@ -36,6 +36,8 @@ export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, (v
         const handleVisibilityChange = async () => {
             if (document.visibilityState === 'hidden') {
                 try {
+                    // Skip cloud sync when there is nothing to persist (avoids 400 on NOT NULL jsonb)
+                    if (state === undefined || state === null) return;
                     const { data: { user } } = await supabase.auth.getUser();
                     
                     if (user) {
@@ -46,8 +48,7 @@ export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, (v
                                 {
                                     user_id: user.id,
                                     storage_key: storageKey,
-                                    // content is NOT NULL jsonb — wrap to always send a valid JSON value
-                                    content: { value: state ?? null } as any,
+                                    content: state as any,
                                     updated_at: new Date().toISOString(),
                                 },
                                 { onConflict: 'user_id,storage_key' }
