@@ -17,6 +17,7 @@ import SkillSearch from '@/components/SkillSearch';
 import SlidePresenter from '@/components/SlidePresenter';
 import AttendancePanel from '@/components/AttendancePanel';
 import PdfToolbar from '@/components/PdfToolbar';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface Slide {
   title: string;
@@ -478,7 +479,7 @@ export default function EduSlides() {
         <div id="pdf-preview-container" className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div
             className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: (htmlSlides[activeSlide] || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(htmlSlides[activeSlide]) }}
           />
         </div>
 
@@ -495,7 +496,7 @@ export default function EduSlides() {
               <div
                 className="w-full h-full transform scale-[0.15] origin-top-left"
                 style={{ width: '640px', height: '400px' }}
-                dangerouslySetInnerHTML={{ __html: html.replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
               />
             </button>
           ))}

@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildPublicAppUrl } from '@/lib/public-links';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface BankItem {
   id: string;
@@ -275,7 +276,7 @@ export default function MinhaBiblioteca() {
                 {(previewItem.questions as any[])?.map((q: any, i: number) => (
                   <div key={i} className="rounded-lg border border-border p-3 space-y-2">
                     <p className="text-xs font-bold text-primary">Questão {i + 1} {q.skillCode ? `• ${q.skillCode}` : ''}</p>
-                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: q.content }} />
+                    <div className="text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
                     {q.options?.length > 0 && (
                       <div className="space-y-1 pl-2">
                         {q.options.map((o: any) => (
