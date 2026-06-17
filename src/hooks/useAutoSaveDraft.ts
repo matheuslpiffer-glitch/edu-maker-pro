@@ -46,7 +46,8 @@ export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, (v
                                 {
                                     user_id: user.id,
                                     storage_key: storageKey,
-                                    content: (state ?? null) as any,
+                                    // content is NOT NULL jsonb — wrap to always send a valid JSON value
+                                    content: { value: state ?? null } as any,
                                     updated_at: new Date().toISOString(),
                                 },
                                 { onConflict: 'user_id,storage_key' }
