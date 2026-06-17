@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Zap, Target, BookOpen, Gamepad2, Trophy, Star, Clock, Brain, Flame, Building2, Cpu, Award, Landmark, Medal, Shield, Sparkles, BarChart3, Eye, ChevronDown, ChevronUp, CheckCircle2, XCircle, MessageCircle, ClipboardList, TrendingUp, Rocket, KeyRound, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface SubjectProgress {
   subject: string;
@@ -536,7 +537,7 @@ export default function StudentDashboard() {
                             <div key={qi} className="text-sm space-y-1">
                               <div className="flex items-start gap-2">
                                 <Badge variant="outline" className="shrink-0">Q{qi + 1}</Badge>
-                                <p className="text-foreground" dangerouslySetInnerHTML={{ __html: q.content?.slice(0, 200) }} />
+                                <p className="text-foreground" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content?.slice(0, 200)) }} />
                               </div>
                               {correctOption && (
                                 <div className="flex items-center gap-1 ml-8 text-xs">
