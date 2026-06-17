@@ -74,6 +74,7 @@ const StudentEssayPortal = lazy(() => import("@/pages/StudentEssayPortal"));
 const CoordView = lazy(() => import("@/pages/CoordView"));
 const StudentEssayArena = lazy(() => import("@/pages/StudentEssayArena"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
+const CheckoutReturn = lazy(() => import("@/pages/CheckoutReturn"));
 
 const queryClient = new QueryClient();
 
@@ -226,6 +227,7 @@ const App = () => (
                       <Route path="/simulado/:id" element={<StudentSimulatorView />} />
                       <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
                       <Route path="/s/:code" element={<ShortLinkRedirect />} />
+                      <Route path="/checkout/return" element={<CheckoutReturn />} />
                       <Route path="/*" element={<AppRoutes />} />
                     </Routes>
                   </Suspense>
