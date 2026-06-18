@@ -68,8 +68,8 @@ export default function LandingProfessor() {
         <section className="text-center space-y-4">
           <div className="inline-flex items-center gap-1 bg-primary/10 text-primary text-sm px-3 py-1 rounded-full"><Sparkles className="h-4 w-4" /> Produtividade com IA</div>
           <h1 className="text-4xl font-bold">Crie simulados, provas e aulas com inteligência artificial</h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">Plataforma completa para professores que desejam automatizar a criação de materiais pedagógicos alinhados ao Currículo Paulista e BNCC.</p>
-          <Button size="lg" onClick={() => setShowAuth(true)}>Começar agora</Button>
+          <p className="text-muted-foreground max-w-2xl mx-auto">Plataforma completa para professores automatizarem a criação de materiais pedagógicos alinhados ao Currículo Paulista e BNCC. Desenvolvida por um professor — Matheus Lima Piffer.</p>
+          <Button size="lg" onClick={() => setShowAuth(true)}>Criar conta grátis</Button>
         </section>
 
         <section className="grid sm:grid-cols-2 gap-6">
