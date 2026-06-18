@@ -12,7 +12,6 @@ import WwwRedirect from "@/components/WwwRedirect";
 import { BackgroundGenerationProvider } from "@/hooks/useBackgroundGeneration";
 import PinAutoRedirect from "@/components/PinAutoRedirect";
 import AppLayout from "@/components/AppLayout";
-import LandingPage from "@/pages/LandingPage";
 import RoleSelection from "@/pages/RoleSelection";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
@@ -110,7 +109,11 @@ function AppRoutes() {
     return <LazyFallback />;
   }
 
-  if (!user) return <LandingPage />;
+  if (!user) return (
+    <Suspense fallback={<LazyFallback />}>
+      <LandingProfessor />
+    </Suspense>
+  );
 
   if (!hasRole) {
     return <RoleSelection onRoleSelected={refetchRole} />;
