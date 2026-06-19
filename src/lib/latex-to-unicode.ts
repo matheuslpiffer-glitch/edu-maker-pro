@@ -91,17 +91,13 @@ function processMathContent(input: string): string {
   let s = input;
 
   // \frac{a}{b}
-  s = s.replace(/\\d?frac\s*/g, '\\frac');
   let prev = '';
   while (prev !== s) {
     prev = s;
-    s = s.replace(/\\frac\s*\{/g, (_m, _o, offset) => {
-      // placeholder; real handling below using indexOf loop
-      return '\\frac{';
-    });
-    const idx = s.indexOf('\\frac{');
-    if (idx === -1) break;
-    const numStart = idx + '\\frac'.length;
+    const m = /\\d?frac\s*\{/.exec(s);
+    if (!m) break;
+    const idx = m.index;
+    const numStart = idx + m[0].length - 1; // position of '{'
     const num = readBraceGroup(s, numStart);
     if (!num) break;
     // skip optional whitespace
