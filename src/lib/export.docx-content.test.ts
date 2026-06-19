@@ -62,7 +62,11 @@ describe('exportToDocx — produced .docx XML content', () => {
     await exportToDocx(header, questions, subjects, true);
 
     expect(savedBlob).toBeTruthy();
-    const buf = await (savedBlob as Blob).arrayBuffer();
+    const blob = savedBlob as Blob & { arrayBuffer?: () => Promise<ArrayBuffer> };
+    const buf =
+      typeof blob.arrayBuffer === 'function'
+        ? await blob.arrayBuffer()
+        : await new Response(blob as any).arrayBuffer();
     const zip = await JSZip.loadAsync(buf);
     const xml = await zip.file('word/document.xml')!.async('string');
     const text = extractWtText(xml);
