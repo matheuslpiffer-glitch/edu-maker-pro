@@ -31,14 +31,26 @@ interface Header {
   title: string;
 }
 
-function stripHtml(html: string): string {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  return doc.body.textContent || '';
+function stripHtml(text: string): string {
+  if (!text) return '';
+  let out = text.replace(/<[^>]*>/g, '');
+  out = out
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/gi, "'");
+  out = out.replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').trim();
+  return out;
 }
 
-function clean(text: string): string {
+function sanitizeForDocx(text: string): string {
   return latexToUnicode(stripHtml(text || ''));
 }
+
+const clean = sanitizeForDocx;
 
 export async function exportToPDF(element: HTMLElement, filename: string) {
   const { generatePdfFromElement } = await import('@/lib/pdf-utils');
