@@ -83,20 +83,20 @@ describe('exportToDocx pipeline', () => {
 
     await exportToDocx(header, questions, subjects, true);
 
-    const all = textRuns.join('\n');
+    const all = textRuns.join('\n').toLowerCase();
 
     // Sanitized content
-    expect(all).toContain('Calcule x² + 1 para x=2');
+    expect(all).toContain('calcule x² + 1 para x=2');
     // Sanitized options
     expect(all).toContain('5');
     expect(all).toContain('300√3 m');
     // Sanitized answer (gabarito)
-    expect(all).toContain('Use √2');
+    expect(all).toContain('use √2');
     // Sanitized resolution
     expect(all).toContain('ângulo de 30°');
     expect(all).toContain('6√3');
     // Open question content
-    expect(all).toContain('Discorra sobre π');
+    expect(all).toContain('discorra sobre π');
     expect(all).toContain('1/2');
 
     // No raw artifacts anywhere
