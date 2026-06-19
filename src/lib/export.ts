@@ -1,6 +1,7 @@
 import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 import { RGF_DEFAULT, rgfText } from '@/lib/rgf-format';
+import { latexToUnicode } from '@/lib/latex-to-unicode';
 
 interface QuestionOption {
   id: string;
@@ -33,6 +34,10 @@ interface Header {
 function stripHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   return doc.body.textContent || '';
+}
+
+function clean(text: string): string {
+  return latexToUnicode(stripHtml(text || ''));
 }
 
 export async function exportToPDF(element: HTMLElement, filename: string) {
@@ -71,7 +76,7 @@ export async function exportToDocx(
 
   questions.forEach((q, i) => {
     const subject = subjects.find(s => s.id === q.subject_id);
-    const contentText = stripHtml(q.content);
+    const contentText = clean(q.content);
     children.push(new Paragraph({
       children: [
         new TextRun({ text: `${i + 1}) `, bold: true, size: sz, font }),
@@ -84,7 +89,7 @@ export async function exportToDocx(
     if (q.type === 'multiple-choice') {
       q.options.forEach((opt, j) => {
         children.push(new Paragraph({
-          children: [new TextRun({ text: rgfText(`     ${String.fromCharCode(97 + j)}) ${opt.text}`), size: sz, font })],
+          children: [new TextRun({ text: rgfText(`     ${String.fromCharCode(97 + j)}) ${clean(opt.text)}`), size: sz, font })],
           spacing: { line: 276 },
         }));
       });
@@ -117,7 +122,7 @@ export async function exportToDocx(
         children.push(new Paragraph({
           children: [
             new TextRun({ text: `${i + 1}. `, bold: true, size: 22 }),
-            new TextRun({ text: q.answer || 'Resposta dissertativa', italics: true, size: 22 }),
+            new TextRun({ text: clean(q.answer) || 'Resposta dissertativa', italics: true, size: 22 }),
           ],
         }));
       }
