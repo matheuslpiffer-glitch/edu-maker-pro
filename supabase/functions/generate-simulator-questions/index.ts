@@ -145,7 +145,7 @@ function extractJsonFromMixedResponse(response: string): unknown {
               const partial = "[" + sub.slice(0, lastEnd + 1) + "]";
               const repaired = '{"questions":' + partial + "}";
               try {
-                const parsed = JSON.parse(repaired);
+                const parsed = JSON.parse(escapeInvalidBackslashes(repaired));
                 const qs = (parsed as any)?.questions;
                 if (Array.isArray(qs) && qs.length > 0) {
                   console.warn(`Recovered ${qs.length} complete question(s) from truncated response (dropped trailing incomplete object).`);
