@@ -23,6 +23,9 @@ import RichTextEditor from '@/components/RichTextEditor';
 import AIGenerateModal from '@/components/AIGenerateModal';
 import SubjectSelect from '@/components/SubjectSelect';
 import { getBnccPrefix } from '@/lib/subjects-data';
+import MathRenderer from '@/components/MathRenderer';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 
 interface QuestionOption {
   id: string;
@@ -56,6 +59,7 @@ export default function CreateQuestion() {
   const [aiOpen, setAiOpen] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [pendingRoute, setPendingRoute] = useState<string | null>(null);
+  const [latexMode, setLatexMode] = useState(false);
 
   // Dirty state tracking
   const isDirty = useMemo(() => {
@@ -236,8 +240,37 @@ export default function CreateQuestion() {
           </div>
 
           <div className="space-y-2">
-            <Label>Enunciado *</Label>
-            <RichTextEditor value={content} onChange={setContent} placeholder="Digite o enunciado da questão..." disabled={saving} />
+            <div className="flex items-center justify-between">
+              <Label>Enunciado *</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="latex-mode" className="text-xs text-muted-foreground cursor-pointer">
+                  Modo LaTeX
+                </Label>
+                <Switch id="latex-mode" checked={latexMode} onCheckedChange={setLatexMode} disabled={saving} />
+              </div>
+            </div>
+            {latexMode ? (
+              <>
+                <Textarea
+                  value={content}
+                  onChange={e => setContent(e.target.value)}
+                  placeholder={'Digite usando LaTeX. Ex: Resolva $x^2 + 2x - 3 = 0$ ou $$\\frac{a}{b} = \\sqrt{c}$$'}
+                  className="min-h-[140px] font-mono text-sm"
+                  disabled={saving}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Use <code className="font-mono">$...$</code> para fórmulas inline e <code className="font-mono">$$...$$</code> para bloco.
+                </p>
+                {content.trim() && (
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="text-xs text-muted-foreground mb-2">Pré-visualização:</p>
+                    <MathRenderer content={content} />
+                  </div>
+                )}
+              </>
+            ) : (
+              <RichTextEditor value={content} onChange={setContent} placeholder="Digite o enunciado da questão..." disabled={saving} />
+            )}
           </div>
 
           {type === 'multiple-choice' && (
@@ -268,6 +301,11 @@ export default function CreateQuestion() {
                     </Button>
                   )}
                 </div>
+                {latexMode && opt.text.trim() && (
+                  <div className="ml-10 rounded border bg-muted/30 px-3 py-1.5 text-sm">
+                    <MathRenderer content={opt.text} />
+                  </div>
+                )}
               ))}
               {options.length < 5 && (
                  <Button type="button" variant="outline" size="sm" onClick={addOption} disabled={saving}>
