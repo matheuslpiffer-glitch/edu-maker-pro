@@ -146,12 +146,15 @@ function processMathContent(input: string): string {
     s = s.slice(0, idx) + rootPrefix + wrapped + s.slice(grp.end);
   }
 
+  // Superscripts that need pre-symbol handling
+  // ^\circ → ° (must run before \circ replacement)
+  s = s.replace(/\^\s*\\circ\b/g, '°');
+
   // Symbols
   for (const [re, rep] of SYMBOLS) s = s.replace(re, rep);
 
-  // Superscripts
-  // ^\circ → °
-  s = s.replace(/\^\\circ\b/g, '°');
+  // Cleanup: stray ^° from edge cases
+  s = s.replace(/\^°/g, '°');
   // ^{...} numeric only → unicode superscript
   s = s.replace(/\^\{([^{}]*)\}/g, (m, inner) => {
     const sup = toSuperscript(inner);
