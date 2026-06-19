@@ -308,12 +308,14 @@ REGRA ABSOLUTA: NÃO inclua NENHUMA tag <img>, link de imagem ou URL de imagem. 
 
 FORMATAÇÃO MATEMÁTICA — USE LATEX SEMPRE:
 Toda notação matemática (enunciado E alternativas) DEVE ser escrita em LaTeX (a interface renderiza com KaTeX).
-- Inline: $...$  (ex.: $x^2 + 2x + 1$, $\\frac{a}{b}$, $\\sqrt{2}$, $\\pi r^2$)
-- Bloco/destaque: $$...$$ (ex.: $$\\int_0^1 x\\,dx$$, $$\\begin{cases} x+y=1 \\\\ x-y=3 \\end{cases}$$)
+- Inline: use SEMPRE \\( ... \\)  (ex.: \\(x^2 + 2x + 1\\), \\(\\frac{a}{b}\\), \\(\\sqrt{2}\\), \\(\\pi r^2\\))
+- Bloco/destaque: use SEMPRE \\[ ... \\] (ex.: \\[\\int_0^1 x\\,dx\\], \\[\\begin{cases} x+y=1 \\\\ x-y=3 \\end{cases}\\])
+- NUNCA use "$" ou "$$" como delimitador de matemática (causa ambiguidade com moeda).
+- Para valores em dinheiro, escreva normalmente em texto: "R$ 50,00", "R$ 1.299,90". O cifrão de moeda NÃO é LaTeX.
 - Use LaTeX para: frações (\\frac), expoentes (^), raízes (\\sqrt), índices (_), funções,
   somatórios (\\sum), integrais (\\int), letras gregas (\\pi, \\alpha), sistemas, matrizes, conjuntos.
-- NUNCA escreva fórmula em texto corrido (não use "x^2" fora de $, nem "raiz de 2" textual).
-- Em alternativas, qualquer fórmula deve ir delimitada em $...$.
+- NUNCA escreva fórmula em texto corrido (não use "x^2" fora de \\(...\\), nem "raiz de 2" textual).
+- Em alternativas, qualquer fórmula deve ir delimitada em \\(...\\).
 `;
 
 serve(async (req) => {
