@@ -277,7 +277,8 @@ export default function CreateQuestion() {
             <div className="space-y-3">
               <Label>Alternativas</Label>
               {options.map((opt, i) => (
-                <div key={opt.id} className="flex items-center gap-2">
+                <div key={opt.id} className="space-y-1">
+                  <div className="flex items-center gap-2">
                   <button
                     type="button"
                      onClick={() => setCorrect(i)}
@@ -300,12 +301,13 @@ export default function CreateQuestion() {
                       <Trash2 size={14} />
                     </Button>
                   )}
-                </div>
+                  </div>
                 {latexMode && opt.text.trim() && (
                   <div className="ml-10 rounded border bg-muted/30 px-3 py-1.5 text-sm">
                     <MathRenderer content={opt.text} />
                   </div>
                 )}
+                </div>
               ))}
               {options.length < 5 && (
                  <Button type="button" variant="outline" size="sm" onClick={addOption} disabled={saving}>
