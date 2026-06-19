@@ -62,11 +62,19 @@ describe('exportToDocx — produced .docx XML content', () => {
     await exportToDocx(header, questions, subjects, true);
 
     expect(savedBlob).toBeTruthy();
-    const blob = savedBlob as Blob & { arrayBuffer?: () => Promise<ArrayBuffer> };
-    const buf =
-      typeof blob.arrayBuffer === 'function'
-        ? await blob.arrayBuffer()
-        : await new Response(blob as any).arrayBuffer();
+    const blob = savedBlob as any;
+    let buf: ArrayBuffer;
+    if (typeof blob.arrayBuffer === 'function') {
+      buf = await blob.arrayBuffer();
+    } else {
+      // jsdom Blob fallback: read via FileReader
+      buf = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(blob);
+      });
+    }
     const zip = await JSZip.loadAsync(buf);
     const xml = await zip.file('word/document.xml')!.async('string');
     const text = extractWtText(xml);
