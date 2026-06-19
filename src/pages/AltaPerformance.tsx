@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
 import DOMPurify from 'dompurify';
+import MathRenderer from '@/components/MathRenderer';
 import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket, PlusCircle, CheckCircle2, Circle } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
@@ -1120,12 +1121,15 @@ export default function AltaPerformance() {
                         {q.skillCode && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{q.skillCode}</span>}
                         {isDiscursiva && <span className="text-[10px] font-semibold text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded">Discursiva</span>}
                       </div>
-                      <div className="text-sm leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: sanitizedQuestions[i].content }} />
+                      <div className="text-sm leading-relaxed break-words">
+                        <MathRenderer content={sanitizedQuestions[i].content} />
+                      </div>
                       {!isDiscursiva && q.options && q.options.length > 0 && (
                         <div className="space-y-1 pl-2">
                           {q.options.map((o, j) => (
-                            <div key={j} className={`text-sm py-1.5 px-3 rounded-lg ${o.isCorrect ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium border border-emerald-500/20' : 'text-foreground'}`}>
-                              <strong>{o.letter})</strong> {o.text}
+                            <div key={j} className={`text-sm py-1.5 px-3 rounded-lg flex gap-1 ${o.isCorrect ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium border border-emerald-500/20' : 'text-foreground'}`}>
+                              <strong>{o.letter})</strong>
+                              <MathRenderer content={o.text} />
                             </div>
                           ))}
                         </div>
@@ -1148,7 +1152,9 @@ export default function AltaPerformance() {
                     <div key={i} className="rounded-lg border border-border/40 bg-card p-3 space-y-1" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                       <p className="text-sm font-bold text-foreground">Questão {i + 1}</p>
                       {isDiscursiva ? (
-                        <p className="text-sm text-muted-foreground break-words">{sanitizedQuestions[i].correctionMirror || 'Critérios de correção não disponíveis.'}</p>
+                        <div className="text-sm text-muted-foreground break-words">
+                          <MathRenderer content={sanitizedQuestions[i].correctionMirror || 'Critérios de correção não disponíveis.'} />
+                        </div>
                       ) : (
                         <p className="text-sm text-muted-foreground">
                           Resposta: <strong className="text-emerald-600 dark:text-emerald-400">{q.options?.find(o => o.isCorrect)?.letter || '—'}</strong>
