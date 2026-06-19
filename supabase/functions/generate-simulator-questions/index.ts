@@ -34,6 +34,10 @@ function repairAndParse(json: string): unknown {
     .replace(/"\s*\n\s*/g, '" ')
     .replace(/\t/g, " ");
 
+  // Fix invalid backslash escapes inside JSON strings (LaTeX like \sqrt, \text, \frac).
+  // JSON only allows \" \\ \/ \b \f \n \r \t \uXXXX. Anything else must be escaped to \\.
+  cleaned = escapeInvalidBackslashes(cleaned);
+
   // Fix truncated strings: if we end mid-string, close it
   const quoteCount = (cleaned.match(/(?<!\\)"/g) || []).length;
   if (quoteCount % 2 !== 0) {
@@ -53,6 +57,38 @@ function repairAndParse(json: string): unknown {
   for (let i = 0; i < openBraces - closeBraces; i++) cleaned += "}";
 
   return JSON.parse(cleaned);
+}
+
+function escapeInvalidBackslashes(input: string): string {
+  let out = "";
+  let inStr = false;
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    if (!inStr) {
+      out += ch;
+      if (ch === '"') inStr = true;
+      continue;
+    }
+    if (ch === '"') {
+      out += ch;
+      inStr = false;
+      continue;
+    }
+    if (ch === "\\") {
+      const next = input[i + 1];
+      if (next === undefined) { out += "\\\\"; continue; }
+      if ('"\\/bfnrtu'.includes(next)) {
+        out += ch + next;
+        i++;
+      } else {
+        // invalid escape - double the backslash so JSON.parse accepts it
+        out += "\\\\";
+      }
+      continue;
+    }
+    out += ch;
+  }
+  return out;
 }
 
 function extractJsonFromMixedResponse(response: string): unknown {
@@ -109,7 +145,7 @@ function extractJsonFromMixedResponse(response: string): unknown {
               const partial = "[" + sub.slice(0, lastEnd + 1) + "]";
               const repaired = '{"questions":' + partial + "}";
               try {
-                const parsed = JSON.parse(repaired);
+                const parsed = JSON.parse(escapeInvalidBackslashes(repaired));
                 const qs = (parsed as any)?.questions;
                 if (Array.isArray(qs) && qs.length > 0) {
                   console.warn(`Recovered ${qs.length} complete question(s) from truncated response (dropped trailing incomplete object).`);
