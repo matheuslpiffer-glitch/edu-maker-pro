@@ -16,6 +16,10 @@ interface Question {
   content: string;
   options: QuestionOption[];
   answer: string;
+  explanation?: string;
+  resolution?: string;
+  commentedResolution?: string;
+  correctionMirror?: string;
 }
 
 interface Subject {
@@ -31,7 +35,7 @@ interface Header {
   title: string;
 }
 
-function stripHtml(text: string): string {
+export function stripHtml(text: string): string {
   if (!text) return '';
   let out = text.replace(/<[^>]*>/g, '');
   out = out
@@ -46,11 +50,15 @@ function stripHtml(text: string): string {
   return out;
 }
 
-function sanitizeForDocx(text: string): string {
-  return latexToUnicode(stripHtml(text || ''));
+export function sanitizeForDocx(text: string): string {
+  return latexToUnicode(stripHtml(text));
 }
 
 const clean = sanitizeForDocx;
+
+function getCommentedResolution(q: Question): string {
+  return clean(q.explanation || q.resolution || q.commentedResolution || q.correctionMirror || '');
+}
 
 export async function exportToPDF(element: HTMLElement, filename: string) {
   const { generatePdfFromElement } = await import('@/lib/pdf-utils');
@@ -135,6 +143,16 @@ export async function exportToDocx(
           children: [
             new TextRun({ text: `${i + 1}. `, bold: true, size: 22 }),
             new TextRun({ text: clean(q.answer) || 'Resposta dissertativa', italics: true, size: 22 }),
+          ],
+        }));
+      }
+
+      const commentedResolution = getCommentedResolution(q);
+      if (commentedResolution) {
+        children.push(new Paragraph({
+          children: [
+            new TextRun({ text: 'Resolução comentada: ', bold: true, size: 22 }),
+            new TextRun({ text: commentedResolution, size: 22 }),
           ],
         }));
       }
