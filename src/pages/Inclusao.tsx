@@ -104,11 +104,13 @@ const INCLUSION_CARDS = [
   },
 ];
 
- const GRADE_OPTIONS = [
-   { value: 'fundamental_1', label: 'Ensino Fundamental I (1º ao 5º ano)' },
-   { value: 'fundamental_2', label: 'Ensino Fundamental II (6º ao 9º ano)' },
-   { value: 'ensino_medio', label: 'Ensino Médio (1ª a 3ª série)' },
- ];
+const CYCLE_OPTIONS = [
+  { value: 'infantil', label: 'Educação Infantil' },
+  { value: 'anos_iniciais', label: 'Anos Iniciais (1º ao 5º)' },
+  { value: 'anos_finais', label: 'Anos Finais (6º ao 9º)' },
+  { value: 'medio', label: 'Ensino Médio' },
+  { value: 'eja', label: 'EJA' },
+];
 
 type ActiveView = 'dashboard' | 'adaptar' | 'tdah' | 'audio' | 'libras' | 'triagem';
 
@@ -329,10 +331,9 @@ export default function Inclusao() {
   const [qrOpen, setQrOpen] = useState(false);
   const [specificNecessity, setSpecificNecessity] = useState('');
   const [consultancyTip, setConsultancyTip] = useState('');
-   const [grade, setGrade] = useState('');
-  const [complexity, setComplexity] = useState('basico');
+  const [schoolCycle, setSchoolCycle] = useState('');
 
-   const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic && !!grade && !!complexity;
+  const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic && !!schoolCycle;
 
   const toggleProfile = (value: string) => {
     setSelectedProfiles(prev =>
@@ -363,8 +364,7 @@ export default function Inclusao() {
         aeeImageMode: imageMode,
         specificTopic: topic,
         specificNecessity,
-         serie: grade,
-        nivelComplexidade: complexity,
+        schoolCycle,
       });
       if (data?.error) throw new Error(data.error);
       if (data?.questions) {
@@ -700,90 +700,67 @@ export default function Inclusao() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Left: form */}
         <div className="lg:col-span-3 space-y-6">
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             {/* STEP 1 — Disciplina */}
-             <div className="space-y-2">
-               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                 1. Disciplina <span className="text-destructive">*</span>
-               </Label>
-               <Select value={subject} onValueChange={setSubject}>
-                 <SelectTrigger className="rounded-2xl"><SelectValue placeholder="Selecione a disciplina" /></SelectTrigger>
-                 <SelectContent>
-                   {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                 </SelectContent>
-               </Select>
-             </div>
+          {/* Ciclo Escolar */}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <GraduationCap className="h-3.5 w-3.5" /> Ciclo / Série <span className="text-destructive">*</span>
+            </Label>
+            <Select value={schoolCycle} onValueChange={setSchoolCycle}>
+              <SelectTrigger className="rounded-2xl">
+                <SelectValue placeholder="Selecione o ciclo escolar" />
+              </SelectTrigger>
+              <SelectContent>
+                {CYCLE_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {schoolCycle && (
+              <p className="text-[10px] text-cyan-600 font-semibold animate-in fade-in">
+                🎯 IA ajustará: {schoolCycle === 'infantil' ? 'foco lúdico/imagético, linguagem simples, estímulos visuais amplos' :
+                  schoolCycle === 'anos_iniciais' ? 'linguagem acessível, ilustrações de apoio, enunciados curtos' :
+                  schoolCycle === 'anos_finais' ? 'enunciados intermediários, vocabulário progressivo' :
+                  schoolCycle === 'medio' ? 'linguagem estrutural/objetiva, abordagem formal' :
+                  'linguagem adulta, contextos práticos do cotidiano'}
+              </p>
+            )}
+          </div>
 
-             {/* Série / Ano Escolar */}
-             <div className="space-y-2">
-               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                 <GraduationCap className="h-3.5 w-3.5" /> Série / Ano Escolar <span className="text-destructive">*</span>
-               </Label>
-               <Select value={grade} onValueChange={setGrade}>
-                 <SelectTrigger className="rounded-2xl">
-                   <SelectValue placeholder="Selecione a série" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   {GRADE_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                 </SelectContent>
-               </Select>
-             </div>
-           </div>
+          {/* Necessidade Específica */}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              Defina a Necessidade Específica
+            </Label>
+            <Select value={specificNecessity} onValueChange={setSpecificNecessity}>
+              <SelectTrigger className="rounded-2xl">
+                <SelectValue placeholder="Selecione a necessidade (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {NECESSITY_OPTIONS.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {specificNecessity && (
+              <p className="text-[10px] text-purple-600 font-semibold animate-in fade-in">
+                ✨ A IA ajustará automaticamente: {specificNecessity === 'TEA' ? 'linguagem literal, sem metáforas' :
+                  specificNecessity === 'TDAH' ? 'instruções curtas, tópicos, negritos' :
+                  specificNecessity === 'Dislexia' ? 'espaçamento amplo, suporte visual' :
+                  specificNecessity === 'Baixa Visão' ? 'fonte 14pt+, alto contraste' :
+                  specificNecessity === 'Surdez' ? 'prioridade visual, linguagem direta' :
+                  'enriquecimento e desafios extras'}
+              </p>
+            )}
+          </div>
 
-           {/* Nível de Complexidade */}
-           <div className="space-y-2">
-             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-               Nível de Complexidade <span className="text-destructive">*</span>
-             </Label>
-             <RadioGroup value={complexity} onValueChange={setComplexity} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-               <label className={`flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${complexity === 'basico' ? 'border-cyan-500 bg-cyan-50' : 'border-transparent bg-muted/50'}`}>
-                 <div className="flex items-center gap-2 mb-1">
-                   <RadioGroupItem value="basico" id="complexity-basico" />
-                   <span className="text-xs font-bold">Básico</span>
-                 </div>
-                 <span className="text-[10px] text-muted-foreground">Foco em identificação e compreensão direta</span>
-               </label>
-               <label className={`flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${complexity === 'intermediario' ? 'border-violet-500 bg-violet-50' : 'border-transparent bg-muted/50'}`}>
-                 <div className="flex items-center gap-2 mb-1">
-                   <RadioGroupItem value="intermediario" id="complexity-intermediario" />
-                   <span className="text-xs font-bold">Intermediário</span>
-                 </div>
-                 <span className="text-[10px] text-muted-foreground">Foco em aplicação prática e análise</span>
-               </label>
-               <label className={`flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${complexity === 'robusto' ? 'border-purple-500 bg-purple-50' : 'border-transparent bg-muted/50'}`}>
-                 <div className="flex items-center gap-2 mb-1">
-                   <RadioGroupItem value="robusto" id="complexity-robusto" />
-                   <span className="text-xs font-bold">Robusto/Avançado</span>
-                 </div>
-                 <span className="text-[10px] text-muted-foreground">Foco em dedução, avaliação e pensamento crítico</span>
-               </label>
-             </RadioGroup>
-           </div>
-
-           {/* Necessidade Específica */}
-           <div className="space-y-2">
-             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-               Defina a Necessidade Específica
-             </Label>
-             <Select value={specificNecessity} onValueChange={setSpecificNecessity}>
-               <SelectTrigger className="rounded-2xl">
-                 <SelectValue placeholder="Selecione a necessidade (opcional)" />
-               </SelectTrigger>
-               <SelectContent>
-                 {NECESSITY_OPTIONS.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-               </SelectContent>
-             </Select>
-             {specificNecessity && (
-               <p className="text-[10px] text-purple-600 font-semibold animate-in fade-in">
-                 ✨ A IA ajustará automaticamente: {specificNecessity === 'TEA' ? 'linguagem literal, sem metáforas' :
-                   specificNecessity === 'TDAH' ? 'instruções curtas, tópicos, negritos' :
-                   specificNecessity === 'Dislexia' ? 'espaçamento amplo, suporte visual' :
-                   specificNecessity === 'Baixa Visão' ? 'fonte 14pt+, alto contraste' :
-                   specificNecessity === 'Surdez' ? 'prioridade visual, linguagem direta' :
-                   'enriquecimento e desafios extras'}
-               </p>
-             )}
-           </div>
+          {/* STEP 1 — Disciplina */}
+          <div className="space-y-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              1. Disciplina <span className="text-destructive">*</span>
+            </Label>
+            <Select value={subject} onValueChange={setSubject}>
+              <SelectTrigger className="rounded-2xl"><SelectValue placeholder="Selecione a disciplina" /></SelectTrigger>
+              <SelectContent>
+                {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* STEP 2 — Profile multi-select */}
           {subject && (

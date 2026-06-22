@@ -56,7 +56,6 @@ const Inclusao = lazy(() => import("@/pages/Inclusao"));
 const EduStudio = lazy(() => import("@/pages/EduStudio"));
 const MindMapGenerator = lazy(() => import("@/pages/MindMapGenerator"));
 const HubPlanejamento = lazy(() => import("@/pages/HubPlanejamento"));
-const Infograficos = lazy(() => import("@/pages/Infograficos"));
 const ReferenciasBibliograficas = lazy(() => import("@/pages/ReferenciasBibliograficas"));
 const StudentActivityResponse = lazy(() => import("@/pages/StudentActivityResponse"));
 const StudentSimulatorView = lazy(() => import("@/pages/StudentSimulatorView"));
@@ -125,7 +124,6 @@ function AppRoutes() {
             <Route path="/portal-aluno/arena-redacao" element={<StudentEssayArena />} />
             <Route path="/portal-aluno/desempenho" element={<StudentPerformance />} />
             <Route path="/portal-aluno/literatura" element={<LiteraturaView />} />
-            <Route path="/infograficos" element={<Infograficos />} />
             <Route path="/aluno" element={<Navigate to="/portal-aluno" replace />} />
             <Route path="/aluno/quiz" element={<Navigate to="/portal-aluno/quiz" replace />} />
             <Route path="/aluno/desempenho" element={<Navigate to="/portal-aluno/desempenho" replace />} />
@@ -162,7 +160,6 @@ function AppRoutes() {
           <Route path="/edustudio" element={<EduStudio />} />
           <Route path="/mapas-mentais" element={<MindMapGenerator />} />
           <Route path="/hub-360" element={<HubPlanejamento />} />
-          <Route path="/infograficos" element={<Infograficos />} />
           <Route path="/alta-performance" element={<AltaPerformance />} />
           <Route path="/vestibulares" element={<Vestibulares />} />
           <Route path="/tecnicos" element={<Tecnicos />} />

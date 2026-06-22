@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2, Dices, Gem, Workflow } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2, Dices, Gem } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
@@ -15,7 +15,6 @@ const teacherLinks = [
   { to: '/sobre', icon: BookMarked, label: 'Sobre o Projeto', section: 'Principal' },
   { to: '/hub-360', icon: Sparkles, label: 'Hub Planejamento 360º', section: '🏫 Sala de Aula' },
   { to: '/mapas-mentais', icon: Brain, label: 'Mapas Mentais Maker', section: '🏫 Sala de Aula' },
-  { to: '/infograficos', icon: Workflow, label: 'Infográficos', section: '🏫 Sala de Aula' },
   { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', section: '🏫 Sala de Aula' },
   { to: '/jogos', icon: Puzzle, label: 'Fábrica de Jogos', section: '🏫 Sala de Aula' },
   { to: '/atividade-extra', icon: Dices, label: '🎲 Atividade Extra', section: '🏫 Sala de Aula' },
@@ -54,7 +53,6 @@ const studentLinks = [
   { to: '/portal-aluno/quiz', icon: Target, label: 'Treino de Vestibular' },
   { to: '/portal-aluno/arena-redacao', icon: PenLine, label: '✍️ Arena de Redação' },
   { to: '/portal-aluno/literatura', icon: BookText, label: 'Dossiê Literário' },
-  { to: '/infograficos', icon: Workflow, label: 'Infográficos' },
   { to: '/jogos', icon: Gamepad2, label: 'Jogos Didáticos' },
   { to: '/portal-aluno/desempenho', icon: BarChart3, label: 'Meu Desempenho' },
 ];

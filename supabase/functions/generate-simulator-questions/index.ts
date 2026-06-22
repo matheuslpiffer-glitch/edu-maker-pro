@@ -264,7 +264,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-     const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo, senaiSpMatrix, senaiVestibulinho, nivelComplexidade, subject } = await req.json();
+    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo, senaiSpMatrix, senaiVestibulinho } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
     if (isInclusao) {
@@ -311,18 +311,6 @@ serve(async (req) => {
 A descrição deve ser clara, educativa e relacionada ao tema da questão.
 Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLINATIONS" class="w-full h-auto rounded-3xl" />\n`;
 
-       const gradeLabel: Record<string, string> = {
-         fundamental_1: 'Ensino Fundamental I (1º ao 5º ano)',
-         fundamental_2: 'Ensino Fundamental II (6º ao 9º ano)',
-         ensino_medio: 'Ensino Médio (1ª a 3ª série)',
-       };
-
-       const complexityInstruction = nivelComplexidade === 'robusto'
-         ? `\nAtenção máxima: O conteúdo deve ter ALTA complexidade cognitiva. Exija raciocínio lógico profundo, dedução e análise crítica. NÃO facilite a resposta ou o conceito.\n`
-         : nivelComplexidade === 'intermediario'
-         ? `\nComplexidade Intermediária: Exija que o aluno relacione conceitos e aplique o conhecimento.\n`
-         : `\nComplexidade Básica: O desafio cognitivo deve ser focado em memorização e compreensão concreta.\n`;
-
       const questionTypeLabels: Record<string, string> = {
         multipla_visual: 'Múltipla Escolha Visual (com 4 alternativas A-D, cada uma acompanhada de emoji ou imagem)',
         verdadeiro_falso: 'Verdadeiro ou Falso (afirmações claras com V ou F)',
@@ -330,11 +318,9 @@ Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLI
         perguntas_diretas: 'Perguntas Diretas (pergunta simples com espaço para resposta curta)',
       };
 
-       let systemPromptAEE = `Atue como um especialista em Desenho Universal para a Aprendizagem (DUA). Gere as questões para a disciplina de ${subject || 'Geral'} focada em alunos do ${gradeLabel[serie] || serie || 'Ensino Básico'}.
- 
- Seu trabalho é criar materiais RADICALMENTE acessíveis para alunos com ${perfil}.
- 
- HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
+      let systemPromptAEE = `Você é um Pós-Doutor em Educação Especial, especialista em Desenho Universal para a Aprendizagem (DUA) e em Atendimento Educacional Especializado (AEE). Seu trabalho é criar materiais RADICALMENTE acessíveis para alunos com ${perfil}.
+
+HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
 1. LINGUAGEM SIMPLES (Plain Language): Use SEMPRE frases curtas, ordem direta (sujeito-verbo-complemento) e termos concretos do cotidiano do aluno.
 2. CONTEXTUALIZAÇÃO: Relacione CADA conceito com algo do dia a dia (ex: rodas de bicicleta para raio/diâmetro, pizza para frações, escada para sequências numéricas).
 3. DESTAQUE DE PALAVRAS-CHAVE: Use <strong> em termos centrais para auxiliar na focalização visual do aluno.
@@ -343,11 +329,7 @@ Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLI
 DIRETRIZES OBRIGATÓRIAS DO PERFIL:
 ${diretriz}
 ${imageInstruction}
- ${complexityInstruction}
- 
- REGRA DE OURO INEGOCIÁVEL: Independente do nível de complexidade, a adaptação AEE deve ocorrer EXCLUSIVAMENTE na acessibilidade do formato: use frases curtas, ordem direta, elimine duplas negações, evite pegadinhas, estruture visualmente o texto com clareza e sugira o uso de imagens de apoio visual. O formato deve ser acessível, mas a expectativa de aprendizagem deve respeitar a série e a complexidade solicitadas.
- 
- REGRAS VISUAIS HTML:
+REGRAS VISUAIS HTML:
 - Use <div style="background:#ecfeff;border:2px solid #06b6d4;border-radius:16px;padding:20px;margin:16px 0"> para cada bloco de questão
 - Use espaçamento generoso (margin: 16px 0) entre todos os elementos
 - Use fonte grande implícita nos textos (tags <span style="font-size:1.15em">)
@@ -551,33 +533,12 @@ Responda em JSON:
   ]
 }`;
 
-      if (gameType === 'cruzadinha' || gameType === 'cruzadinha_termos') {
-        const systemPromptCruzadinha = `Atue como um criador de jogos pedagógicos. Com base no tema fornecido, crie dados para uma palavra cruzada. REGRA CRÍTICA: Retorne APENAS um objeto JSON válido, sem formatação markdown, contendo um array chamado "words". Cada item do array deve ter duas chaves: "answer" (a palavra da resposta, em MAIÚSCULAS, sem espaços e sem acentos) e "clue" (a dica pedagógica clara e objetiva para o aluno adivinhar a palavra). Gere entre 6 e 10 palavras no máximo.`;
-        const userPromptCruzadinha = `Tema: "${specificTopic || 'tema geral'}"\nSérie: ${serie || 'Ensino Fundamental'}${customMaterial ? `\nContexto: ${customMaterial.slice(0, 2000)}` : ''}`;
-        
-        const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
-          { role: "system", content: systemPromptCruzadinha },
-          { role: "user", content: userPromptCruzadinha },
-        ], 0.7);
+      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
+        { role: "system", content: systemPromptJogos },
+        { role: "user", content: userPromptJogos },
+      ], 0.8);
 
-        if (!response.ok) return handleErrorResponse(response, "cruzadinha");
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content || "";
-        try {
-          const parsed = extractJsonFromMixedResponse(content);
-          return new Response(JSON.stringify({ questions: [{ content: JSON.stringify(parsed), skillCode: "GAME-CRUZADINHA", descriptor: specificTopic || 'Cruzadinha' }] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        } catch (error) {
-          console.error("Failed to parse cruzadinha JSON:", content, error);
-          return new Response(JSON.stringify({ error: "Erro ao processar dados da cruzadinha." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        }
-      } else {
-        const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
-          { role: "system", content: systemPromptJogos },
-          { role: "user", content: userPromptJogos },
-        ], 0.8);
-
-        return await parseAIResponse(response, "jogo");
-      }
+      return await parseAIResponse(response, "jogo");
     }
 
     // ══════ LITERATURA MODE ══════

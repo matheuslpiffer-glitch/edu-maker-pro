@@ -204,7 +204,8 @@ Retorne um JSON PURO (sem markdown, sem crases) com esta estrutura:
 
     const data = await res.json();
     let raw = data.choices?.[0]?.message?.content || "";
-    const mindMap = extractJson(raw);
+    raw = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+    const mindMap = JSON.parse(raw);
 
     return new Response(JSON.stringify(mindMap), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e: any) {
@@ -212,31 +213,3 @@ Retorne um JSON PURO (sem markdown, sem crases) com esta estrutura:
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });
-
-function extractJson(response: string): any {
-  let cleaned = response.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-  const start = cleaned.search(/[\{\[]/);
-  const isArr = start !== -1 && cleaned[start] === "[";
-  const end = cleaned.lastIndexOf(isArr ? "]" : "}");
-  if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    let repaired = cleaned
-      .replace(/[\x00-\x1F\x7F]/g, " ")
-      .replace(/,\s*}/g, "}")
-      .replace(/,\s*]/g, "]");
-    // balance braces/brackets
-    const opens = (repaired.match(/\{/g) || []).length;
-    const closes = (repaired.match(/\}/g) || []).length;
-    const opensB = (repaired.match(/\[/g) || []).length;
-    const closesB = (repaired.match(/\]/g) || []).length;
-    repaired += "]".repeat(Math.max(0, opensB - closesB));
-    repaired += "}".repeat(Math.max(0, opens - closes));
-    try {
-      return JSON.parse(repaired);
-    } catch (e2) {
-      throw new Error(`Falha ao parsear JSON do mapa mental: ${(e2 as Error).message}`);
-    }
-  }
-}
