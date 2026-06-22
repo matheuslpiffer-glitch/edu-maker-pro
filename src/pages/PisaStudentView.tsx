@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Loader2, Globe, Brain, Send, CheckCircle } from 'lucide-react';
+import MathRenderer from '@/components/MathRenderer';
 
 interface PisaOption {
   letter: string;
@@ -125,7 +126,7 @@ export default function PisaStudentView() {
         </Card>
 
         {/* Questions */}
-        {questions.map((q, i) => (
+        {(questions || []).map((q, i) => (
           <Card key={i}>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2 flex-wrap">
@@ -135,7 +136,9 @@ export default function PisaStudentView() {
               </div>
 
               {q.scenario && (
-                <div className="bg-muted/50 p-3 rounded-lg text-sm italic">{q.scenario}</div>
+                <div className="bg-muted/50 p-3 rounded-lg text-sm italic">
+                  <MathRenderer content={q.scenario} className="inline" />
+                </div>
               )}
 
               {q.dataTable && (
@@ -145,11 +148,11 @@ export default function PisaStudentView() {
                 </ScrollArea>
               )}
 
-              <p className="text-sm leading-relaxed">{q.content}</p>
+              <MathRenderer content={q.content} className="text-sm leading-relaxed" />
 
-              {q.type === 'multiple-choice' && q.options && (
+              {q.type === 'multiple-choice' && (q.options || []).length > 0 && (
                 <div className="space-y-2">
-                  {q.options.map(opt => (
+                  {(q.options || []).map(opt => (
                     <label
                       key={opt.letter}
                       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
@@ -165,7 +168,7 @@ export default function PisaStudentView() {
                         className="accent-primary"
                       />
                       <span className="font-medium text-sm">({opt.letter})</span>
-                      <span className="text-sm">{opt.text}</span>
+                      <MathRenderer content={opt.text} className="text-sm inline" />
                     </label>
                   ))}
                 </div>

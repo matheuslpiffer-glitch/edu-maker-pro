@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,17 +10,33 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
   ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
+  Trash2, Library, Search, X, Glasses, VolumeX
+
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { buildPinUrl } from '@/lib/public-links';
 import QRCodeModal from '@/components/QRCodeModal';
 import TriagemNeuro from '@/components/TriagemNeuro';
+import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
 
 /* ── Profiles ── */
 const AEE_PROFILES = [
@@ -30,6 +47,10 @@ const AEE_PROFILES = [
   { value: 'aee_dm', label: 'DM (Def. Múltipla)', icon: Users, color: 'emerald' },
   { value: 'aee_tod', label: 'TOD', icon: Hand, color: 'orange' },
   { value: 'aee_auditiva', label: 'Deficiência Auditiva', icon: Ear, color: 'indigo' },
+  { value: 'aee_dislexia', label: 'Dislexia', icon: Type, color: 'pink' },
+  { value: 'aee_baixa_visao', label: 'Baixa Visão', icon: Glasses, color: 'cyan' },
+  { value: 'aee_surdez', label: 'Surdez', icon: VolumeX, color: 'teal' },
+  { value: 'aee_altas_habilidades', label: 'Altas Habilidades', icon: Lightbulb, color: 'yellow' },
 ];
 
 const AEE_MODES = [
@@ -67,33 +88,6 @@ const INCLUSION_CARDS = [
     bgAccent: 'bg-purple-500/10',
   },
   {
-    id: 'tdah' as const,
-    title: 'Criar Trilha TDAH',
-    desc: 'Conteúdos curtos com estímulos visuais e micro-learning',
-    icon: Zap,
-    gradient: 'from-blue-600 to-cyan-600',
-    shadow: 'shadow-blue-500/30',
-    bgAccent: 'bg-blue-500/10',
-  },
-  {
-    id: 'audio' as const,
-    title: 'Audiodescrição Pedagógica',
-    desc: 'Materiais acessíveis para alunos com deficiência visual',
-    icon: Volume2,
-    gradient: 'from-emerald-600 to-teal-600',
-    shadow: 'shadow-emerald-500/30',
-    bgAccent: 'bg-emerald-500/10',
-  },
-  {
-    id: 'libras' as const,
-    title: 'Tradutor para Libras',
-    desc: 'Geração de imagens e roteiros visuais em Libras',
-    icon: Languages,
-    gradient: 'from-orange-500 to-amber-600',
-    shadow: 'shadow-orange-500/30',
-    bgAccent: 'bg-orange-500/10',
-  },
-  {
     id: 'triagem' as const,
     title: 'Triagem e Anamnese Neuro',
     desc: 'Questionários SNAP-IV e M-CHAT com relatório de apoio pedagógico',
@@ -104,15 +98,36 @@ const INCLUSION_CARDS = [
   },
 ];
 
-const CYCLE_OPTIONS = [
-  { value: 'infantil', label: 'Educação Infantil' },
-  { value: 'anos_iniciais', label: 'Anos Iniciais (1º ao 5º)' },
-  { value: 'anos_finais', label: 'Anos Finais (6º ao 9º)' },
-  { value: 'medio', label: 'Ensino Médio' },
-  { value: 'eja', label: 'EJA' },
-];
+ const GRADE_OPTIONS = [
+   { value: 'fundamental_1', label: 'Ensino Fundamental I (1º ao 5º ano)' },
+   { value: 'fundamental_2', label: 'Ensino Fundamental II (6º ao 9º ano)' },
+   { value: 'ensino_medio', label: 'Ensino Médio (1ª a 3ª série)' },
+ ];
 
-type ActiveView = 'dashboard' | 'adaptar' | 'tdah' | 'audio' | 'libras' | 'triagem';
+type ActiveView = 'dashboard' | 'adaptar' | 'triagem';
+
+const INCLUSAO_DRAFT_KEYS = {
+  result: 'inclusao-result',
+  generatedImages: 'inclusao-generated-images',
+  accessCode: 'inclusao-access-code',
+  consultancyTip: 'inclusao-consultancy-tip',
+} as const;
+
+const INCLUSAO_DRAFT_KEY_LIST = Object.values(INCLUSAO_DRAFT_KEYS);
+
+function hasMeaningfulLocalDraft(storageKey: string): boolean {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed.length > 0;
+    if (parsed && typeof parsed === 'object') return Object.keys(parsed).length > 0;
+    if (typeof parsed === 'string') return parsed.trim().length > 0;
+    return parsed !== null && parsed !== undefined;
+  } catch {
+    return false;
+  }
+}
 
 function cleanHtml(raw: string): string {
   return raw
@@ -288,33 +303,247 @@ function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionI
   );
 }
 
-/* ── Coming Soon Card ── */
-function ComingSoonView({ title, icon: Icon, onBack }: { title: string; icon: React.ElementType; onBack: () => void }) {
-  return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <Button variant="ghost" onClick={onBack} className="gap-2 rounded-xl">
-        <ArrowLeft className="h-4 w-4" /> Voltar
-      </Button>
-      <div className="bg-card rounded-[3rem] border p-12 text-center space-y-4">
-        <div className="h-16 w-16 mx-auto rounded-2xl bg-gradient-to-br from-cyan-400 to-teal-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-          <Icon className="h-8 w-8 text-white" />
-        </div>
-        <h2 className="text-2xl font-black text-foreground">{title}</h2>
-        <p className="text-muted-foreground text-sm max-w-md mx-auto">
-          Este módulo está em desenvolvimento e será liberado em breve. Fique atento às atualizações do EduCreator Pro!
-        </p>
-        <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-xs font-bold">EM BREVE</Badge>
+/* ── Activities List Component ── */
+function ActivitiesList() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [profileFilter, setProfileFilter] = useState('all');
+
+
+  const { data: activities = [], isLoading } = useQuery({
+    queryKey: ['aee_activities', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('aee_activities')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      setDeletingId(id);
+      const { error } = await supabase.from('aee_activities').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aee_activities'] });
+      toast({ title: 'Atividade excluída com sucesso.' });
+    },
+    onError: (e: any) => {
+      showAiErrorToast(e, toast, 'Erro ao excluir')
+    },
+    onSettled: () => setDeletingId(null),
+  });
+
+  const filteredActivities = useMemo(() => {
+    return activities.filter((activity: any) => {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        searchTerm === '' ||
+        activity.topic?.toLowerCase().includes(searchLower) ||
+        activity.subject?.toLowerCase().includes(searchLower);
+      
+      const matchesProfile = 
+        profileFilter === 'all' || 
+        (activity.profile && activity.profile.includes(profileFilter));
+        
+      return matchesSearch && matchesProfile;
+    });
+  }, [activities, searchTerm, profileFilter]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
       </div>
+    );
+  }
+
+  if (activities.length === 0) {
+    return (
+      <div className="text-center py-20 border-2 border-dashed rounded-[3rem] bg-muted/20">
+        <Accessibility className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+        <p className="text-muted-foreground font-medium">Você ainda não salvou nenhuma atividade inclusiva.</p>
+      </div>
+    );
+  }
+
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('pt-BR');
+  };
+
+  const getProfileBadges = (profileStr: string) => {
+    if (!profileStr) return null;
+    const profiles = profileStr.split(',');
+    return profiles.map(p => {
+      const config = AEE_PROFILES.find(ap => ap.value === p);
+      if (!config) return null;
+      const colors: Record<string, string> = {
+        amber: 'bg-amber-100 text-amber-700 border-amber-200',
+        rose: 'bg-rose-100 text-rose-700 border-rose-200',
+        violet: 'bg-violet-100 text-violet-700 border-violet-200',
+        sky: 'bg-sky-100 text-sky-700 border-sky-200',
+        emerald: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        orange: 'bg-orange-100 text-orange-700 border-orange-200',
+        indigo: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+      };
+      const colorClass = colors[config.color] || 'bg-gray-100 text-gray-700 border-gray-200';
+      return (
+        <Badge key={p} variant="outline" className={`rounded-lg px-2 py-0 text-[10px] border ${colorClass}`}>
+          {config.label}
+        </Badge>
+      );
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-1 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-purple-600" />
+          <Input
+            placeholder="Buscar por título ou disciplina..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 rounded-2xl border-purple-100 focus-visible:ring-purple-500"
+          />
+        </div>
+        <Select value={profileFilter} onValueChange={setProfileFilter}>
+          <SelectTrigger className="w-full md:w-[240px] rounded-2xl border-purple-100 focus:ring-purple-500">
+            <SelectValue placeholder="Tipo de Adaptação" />
+          </SelectTrigger>
+          <SelectContent className="rounded-2xl border-purple-100">
+            <SelectItem value="all">Todas as adaptações</SelectItem>
+            {AEE_PROFILES.map((profile) => (
+              <SelectItem key={profile.value} value={profile.value}>
+                {profile.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {(searchTerm || profileFilter !== 'all') && (
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              setSearchTerm('');
+              setProfileFilter('all');
+            }}
+            className="rounded-2xl gap-2 text-muted-foreground hover:text-purple-600"
+          >
+            <X className="h-4 w-4" /> Limpar Filtros
+          </Button>
+        )}
+      </div>
+
+      {filteredActivities.length === 0 ? (
+        <div className="text-center py-20 border-2 border-dashed rounded-[3rem] bg-muted/20">
+          <div className="bg-white/50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="h-8 w-8 text-muted-foreground/30" />
+          </div>
+          <p className="text-muted-foreground font-medium mb-4">Nenhuma avaliação adaptada encontrada para os filtros selecionados.</p>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setSearchTerm('');
+              setProfileFilter('all');
+            }}
+            className="rounded-2xl border-purple-200 hover:bg-purple-50 text-purple-700"
+          >
+            Limpar filtros de busca
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filteredActivities.map((activity) => (
+
+        <Card key={activity.id} className="rounded-[2rem] border-purple-100 hover:shadow-xl transition-all group overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-start gap-2">
+              <div className="space-y-1">
+                <CardTitle className="text-lg font-black group-hover:text-purple-600 transition-colors">
+                  {activity.topic || 'Atividade AEE'}
+                </CardTitle>
+                <CardDescription className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  {activity.subject} · {formatDate(activity.created_at)}
+                </CardDescription>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    disabled={deletingId === activity.id}
+                    className="text-destructive hover:bg-destructive/10 rounded-xl h-8 w-8"
+                  >
+                    {deletingId === activity.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-[2rem]">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Tem certeza que deseja excluir esta avaliação inclusiva?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta ação não pode ser desfeita. A atividade será removida permanentemente do seu histórico.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => deleteMutation.mutate(activity.id)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-xl"
+                    >
+                      Sim, excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-1.5">
+              {getProfileBadges(activity.profile)}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-2">
+                {Array.isArray(activity.questions) && activity.questions.length > 0 && Array.from({ length: Math.min(3, activity.questions.length) }).map((_, i) => (
+                  <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-purple-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
+                    Q{i+1}
+                  </div>
+                ))}
+              </div>
+              <span className="text-[10px] font-medium text-muted-foreground">
+                {(Array.isArray(activity.questions) ? activity.questions.length : 0)} questões adaptadas
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+          ))}
+        </div>
+      )}
     </div>
+
   );
 }
+
 
 export default function Inclusao() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { addQuestions } = useSavedQuestionsBank();
 
-  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
+  const [activeView, setActiveView] = useState<ActiveView | 'minhas_atividades'>(() => (
+    hasMeaningfulLocalDraft(INCLUSAO_DRAFT_KEYS.result) ? 'adaptar' : 'dashboard'
+  ));
   const [subject, setSubject] = useState('');
   const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
   const [aeeMode, setAeeMode] = useState<'gerar_novas' | 'adaptar_antigas' | 'texto_resumo'>('gerar_novas');
@@ -324,16 +553,18 @@ export default function Inclusao() {
   const [questionType, setQuestionType] = useState('multipla_visual');
   const [imageMode, setImageMode] = useState<'com_imagem' | 'somente_texto'>('com_imagem');
   const [generating, setGenerating] = useState(false);
-  const [result, setResult] = useState<any[] | null>(null);
+  const restoredCloudDraftRef = useRef(false);
+  const [result, setResult] = useAutoSaveDraft<any[] | null>(INCLUSAO_DRAFT_KEYS.result, null);
   const [saving, setSaving] = useState(false);
-  const [generatedImages, setGeneratedImages] = useState<Record<number, string>>({});
-  const [savedAccessCode, setSavedAccessCode] = useState('');
+  const [generatedImages, setGeneratedImages] = useAutoSaveDraft<Record<number, string>>(INCLUSAO_DRAFT_KEYS.generatedImages, {});
+  const [savedAccessCode, setSavedAccessCode] = useAutoSaveDraft<string>(INCLUSAO_DRAFT_KEYS.accessCode, '');
   const [qrOpen, setQrOpen] = useState(false);
   const [specificNecessity, setSpecificNecessity] = useState('');
-  const [consultancyTip, setConsultancyTip] = useState('');
-  const [schoolCycle, setSchoolCycle] = useState('');
+  const [consultancyTip, setConsultancyTip] = useAutoSaveDraft<string>(INCLUSAO_DRAFT_KEYS.consultancyTip, '');
+   const [grade, setGrade] = useState('');
+  const [complexity, setComplexity] = useState('basico');
 
-  const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic && !!schoolCycle;
+   const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic && !!grade && !!complexity;
 
   const toggleProfile = (value: string) => {
     setSelectedProfiles(prev =>
@@ -344,6 +575,46 @@ export default function Inclusao() {
   const handleImageGenerated = (index: number, url: string) => {
     setGeneratedImages(prev => ({ ...prev, [index]: url }));
   };
+
+  useEffect(() => {
+    if (!user || restoredCloudDraftRef.current) return;
+
+    restoredCloudDraftRef.current = true;
+    let cancelled = false;
+
+    const restoreCloudDrafts = async () => {
+      const shouldFetch = INCLUSAO_DRAFT_KEY_LIST.some(key => !hasMeaningfulLocalDraft(key));
+      if (!shouldFetch) return;
+
+      const { data, error } = await supabase
+        .from('materials_drafts')
+        .select('storage_key, content')
+        .eq('user_id', user.id)
+        .in('storage_key', INCLUSAO_DRAFT_KEY_LIST);
+
+      if (cancelled) return;
+      if (error) {
+        console.error('Erro ao restaurar rascunho da Inclusão:', error);
+        return;
+      }
+
+      data?.forEach(draft => {
+        if (hasMeaningfulLocalDraft(draft.storage_key)) return;
+        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.result) {
+          setResult(draft.content as any[] | null);
+          if (Array.isArray(draft.content) && draft.content.length > 0) {
+            setActiveView(prev => prev === 'dashboard' ? 'adaptar' : prev);
+          }
+        }
+        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.generatedImages) setGeneratedImages((draft.content as Record<number, string>) || {});
+        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.accessCode) setSavedAccessCode((draft.content as string) || '');
+        if (draft.storage_key === INCLUSAO_DRAFT_KEYS.consultancyTip) setConsultancyTip((draft.content as string) || '');
+      });
+    };
+
+    restoreCloudDrafts();
+    return () => { cancelled = true; };
+  }, [user, setResult, setGeneratedImages, setSavedAccessCode, setConsultancyTip]);
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -364,7 +635,8 @@ export default function Inclusao() {
         aeeImageMode: imageMode,
         specificTopic: topic,
         specificNecessity,
-        schoolCycle,
+         serie: grade,
+        nivelComplexidade: complexity,
       });
       if (data?.error) throw new Error(data.error);
       if (data?.questions) {
@@ -392,7 +664,7 @@ export default function Inclusao() {
       }
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Erro ao gerar conteúdo AEE', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar conteúdo AEE')
     } finally {
       setGenerating(false);
     }
@@ -406,8 +678,11 @@ export default function Inclusao() {
         ...q,
         generatedImageUrl: generatedImages[i] || q.imageUrl || null,
       }));
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Usuário não autenticado");
+
       const { error } = await supabase.from('aee_activities').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         profile: selectedProfiles.join(','),
         subject,
         topic,
@@ -418,7 +693,7 @@ export default function Inclusao() {
       if (error) throw error;
       toast({ title: '✅ Atividade salva no seu perfil!' });
     } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao salvar')
     } finally {
       setSaving(false);
     }
@@ -429,8 +704,11 @@ export default function Inclusao() {
     setSaving(true);
     try {
       const profileLabels = selectedProfiles.map(p => AEE_PROFILES.find(ap => ap.value === p)?.label || p).join(' + ');
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Usuário não autenticado");
+
       const { data, error } = await supabase.from('question_banks').insert({
-        user_id: user.id,
+        user_id: currentUser.id,
         subject,
         topic: `AEE: ${profileLabels} — ${topic}`,
         grade: 'AEE',
@@ -450,7 +728,7 @@ export default function Inclusao() {
         toast({ title: '✅ Simulado salvo!' });
       }
     } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao salvar')
     } finally {
       setSaving(false);
     }
@@ -499,7 +777,7 @@ export default function Inclusao() {
       toast({ title: 'PDF gerado com sucesso!' });
     } catch (e: any) {
       document.getElementById('aee-pdf-header')?.remove();
-      toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar PDF')
     }
   };
 
@@ -531,10 +809,52 @@ export default function Inclusao() {
     indigo: { bg: 'bg-indigo-50', border: 'border-indigo-500', text: 'text-indigo-600', shadow: 'shadow-indigo-500/20' },
   };
 
+  /* ── My Activities View ── */
+  if (activeView === 'minhas_atividades') {
+    return (
+      <div className="max-w-7xl mx-auto space-y-8">
+        <Button variant="ghost" onClick={() => setActiveView('dashboard')} className="gap-2 rounded-xl">
+          <ArrowLeft className="h-4 w-4" /> Voltar para Inclusão
+        </Button>
+
+        <div className="bg-[#0F172A] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 to-teal-600/10 pointer-events-none" />
+          <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                  <Library className="h-6 w-6 text-white" />
+                </div>
+                <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px] uppercase tracking-widest font-bold">
+                  Histórico AEE
+                </Badge>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black leading-tight">Minhas Atividades Adaptadas</h2>
+              <p className="text-sm text-slate-400 mt-2">Gerencie as avaliações e materiais inclusivos gerados por você.</p>
+            </div>
+          </div>
+        </div>
+
+        <ActivitiesList />
+      </div>
+    );
+  }
+
   /* ── Dashboard View ── */
   if (activeView === 'dashboard') {
     return (
       <div className="max-w-7xl mx-auto space-y-8">
+        {/* Top Actions */}
+        <div className="flex justify-end mb-4">
+          <Button 
+            variant="outline" 
+            onClick={() => setActiveView('minhas_atividades')}
+            className="rounded-2xl gap-2 border-indigo-200 hover:bg-indigo-50 text-indigo-700"
+          >
+            <Library className="h-4 w-4" /> Minhas Atividades
+          </Button>
+        </div>
+
         {/* Hero */}
         <div className="bg-[#0F172A] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/20 to-teal-600/10 pointer-events-none" />
@@ -652,11 +972,6 @@ export default function Inclusao() {
     );
   }
 
-  /* ── Coming Soon Views ── */
-  if (activeView === 'tdah') return <ComingSoonView title="Criar Trilha TDAH" icon={Zap} onBack={() => setActiveView('dashboard')} />;
-  if (activeView === 'audio') return <ComingSoonView title="Audiodescrição Pedagógica" icon={Volume2} onBack={() => setActiveView('dashboard')} />;
-  if (activeView === 'libras') return <ComingSoonView title="Tradutor para Libras (Imagens)" icon={Languages} onBack={() => setActiveView('dashboard')} />;
-
   /* ── Triagem Neuro View ── */
   if (activeView === 'triagem') return (
     <TriagemNeuro
@@ -700,67 +1015,65 @@ export default function Inclusao() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Left: form */}
         <div className="lg:col-span-3 space-y-6">
-          {/* Ciclo Escolar */}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <GraduationCap className="h-3.5 w-3.5" /> Ciclo / Série <span className="text-destructive">*</span>
-            </Label>
-            <Select value={schoolCycle} onValueChange={setSchoolCycle}>
-              <SelectTrigger className="rounded-2xl">
-                <SelectValue placeholder="Selecione o ciclo escolar" />
-              </SelectTrigger>
-              <SelectContent>
-                {CYCLE_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {schoolCycle && (
-              <p className="text-[10px] text-cyan-600 font-semibold animate-in fade-in">
-                🎯 IA ajustará: {schoolCycle === 'infantil' ? 'foco lúdico/imagético, linguagem simples, estímulos visuais amplos' :
-                  schoolCycle === 'anos_iniciais' ? 'linguagem acessível, ilustrações de apoio, enunciados curtos' :
-                  schoolCycle === 'anos_finais' ? 'enunciados intermediários, vocabulário progressivo' :
-                  schoolCycle === 'medio' ? 'linguagem estrutural/objetiva, abordagem formal' :
-                  'linguagem adulta, contextos práticos do cotidiano'}
-              </p>
-            )}
-          </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             {/* STEP 1 — Disciplina */}
+             <div className="space-y-2">
+               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                 1. Disciplina <span className="text-destructive">*</span>
+               </Label>
+               <Select value={subject} onValueChange={setSubject}>
+                 <SelectTrigger className="rounded-2xl"><SelectValue placeholder="Selecione a disciplina" /></SelectTrigger>
+                 <SelectContent>
+                   {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                 </SelectContent>
+               </Select>
+             </div>
 
-          {/* Necessidade Específica */}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Defina a Necessidade Específica
-            </Label>
-            <Select value={specificNecessity} onValueChange={setSpecificNecessity}>
-              <SelectTrigger className="rounded-2xl">
-                <SelectValue placeholder="Selecione a necessidade (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {NECESSITY_OPTIONS.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            {specificNecessity && (
-              <p className="text-[10px] text-purple-600 font-semibold animate-in fade-in">
-                ✨ A IA ajustará automaticamente: {specificNecessity === 'TEA' ? 'linguagem literal, sem metáforas' :
-                  specificNecessity === 'TDAH' ? 'instruções curtas, tópicos, negritos' :
-                  specificNecessity === 'Dislexia' ? 'espaçamento amplo, suporte visual' :
-                  specificNecessity === 'Baixa Visão' ? 'fonte 14pt+, alto contraste' :
-                  specificNecessity === 'Surdez' ? 'prioridade visual, linguagem direta' :
-                  'enriquecimento e desafios extras'}
-              </p>
-            )}
-          </div>
+             {/* Série / Ano Escolar */}
+             <div className="space-y-2">
+               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                 <GraduationCap className="h-3.5 w-3.5" /> Série / Ano Escolar <span className="text-destructive">*</span>
+               </Label>
+               <Select value={grade} onValueChange={setGrade}>
+                 <SelectTrigger className="rounded-2xl">
+                   <SelectValue placeholder="Selecione a série" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {GRADE_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                 </SelectContent>
+               </Select>
+             </div>
+           </div>
 
-          {/* STEP 1 — Disciplina */}
-          <div className="space-y-2">
-            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              1. Disciplina <span className="text-destructive">*</span>
-            </Label>
-            <Select value={subject} onValueChange={setSubject}>
-              <SelectTrigger className="rounded-2xl"><SelectValue placeholder="Selecione a disciplina" /></SelectTrigger>
-              <SelectContent>
-                {SUBJECTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+           {/* Nível de Complexidade */}
+           <div className="space-y-2">
+             <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+               Nível de Complexidade <span className="text-destructive">*</span>
+             </Label>
+             <RadioGroup value={complexity} onValueChange={setComplexity} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+               <label className={`flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${complexity === 'basico' ? 'border-cyan-500 bg-cyan-50' : 'border-transparent bg-muted/50'}`}>
+                 <div className="flex items-center gap-2 mb-1">
+                   <RadioGroupItem value="basico" id="complexity-basico" />
+                   <span className="text-xs font-bold">Básico</span>
+                 </div>
+                 <span className="text-[10px] text-muted-foreground">Foco em identificação e compreensão direta</span>
+               </label>
+               <label className={`flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${complexity === 'intermediario' ? 'border-violet-500 bg-violet-50' : 'border-transparent bg-muted/50'}`}>
+                 <div className="flex items-center gap-2 mb-1">
+                   <RadioGroupItem value="intermediario" id="complexity-intermediario" />
+                   <span className="text-xs font-bold">Intermediário</span>
+                 </div>
+                 <span className="text-[10px] text-muted-foreground">Foco em aplicação prática e análise</span>
+               </label>
+               <label className={`flex flex-col p-4 rounded-2xl border-2 cursor-pointer transition-all ${complexity === 'robusto' ? 'border-purple-500 bg-purple-50' : 'border-transparent bg-muted/50'}`}>
+                 <div className="flex items-center gap-2 mb-1">
+                   <RadioGroupItem value="robusto" id="complexity-robusto" />
+                   <span className="text-xs font-bold">Robusto/Avançado</span>
+                 </div>
+                 <span className="text-[10px] text-muted-foreground">Foco em dedução, avaliação e pensamento crítico</span>
+               </label>
+             </RadioGroup>
+           </div>
 
           {/* STEP 2 — Profile multi-select */}
           {subject && (
@@ -851,7 +1164,6 @@ export default function Inclusao() {
                         <SelectContent>
                           <SelectItem value="multipla_visual">Múltipla Escolha Visual</SelectItem>
                           <SelectItem value="verdadeiro_falso">Verdadeiro ou Falso</SelectItem>
-                          <SelectItem value="ligar_colunas">Ligar Colunas</SelectItem>
                           <SelectItem value="perguntas_diretas">Perguntas Diretas</SelectItem>
                         </SelectContent>
                       </Select>

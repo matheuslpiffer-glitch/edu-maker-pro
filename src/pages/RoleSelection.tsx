@@ -30,9 +30,12 @@ export default function RoleSelection({ onRoleSelected }: Props) {
   const selectRole = async (role: 'user' | 'student') => {
     if (!user) return;
     setLoading(role);
-    const { error } = await supabase.from('user_roles').insert({ user_id: user.id, role });
+    const { error } = await supabase
+      .from('user_roles')
+      .upsert({ user_id: user.id, role }, { onConflict: 'user_id,role', ignoreDuplicates: true });
     setLoading(null);
-    if (error) {
+    // 23505 = duplicate key (role already exists) → treat as success
+    if (error && (error as any).code !== '23505') {
       toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     } else {
       onRoleSelected();

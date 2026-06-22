@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,8 +17,21 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
+
+    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const questionsText = questions.map((q: any, i: number) => {
       const opts = (q.options || []).map((o: any) => `${o.letter}) ${o.text}`).join("\n");
@@ -25,18 +39,20 @@ serve(async (req) => {
       return `Questão ${i + 1}:\n${q.content}\n${opts}\nCorreta: ${correct}`;
     }).join("\n\n");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content: `Você é um formatador de dados para o Kahoot. Converta questões para o formato CSV do Kahoot.
+    let response;
+    for (let i = 0; i < 4; i++) {
+      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${GEMINI_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: `Você é um formatador de dados para o Kahoot. Converta questões para o formato CSV do Kahoot.
 O formato EXATO deve ser (sem cabeçalho):
 Question,Answer 1,Answer 2,Answer 3,Answer 4,Time limit (sec),Correct answer(s)
 
@@ -48,20 +64,23 @@ Regras:
 - Correct answer é o número da alternativa correta (1, 2, 3 ou 4)
 - Use apenas as 4 primeiras alternativas
 - Responda APENAS com o CSV, sem explicações`,
-          },
-          { role: "user", content: questionsText },
-        ],
-        temperature: 0.1,
-      }),
-    });
+            },
+            { role: "user", content: questionsText },
+          ],
+          temperature: 0.1,
+        }),
+      });
+      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
+      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+    }
 
-    if (!response.ok) {
-      if (response.status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (response.status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!response!.ok) {
+      if (response!.status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (response!.status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       return new Response(JSON.stringify({ error: "Erro ao formatar Kahoot" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const data = await response.json();
+    const data = await response!.json();
     const csv = data.choices?.[0]?.message?.content || "";
 
     return new Response(JSON.stringify({ csv: csv.trim() }), {

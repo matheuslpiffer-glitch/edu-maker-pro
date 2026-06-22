@@ -207,115 +207,100 @@ h1, h2, h3, h4, h5, h6 {
   font-style: normal !important;
 }
 
+/* ==========================================================================
+   ENGINE DE IMPRESSÃO GLOBAL - EDUCREATOR PRO (CSS PAGED MEDIA)
+   ========================================================================== */
 @media print {
-  @page {
-    size: A4;
-    margin: 15mm 10mm;
-  }
-  .no-print {
-    display: none !important;
-  }
-  .print-only {
-    display: block !important;
-  }
-  body, body.print-mode {
-    background: white !important;
-    font-size: 11pt !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    word-break: break-word !important;
-    overflow-wrap: break-word !important;
-  }
-  body.print-mode * {
-    visibility: hidden;
-  }
-  body.print-mode #pdf-preview-container,
-  body.print-mode #pdf-preview-container * {
-    visibility: visible;
-  }
-  body.print-mode #pdf-preview-container {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-  p, li, tr, .print-no-break {
-    page-break-inside: avoid;
-  }
-  /* Anti-corte: cada bloco de questão não quebra entre páginas */
-  .question-block {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-  table {
-    width: 100% !important;
-    word-break: break-word;
-  }
-  .print-list {
-    font-size: 10pt !important;
-  }
-  /* Layout duas colunas para impressão */
-  .print-two-columns {
-    column-count: 2;
-    column-gap: 20px;
-    column-rule: 1px solid #ccc;
-  }
-  .print-two-columns .question-block {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-  /* AEE: fontes maiores para acessibilidade */
-  .aee-print .question-block {
-    font-size: 14pt !important;
-    line-height: 1.6 !important;
-  }
-  .aee-print img {
-    min-width: 120px;
-    min-height: 80px;
-  }
+    /* 1. Configuração absoluta da folha física e remoção de margens do browser */
+    @page {
+        size: A4;
+        margin: 15mm 10mm 15mm 10mm;
+    }
+
+    /* 2. Reset estrutural para garantir contraste máximo e tipografia limpa */
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Plus Jakarta Sans', Arial, sans-serif !important;
+        font-size: 11pt !important;
+        line-height: 1.5 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* 3. Ocultação total de elementos da interface Web que não vão para o papel */
+    .no-print, .sidebar, .navbar, button, .interface-ajuste, .toast, .btn-download, [role="navigation"], aside {
+        display: none !important;
+    }
+
+    .print-only {
+        display: block !important;
+    }
+
+    /* 4. BLOQUEIO DE FRAGMENTAÇÃO: Impede o corte de blocos atômicos */
+    .pdf-block, .questao-container, .card-plano, tr, .print-break-inside-avoid, .question-block {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* 5. Evita títulos órfãos isolados no rodapé da página */
+    h1, h2, h3, h4, .cabecalho-escola {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+
+    /* 6. Ajuste dinâmico para tabelas pesadas */
+    table {
+        width: 100% !important;
+        max-width: 100% !important;
+        page-break-inside: auto !important;
+        border-collapse: collapse !important;
+    }
+
+    th, td {
+        word-wrap: break-word !important;
+        font-size: 10pt !important;
+        padding: 8px !important;
+    }
+
+    /* Layout duas colunas para impressão (Simulados) */
+    .print-two-columns, .rgf-two-columns {
+        column-count: 2 !important;
+        column-gap: 20px !important;
+        column-rule: 1px solid #ccc !important;
+    }
+
+    /* Suporte para modo de visualização PDF específico */
+    body.print-mode * {
+        visibility: hidden;
+    }
+    body.print-mode #pdf-preview-container,
+    body.print-mode #pdf-preview-container *,
+    body.print-mode [data-print-content],
+    body.print-mode [data-print-content] * {
+        visibility: visible;
+    }
+    body.print-mode #pdf-preview-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    /* RGF Print Standard Compatibility */
+    .rgf-print-header, .rgf-body {
+        font-family: Arial, Helvetica, sans-serif !important;
+        font-size: 11pt !important;
+        line-height: 1.15 !important;
+        text-transform: uppercase !important;
+    }
+    .rgf-gabarito {
+        page-break-before: always;
+    }
 }
 
 .print-only {
-  display: none;
-}
-
-/* ===== RGF Print Standard ===== */
-@media print {
-  .rgf-print-header {
-    font-family: Arial, Helvetica, sans-serif !important;
-    font-size: 11pt !important;
-    line-height: 1.15 !important;
-    text-transform: uppercase !important;
-    page-break-inside: avoid;
-    margin-bottom: 12pt;
-  }
-  .rgf-body {
-    font-family: Arial, Helvetica, sans-serif !important;
-    font-size: 11pt !important;
-    line-height: 1.15 !important;
-    text-transform: uppercase !important;
-  }
-  .rgf-body strong,
-  .rgf-body b,
-  .rgf-body h1,
-  .rgf-body h2,
-  .rgf-body h3 {
-    font-weight: 700 !important;
-  }
-  .rgf-two-columns {
-    column-count: 2 !important;
-    column-gap: 20px !important;
-    column-rule: 1px solid #ccc !important;
-  }
-  .rgf-two-columns .question-block {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-  /* Gabarito on new page */
-  .rgf-gabarito {
-    page-break-before: always;
-  }
-  .rgf-gabarito strong {
-    text-decoration: underline;
-  }
+    display: none;
 }

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,6 +34,10 @@ function repairAndParse(json: string): unknown {
     .replace(/"\s*\n\s*/g, '" ')
     .replace(/\t/g, " ");
 
+  // Fix invalid backslash escapes inside JSON strings (LaTeX like \sqrt, \text, \frac).
+  // JSON only allows \" \\ \/ \b \f \n \r \t \uXXXX. Anything else must be escaped to \\.
+  cleaned = escapeInvalidBackslashes(cleaned);
+
   // Fix truncated strings: if we end mid-string, close it
   const quoteCount = (cleaned.match(/(?<!\\)"/g) || []).length;
   if (quoteCount % 2 !== 0) {
@@ -52,6 +57,38 @@ function repairAndParse(json: string): unknown {
   for (let i = 0; i < openBraces - closeBraces; i++) cleaned += "}";
 
   return JSON.parse(cleaned);
+}
+
+function escapeInvalidBackslashes(input: string): string {
+  let out = "";
+  let inStr = false;
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    if (!inStr) {
+      out += ch;
+      if (ch === '"') inStr = true;
+      continue;
+    }
+    if (ch === '"') {
+      out += ch;
+      inStr = false;
+      continue;
+    }
+    if (ch === "\\") {
+      const next = input[i + 1];
+      if (next === undefined) { out += "\\\\"; continue; }
+      if ('"\\/bfnrtu'.includes(next)) {
+        out += ch + next;
+        i++;
+      } else {
+        // invalid escape - double the backslash so JSON.parse accepts it
+        out += "\\\\";
+      }
+      continue;
+    }
+    out += ch;
+  }
+  return out;
 }
 
 function extractJsonFromMixedResponse(response: string): unknown {
@@ -81,20 +118,44 @@ function extractJsonFromMixedResponse(response: string): unknown {
           const questionsMatch = candidate.match(/"questions"\s*:\s*\[/);
           if (questionsMatch) {
             const arrStart = candidate.indexOf("[", candidate.indexOf('"questions"'));
-            const sub = candidate.slice(arrStart);
-            // Find last complete object (ending with })
-            const lastComplete = sub.lastIndexOf("}");
-            if (lastComplete > 0) {
-              const partial = sub.slice(0, lastComplete + 1) + "]";
+            const sub = candidate.slice(arrStart + 1); // content after the opening [
+            // Walk the string tracking braces while respecting JSON strings,
+            // collecting the end-index of each fully-closed top-level object.
+            const completeEnds: number[] = [];
+            let depth = 0;
+            let inStr = false;
+            let escape = false;
+            for (let i = 0; i < sub.length; i++) {
+              const ch = sub[i];
+              if (escape) { escape = false; continue; }
+              if (inStr) {
+                if (ch === "\\") { escape = true; continue; }
+                if (ch === '"') inStr = false;
+                continue;
+              }
+              if (ch === '"') { inStr = true; continue; }
+              if (ch === "{") depth++;
+              else if (ch === "}") {
+                depth--;
+                if (depth === 0) completeEnds.push(i);
+              }
+            }
+            if (completeEnds.length > 0) {
+              const lastEnd = completeEnds[completeEnds.length - 1];
+              const partial = "[" + sub.slice(0, lastEnd + 1) + "]";
               const repaired = '{"questions":' + partial + "}";
-              const parsed = repairAndParse(repaired);
-              if (parsed && typeof parsed === "object" && "questions" in (parsed as any)) {
-                const qs = (parsed as any).questions;
+              try {
+                const parsed = JSON.parse(escapeInvalidBackslashes(repaired));
+                const qs = (parsed as any)?.questions;
                 if (Array.isArray(qs) && qs.length > 0) {
-                  console.warn(`Recovered ${qs.length} questions from truncated response`);
+                  console.warn(`Recovered ${qs.length} complete question(s) from truncated response (dropped trailing incomplete object).`);
                   return parsed;
                 }
+              } catch (e) {
+                console.warn("Partial recovery JSON.parse failed:", (e as Error).message);
               }
+            } else {
+              console.warn("Truncated response had no complete question objects to recover.");
             }
           }
         } catch {
@@ -182,13 +243,13 @@ async function fetchAIWithRetry(
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      lastResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      lastResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ model: currentModel, messages, temperature }),
+        body: JSON.stringify({ model: currentModel, messages, temperature, max_tokens: 16384 }),
         signal: controller.signal,
       });
       clearTimeout(timer);
@@ -201,8 +262,8 @@ async function fetchAIWithRetry(
       if (isAbort && attempt < maxAttempts - 1) {
         console.warn(`Timeout on attempt ${attempt + 1}, retrying with faster model...`);
         // On timeout, switch to a faster/lighter model
-        if (attempt === 0) currentModel = "google/gemini-2.5-flash";
-        if (attempt === 1) currentModel = "google/gemini-2.5-flash-lite";
+        if (attempt === 0) currentModel = "gemini-2.5-flash";
+        if (attempt === 1) currentModel = "gemini-2.5-flash-lite";
       } else if (attempt >= maxAttempts - 1) {
         throw new Error("Estamos processando sua inteligência pedagógica... isso pode levar um momento. Por favor, tente novamente ou reduza o número de questões.");
       }
@@ -245,26 +306,39 @@ async function parseAIResponse(response: Response, label: string) {
 const NO_IMG_RULE = `
 REGRA ABSOLUTA: NÃO inclua NENHUMA tag <img>, link de imagem ou URL de imagem. Todo o conteúdo deve ser 100% textual. NUNCA use blocos de código markdown (\`\`\`html). Retorne somente HTML cru nos campos de conteúdo.
 
-FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL (por Matheus Lima Piffer):
-Está TERMINANTEMENTE PROIBIDO o uso de:
-- Delimitadores LaTeX: $...$ , $$...$$ , \\( ... \\) , \\[ ... \\]
-- Tags HTML de formatação inline: <sup>, <sub>, <b>, <i>, <em>, <strong> (EXCETO quando explicitamente permitido para AEE/inclusão)
-Use EXCLUSIVAMENTE caracteres Unicode para símbolos matemáticos:
-- π (pi), ² ³ ⁴ ⁵ ⁶ ⁷ ⁸ ⁹ ⁰ ¹ (sobrescritos), ₀ ₁ ₂ ₃ ₄ ₅ ₆ ₇ ₈ ₉ (subscritos)
-- √ (raiz), ∛ (raiz cúbica), ± ∓ × ÷ ≠ ≤ ≥ ≈ ∞ ∑ ∏ ∫ ∂ Δ ∈ ∉ ⊂ ⊃ ∪ ∩ ∅ ∀ ∃ ⟹ ⟺ ⊥ ∠ ∥ ≡ ∝ ℝ ℕ ℤ ℚ
-- Frações Unicode: ½ ⅓ ⅔ ¼ ¾ ⅕ ⅖ ⅗ ⅘ ⅙ ⅚ ⅛ ⅜ ⅝ ⅞ — para outras frações use barra: 1/3, 2/7
-- Letras gregas: α β γ δ ε ζ η θ ι κ λ μ ν ξ ο π ρ σ τ υ φ χ ψ ω Γ Δ Θ Λ Ξ Π Σ Φ Ψ Ω
-VALIDAÇÃO: Antes de retornar, verifique que NENHUM caractere $ ou sequência <sup>, <sub>, <b>, <i> exista no texto das questões e alternativas.
+FORMATAÇÃO MATEMÁTICA — USE LATEX SEMPRE:
+Toda notação matemática (enunciado E alternativas) DEVE ser escrita em LaTeX (a interface renderiza com KaTeX).
+- Inline: use SEMPRE \\( ... \\)  (ex.: \\(x^2 + 2x + 1\\), \\(\\frac{a}{b}\\), \\(\\sqrt{2}\\), \\(\\pi r^2\\))
+- Bloco/destaque: use SEMPRE \\[ ... \\] (ex.: \\[\\int_0^1 x\\,dx\\], \\[\\begin{cases} x+y=1 \\\\ x-y=3 \\end{cases}\\])
+- NUNCA use "$" ou "$$" como delimitador de matemática (causa ambiguidade com moeda).
+- Para valores em dinheiro, escreva normalmente em texto: "R$ 50,00", "R$ 1.299,90". O cifrão de moeda NÃO é LaTeX.
+- Use LaTeX para: frações (\\frac), expoentes (^), raízes (\\sqrt), índices (_), funções,
+  somatórios (\\sum), integrais (\\int), letras gregas (\\pi, \\alpha), sistemas, matrizes, conjuntos.
+- NUNCA escreva fórmula em texto corrido (não use "x^2" fora de \\(...\\), nem "raiz de 2" textual).
+- Em alternativas, qualquer fórmula deve ir delimitada em \\(...\\).
 `;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
-    const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo, senaiSpMatrix, senaiVestibulinho } = await req.json();
+    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+     const { examType, examModel, litModel, subjectArea, subjects, grade, difficulty, count, isDiscursiva, isRedacao, isAula, isQuestoes, isLiteratura, isInclusao, isJogos, gameType, activeDna, aeeProfiles, aeeMode, aeeTopic, aeeContent, aeeQuestionCount, aeeQuestionType, aeeImageMode, customMaterial, bloomLevel, specificTopic, serie, includeImages, technicalDiscipline, provaFormat, generoTextual, litObraName, litAutorName, studentMode, questionCount: studentQCount, activeSpecialty, isFastTrackVestibulinho, tecnicoInstitution, tecnicoMode, isSenaiMode, senaiEixo, senaiSpMatrix, senaiVestibulinho, nivelComplexidade, subject } = await req.json();
 
     // ══════ INCLUSÃO / AEE MODE ══════
     if (isInclusao) {
@@ -276,6 +350,10 @@ serve(async (req) => {
         aee_dm: `Combine múltiplas adaptações: linguagem simples, passos numerados, emojis como apoio visual, frases curtas (máximo 1 linha), alternativas reduzidas (3 opções) e descrição verbal completa de qualquer contexto visual.`,
         aee_tod: `Use linguagem POSITIVA e motivacional. Evite ordens diretas; prefira convites ("Vamos descobrir juntos?"). Ofereça escolhas ao aluno quando possível. Quebre tarefas grandes em micro-etapas com recompensa visual (⭐) a cada conclusão. Tom acolhedor e sem julgamento.`,
         aee_auditiva: `Priorize instruções VISUAIS e ESCRITAS claras. Use frases curtas na ordem direta. Destaque palavras-chave em <strong>negrito</strong>. Evite trocadilhos ou jogos de palavras sonoros. Cada instrução deve ser auto-explicativa sem depender de explicação oral.`,
+        aee_dislexia: `Use fonte ACESSÍVEL (estilo sans-serif, equivalente a OpenDyslexic/Arial) com ESPAÇAMENTO AMPLIADO entre linhas (line-height ~1.8) e entre palavras (word-spacing aumentado). Frases CURTAS (máximo 12 palavras) e divididas em BLOCOS PEQUENOS de 1 a 2 linhas, com bastante espaço em branco entre eles. DESTAQUE visualmente sílabas tônicas e palavras-chave em <strong>negrito</strong> (ex.: "<strong>fo-tos-sín-te-se</strong>"). EVITE textos longos corridos, justificação e itálico. Prefira alinhamento à ESQUERDA. Cada enunciado deve ser autoexplicativo e segmentado visualmente.`,
+        aee_baixa_visao: `Use FONTE AMPLIADA (equivalente a 18–24pt) e ALTO CONTRASTE (texto escuro em fundo claro ou vice-versa). Forneça DESCRIÇÕES TEXTUAIS DETALHADAS (audiodescrição) de qualquer imagem, gráfico ou elemento visual citado. NUNCA dependa apenas de cor para transmitir informação (ex.: "o item em vermelho" → "o item destacado em vermelho e marcado com ★"). Instruções VERBAIS CLARAS, diretas e objetivas. Espaçamento ampliado entre linhas e blocos. Alinhamento à ESQUERDA, sem itálico e sem efeitos visuais sutis.`,
+        aee_surdez: `Priorize RECURSOS VISUAIS e IMAGENS: sugira pictogramas/emojis ao lado das palavras-chave (ex.: "água 💧", "planta 🌱"). Use linguagem DIRETA e OBJETIVA na estrutura SUJEITO–VERBO–OBJETO (ex.: "A planta absorve a água."). EVITE qualquer dependência de áudio, música, rima ou sonoridade. Use vocabulário CONCRETO e cotidiano, sem metáforas, expressões idiomáticas ou duplo sentido. DESTAQUE verbos de comando em <strong>negrito</strong> (ex.: "<strong>MARQUE</strong>", "<strong>ESCREVA</strong>"). Cada instrução deve ser compreensível apenas pela leitura visual, com apoio de ícones nas palavras-chave.`,
+        aee_altas_habilidades: `ENRIQUEÇA as questões com APROFUNDAMENTO conceitual e DESAFIOS EXTRAS de raciocínio (itens "Desafio +" ao final de cada questão). Eleve a COMPLEXIDADE mantendo o rigor científico/conceitual: use níveis altos da taxonomia de Bloom (analisar, avaliar, criar). Inclua CONEXÕES INTERDISCIPLINARES explícitas (ex.: relacionar o tema com matemática, história, arte ou tecnologia). Proponha INVESTIGAÇÕES abertas ao final ("Pesquise...", "Elabore uma hipótese...", "Justifique com pelo menos dois argumentos."). Evite simplificações; ofereça alternativas plausíveis e sofisticadas, exigindo análise fina.`,
       };
 
       const perfilLabel: Record<string, string> = {
@@ -286,6 +364,10 @@ serve(async (req) => {
         aee_dm: 'Deficiência Múltipla (DM)',
         aee_tod: 'TOD (Transtorno Opositivo Desafiador)',
         aee_auditiva: 'Deficiência Auditiva',
+        aee_dislexia: 'Dislexia',
+        aee_baixa_visao: 'Baixa Visão',
+        aee_surdez: 'Surdez',
+        aee_altas_habilidades: 'Altas Habilidades / Superdotação',
       };
 
       // Support multiple profiles (aeeProfiles array) for crossed adaptations
@@ -311,6 +393,18 @@ serve(async (req) => {
 A descrição deve ser clara, educativa e relacionada ao tema da questão.
 Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLINATIONS" class="w-full h-auto rounded-3xl" />\n`;
 
+       const gradeLabel: Record<string, string> = {
+         fundamental_1: 'Ensino Fundamental I (1º ao 5º ano)',
+         fundamental_2: 'Ensino Fundamental II (6º ao 9º ano)',
+         ensino_medio: 'Ensino Médio (1ª a 3ª série)',
+       };
+
+       const complexityInstruction = nivelComplexidade === 'robusto'
+         ? `\nAtenção máxima: O conteúdo deve ter ALTA complexidade cognitiva. Exija raciocínio lógico profundo, dedução e análise crítica. NÃO facilite a resposta ou o conceito.\n`
+         : nivelComplexidade === 'intermediario'
+         ? `\nComplexidade Intermediária: Exija que o aluno relacione conceitos e aplique o conhecimento.\n`
+         : `\nComplexidade Básica: O desafio cognitivo deve ser focado em memorização e compreensão concreta.\n`;
+
       const questionTypeLabels: Record<string, string> = {
         multipla_visual: 'Múltipla Escolha Visual (com 4 alternativas A-D, cada uma acompanhada de emoji ou imagem)',
         verdadeiro_falso: 'Verdadeiro ou Falso (afirmações claras com V ou F)',
@@ -318,9 +412,11 @@ Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLI
         perguntas_diretas: 'Perguntas Diretas (pergunta simples com espaço para resposta curta)',
       };
 
-      let systemPromptAEE = `Você é um Pós-Doutor em Educação Especial, especialista em Desenho Universal para a Aprendizagem (DUA) e em Atendimento Educacional Especializado (AEE). Seu trabalho é criar materiais RADICALMENTE acessíveis para alunos com ${perfil}.
-
-HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
+       let systemPromptAEE = `Atue como um especialista em Desenho Universal para a Aprendizagem (DUA). Gere as questões para a disciplina de ${subject || 'Geral'} focada em alunos do ${gradeLabel[serie] || serie || 'Ensino Básico'}.
+ 
+ Seu trabalho é criar materiais RADICALMENTE acessíveis para alunos com ${perfil}.
+ 
+ HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
 1. LINGUAGEM SIMPLES (Plain Language): Use SEMPRE frases curtas, ordem direta (sujeito-verbo-complemento) e termos concretos do cotidiano do aluno.
 2. CONTEXTUALIZAÇÃO: Relacione CADA conceito com algo do dia a dia (ex: rodas de bicicleta para raio/diâmetro, pizza para frações, escada para sequências numéricas).
 3. DESTAQUE DE PALAVRAS-CHAVE: Use <strong> em termos centrais para auxiliar na focalização visual do aluno.
@@ -329,7 +425,11 @@ HIERARQUIA DE ADAPTAÇÃO (Estratégia Pedagógica por Matheus Lima Piffer):
 DIRETRIZES OBRIGATÓRIAS DO PERFIL:
 ${diretriz}
 ${imageInstruction}
-REGRAS VISUAIS HTML:
+ ${complexityInstruction}
+ 
+ REGRA DE OURO INEGOCIÁVEL: Independente do nível de complexidade, a adaptação AEE deve ocorrer EXCLUSIVAMENTE na acessibilidade do formato: use frases curtas, ordem direta, elimine duplas negações, evite pegadinhas, estruture visualmente o texto com clareza e sugira o uso de imagens de apoio visual. O formato deve ser acessível, mas a expectativa de aprendizagem deve respeitar a série e a complexidade solicitadas.
+ 
+ REGRAS VISUAIS HTML:
 - Use <div style="background:#ecfeff;border:2px solid #06b6d4;border-radius:16px;padding:20px;margin:16px 0"> para cada bloco de questão
 - Use espaçamento generoso (margin: 16px 0) entre todos os elementos
 - Use fonte grande implícita nos textos (tags <span style="font-size:1.15em">)
@@ -423,7 +523,7 @@ Responda em JSON:
 }`;
       }
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
         { role: "system", content: systemPromptAEE },
         { role: "user", content: userPromptAEE },
       ], 0.7);
@@ -533,12 +633,33 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
-        { role: "system", content: systemPromptJogos },
-        { role: "user", content: userPromptJogos },
-      ], 0.8);
+      if (gameType === 'cruzadinha' || gameType === 'cruzadinha_termos') {
+        const systemPromptCruzadinha = `Atue como um criador de jogos pedagógicos. Com base no tema fornecido, crie dados para uma palavra cruzada. REGRA CRÍTICA: Retorne APENAS um objeto JSON válido, sem formatação markdown, contendo um array chamado "words". Cada item do array deve ter duas chaves: "answer" (a palavra da resposta, em MAIÚSCULAS, sem espaços e sem acentos) e "clue" (a dica pedagógica clara e objetiva para o aluno adivinhar a palavra). Gere entre 6 e 10 palavras no máximo.`;
+        const userPromptCruzadinha = `Tema: "${specificTopic || 'tema geral'}"\nSérie: ${serie || 'Ensino Fundamental'}${customMaterial ? `\nContexto: ${customMaterial.slice(0, 2000)}` : ''}`;
+        
+        const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
+          { role: "system", content: systemPromptCruzadinha },
+          { role: "user", content: userPromptCruzadinha },
+        ], 0.7);
 
-      return await parseAIResponse(response, "jogo");
+        if (!response.ok) return handleErrorResponse(response, "cruzadinha");
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || "";
+        try {
+          const parsed = extractJsonFromMixedResponse(content);
+          return new Response(JSON.stringify({ questions: [{ content: JSON.stringify(parsed), skillCode: "GAME-CRUZADINHA", descriptor: specificTopic || 'Cruzadinha' }] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        } catch (error) {
+          console.error("Failed to parse cruzadinha JSON:", content, error);
+          return new Response(JSON.stringify({ error: "Erro ao processar dados da cruzadinha." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      } else {
+        const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
+          { role: "system", content: systemPromptJogos },
+          { role: "user", content: userPromptJogos },
+        ], 0.8);
+
+        return await parseAIResponse(response, "jogo");
+      }
     }
 
     // ══════ LITERATURA MODE ══════
@@ -588,7 +709,7 @@ Responda em JSON (SEM markdown, SEM blocos de código):
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
         { role: "system", content: systemPromptLit },
         { role: "user", content: userPromptLit },
       ], 0.7, 3, 120000);
@@ -617,7 +738,7 @@ Nível: médio. Questões contextualizadas com situações-problema.
 JSON:
 {"questions":[{"content":"enunciado","options":[{"letter":"A","text":"...","isCorrect":false}],"skillCode":"código","tutorExplanation":"explicação"}]}`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash-lite", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash-lite", [
         { role: "system", content: systemPromptStudent },
         { role: "user", content: userPromptStudent },
       ], 0.7);
@@ -851,7 +972,7 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
         { role: "system", content: systemPromptRedacao },
         { role: "user", content: userPromptRedacao },
       ], 0.8);
@@ -885,7 +1006,7 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
         { role: "system", content: systemPromptAula },
         { role: "user", content: userPromptAula },
       ], 0.7);
@@ -961,7 +1082,7 @@ Responda em JSON:
   ]
 }`;
 
-    const response = await fetchAIWithRetry(LOVABLE_API_KEY, "google/gemini-2.5-flash", [
+    const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ], 0.7);

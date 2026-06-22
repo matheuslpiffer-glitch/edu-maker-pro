@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,34 +124,60 @@ export default function BussolaVocacional() {
   const { customAvatar, zoom, offsetX, offsetY } = useMatAvatar();
   const matAvatar = customAvatar || defaultMatAvatar;
   const [step, setStep] = useState(0); // 0-2 = form steps, 3 = results
+  const [isExporting, setIsExporting] = useState(false);
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({});
-  const [scores, setScores] = useState<Scores | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const handleExportPDF = async () => {
-    if (!resultsRef.current) return;
-    try {
-      toast({ title: 'Gerando PDF...', description: 'Aguarde enquanto preparamos seu laudo.' });
-      const html2canvas = (await import('html2canvas')).default;
-      const { jsPDF } = await import('jspdf');
-      const canvas = await html2canvas(resultsRef.current, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfW = pdf.internal.pageSize.getWidth();
-      const pdfH = (canvas.height * pdfW) / canvas.width;
-      let position = 0;
-      const pageH = pdf.internal.pageSize.getHeight();
-      while (position < pdfH) {
-        if (position > 0) pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, -position, pdfW, pdfH);
-        position += pageH;
+  // Load progress from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('mat_vocacional_progress');
+    if (saved) {
+      try {
+        const { step: savedStep, sliderValues: savedValues } = JSON.parse(saved);
+        setStep(savedStep);
+        setSliderValues(savedValues);
+      } catch (e) {
+        console.error('Error loading progress:', e);
       }
-      pdf.save(`laudo-vocacional-mat-${Date.now()}.pdf`);
-      toast({ title: 'PDF gerado!', description: 'O laudo foi salvo com sucesso.' });
-    } catch {
-      toast({ title: 'Erro', description: 'Não foi possível gerar o PDF.', variant: 'destructive' });
     }
+    setIsLoaded(true);
+  }, []);
+
+  // Save progress to localStorage
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem('mat_vocacional_progress', JSON.stringify({ step, sliderValues }));
+    }
+  }, [step, sliderValues, isLoaded]);
+
+  const resetTest = () => {
+    setStep(0);
+    setSliderValues({});
+    localStorage.removeItem('mat_vocacional_progress');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    toast({ title: 'Teste Reiniciado', description: 'O progresso foi limpo com sucesso.' });
   };
+
+  const handleExportPrint = () => {
+    setIsExporting(true);
+    // Pequena pausa para o overlay aparecer antes do print bloquear a UI
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsExporting(false);
+      toast({ 
+        title: 'Impressão Concluída', 
+        description: 'O documento foi processado com sucesso.' 
+      });
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   const handleSlider = (id: string, val: number[]) => {
     setSliderValues(prev => ({ ...prev, [id]: val[0] }));
@@ -162,6 +189,13 @@ export default function BussolaVocacional() {
   };
 
   const calculateScores = () => {
+    setStep(3);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const scores = useMemo(() => {
+    if (step !== 3) return null;
+    
     const s: Scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
     const counts: Scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
 
@@ -173,29 +207,33 @@ export default function BussolaVocacional() {
       });
     });
 
-    // Normalize: each dimension's max is count * 5, scale to 0-100
     Object.keys(s).forEach(k => {
       const max = counts[k] * 5;
       s[k] = max > 0 ? Math.round((s[k] / max) * 100) : 0;
     });
 
-    setScores(s);
-    setStep(3);
-  };
+    return s;
+  }, [sliderValues, step]);
 
-  const radarData = scores ? Object.entries(RIASEC_LABELS).map(([key, val]) => ({
-    dimension: val.label,
-    value: scores[key],
-    fullMark: 100,
-  })) : [];
+  const radarData = useMemo(() => {
+    if (!scores) return [];
+    return Object.entries(RIASEC_LABELS).map(([key, val]) => ({
+      dimension: val.label,
+      value: scores[key],
+      fullMark: 100,
+    }));
+  }, [scores]);
 
-  const barData = scores ? Object.entries(RIASEC_LABELS).map(([key, val]) => ({
-    name: val.label,
-    value: scores[key],
-    color: val.color,
-  })).sort((a, b) => b.value - a.value) : [];
+  const barData = useMemo(() => {
+    if (!scores) return [];
+    return Object.entries(RIASEC_LABELS).map(([key, val]) => ({
+      name: val.label,
+      value: scores[key],
+      color: val.color,
+    })).sort((a, b) => b.value - a.value);
+  }, [scores]);
 
-  const topDimensions = barData.slice(0, 3);
+  const topDimensions = useMemo(() => barData.slice(0, 3), [barData]);
 
   const renderStep = (questions: Question[], title: string, subtitle: string) => (
     <div className="space-y-6">
@@ -217,28 +255,43 @@ export default function BussolaVocacional() {
                   ))}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Slider
-                  min={1}
-                  max={5}
-                  step={1}
-                  value={[sliderValues[q.id] ?? 3]}
-                  onValueChange={(v) => handleSlider(q.id, v)}
-                  className="flex-1"
-                />
-                <span className={cn(
-                  "w-8 text-center text-sm font-bold tabular-nums transition-all duration-200",
-                  sliderValues[q.id] !== undefined ? "text-primary scale-110" : "text-muted-foreground"
-                )}>
-                  {sliderValues[q.id] ?? '—'}
-                </span>
+              <div className="space-y-4">
+                <div className="flex justify-between px-1">
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <span 
+                      key={num} 
+                      className={cn(
+                        "text-[10px] font-bold transition-colors",
+                        sliderValues[q.id] === num ? "text-primary" : "text-muted-foreground"
+                      )}
+                    >
+                      {num}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex items-center gap-3">
+                  <Slider
+                    min={1}
+                    max={5}
+                    step={1}
+                    value={[sliderValues[q.id] ?? 3]}
+                    onValueChange={(v) => handleSlider(q.id, v)}
+                    className="flex-1"
+                  />
+                  <span className={cn(
+                    "w-8 text-center text-sm font-bold tabular-nums transition-all duration-200",
+                    sliderValues[q.id] !== undefined ? "text-primary scale-110" : "text-muted-foreground"
+                  )}>
+                    {sliderValues[q.id] ?? '—'}
+                  </span>
+                </div>
               </div>
               <div className="flex justify-between text-[10px] px-1">
                 {LIKERT_LABELS.map((l, i) => (
                   <span
                     key={i}
                     className={cn(
-                      "text-center transition-colors duration-200",
+                      "text-center transition-colors duration-200 leading-tight",
                       sliderValues[q.id] === i + 1 ? "text-primary font-semibold" : "text-muted-foreground"
                     )}
                     style={{ width: '20%' }}
@@ -319,7 +372,7 @@ export default function BussolaVocacional() {
     return suggestions;
   };
 
-  const computeBigFive = () => {
+  const bigFiveData = useMemo(() => {
     if (!scores) return [];
     return [
       { name: 'Abertura à Experiência', value: Math.round(((scores.I || 0) + (scores.A || 0)) / 2) },
@@ -328,20 +381,35 @@ export default function BussolaVocacional() {
       { name: 'Amabilidade', value: Math.round(((scores.S || 0) * 0.7 + (scores.A || 0) * 0.3)) },
       { name: 'Estabilidade Emocional', value: Math.round(((scores.C || 0) * 0.5 + (scores.R || 0) * 0.3 + (scores.I || 0) * 0.2)) },
     ];
-  };
+  }, [scores]);
 
   const handleShare = () => {
-    const text = `Meu perfil vocacional RIASEC (Dr. Mat PhD - EduCreator): ${barData.map(d => `${d.name}: ${d.value}%`).join(' | ')}`;
+    const topKey = parecer?.top[0] || '';
+    const topLabel = RIASEC_LABELS[topKey]?.label || 'Desconhecido';
+    const shareText = `Fiz o teste da Bússola Vocacional e o meu perfil principal deu ${topLabel}! Faça o seu também.`;
+    const shareUrl = window.location.href;
+
     if (navigator.share) {
-      navigator.share({ title: 'Laudo Vocacional - Dr. Mat PhD', text }).catch(() => {});
+      navigator.share({
+        title: 'Bússola Vocacional - Meu Resultado',
+        text: shareText,
+        url: shareUrl,
+      }).catch((error) => {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error);
+        }
+      });
     } else {
-      navigator.clipboard.writeText(text);
-      toast({ title: 'Link copiado!', description: 'Texto do laudo copiado para a área de transferência.' });
+      navigator.clipboard.writeText(shareUrl);
+      toast({ 
+        title: 'Link de partilha copiado!', 
+        description: 'O link foi copiado para a sua área de transferência com sucesso.' 
+      });
     }
   };
 
-  const generateParecer = () => {
-    if (!scores) return '';
+  const parecer = useMemo(() => {
+    if (!scores) return null;
     const sorted = Object.entries(scores).sort(([, a], [, b]) => b - a);
     const top = sorted[0];
     const second = sorted[1];
@@ -353,14 +421,13 @@ export default function BussolaVocacional() {
     const code = `MAT-${Date.now().toString(36).toUpperCase().slice(-6)}`;
 
     return { topLabel, secondLabel, thirdLabel, top, second, third, date, code };
-  };
+  }, [scores]);
 
   const renderResults = () => {
-    const parecer = generateParecer();
     if (!parecer) return null;
 
     return (
-    <div ref={resultsRef} className="space-y-6">
+    <div ref={resultsRef} className="space-y-6 print:m-0 print:p-0">
       {/* ── Certificação Psicométrica ── */}
       <div className="flex justify-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 bg-card/90 shadow-md" style={{ borderColor: 'hsl(43, 74%, 49%)' }}>
@@ -566,7 +633,7 @@ export default function BussolaVocacional() {
           <div className="space-y-3">
             <p className="text-sm font-bold text-foreground">5. ESTATÍSTICAS COMPLEMENTARES — Big Five (OCEAN)</p>
             <p className="text-xs text-muted-foreground">Dimensões da personalidade derivadas do perfil RIASEC</p>
-            {computeBigFive().map(dim => (
+            {bigFiveData.map(dim => (
               <div key={dim.name} className="space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-foreground">{dim.name}</span>
@@ -681,13 +748,13 @@ export default function BussolaVocacional() {
       })()}
 
       <div className="flex flex-col sm:flex-row justify-center gap-3">
-        <Button onClick={handleExportPDF} className="gap-2">
+        <Button onClick={handleExportPrint} className="gap-2 print:hidden">
           <Download className="w-4 h-4" /> Baixar meu Plano de Carreira (PDF)
         </Button>
         <Button onClick={handleShare} variant="secondary" className="gap-2">
           <Share2 className="w-4 h-4" /> Compartilhar com meu Coordenador
         </Button>
-        <Button variant="outline" onClick={() => { setStep(0); setScores(null); setSliderValues({}); }}>
+        <Button variant="outline" onClick={resetTest} className="print:hidden">
           Refazer Avaliação
         </Button>
       </div>
@@ -696,9 +763,9 @@ export default function BussolaVocacional() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8 max-w-3xl mx-auto space-y-6 relative">
+    <div className="min-h-screen bg-background p-4 md:p-8 max-w-3xl mx-auto space-y-6 relative print:bg-white print:p-0 print:max-w-none">
       {/* Mat Header */}
-      <div className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm">
+      <div className="flex items-center gap-4 p-4 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm print:hidden">
         <div className="relative shrink-0">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 p-[2px]">
             <div className="w-full h-full rounded-full overflow-hidden bg-background">
@@ -741,12 +808,39 @@ export default function BussolaVocacional() {
 
       {/* Navigation */}
       {step < 3 && (
-        <div className="flex justify-between pt-2">
-          <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={step === 0} className="uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
-            <ChevronLeft className="w-4 h-4 mr-1" /> VOLTAR
-          </Button>
+        <div className="flex justify-between items-center pt-2">
+          <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                setStep(s => Math.max(0, s - 1));
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              disabled={step === 0} 
+              className="uppercase" 
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" /> VOLTAR
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetTest}
+              className="text-muted-foreground text-[10px] uppercase tracking-wider"
+            >
+              Reiniciar Teste
+            </Button>
+          </div>
           {step < 2 ? (
-            <Button onClick={() => setStep(s => s + 1)} disabled={!canAdvance()} className="uppercase" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <Button 
+              onClick={() => {
+                setStep(s => s + 1);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }} 
+              disabled={!canAdvance()} 
+              className="uppercase" 
+              style={{ fontFamily: 'Arial, sans-serif' }}
+            >
               PRÓXIMO <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           ) : (
@@ -757,6 +851,7 @@ export default function BussolaVocacional() {
         </div>
       )}
 
+      <div className="print:hidden">
       {/* Help FAB */}
       <Dialog>
         <DialogTrigger asChild>
@@ -799,6 +894,8 @@ export default function BussolaVocacional() {
       <div className="fixed bottom-2 right-2 z-40 text-[9px] text-muted-foreground/40 uppercase tracking-wider pointer-events-none select-none" style={{ fontFamily: 'Arial, sans-serif' }}>
         EDUCREATOR PRO © MATHEUS PIFFER
       </div>
+      </div>
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }

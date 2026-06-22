@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { useAuth } from '@/hooks/useAuth';
 import { useCustomLogo } from '@/hooks/useCustomLogo';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
-import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError } from '@/lib/ai-utils';
+import { sanitizeHtml } from '@/lib/sanitize-html';
+import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError, showAiErrorToast } from '@/lib/ai-utils';
 import { buildBatchPlan, createSimulatorGenerationJob, updateSimulatorGenerationJob } from '@/lib/simulator-generation';
 
 interface SimOption { letter: string; text: string; isCorrect: boolean; }
@@ -398,6 +400,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [selectedFormat, setSelectedFormat] = useState('');
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [grade, setGrade] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
   const [title, setTitle] = useState('');
   const [institutionName, setInstitutionName] = useState('');
   const [specificTopic, setSpecificTopic] = useState('');
@@ -808,7 +811,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       grade, subject_area: selectedSubjects.join(', '),
     };
     const { data, error } = await supabase.from('simulators').insert(payload).select('id').single();
-    if (error) { toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' }); setSaving(false); return; }
+    if (error) { showAiErrorToast(error, toast, 'Erro ao salvar'); setSaving(false); return; }
     setSavedId(data.id);
     toast({ title: 'Simulado e gabarito salvos!', description: `ID: ${data.id.slice(0, 8).toUpperCase()}` });
     loadHistory(); setSaving(false);
@@ -830,21 +833,34 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const handlePDF = async () => {
     const container = printContainerRef.current;
     if (!container) return;
-    toast({ title: 'Gerando PDF...' });
+    
+    setIsExporting(true);
     try {
       const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set({
         margin: [15, 15, 15, 15] as [number, number, number, number],
         filename: `${title || 'simulado'}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794 },
+        html2canvas: { 
+          scale: 2, 
+          useCORS: true, 
+          backgroundColor: '#ffffff', 
+          windowWidth: 794,
+          removeContainer: true // Garante limpeza de elementos clonados
+        },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       } as any).from(container).save();
-      toast({ title: 'PDF gerado!' });
+      
+      toast({ 
+        title: 'PDF Gerado com Sucesso', 
+        description: 'O download foi iniciado automaticamente.' 
+      });
     } catch (e: any) {
       console.error('PDF error:', e);
-      toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar PDF')
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -891,7 +907,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       setPodcastScript(data.script);
       toast({ title: '🎙️ Roteiro de Podcast gerado!' });
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar podcast', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar podcast')
     } finally { setMagicLoading(null); }
   };
 
@@ -945,7 +961,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       URL.revokeObjectURL(url);
       toast({ title: '🎮 CSV do Kahoot baixado!' });
     } catch (e: any) {
-      toast({ title: 'Erro ao exportar Kahoot', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao exportar Kahoot')
     } finally { setMagicLoading(null); }
   };
 
@@ -1777,7 +1793,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                             }
                           } catch (e: any) {
                             console.error(e);
-                            toast({ title: 'Erro ao gerar conteúdo AEE', description: e.message, variant: 'destructive' });
+                            showAiErrorToast(e, toast, 'Erro ao gerar conteúdo AEE')
                           } finally { setGenerating(false); }
                         }}
                         disabled={generating || !aeeTopic}
@@ -2209,7 +2225,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                           <Badge variant="outline" className="shrink-0 text-xs">{String(i + 1).padStart(2, '0')}</Badge>
                           <div className="flex-1 min-w-0">
                             {q.skillCode && <span className="text-xs text-muted-foreground">[{q.skillCode}]</span>}
-                            <div className="text-xs mt-0.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
+                            <div className="text-xs mt-0.5 line-clamp-2" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
                           </div>
                         </div>
                       </div>
@@ -2320,7 +2336,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: podcastScript }} />
+                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: sanitizeHtml(podcastScript) }} />
                     </CardContent>
                   </Card>
                 )}
@@ -2347,7 +2363,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         <div className="flex gap-2 mt-1 flex-wrap">
                           <Badge variant="outline" className="text-xs">{EXAM_TYPES.find(e => e.value === sim.exam_type)?.label}</Badge>
                           <span className="text-xs text-muted-foreground">{sim.subject_area} · {sim.grade}</span>
-                          <span className="text-xs text-muted-foreground">{(sim.questions as any[])?.length || 0} questões</span>
+                          <span className="text-xs text-muted-foreground">{(sim.questions || []).length} questões</span>
                           <span className="text-xs font-mono text-muted-foreground">ID: {sim.id.slice(0, 8).toUpperCase()}</span>
                         </div>
                       </div>
@@ -2365,14 +2381,14 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       </Tabs>
       </div>{/* end unified workspace card */}
       {/* Print-only view */}
-      <div className="print-only">
-        {questions.length > 0 && (
-          <>
-            <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions} isDiscursiva={isDiscursiva} columns={columns} isSenaiMode={isSenaiMode} />
-            {!isDiscursiva && <AnswerSheet questionCount={questions.length} simulatorId={currentId} title={title} institutionName={institutionName} />}
-            {!isDiscursiva && showGabarito && <GabaritoOficial questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />}
-            {isDiscursiva && <EspelhoCorrecao questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} />}
-          </>
+      <div className="print-only fixed inset-0 z-[999] bg-white overflow-hidden p-0 m-0">
+        {(questions || []).length > 0 && (
+          <div className="w-full h-full">
+            <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions || []} isDiscursiva={isDiscursiva} columns={columns} isSenaiMode={isSenaiMode} />
+            {!isDiscursiva && <AnswerSheet questionCount={(questions || []).length} simulatorId={currentId} title={title} institutionName={institutionName} />}
+            {!isDiscursiva && showGabarito && <GabaritoOficial questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />}
+            {isDiscursiva && <EspelhoCorrecao questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} />}
+          </div>
         )}
       </div>
 
@@ -2386,6 +2402,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
           bankId={savedId}
         />
       )}
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }

@@ -1,4 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -8,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Save, Plus, Trash2, BarChart3, Sparkles, Printer, TrendingUp, TrendingDown, Target, Users } from 'lucide-react';
+import { Loader2, Save, Plus, Trash2, BarChart3, Sparkles, Printer, TrendingUp, TrendingDown, Target, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -57,17 +59,33 @@ export default function ResultsAnalysis() {
   const [selectedSimId, setSelectedSimId] = useState('');
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [saving, setSaving] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingResults, setLoadingResults] = useState(false);
   const [insights, setInsights] = useState<AIInsights | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
   const [idespMeta, setIdespMeta] = useState(60);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const itemsPerPage = 10;
 
   const selectedSim = simulators.find(s => s.id === selectedSimId);
   const totalQuestions = selectedSim ? (selectedSim.questions as any[])?.length || 0 : 0;
 
   useEffect(() => {
     loadSimulators();
+  }, []);
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsExporting(false);
+      toast({ 
+        title: 'Relatório Gerado', 
+        description: 'O documento foi processado com sucesso.' 
+      });
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
   }, []);
 
   useEffect(() => {
@@ -110,7 +128,13 @@ export default function ResultsAnalysis() {
     setStudents(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s));
   };
 
-  const validStudents = students.filter(s => s.student_name.trim() !== '');
+  const filteredStudents = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return students;
+    return students.filter(s => s.student_name.toLowerCase().includes(q));
+  }, [students, search]);
+
+  const validStudents = useMemo(() => students.filter(s => s.student_name.trim() !== ''), [students]);
 
   const handleSave = async () => {
     if (!user || !selectedSimId || validStudents.length === 0) return;
@@ -135,7 +159,7 @@ export default function ResultsAnalysis() {
 
     const { error } = await supabase.from('student_results').insert(rows);
     if (error) {
-      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
+      showAiErrorToast(error, toast, 'Erro ao salvar')
     } else {
       toast({ title: 'Notas salvas com sucesso!' });
     }
@@ -143,23 +167,42 @@ export default function ResultsAnalysis() {
   };
 
   // Analytics computations
-  const computedStudents = validStudents.map(s => {
-    const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
-    return { ...s, percentage: pct, proficiency: getProficiency(pct) };
-  });
+  const { computedStudents, average, highest, lowest, distribution } = useMemo(() => {
+    const computed = validStudents.map(s => {
+      const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
+      return { ...s, percentage: pct, proficiency: getProficiency(pct) };
+    });
 
-  const average = computedStudents.length > 0
-    ? computedStudents.reduce((sum, s) => sum + s.percentage, 0) / computedStudents.length
-    : 0;
-  const highest = computedStudents.length > 0 ? Math.max(...computedStudents.map(s => s.percentage)) : 0;
-  const lowest = computedStudents.length > 0 ? Math.min(...computedStudents.map(s => s.percentage)) : 0;
+    if (computed.length === 0) {
+      return { 
+        computedStudents: [], 
+        average: 0, 
+        highest: 0, 
+        lowest: 0,
+        distribution: PROFICIENCY_LEVELS.map(level => ({ ...level, count: 0 }))
+      };
+    }
+    
+    const sum = computed.reduce((acc, s) => acc + s.percentage, 0);
+    const avg = sum / computed.length;
+    const high = Math.max(...computed.map(s => s.percentage));
+    const low = Math.min(...computed.map(s => s.percentage));
+    
+    const dist = PROFICIENCY_LEVELS.map(level => ({
+      ...level,
+      count: computed.filter(s => s.proficiency.key === level.key).length,
+    }));
 
-  const distribution = PROFICIENCY_LEVELS.map(level => ({
-    ...level,
-    count: computedStudents.filter(s => s.proficiency.key === level.key).length,
-  }));
+    return { 
+      computedStudents: computed, 
+      average: avg, 
+      highest: high, 
+      lowest: low, 
+      distribution: dist 
+    };
+  }, [validStudents, totalQuestions]);
 
-  const gaugePercentage = Math.min(100, (average / idespMeta) * 100);
+  const gaugePercentage = useMemo(() => Math.min(100, (average / idespMeta) * 100), [average, idespMeta]);
 
   const generateInsights = async () => {
     if (!selectedSim || computedStudents.length === 0) return;
@@ -186,7 +229,7 @@ export default function ResultsAnalysis() {
       setInsights(data as AIInsights);
       toast({ title: 'Insights gerados!' });
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar insights', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar insights')
     } finally {
       setLoadingInsights(false);
     }
@@ -248,7 +291,18 @@ export default function ResultsAnalysis() {
                     Lançamento de Acertos — {selectedSim?.title}
                     <span className="text-sm font-normal text-muted-foreground ml-2">({totalQuestions} questões)</span>
                   </CardTitle>
-                  <Button size="sm" variant="outline" onClick={addRow}><Plus size={16} className="mr-1" />Aluno</Button>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Buscar aluno..." 
+                      className="w-48 h-8"
+                      value={search}
+                      onChange={(e) => {
+                        setSearch(e.target.value);
+                        setPage(1);
+                      }}
+                    />
+                    <Button size="sm" variant="outline" onClick={addRow}><Plus size={16} className="mr-1" />Aluno</Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -260,15 +314,17 @@ export default function ResultsAnalysis() {
                     <span className="text-center">Nível</span>
                     <span></span>
                   </div>
-                  {students.map((s, i) => {
+                  {filteredStudents.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((s, i) => {
+                    const actualIdx = students.findIndex(orig => orig === s);
+                    const displayIdx = (page - 1) * itemsPerPage + i;
                     const pct = totalQuestions > 0 ? (s.correct_count / totalQuestions) * 100 : 0;
                     const level = getProficiency(pct);
                     return (
-                      <div key={i} className="grid grid-cols-[1fr_100px_100px_80px_40px] gap-2 items-center">
+                      <div key={actualIdx === -1 ? displayIdx : actualIdx} className="grid grid-cols-[1fr_100px_100px_80px_40px] gap-2 items-center">
                         <Input
                           value={s.student_name}
-                          onChange={e => updateRow(i, 'student_name', e.target.value)}
-                          placeholder={`Aluno ${i + 1}`}
+                          onChange={e => updateRow(actualIdx === -1 ? displayIdx : actualIdx, 'student_name', e.target.value)}
+                          placeholder={`Aluno ${displayIdx + 1}`}
                           maxLength={200}
                         />
                         <Input
@@ -276,7 +332,7 @@ export default function ResultsAnalysis() {
                           min={0}
                           max={totalQuestions}
                           value={s.correct_count}
-                          onChange={e => updateRow(i, 'correct_count', Math.min(+e.target.value, totalQuestions))}
+                          onChange={e => updateRow(actualIdx === -1 ? displayIdx : actualIdx, 'correct_count', Math.min(+e.target.value, totalQuestions))}
                           className="text-center"
                         />
                         <div className="text-center text-sm font-medium">{pct.toFixed(1)}%</div>
@@ -287,13 +343,37 @@ export default function ResultsAnalysis() {
                         >
                           {level.label.split(' ').pop()}
                         </Badge>
-                        <Button variant="ghost" size="sm" onClick={() => removeRow(i)} className="text-destructive h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" onClick={() => removeRow(actualIdx === -1 ? displayIdx : actualIdx)} className="text-destructive h-8 w-8 p-0">
                           <Trash2 size={14} />
                         </Button>
                       </div>
                     );
                   })}
                 </div>
+
+                {filteredStudents.length > itemsPerPage && (
+                  <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                    </Button>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Página {page} de {Math.ceil(filteredStudents.length / itemsPerPage)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage(p => Math.min(Math.ceil(filteredStudents.length / itemsPerPage), p + 1))}
+                      disabled={page >= Math.ceil(filteredStudents.length / itemsPerPage)}
+                    >
+                      Próximo <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                )}
 
                 <div className="flex justify-end mt-4 gap-2">
                   <Button onClick={handleSave} disabled={saving || validStudents.length === 0}>
@@ -456,7 +536,7 @@ export default function ResultsAnalysis() {
           {/* PRINT REPORT */}
           <TabsContent value="report">
             <div className="no-print mb-4">
-              <Button variant="outline" onClick={() => window.print()}><Printer size={16} className="mr-2" />Imprimir Relatório</Button>
+              <Button variant="outline" onClick={() => { setIsExporting(true); setTimeout(() => window.print(), 100); }}><Printer size={16} className="mr-2" />Imprimir Relatório</Button>
             </div>
             <Card>
               <CardContent className="p-0">
@@ -608,6 +688,7 @@ export default function ResultsAnalysis() {
           </div>
         )}
       </div>
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }

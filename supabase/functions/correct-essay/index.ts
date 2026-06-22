@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,6 +10,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { imageBase64, mimeType } = await req.json();
     if (!imageBase64) throw new Error("Nenhuma imagem fornecida");
 
@@ -19,21 +27,44 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const aiHeaders = {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      Authorization: `Bearer ${GEMINI_API_KEY}`,
       "Content-Type": "application/json",
     };
-    const gateway = "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const gateway = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+    const callGemini = async (body: unknown) => {
+      let response = await fetch(gateway, {
+        method: "POST",
+        headers: aiHeaders,
+        body: JSON.stringify(body),
+      });
+      let attempts = 0;
+      while (!response.ok && [429, 500, 503].includes(response.status) && attempts < 2) {
+        attempts++;
+        await new Promise((r) => setTimeout(r, 800 * attempts));
+        response = await fetch(gateway, {
+          method: "POST",
+          headers: aiHeaders,
+          body: JSON.stringify(body),
+        });
+      }
+      return response;
+    };
 
     // ========== PHASE 1: Faithful Transcription ==========
-    const phase1Response = await fetch(gateway, {
-      method: "POST",
-      headers: aiHeaders,
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const phase1Response = await callGemini({
+        model: "gemini-2.5-flash",
         messages: [
           {
             role: "system",
@@ -60,15 +91,14 @@ Responda APENAS com JSON válido (sem markdown):
         ],
         temperature: 0.1,
         max_tokens: 3000,
-      }),
-    });
+      });
 
     if (!phase1Response.ok) {
       const status = phase1Response.status;
       if (status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao workspace." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const t = await phase1Response.text();
-      console.error("Phase 1 AI error:", status, t);
+      console.error("Phase 1 Gemini error:", status, t);
       return new Response(JSON.stringify({ error: "Erro na fase de transcrição. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
@@ -92,25 +122,21 @@ Responda APENAS com JSON válido (sem markdown):
     const transcribedText = phase1Parsed.transcribed_text;
 
     // ========== PHASE 2: Pedagogical Correction ==========
-    const phase2Response = await fetch(gateway, {
-      method: "POST",
-      headers: aiHeaders,
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const phase2Response = await callGemini({
+        model: "gemini-2.5-flash",
         messages: [
           {
             role: "system",
             content: `Você é um corretor especialista de redações no padrão ENEM/nacional oficial com mais de 20 anos de experiência.
 Você receberá o TEXTO JÁ TRANSCRITO de uma redação manuscrita. Avalie o texto nas 5 competências oficiais.
 
-CRITÉRIOS DE PONTUAÇÃO (0 a 200 cada, em múltiplos de 40: 0, 40, 80, 120, 160, 200):
-- Competência I: Domínio da modalidade escrita formal da língua portuguesa
-- Competência II: Compreender a proposta de redação e aplicar conceitos das várias áreas de conhecimento
-- Competência III: Selecionar, relacionar, organizar e interpretar informações, fatos, opiniões e argumentos
-- Competência IV: Demonstrar conhecimento dos mecanismos linguísticos necessários para a construção da argumentação (coesão)
-- Competência V: Elaborar proposta de intervenção para o problema abordado, respeitando os direitos humanos
+CRITÉRIOS DE PONTUAÇÃO (0 a 200 cada, em múltiplos de 40: 0, 40, 80, 120, 160, 200). Total 1000.
 
-Responda APENAS com JSON válido (sem markdown):
+COMPACTAÇÃO DE TEXTO: Seja extremamente direto e cirúrgico nas justificativas. Cada justificativa deve ter no máximo 3 frases focadas no erro ou acerto, sem floreios.
+
+Responda APENAS e EXCLUSIVAMENTE com um objeto JSON válido, sem tags markdown de código (como \`\`\`json) e sem nenhum texto antes ou depois do JSON. Se quebrar esta regra, o sistema falhará.
+
+JSON:
 {
   "extracted_text": "o texto transcrito recebido",
   "comp1_score": 120,
@@ -137,15 +163,14 @@ Responda APENAS com JSON válido (sem markdown):
         ],
         temperature: 0.3,
         max_tokens: 4000,
-      }),
-    });
+      });
 
     if (!phase2Response.ok) {
       const status = phase2Response.status;
       if (status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em instantes." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao workspace." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       const t = await phase2Response.text();
-      console.error("Phase 2 AI error:", status, t);
+      console.error("Phase 2 Gemini error:", status, t);
       return new Response(JSON.stringify({ error: "Erro na fase de correção. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

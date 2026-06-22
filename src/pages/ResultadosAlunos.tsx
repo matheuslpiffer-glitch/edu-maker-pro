@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer, Gamepad2 } from 'lucide-react';
+import { BarChart3, Users, Search, Loader2, Trash2, Download, Sparkles, Printer, Gamepad2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 
 interface ActivityResult {
   id: string;
@@ -68,6 +70,9 @@ export default function ResultadosAlunos() {
   const [activeTab, setActiveTab] = useState('todos');
   const [aiTips, setAiTips] = useState<string[]>([]);
   const [loadingTips, setLoadingTips] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
   const extrasRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { loadData(); }, []);
@@ -248,7 +253,7 @@ export default function ResultadosAlunos() {
       toast({ title: '🤖 Dicas da IA Doutora geradas!' });
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Erro ao gerar dicas', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar dicas')
     } finally {
       setLoadingTips(false);
     }
@@ -262,11 +267,14 @@ export default function ResultadosAlunos() {
       return;
     }
     try {
+      setIsExporting(true);
       const { generatePdfFromElement } = await import('@/lib/pdf-utils');
       await generatePdfFromElement(el, 'atividades-extras-pos-simulado', { margins: [10, 10, 10, 10] });
       toast({ title: '📄 PDF gerado com sucesso!' });
     } catch (e: any) {
       toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -325,7 +333,12 @@ export default function ResultadosAlunos() {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <>
+      <ExportLoadingOverlay 
+        isOpen={isExporting} 
+        message="Processando dados pedagógicos... Por favor, aguarde." 
+      />
+      <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -521,60 +534,88 @@ export default function ResultadosAlunos() {
               <p className="text-sm">Nenhum resultado encontrado. Compartilhe atividades com seus alunos usando o botão "Enviar para Aluno".</p>
             </div>
           ) : (
-            <div className="rounded-2xl border border-border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Aluno</TableHead>
-                    <TableHead>Turma</TableHead>
-                    <TableHead>Atividade</TableHead>
-                    <TableHead className="text-center">Nota</TableHead>
-                    <TableHead className="text-center">%</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead className="w-10"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map(r => {
-                    const pct = getPercentage(r);
-                    return (
-                      <TableRow key={`${r._type}-${r.id}`}>
-                        <TableCell className="font-medium">{r.student_name}</TableCell>
-                        <TableCell>{r.student_class || '—'}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{getLabel(r)}</TableCell>
-                        <TableCell className="text-center font-bold">{getScore(r)}</TableCell>
-                        <TableCell className="text-center">
-                          {pct != null ? (
-                            <span className={pct >= 70 ? 'text-primary font-bold' : pct >= 50 ? 'text-accent-foreground font-bold' : 'text-destructive font-bold'}>
-                              {pct}%
-                            </span>
-                          ) : '—'}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant={getStatus(r) === 'Corrigido' ? 'default' : 'secondary'} className="text-[10px]">
-                            {getStatus(r)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {new Date(r.created_at).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(r)} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive">
-                            <Trash2 size={14} />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Aluno</TableHead>
+                      <TableHead>Turma</TableHead>
+                      <TableHead>Atividade</TableHead>
+                      <TableHead className="text-center">Nota</TableHead>
+                      <TableHead className="text-center">%</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage).map(r => {
+                      const pct = getPercentage(r);
+                      return (
+                        <TableRow key={`${r._type}-${r.id}`}>
+                          <TableCell className="font-medium">{r.student_name}</TableCell>
+                          <TableCell>{r.student_class || '—'}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground max-w-[200px] truncate">{getLabel(r)}</TableCell>
+                          <TableCell className="text-center font-bold">{getScore(r)}</TableCell>
+                          <TableCell className="text-center">
+                            {pct != null ? (
+                              <span className={pct >= 70 ? 'text-primary font-bold' : pct >= 50 ? 'text-accent-foreground font-bold' : 'text-destructive font-bold'}>
+                                {pct}%
+                              </span>
+                            ) : '—'}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant={getStatus(r) === 'Corrigido' ? 'default' : 'secondary'} className="text-[10px]">
+                              {getStatus(r)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {new Date(r.created_at).toLocaleDateString('pt-BR')}
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(r)} className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive">
+                              <Trash2 size={14} />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              {filtered.length > itemsPerPage && (
+                <div className="flex items-center justify-center gap-4 py-4 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-2" /> Anterior
+                  </Button>
+                  <span className="text-sm font-medium">
+                    Página {page} de {Math.ceil(filtered.length / itemsPerPage)}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage(p => Math.min(Math.ceil(filtered.length / itemsPerPage), p + 1))}
+                    disabled={page >= Math.ceil(filtered.length / itemsPerPage)}
+                  >
+                    Próximo <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </TabsContent>
       </Tabs>
 
-      <p className="text-center text-[10px] text-muted-foreground">Relatório de Desempenho — Desenvolvido por Matheus Lima Piffer</p>
+      <p className="text-center text-[10px] text-muted-foreground pt-8">Relatório de Desempenho — Desenvolvido por Matheus Lima Piffer</p>
     </div>
+    </>
   );
 }

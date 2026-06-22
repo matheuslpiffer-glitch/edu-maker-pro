@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,6 +38,7 @@ Responda APENAS com JSON válido (sem markdown):
 }
 
 function buildCorrectionPrompt(level: string, subLevel?: string): string {
+  const jsonRule = 'Você deve responder APENAS e EXCLUSIVAMENTE com um objeto JSON válido, sem tags markdown de código (como ```json) e sem nenhum texto antes ou depois do JSON. Se quebrar esta regra, o sistema falhará. Justificativas devem ter no máximo 3 frases focadas no erro ou acerto.';
   if (level === "anos_iniciais") {
     return `Você é uma professora carinhosa e experiente do Ensino Fundamental I (1º ao 5º ano).
 Seu foco é ALFABETIZAÇÃO e ESTÍMULO. Avalie a redação com base nos critérios abaixo.
@@ -50,7 +52,7 @@ CRITÉRIOS (0 a 10 cada):
 4. ORTOGRAFIA BÁSICA: O aluno acerta a escrita das palavras mais comuns do cotidiano?
 5. CRIATIVIDADE E EXPRESSÃO: O aluno expressou ideias próprias de forma criativa e imaginativa?
 
-Responda APENAS com JSON válido (sem markdown):
+  ${jsonRule}
 {
   "scores": [
     {"criteria": "Escrita Alfabética", "score": 8, "max": 10},
@@ -81,7 +83,7 @@ CRITÉRIOS (0 a 10 cada):
 4. RIQUEZA DE VOCABULÁRIO: O aluno usa palavras variadas, evitando repetições?
 5. DESENVOLVIMENTO ARGUMENTATIVO: O aluno aprofunda suas ideias com exemplos e justificativas?
 
-Responda APENAS com JSON válido (sem markdown):
+  ${jsonRule}
 {
   "scores": [
     {"criteria": "Coesão (Uso de Conectivos)", "score": 7, "max": 10},
@@ -100,19 +102,9 @@ Responda APENAS com JSON válido (sem markdown):
   }
 
   if (subLevel === "enem") {
-    return `Você é um corretor especialista do ENEM com mais de 20 anos de experiência.
-Aplique RIGOROSAMENTE as 5 Competências oficiais do ENEM (0 a 200 cada, múltiplos de 40).
-
-TOM: Técnico, rigoroso e preciso. Cite EXATAMENTE as falhas na norma culta.
-
-COMPETÊNCIAS:
-1. DOMÍNIO DA MODALIDADE ESCRITA FORMAL da língua portuguesa
-2. COMPREENDER A PROPOSTA de redação e aplicar conceitos
-3. SELECIONAR, RELACIONAR, ORGANIZAR e INTERPRETAR informações e argumentos
-4. MECANISMOS LINGUÍSTICOS necessários para a construção da argumentação (coesão)
-5. ELABORAR PROPOSTA DE INTERVENÇÃO (Agente + Ação + Meio + Efeito + Detalhamento)
-
-Responda APENAS com JSON válido (sem markdown):
+    return `Você é um corretor especialista do ENEM.
+Aplique RIGOROSAMENTE as 5 Competências oficiais do ENEM (0 a 200 cada, múltiplos de 40). Pontuação total: 1000.
+${jsonRule}
 {
   "scores": [
     {"criteria": "Competência I — Domínio da Norma Culta", "score": 120, "max": 200},
@@ -131,17 +123,10 @@ Responda APENAS com JSON válido (sem markdown):
   }
 
   if (subLevel === "unicamp") {
-    return `Você é um corretor especialista da banca UNICAMP/Comvest com profundo conhecimento dos critérios de correção da prova de redação da Unicamp.
+    return `Você é um corretor especialista da banca UNICAMP/Comvest.
 Avalie com foco em GÊNERO TEXTUAL, INTERLOCUÇÃO e LEITURA DOS TEXTOS DE APOIO.
-
-TOM: Acadêmico mas acessível, com ênfase na adequação ao gênero solicitado.
-
-CRITÉRIOS (0 a 4 cada, total 0 a 12):
-1. PROPÓSITO DO GÊNERO (AIA): O texto segue o formato do gênero solicitado? Se é carta, tem vocativo, despedida? Se é artigo, tem título, introdução e conclusão? Penalize FORTEMENTE se o gênero for ignorado.
-2. INTERLOCUÇÃO: O aluno assume o papel proposto e se dirige ao público correto? Há marcas de interlocução adequadas ao gênero? Avalie se o autor fala COM o leitor esperado.
-3. LEITURA DOS TEXTOS DE APOIO: O aluno integrou as informações da coletânea de forma inteligente e crítica? Há paráfrase ou apenas cópia? Penalize cópia literal dos textos motivadores.
-
-Responda APENAS com JSON válido (sem markdown):
+Pontuação total: 12 (0 a 4 por critério).
+${jsonRule}
 {
   "scores": [
     {"criteria": "Propósito do Gênero (AIA)", "score": 3, "max": 4},
@@ -259,25 +244,53 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { imageBase64, mimeType, level, subLevel, generatePlan, correctionData } = await req.json();
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+
+    const creditCheck = await checkAndDecrementCredits(userId);
+    if (!creditCheck.allowed) {
+      return new Response(JSON.stringify({ error: creditCheck.error }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const aiHeaders = {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      Authorization: `Bearer ${GEMINI_API_KEY}`,
       "Content-Type": "application/json",
     };
-    const gateway = "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const gateway = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+    async function callGemini(body: unknown): Promise<Response> {
+      const maxAttempts = 3;
+      let lastRes: Response | null = null;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const res = await fetch(gateway, {
+          method: "POST",
+          headers: aiHeaders,
+          body: JSON.stringify(body),
+        });
+        if (res.ok) return res;
+        lastRes = res;
+        if (![429, 500, 503].includes(res.status) || attempt === maxAttempts) return res;
+        await new Promise((r) => setTimeout(r, 800 * attempt));
+      }
+      return lastRes as Response;
+    }
 
     // ========== INTERVENTION PLAN ONLY (Phase 3) ==========
     if (generatePlan && correctionData) {
       console.log("Phase 3: Generating intervention plan for level:", level);
-      const phase3 = await fetch(gateway, {
-        method: "POST",
-        headers: aiHeaders,
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+      const phase3 = await callGemini({
+          model: "gemini-2.5-flash",
           messages: [
             { role: "system", content: buildInterventionPrompt(level, subLevel) },
             {
@@ -287,7 +300,6 @@ serve(async (req) => {
           ],
           temperature: 0.4,
           max_tokens: 2000,
-        }),
       });
 
       if (!phase3.ok) {
@@ -365,11 +377,8 @@ serve(async (req) => {
 
     // ========== PHASE 1: Transcription with vision (use flash for speed) ==========
     console.log("Phase 1: Starting paleographic transcription for level:", level);
-    const phase1 = await fetch(gateway, {
-      method: "POST",
-      headers: aiHeaders,
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const phase1 = await callGemini({
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: buildTranscriptionPrompt() },
           {
@@ -382,7 +391,6 @@ serve(async (req) => {
         ],
         temperature: 0.1,
         max_tokens: 3000,
-      }),
     });
 
     if (!phase1.ok) {
@@ -415,11 +423,8 @@ serve(async (req) => {
 
     // ========== PHASE 2: Level-adaptive correction (use flash for speed) ==========
     console.log("Phase 2: Starting correction with level:", level, "subLevel:", subLevel);
-    const phase2 = await fetch(gateway, {
-      method: "POST",
-      headers: aiHeaders,
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const phase2 = await callGemini({
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: buildCorrectionPrompt(level, subLevel) },
           {
@@ -429,7 +434,6 @@ serve(async (req) => {
         ],
         temperature: 0.3,
         max_tokens: 4000,
-      }),
     });
 
     if (!phase2.ok) {

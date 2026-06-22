@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,12 +13,13 @@ import { ALL_DEFAULT_SUBJECTS } from '@/lib/subjects-data';
 import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import MindMapVisual from '@/components/mindmap/MindMapVisual';
 import MindMapQuestions from '@/components/mindmap/MindMapQuestions';
-import StudySchedule from '@/components/mindmap/StudySchedule';
-import TeacherGuide from '@/components/mindmap/TeacherGuide';
-import type { MindMapData, MindMapQuestion } from '@/components/mindmap/MindMapVisual';
+ import StudySchedule from '@/components/mindmap/StudySchedule';
+ import TeacherGuide from '@/components/mindmap/TeacherGuide';
+ import type { MindMapData, MindMapQuestion } from '@/components/mindmap/MindMapVisual';
 import type { StudyDay } from '@/components/mindmap/StudySchedule';
-import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
-import { useInstitutionName } from '@/hooks/useInstitutionName';
+ import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
+ import { useInstitutionName } from '@/hooks/useInstitutionName';
+ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function getAutoMode(grade: string): string {
   const iniciais = ['ano_1', 'ano_2', 'ano_3', 'ano_4', 'ano_5', 'bercario', 'maternal_1', 'maternal_2'];
@@ -165,8 +167,8 @@ export default function MindMapGenerator() {
     if (!mapData) return;
     setGeneratingQuestions(true);
     try {
-      const branchSummary = mapData.branches.map(b =>
-        `${b.label}: ${b.summary}${b.children?.length ? ' (' + b.children.map(c => c.label).join(', ') + ')' : ''}`
+      const branchSummary = (mapData?.branches || []).map(b =>
+        `${b.label}: ${b.summary}${b.children?.length ? ' (' + (b.children || []).map(c => c.label).join(', ') + ')' : ''}`
       ).join('\n');
 
       const prompt = `Analise o infográfico pedagógico sobre "${mapData.center.label}" com os seguintes tópicos:\n${branchSummary}\n\nGere exatamente 5 perguntas de análise e interpretação que exijam que o aluno observe as conexões visuais do infográfico.`;
@@ -186,7 +188,7 @@ export default function MindMapGenerator() {
         throw new Error('Formato de resposta inválido');
       }
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar questões', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar questões')
     } finally {
       setGeneratingQuestions(false);
     }
@@ -196,7 +198,7 @@ export default function MindMapGenerator() {
     if (!mapData) return;
     setGeneratingSchedule(true);
     try {
-      const branchLabels = mapData.branches.map(b => b.label).join(', ');
+      const branchLabels = (mapData?.branches || []).map(b => b.label).join(', ');
       const hasQuestions = questions.length > 0;
 
       const schedulePrompt = `Crie um cronograma de estudo semanal (Segunda a Sexta) para um aluno que está estudando o tema "${mapData.center.label}" usando um infográfico pedagógico com os seguintes tópicos: ${branchLabels}.${hasQuestions ? ' O aluno também tem questões de interpretação do infográfico para resolver.' : ''}
@@ -221,7 +223,7 @@ TUDO EM MAIÚSCULAS.`;
         throw new Error('Formato de resposta inválido');
       }
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar cronograma', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar cronograma')
     } finally {
       setGeneratingSchedule(false);
     }
@@ -238,7 +240,7 @@ TUDO EM MAIÚSCULAS.`;
       link.click();
       toast({ title: 'PNG exportado em alta definição! 📸' });
     } catch (e: any) {
-      toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro na exportação')
     }
   };
 
@@ -249,7 +251,7 @@ TUDO EM MAIÚSCULAS.`;
       await generatePdfFromElement(mapRef.current, `infografico-${theme.replace(/\s+/g, '-')}`, { orientation: 'landscape' });
       toast({ title: 'PDF exportado! 📄' });
     } catch (e: any) {
-      toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro na exportação')
     }
   };
 
@@ -260,7 +262,7 @@ TUDO EM MAIÚSCULAS.`;
       await generatePdfFromElement(fullContentRef.current, `pacote-completo-${theme.replace(/\s+/g, '-')}`, { orientation: 'portrait' });
       toast({ title: 'PDF completo exportado! 📄' });
     } catch (e: any) {
-      toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro na exportação')
     }
   };
 
@@ -290,28 +292,30 @@ TUDO EM MAIÚSCULAS.`;
       if (error) throw error;
       toast({ title: 'Infográfico salvo na Biblioteca! 📚' });
     } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao salvar')
     } finally {
       setSaving(false);
     }
   };
 
   const selectedMode = MODES.find(m => m.id === mode);
-  const hasFullContent = questions.length > 0 || schedule.length > 0;
+  const hasFullContent = (questions?.length || 0) > 0 || (schedule?.length || 0) > 0;
 
-  return (
-    <div className="space-y-6 pb-12">
-      <div className="text-center space-y-2">
-        <div className="flex items-center justify-center gap-2">
-          <Brain className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-            Infográfico Pedagógico Maker
-          </h1>
-        </div>
-        <p className="text-muted-foreground">Dra. IA · Neuroeducação & Design Instrucional Visual</p>
-      </div>
+   return (
+     <div className="space-y-6 pb-12">
+       <div className="text-center space-y-2">
+         <div className="flex items-center justify-center gap-2">
+           <Brain className="h-8 w-8 text-primary" />
+           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+             Infográfico Pedagógico Maker
+           </h1>
+         </div>
+         <p className="text-muted-foreground">Dra. IA · Neuroeducação & Design Instrucional Visual</p>
+       </div>
 
-      <Card>
+       <Tabs defaultValue="mindmap" className="w-full">
+         <TabsContent value="mindmap" className="space-y-6">
+           <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg"><Sparkles className="h-5 w-5" /> Painel de Configuração</CardTitle>
         </CardHeader>
@@ -382,11 +386,11 @@ TUDO EM MAIÚSCULAS.`;
           <Button onClick={generate} disabled={loading} className="w-full md:w-auto">
             {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Brain className="h-4 w-4 mr-2" />}
             {loading ? 'Gerando Infográfico...' : 'Gerar Infográfico com IA'}
-          </Button>
-        </CardContent>
-      </Card>
+           </Button>
+         </CardContent>
+       </Card>
 
-      {mapData && (
+       {mapData && (
         <>
           <div className="flex flex-wrap gap-2 no-print">
             <Button variant="outline" size="sm" onClick={exportImage}>
@@ -502,10 +506,12 @@ TUDO EM MAIÚSCULAS.`;
               </div>
             )}
           </div>
-        </>
-      )}
+         </>
+       )}
+          </TabsContent>
+        </Tabs>
 
-      <p className="text-center text-xs text-muted-foreground">
+       <p className="text-center text-xs text-muted-foreground">
         Infográfico Pedagógico Maker · Neuroeducação & Visual Thinking por Matheus Lima Piffer
       </p>
     </div>

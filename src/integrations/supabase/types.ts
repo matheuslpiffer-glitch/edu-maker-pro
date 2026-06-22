@@ -386,6 +386,33 @@ export type Database = {
         }
         Relationships: []
       }
+      materials_drafts: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          storage_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          storage_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          storage_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meeting_attendance: {
         Row: {
           created_at: string
@@ -506,28 +533,37 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          credits: number
           display_name: string | null
           email: string | null
           id: string
           institution_name: string | null
+          plan: string
+          plan_expires_at: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          credits?: number
           display_name?: string | null
           email?: string | null
           id: string
           institution_name?: string | null
+          plan?: string
+          plan_expires_at?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
+          credits?: number
           display_name?: string | null
           email?: string | null
           id?: string
           institution_name?: string | null
+          plan?: string
+          plan_expires_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -863,6 +899,57 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          price_id: string
+          product_id: string
+          quantity: number
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id: string
+          product_id: string
+          quantity?: number
+          status?: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id?: string
+          product_id?: string
+          quantity?: number
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -893,9 +980,14 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      decrement_user_credits: { Args: { user_id: string }; Returns: boolean }
       get_my_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_active_subscription: {
+        Args: { check_env?: string; user_uuid: string }
+        Returns: boolean
       }
       has_role: {
         Args: {

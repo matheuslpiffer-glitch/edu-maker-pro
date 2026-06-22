@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -136,6 +137,7 @@ export default function EssayCorrector() {
   const [rotation, setRotation] = useState(0);
   const [studentName, setStudentName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [result, setResult] = useState<CorrectionResult | null>(null);
 
@@ -242,7 +244,22 @@ export default function EssayCorrector() {
     }
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    setIsExporting(true);
+    setTimeout(() => window.print(), 100);
+  };
+
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsExporting(false);
+      toast({ 
+        title: 'Laudo Gerado', 
+        description: 'O documento foi processado com sucesso.' 
+      });
+    };
+    window.addEventListener('afterprint', handleAfterPrint);
+    return () => window.removeEventListener('afterprint', handleAfterPrint);
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -345,6 +362,7 @@ export default function EssayCorrector() {
           </div>
         </>
       )}
+      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -11,10 +12,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import { Sparkles, Loader2, Plus, Trash2, Download, FileText, ChevronLeft, ChevronRight, Presentation, Edit3, MessageSquare, Play, Save, Users, BookOpen, Palette, CheckCircle2, ImageIcon } from 'lucide-react';
+import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import SkillSearch from '@/components/SkillSearch';
 import SlidePresenter from '@/components/SlidePresenter';
 import AttendancePanel from '@/components/AttendancePanel';
 import PdfToolbar from '@/components/PdfToolbar';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface Slide {
   title: string;
@@ -121,7 +124,7 @@ export default function EduSlides() {
         toast({ title: `${data.slides.length} slides gerados com sucesso!` });
       }
     } catch (e: any) {
-      toast({ title: 'Erro ao gerar slides', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar slides')
     } finally {
       setGenerating(false);
     }
@@ -149,7 +152,7 @@ export default function EduSlides() {
         toast({ title: 'Aula salva com sucesso!' });
       }
     } catch (e: any) {
-      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao salvar')
     } finally {
       setSaving(false);
     }
@@ -195,9 +198,9 @@ export default function EduSlides() {
         s.addText(`${i + 1}/${slides.length}`, { x: '90%', y: '93%', w: 0.8, h: 0.3, fontSize: 10, color: '999999', align: 'right' });
       });
       await pres.writeFile({ fileName: `${topic || 'aula'}.pptx` });
-      toast({ title: 'PPTX exportado com sucesso!' });
+      toast({ title: '✅ PPTX exportado com sucesso!' });
     } catch (e: any) {
-      toast({ title: 'Erro ao exportar', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao exportar')
     } finally {
       setExporting(false);
     }
@@ -218,9 +221,27 @@ export default function EduSlides() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: formato === 'slides' ? 'landscape' as const : 'portrait' as const },
       };
       await html2pdf().set(opts).from(el).save();
-      toast({ title: 'PDF exportado com sucesso!' });
+      toast({ title: '✅ PDF exportado com sucesso!' });
     } catch (e: any) {
-      toast({ title: 'Erro ao exportar PDF', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao exportar PDF')
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportPdfWrapped = async () => {
+    setExporting(true);
+    try {
+      await exportPdf();
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportPptxWrapped = async () => {
+    setExporting(true);
+    try {
+      await exportPptx();
     } finally {
       setExporting(false);
     }
@@ -458,7 +479,7 @@ export default function EduSlides() {
         <div id="pdf-preview-container" className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div
             className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: (htmlSlides[activeSlide] || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(htmlSlides[activeSlide]) }}
           />
         </div>
 
@@ -475,7 +496,7 @@ export default function EduSlides() {
               <div
                 className="w-full h-full transform scale-[0.15] origin-top-left"
                 style={{ width: '640px', height: '400px' }}
-                dangerouslySetInnerHTML={{ __html: html.replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
               />
             </button>
           ))}
@@ -504,21 +525,21 @@ export default function EduSlides() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={addSlide}><Plus className="h-4 w-4 mr-1" /> Slide</Button>
-          <Button variant="outline" size="sm" onClick={() => setPresenting(true)}><Play className="h-4 w-4 mr-1" /> Apresentar</Button>
-          <Button variant="outline" size="sm" onClick={saveMeeting} disabled={saving}>
+          <Button variant="outline" size="sm" onClick={addSlide} disabled={exporting}><Plus className="h-4 w-4 mr-1" /> Slide</Button>
+          <Button variant="outline" size="sm" onClick={() => setPresenting(true)} disabled={exporting}><Play className="h-4 w-4 mr-1" /> Apresentar</Button>
+          <Button variant="outline" size="sm" onClick={saveMeeting} disabled={saving || exporting}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
             {meetingId ? 'Atualizar' : 'Salvar'}
           </Button>
           {meetingId && (
-            <Button variant="outline" size="sm" onClick={() => setShowAttendance(true)}><Users className="h-4 w-4 mr-1" /> Presenças</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowAttendance(true)} disabled={exporting}><Users className="h-4 w-4 mr-1" /> Presenças</Button>
           )}
-          <Button variant="outline" size="sm" onClick={exportPdf} disabled={exporting}><FileText className="h-4 w-4 mr-1" /> PDF</Button>
-          <Button size="sm" onClick={exportPptx} disabled={exporting}>
+          <Button variant="outline" size="sm" onClick={exportPdfWrapped} disabled={exporting}><FileText className="h-4 w-4 mr-1" /> PDF</Button>
+          <Button size="sm" onClick={exportPptxWrapped} disabled={exporting}>
             {exporting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Download className="h-4 w-4 mr-1" />}
             PPTX
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => { setSlides([]); setMeetingId(null); setFormato(''); }}>Nova Aula</Button>
+          <Button variant="ghost" size="sm" onClick={() => { setSlides([]); setMeetingId(null); setFormato(''); }} disabled={exporting}>Nova Aula</Button>
         </div>
       </div>
 
@@ -644,6 +665,7 @@ export default function EduSlides() {
       {presenting && (
         <SlidePresenter slides={slides} skillCode={skillCode} startIndex={activeSlide} onClose={() => setPresenting(false)} />
       )}
+      <ExportLoadingOverlay isOpen={exporting} />
     </div>
   );
 }

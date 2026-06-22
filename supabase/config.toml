@@ -3,14 +3,11 @@ project_id = "wmpahctvjywovcagqhab"
 [functions.student-activity]
 verify_jwt = false
 
-[functions.generate-simulator-questions]
+[functions.create-checkout]
 verify_jwt = false
 
-[functions.generate-exercise-list]
+[functions.create-portal-session]
 verify_jwt = false
 
-[functions.generate-illustration]
-verify_jwt = false
-
-[functions.generate-question]
+[functions.payments-webhook]
 verify_jwt = false

@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { showAiErrorToast } from '@/lib/ai-utils';
+import generateCrossword from 'crossword-layout-generator';
 import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,8 +14,9 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Puzzle, Grid3X3, Search, Brain, Layers, CheckCircle2 } from 'lucide-react';
+import { Loader2, Sparkles, Puzzle, Grid3X3, Search, Brain, Layers, CheckCircle2, AlertTriangle } from 'lucide-react';
 import PdfToolbar from '@/components/PdfToolbar';
+import DOMPurify from 'dompurify';
 
 interface GameQuestion {
   content: string;
@@ -21,6 +24,126 @@ interface GameQuestion {
   skillCode?: string;
   descriptor?: string;
 }
+
+const CrosswordGame = ({ data }: { data: string }) => {
+  const crossword = useMemo(() => {
+    try {
+      const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+      if (!parsed.words || !Array.isArray(parsed.words)) return null;
+      
+      const layout = generateCrossword(parsed.words);
+      if (!layout || !layout.table) return null;
+
+      return {
+        result: layout.result,
+        rows: layout.rows,
+        cols: layout.cols,
+        table: layout.table,
+        words: parsed.words
+      };
+    } catch (e) {
+      console.error("Error generating crossword layout:", e);
+      return null;
+    }
+  }, [data]);
+
+  if (!crossword) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 bg-amber-50 rounded-2xl border border-amber-100 text-center gap-3">
+        <AlertTriangle className="h-10 w-10 text-amber-500" />
+        <p className="text-sm font-medium text-amber-900">
+          Não foi possível estruturar este jogo automaticamente. 
+          Por favor, tente gerar novamente.
+        </p>
+      </div>
+    );
+  }
+
+  // Separate horizontals and verticals based on layout.result
+  const horizontals = crossword.result.filter((r: any) => r.orientation === 'across');
+  const verticals = crossword.result.filter((r: any) => r.orientation === 'down');
+
+  return (
+    <div className="space-y-8">
+      <div className="flex justify-center overflow-x-auto p-4">
+        <table className="border-collapse border-2 border-slate-800">
+          <tbody>
+            {crossword.table.map((row: string[], y: number) => (
+              <tr key={y}>
+                {row.map((cell: string, x: number) => {
+                  const isBlack = cell === '-';
+                  // Find if any word starts here to show a number
+                  const wordStart = crossword.result.find((r: any) => r.x === x && r.y === y);
+                  
+                  return (
+                    <td 
+                      key={x} 
+                      className={`relative w-8 h-8 sm:w-10 sm:h-10 border border-slate-400 text-center font-bold text-xs sm:text-sm ${isBlack ? 'bg-slate-900' : 'bg-white'}`}
+                    >
+                      {!isBlack && (
+                        <>
+                          {wordStart && (
+                            <span className="absolute top-0.5 left-0.5 text-[8px] sm:text-[10px] text-slate-500 leading-none">
+                              {crossword.result.indexOf(wordStart) + 1}
+                            </span>
+                          )}
+                          <span className="text-transparent print:text-slate-200">
+                            {cell}
+                          </span>
+                        </>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+        <div className="space-y-3">
+          <h4 className="font-bold text-slate-900 border-b pb-1">HORIZONTAIS</h4>
+          <ul className="space-y-2">
+            {horizontals.map((w: any) => (
+              <li key={w.answer} className="text-sm text-slate-700">
+                <span className="font-bold mr-2">{crossword.result.indexOf(w) + 1}.</span>
+                {crossword.words.find((word: any) => word.answer === w.answer)?.clue}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="space-y-3">
+          <h4 className="font-bold text-slate-900 border-b pb-1">VERTICAIS</h4>
+          <ul className="space-y-2">
+            {verticals.map((w: any) => (
+              <li key={w.answer} className="text-sm text-slate-700">
+                <span className="font-bold mr-2">{crossword.result.indexOf(w) + 1}.</span>
+                {crossword.words.find((word: any) => word.answer === w.answer)?.clue}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      
+      <div className="mt-8 pt-8 border-t border-dashed border-slate-200 no-print">
+        <details className="cursor-pointer group">
+          <summary className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
+            Ver Gabarito
+          </summary>
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+            {crossword.result.map((w: any, idx: number) => (
+              <div key={idx} className="text-[10px] bg-slate-50 p-2 rounded-lg border border-slate-100">
+                <span className="font-bold text-violet-600 mr-1">{idx + 1}.</span>
+                <span className="text-slate-600 uppercase font-mono">{w.answer}</span>
+              </div>
+            ))}
+          </div>
+        </details>
+      </div>
+    </div>
+  );
+};
 
 const GAME_TYPES = [
   { id: 'cruzadinha', label: 'Cruzadinha Temática', icon: Grid3X3, desc: 'Palavras cruzadas com dicas pedagógicas' },
@@ -44,6 +167,16 @@ export default function GameFactory() {
   const [wordCount, setWordCount] = useState(10);
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<GameQuestion[]>([]);
+
+  const sanitizedResult = useMemo(() => {
+    return result.map(q => ({
+      ...q,
+      sanitizedContent: DOMPurify.sanitize((q.content || '')
+        .replace(/```html\s*/gi, '')
+        .replace(/```\s*/g, '')
+        .trim())
+    }));
+  }, [result]);
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -82,7 +215,7 @@ export default function GameFactory() {
       }
     } catch (e: any) {
       console.error(e);
-      toast({ title: 'Erro ao gerar jogo', description: e.message, variant: 'destructive' });
+      showAiErrorToast(e, toast, 'Erro ao gerar jogo')
     } finally {
       setGenerating(false);
     }
@@ -263,11 +396,19 @@ export default function GameFactory() {
                 </CardHeader>
                 <CardContent>
                   <div id="pdf-preview-container" className="space-y-4 bg-white p-6 rounded-xl">
-                    {result.map((q, i) => (
-                      <div key={i} className="border rounded-2xl p-4 bg-white print-no-break">
-                        <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
-                      </div>
-                    ))}
+                    {sanitizedResult.map((q: any, i) => {
+                      const isCruzadinha = q.skillCode?.includes('CRUZADINHA');
+                      
+                      return (
+                        <div key={i} className="border rounded-2xl p-4 bg-white print-no-break">
+                          {isCruzadinha ? (
+                            <CrosswordGame data={q.content} />
+                          ) : (
+                            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: q.sanitizedContent }} />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
