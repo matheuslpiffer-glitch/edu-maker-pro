@@ -100,7 +100,7 @@ export default function StudentActivityResponse() {
   const isDiscursiva = activity?.questionType === 'discursiva' || activity?.questionType === 'gabarito_discursivo';
 
   const allAnswered = activity
-    ? (activity.questions || []).every((_, i) => answers[i] && answers[i].trim().length > 0)
+    ? activity.questions.every((_, i) => answers[i] && answers[i].trim().length > 0)
     : false;
 
 
@@ -231,7 +231,7 @@ export default function StudentActivityResponse() {
 
         {/* Questions */}
         <div className="space-y-5">
-          {(activity.questions || []).map((q, i) => (
+          {activity.questions.map((q, i) => (
             <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-3" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
@@ -254,7 +254,7 @@ export default function StudentActivityResponse() {
                 />
               ) : (
                 <div className="space-y-1.5">
-                  {(q.options || []).map(o => {
+                  {q.options.map(o => {
                     const selected = answers[i] === o.letter;
                     return (
                       <button
@@ -268,8 +268,7 @@ export default function StudentActivityResponse() {
                             : 'border-border hover:border-primary/40 text-foreground'
                         } ${result ? 'cursor-default' : 'cursor-pointer'}`}
                       >
-                        <strong>{o.letter})</strong>{' '}
-                        <MathRenderer content={o.text} className="inline" />
+                        <strong>{o.letter})</strong> {o.text}
                       </button>
                     );
                   })}

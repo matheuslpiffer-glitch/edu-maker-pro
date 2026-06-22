@@ -1,23 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
-import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    const userId = await getUserIdFromAuth(authHeader);
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const { topic, skillCode, skillDescription, grade, objective, formato, tema, includeAiImages, slideCount } = await req.json();
 
@@ -26,7 +19,6 @@ serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
 
     const skillContext = skillCode
       ? `\nHabilidade BNCC/Gestor de Ensino: ${skillCode} - ${skillDescription}`
@@ -72,55 +64,41 @@ ${objective ? `Objetivo: ${objective}` : ""}${skillContext}
 
 Sequência: 1) Capa, 2) Objetivo, 3) Contextualização, 4-${count - 3}) Desenvolvimento, ${count - 2}) Exercício, ${count - 1}) Síntese, ${count}) Fechamento.`;
 
-      const creditCheck = await checkAndDecrementCredits(userId);
-      if (!creditCheck.allowed) {
-        return new Response(JSON.stringify({ error: creditCheck.error }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          temperature: 0.8,
+        }),
+      });
 
-      let response;
-      for (let i = 0; i < 4; i++) {
-        response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: "gemini-2.5-flash",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            temperature: 0.8,
-          }),
-        });
-        if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
-        await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-      }
-
-
-      if (!response!.ok) {
-        const t = await response!.text();
-        console.error("AI error:", response!.status, t);
-        if (response!.status === 429) return new Response(JSON.stringify({ error: "Limite excedido. Tente novamente." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-        if (response!.status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (!response.ok) {
+        const t = await response.text();
+        console.error("AI error:", response.status, t);
+        if (response.status === 429) return new Response(JSON.stringify({ error: "Limite excedido. Tente novamente." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (response.status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         return new Response(JSON.stringify({ error: "Erro ao gerar slides visuais" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      const data = await response!.json();
+      const data = await response.json();
       const content = data.choices?.[0]?.message?.content || "";
 
-      let cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-      const start = cleaned.search(/[\{\[]/);
-      const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
-      if (start === -1 || end === -1) throw new Error("No JSON found");
-      
       let parsed;
       try {
+        const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        // Find JSON boundaries
+        const start = cleaned.indexOf('{');
+        const end = cleaned.lastIndexOf('}');
+        if (start === -1 || end === -1) throw new Error("No JSON found");
         parsed = JSON.parse(cleaned.substring(start, end + 1));
-      } catch (e) {
+      } catch {
         console.error("Failed to parse visual slides:", content.substring(0, 500));
-        throw e;
+        return new Response(JSON.stringify({ error: "Erro ao processar slides visuais" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
       return new Response(JSON.stringify(parsed), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -129,13 +107,9 @@ Sequência: 1) Capa, 2) Objetivo, 3) Contextualização, 4-${count - 3}) Desenvo
     // ══════════════════════════════════════════
     // CLASSIC / APOSTILA MODE (structured JSON)
     // ══════════════════════════════════════════
-    const systemPrompt = `Você é um especialista em criação de roteiros de aula do Estado de São Paulo, alinhado ao Currículo Paulista e à BNCC.
+    const systemPrompt = `Você é um especialista em criação de roteiros de aula do Estado de São Paulo. Crie apresentações seguindo o Escopo e Sequência da Gestor de Ensino e o Currículo Paulista. Garanta linguagem adequada à série e alinhamento pedagógico.
 
-REGRAS OBRIGATÓRIAS:
-1. TEXTO CURTO POR SLIDE: Cada slide deve conter no máximo 3 tópicos (bullet points). Cada tópico deve ter no máximo 10 palavras. Evite parágrafos longos ou blocos textuais.
-2. NOTAS DO PROFESSOR COMPACTAS: O campo "speaker_notes" deve conter exatamente 2 dicas metodológicas práticas por slide, sem textos teóricos.
-3. RIGOR BNCC: Use apenas códigos de habilidades reais da BNCC (ex: EM13MAT, EM13CNT, EF09MA). Proibido inventar códigos.
-4. RESPOSTA EM JSON LIMPO: Responda exclusivamente com um objeto JSON estruturado, sem tags markdown (como \`\`\`json) e sem introduções ou conclusões textuais. Se quebrar esta regra, o sistema falhará.`;
+Responda APENAS com JSON válido, sem markdown ou texto adicional.`;
 
     const userPrompt = `Crie um roteiro de aula em formato de apresentação (slides) sobre o tema: "${topic}"
 ${grade ? `Série/Ano: ${grade}` : ""}
@@ -167,51 +141,33 @@ Para o slide de Aplicação/Exercício, preencha o campo "activity" com uma suge
 
 Os bullet points devem ser concisos e claros. As speaker_notes devem ser orientações detalhadas de como o professor pode conduzir aquele momento da aula.`;
 
-    const creditCheck = await checkAndDecrementCredits(userId);
-    if (!creditCheck.allowed) {
-      return new Response(JSON.stringify({ error: creditCheck.error }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.7,
+      }),
+    });
 
-    let response;
-    for (let i = 0; i < 4; i++) {
-      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "gemini-2.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          temperature: 0.7,
-        }),
-      });
-      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
-      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-    }
-
-
-    if (!response!.ok) {
-      if (response!.status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (response!.status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      const t = await response!.text();
-      console.error("AI gateway error:", response!.status, t);
+    if (!response.ok) {
+      if (response.status === 429) return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (response.status === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const t = await response.text();
+      console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "Erro ao gerar slides" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const data = await response!.json();
+    const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
-
-    let cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-    const start = cleaned.search(/[\{\[]/);
-    const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
-    if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
 
     let parsed;
     try {
+      const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
       parsed = JSON.parse(cleaned);
     } catch {
       console.error("Failed to parse AI response:", content);

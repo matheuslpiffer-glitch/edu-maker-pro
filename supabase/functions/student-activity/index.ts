@@ -35,15 +35,6 @@ serve(async (req) => {
       });
     }
 
-    // Only banks that were explicitly shared (have an access_code) are reachable
-    // through this anonymous endpoint. Private banks must never be accessible
-    // just by knowing the internal UUID.
-    if (!bank.access_code) {
-      return new Response(JSON.stringify({ error: "Atividade indisponível." }), {
-        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const questions = (bank.questions as any[]) || [];
 
     // ACTION: fetch — return questions WITHOUT correct answers

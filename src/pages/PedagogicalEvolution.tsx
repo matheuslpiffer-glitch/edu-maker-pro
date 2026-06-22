@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -72,7 +72,6 @@ export default function PedagogicalEvolution() {
   const [filterGrade, setFilterGrade] = useState('all');
   const [idespMeta, setIdespMeta] = useState(60);
   const [selectedStudent, setSelectedStudent] = useState('all');
-  const [exporting, setExporting] = useState(false);
 
   useEffect(() => { loadData(); }, []);
 
@@ -88,112 +87,94 @@ export default function PedagogicalEvolution() {
   };
 
   // Filter simulators
-  const filteredSims = useMemo(() => {
-    return simulators.filter(s => {
-      if (filterSubject !== 'all' && s.subject_area !== filterSubject) return false;
-      if (filterGrade !== 'all' && s.grade !== filterGrade) return false;
-      return true;
-    });
-  }, [simulators, filterSubject, filterGrade]);
+  const filteredSims = simulators.filter(s => {
+    if (filterSubject !== 'all' && s.subject_area !== filterSubject) return false;
+    if (filterGrade !== 'all' && s.grade !== filterGrade) return false;
+    return true;
+  });
 
-  const subjects = useMemo(() => [...new Set(simulators.map(s => s.subject_area).filter(s => s && s.trim() !== ''))], [simulators]);
-  const grades = useMemo(() => [...new Set(simulators.map(s => s.grade).filter(s => s && s.trim() !== ''))], [simulators]);
+  const subjects = [...new Set(simulators.map(s => s.subject_area).filter(s => s && s.trim() !== ''))];
+  const grades = [...new Set(simulators.map(s => s.grade).filter(s => s && s.trim() !== ''))];
 
   // All student names across filtered simulators
-  const { studentNames, filteredResults } = useMemo(() => {
-    const simIds = new Set(filteredSims.map(s => s.id));
-    const results = allResults.filter(r => simIds.has(r.simulator_id));
-    const names = [...new Set(results.map(r => r.student_name).filter(n => n && n.trim() !== ''))].sort();
-    return { studentNames: names, filteredResults: results };
-  }, [filteredSims, allResults]);
+  const filteredSimIds = new Set(filteredSims.map(s => s.id));
+  const filteredResults = allResults.filter(r => filteredSimIds.has(r.simulator_id));
+  const studentNames = [...new Set(filteredResults.map(r => r.student_name).filter(n => n && n.trim() !== ''))].sort();
 
   // Build time series data
-  const { timeSeriesData, lastAvg, trend } = useMemo(() => {
-    const data: TimePoint[] = filteredSims.map(sim => {
-      let results = allResults.filter(r => r.simulator_id === sim.id);
-      if (selectedStudent !== 'all') {
-        results = results.filter(r => r.student_name === selectedStudent);
-      }
+  const timeSeriesData: TimePoint[] = filteredSims.map(sim => {
+    let results = allResults.filter(r => r.simulator_id === sim.id);
+    if (selectedStudent !== 'all') {
+      results = results.filter(r => r.student_name === selectedStudent);
+    }
 
-      const avg = results.length > 0
-        ? results.reduce((sum, r) => sum + Number(r.percentage), 0) / results.length
-        : 0;
+    const avg = results.length > 0
+      ? results.reduce((sum, r) => sum + Number(r.percentage), 0) / results.length
+      : 0;
 
-      const dist = { abaixo_basico: 0, basico: 0, proficiente: 0, avancado: 0 };
-      results.forEach(r => {
-        const key = r.proficiency_level as keyof typeof dist;
-        if (key in dist) dist[key]++;
-      });
+    const dist = { abaixo_basico: 0, basico: 0, proficiente: 0, avancado: 0 };
+    results.forEach(r => {
+      const key = r.proficiency_level as keyof typeof dist;
+      if (key in dist) dist[key]++;
+    });
 
-      const examLabel = EXAM_LABELS[sim.exam_type] || sim.exam_type;
-      const dateStr = new Date(sim.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+    const examLabel = EXAM_LABELS[sim.exam_type] || sim.exam_type;
+    const dateStr = new Date(sim.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 
-      return {
-        label: `${examLabel} (${dateStr})`,
-        simulatorId: sim.id,
-        date: sim.created_at,
-        average: Math.round(avg * 10) / 10,
-        ...dist,
-        studentCount: results.length,
-      };
-    }).filter(tp => tp.studentCount > 0);
+    return {
+      label: `${examLabel} (${dateStr})`,
+      simulatorId: sim.id,
+      date: sim.created_at,
+      average: Math.round(avg * 10) / 10,
+      ...dist,
+      studentCount: results.length,
+    };
+  }).filter(tp => tp.studentCount > 0);
 
-    const firstAvg = data.length > 0 ? data[0].average : 0;
-    const lAvg = data.length > 0 ? data[data.length - 1].average : 0;
-    const trnd = lAvg - firstAvg;
-
-    return { timeSeriesData: data, lastAvg: lAvg, trend: trnd };
-  }, [filteredSims, allResults, selectedStudent]);
+  // Compute overall trend
+  const firstAvg = timeSeriesData.length > 0 ? timeSeriesData[0].average : 0;
+  const lastAvg = timeSeriesData.length > 0 ? timeSeriesData[timeSeriesData.length - 1].average : 0;
+  const trend = lastAvg - firstAvg;
 
   // Student comparison table
-  const studentComparison = useMemo(() => {
-    if (selectedStudent !== 'all') return [];
-    
-    return studentNames.slice(0, 50).map(name => {
-      const studentResults = filteredResults
-        .filter(r => r.student_name === name)
-        .sort((a, b) => {
-          const simA = simulators.find(s => s.id === a.simulator_id);
-          const simB = simulators.find(s => s.id === b.simulator_id);
-          return (simA?.created_at || '').localeCompare(simB?.created_at || '');
-        });
-      const first = studentResults[0];
-      const last = studentResults[studentResults.length - 1];
-      return {
-        name,
-        firstPct: first ? Number(first.percentage) : 0,
-        lastPct: last ? Number(last.percentage) : 0,
-        delta: last && first ? Number(last.percentage) - Number(first.percentage) : 0,
-        count: studentResults.length,
-      };
-    }).sort((a, b) => b.delta - a.delta);
-  }, [selectedStudent, studentNames, filteredResults, simulators]);
+  const studentComparison = selectedStudent === 'all'
+    ? studentNames.slice(0, 50).map(name => {
+        const studentResults = filteredResults
+          .filter(r => r.student_name === name)
+          .sort((a, b) => {
+            const simA = simulators.find(s => s.id === a.simulator_id);
+            const simB = simulators.find(s => s.id === b.simulator_id);
+            return (simA?.created_at || '').localeCompare(simB?.created_at || '');
+          });
+        const first = studentResults[0];
+        const last = studentResults[studentResults.length - 1];
+        return {
+          name,
+          firstPct: first ? Number(first.percentage) : 0,
+          lastPct: last ? Number(last.percentage) : 0,
+          delta: last && first ? Number(last.percentage) - Number(first.percentage) : 0,
+          count: studentResults.length,
+        };
+      })
+    : [];
 
   const handlePDF = async () => {
     if (!reportRef.current) return;
-    setExporting(true);
     toast({ title: 'Gerando PDF de Evolução...' });
 
-    try {
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794,
-      });
+    const canvas = await html2canvas(reportRef.current, {
+      scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794,
+    });
 
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const MARGIN = 15;
-      const imgW = 210 - MARGIN * 2;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const MARGIN = 15;
+    const imgW = 210 - MARGIN * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    const imgData = canvas.toDataURL('image/png');
 
-      pdf.addImage(imgData, 'PNG', MARGIN, MARGIN, imgW, Math.min(imgH, 297 - MARGIN * 2));
-      pdf.save('evolucao-pedagogica.pdf');
-      toast({ title: 'PDF gerado!' });
-    } catch (error) {
-      console.error('PDF export error:', error);
-      toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
-    } finally {
-      setExporting(false);
-    }
+    pdf.addImage(imgData, 'PNG', MARGIN, MARGIN, imgW, Math.min(imgH, 297 - MARGIN * 2));
+    pdf.save('evolucao-pedagogica.pdf');
+    toast({ title: 'PDF gerado!' });
   };
 
   if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -256,11 +237,8 @@ export default function PedagogicalEvolution() {
         <>
           {/* Export buttons */}
           <div className="flex gap-2 mb-4 no-print">
-            <Button variant="outline" size="sm" onClick={() => window.print()} disabled={exporting}><Printer size={16} className="mr-2" />Imprimir</Button>
-            <Button variant="outline" size="sm" onClick={handlePDF} disabled={exporting}>
-              {exporting ? <Loader2 size={16} className="mr-2 animate-spin" /> : <Download size={16} className="mr-2" />}
-              PDF de Evolução
-            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={16} className="mr-2" />Imprimir</Button>
+            <Button variant="outline" size="sm" onClick={handlePDF}><Download size={16} className="mr-2" />PDF de Evolução</Button>
           </div>
 
           {/* Report content (for PDF capture) */}
@@ -369,7 +347,7 @@ export default function PedagogicalEvolution() {
                         </tr>
                       </thead>
                       <tbody>
-                        {studentComparison.map(s => (
+                        {studentComparison.sort((a, b) => b.delta - a.delta).map(s => (
                           <tr key={s.name} className="border-b hover:bg-muted/50">
                             <td className="p-2 font-medium">{s.name}</td>
                             <td className="p-2 text-center">{s.firstPct.toFixed(1)}%</td>

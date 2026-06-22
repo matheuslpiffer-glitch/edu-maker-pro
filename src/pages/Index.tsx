@@ -1,36 +1,31 @@
+import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import {
   ScanLine, History, BookText, HelpCircle,
   Sparkles, BookOpen, FileText, Layers,
   Landmark, Cpu, Accessibility, PenLine,
   Presentation, Map, CalendarDays, Gamepad2, Library,
-  Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { Badge } from '@/components/ui/badge';
 import WelcomeModal from '@/components/WelcomeModal';
-import { useQuery } from '@tanstack/react-query';
 
 export default function Index() {
   const { isStudentMode } = useStudentMode();
+  const [stats, setStats] = useState({ questions: 0, assessments: 0, subjects: 0 });
 
-  const { data: stats, isLoading: isLoadingStats } = useQuery({
-    queryKey: ['dashboard-stats'],
-    queryFn: async () => {
+  useEffect(() => {
+    async function load() {
       const [q, a, s] = await Promise.all([
         supabase.from('questions').select('id', { count: 'exact', head: true }),
         supabase.from('assessments').select('id', { count: 'exact', head: true }),
         supabase.from('subjects').select('id', { count: 'exact', head: true }),
       ]);
-      return {
-        questions: q.count || 0,
-        assessments: a.count || 0,
-        subjects: s.count || 0,
-      };
-    },
-    staleTime: 300000, // 5 minutes
-  });
+      setStats({ questions: q.count || 0, assessments: a.count || 0, subjects: s.count || 0 });
+    }
+    load();
+  }, []);
 
   if (isStudentMode) return <Navigate to="/portal-aluno" replace />;
 
@@ -84,20 +79,20 @@ export default function Index() {
 
   /* ── Secondary engines ── */
   const engines = [
-    { id: 'vestibulares', to: '/vestibulares', icon: Landmark, label: 'Vestibulares & Seleções', gradient: 'from-blue-600 to-indigo-600' },
-    { id: 'tecnicos', to: '/tecnicos', icon: Cpu, label: 'Técnicos & Institutos', gradient: 'from-emerald-500 to-teal-600' },
-    { id: 'inclusao', to: '/inclusao', icon: Accessibility, label: 'Inclusão AEE', gradient: 'from-cyan-500 to-teal-500' },
-    { id: 'eduslides', to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', gradient: 'from-violet-500 to-purple-600' },
-    { id: 'infograficos', to: '/mapa-mental', icon: Map, label: 'Infográficos', gradient: 'from-amber-500 to-orange-600' },
-    { id: 'planejamento', to: '/planejamento', icon: CalendarDays, label: 'Planejamento 360°', gradient: 'from-sky-500 to-blue-600' },
-    { id: 'jogos', to: '/jogos', icon: Gamepad2, label: 'Game Factory', gradient: 'from-lime-500 to-green-600' },
-    { id: 'biblioteca_sec', to: '/biblioteca', icon: Library, label: 'Minha Biblioteca', gradient: 'from-slate-500 to-gray-600' },
+    { to: '/vestibulares', icon: Landmark, label: 'Vestibulares & Seleções', gradient: 'from-blue-600 to-indigo-600' },
+    { to: '/tecnicos', icon: Cpu, label: 'Técnicos & Institutos', gradient: 'from-emerald-500 to-teal-600' },
+    { to: '/inclusao', icon: Accessibility, label: 'Inclusão AEE', gradient: 'from-cyan-500 to-teal-500' },
+    { to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', gradient: 'from-violet-500 to-purple-600' },
+    { to: '/mapa-mental', icon: Map, label: 'Infográficos', gradient: 'from-amber-500 to-orange-600' },
+    { to: '/planejamento', icon: CalendarDays, label: 'Planejamento 360°', gradient: 'from-sky-500 to-blue-600' },
+    { to: '/jogos', icon: Gamepad2, label: 'Game Factory', gradient: 'from-lime-500 to-green-600' },
+    { to: '/biblioteca', icon: Library, label: 'Minha Biblioteca', gradient: 'from-slate-500 to-gray-600' },
   ];
 
   const statCards = [
-    { id: 'questions', label: 'Questões', value: stats?.questions || 0, icon: BookOpen, gradient: 'from-indigo-500 to-blue-600' },
-    { id: 'assessments', label: 'Provas', value: stats?.assessments || 0, icon: FileText, gradient: 'from-violet-500 to-purple-600' },
-    { id: 'subjects', label: 'Disciplinas', value: stats?.subjects || 0, icon: Layers, gradient: 'from-cyan-500 to-blue-600' },
+    { label: 'Questões', value: stats.questions, icon: BookOpen, gradient: 'from-indigo-500 to-blue-600' },
+    { label: 'Provas', value: stats.assessments, icon: FileText, gradient: 'from-violet-500 to-purple-600' },
+    { label: 'Disciplinas', value: stats.subjects, icon: Layers, gradient: 'from-cyan-500 to-blue-600' },
   ];
 
   return (
@@ -164,8 +159,8 @@ export default function Index() {
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">Todos os Motores</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {engines.map(e => (
-              <Link key={e.id} to={e.to}>
-                <div className="bg-white/90 backdrop-blur-2xl rounded-2xl border border-slate-200/60 p-4 hover:shadow-md hover:scale-[1.03] transition-all duration-200 cursor-pointer group text-center h-full">
+              <Link key={e.to} to={e.to}>
+                <div className="bg-white/90 backdrop-blur-2xl rounded-2xl border border-slate-200/60 p-4 hover:shadow-md hover:scale-[1.03] transition-all duration-200 cursor-pointer group text-center">
                   <div className={`flex h-10 w-10 mx-auto items-center justify-center rounded-xl bg-gradient-to-br ${e.gradient} shadow-md group-hover:scale-110 transition-transform`}>
                     <e.icon size={18} className="text-white" />
                   </div>
@@ -176,19 +171,16 @@ export default function Index() {
           </div>
         </div>
 
+        {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-8">
           {statCards.map(s => (
-            <div key={s.id} className="bg-white/90 backdrop-blur-2xl rounded-2xl border border-slate-200/60 p-4 flex items-center gap-3 shadow-sm min-h-[76px]">
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${s.gradient} shadow-md`}>
+            <div key={s.label} className="bg-white/90 backdrop-blur-2xl rounded-2xl border border-slate-200/60 p-4 flex items-center gap-3 shadow-sm">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${s.gradient} shadow-md`}>
                 <s.icon size={18} className="text-white" />
               </div>
-              <div className="min-w-0 flex-1">
-                {isLoadingStats ? (
-                  <div className="h-6 w-12 bg-slate-200 animate-pulse rounded-md mb-1" />
-                ) : (
-                  <p className="text-xl font-bold text-slate-900 truncate">{s.value}</p>
-                )}
-                <p className="text-[10px] text-slate-400 font-medium truncate">{s.label}</p>
+              <div>
+                <p className="text-xl font-bold text-slate-900">{s.value}</p>
+                <p className="text-[10px] text-slate-400 font-medium">{s.label}</p>
               </div>
             </div>
           ))}

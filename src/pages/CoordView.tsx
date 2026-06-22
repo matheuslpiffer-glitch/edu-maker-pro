@@ -3,16 +3,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Trophy, BarChart3, Users, AlertTriangle, Award, FileDown, TrendingUp, Star, Gem, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Trophy, BarChart3, Users, AlertTriangle, Award, FileDown, TrendingUp, Star, Gem } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 
 // ── Types ──
 interface EssaySub {
@@ -158,13 +156,8 @@ export default function CoordView() {
   const [simResults, setSimResults] = useState<StudentResult[]>([]);
   const [filterClass, setFilterClass] = useState('all');
   const [filterBanca, setFilterBanca] = useState('all');
-  const [search, setSearch] = useState('');
   const [certStudent, setCertStudent] = useState<MeritStudent | null>(null);
   const reportRef = useRef<HTMLDivElement>(null);
-  const [exporting, setExporting] = useState(false);
-  const [pageMerit, setPageMerit] = useState(1);
-  const [pagePending, setPagePending] = useState(1);
-  const itemsPerPage = 10;
 
   // Load data
   useEffect(() => {
@@ -194,14 +187,10 @@ export default function CoordView() {
 
   const filtered = useMemo(() => {
     let e = essays;
-    const q = search.trim().toLowerCase();
-    if (q) {
-      e = e.filter(x => x.student_name?.toLowerCase().includes(q));
-    }
     if (filterClass !== 'all') e = e.filter(x => x.student_class === filterClass);
     if (filterBanca !== 'all') e = e.filter(x => x.banca === filterBanca);
     return e;
-  }, [essays, filterClass, filterBanca, search]);
+  }, [essays, filterClass, filterBanca]);
 
   // KPIs
   const totalEssays = filtered.length;
@@ -305,22 +294,10 @@ export default function CoordView() {
     return result.sort((a, b) => b.improvement - a.improvement);
   }, [filtered]);
 
-  const simSummary = useMemo(() => {
-    if (!simResults.length) return null;
-    const avg = simResults.reduce((a, b) => a + b.percentage, 0) / simResults.length;
-    const advanced = simResults.filter(r => r.proficiency_level === 'avancado').length;
-    const belowBasic = simResults.filter(r => r.proficiency_level === 'abaixo_basico').length;
-    return { avg, advanced, belowBasic, total: simResults.length };
-  }, [simResults]);
-
-  const pendingEssays = useMemo(() => {
-    return filtered.filter(e => !e.teacher_validated);
-  }, [filtered]);
-
   // Export PDF report
   const handleExportReport = async () => {
     if (!reportRef.current) return;
-    setExporting(true);
+    toast.info('Gerando relatório PDF...');
     try {
       const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, logging: false });
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -329,12 +306,9 @@ export default function CoordView() {
       const imgH = (canvas.height * imgW) / canvas.width;
       pdf.addImage(imgData, 'PNG', 10, 10, imgW, imgH);
       pdf.save('Relatorio_Coordenacao_Abril2026.pdf');
-      toast.success('✅ Relatório exportado com sucesso!');
-    } catch (err) {
-      console.error('[handleExportReport] error:', err);
+      toast.success('Relatório exportado!');
+    } catch {
       toast.error('Erro ao gerar relatório');
-    } finally {
-      setExporting(false);
     }
   };
 
@@ -356,13 +330,7 @@ export default function CoordView() {
           </h1>
           <p className="text-sm text-muted-foreground">Relatório de Evolução Pedagógica — Abril/2026</p>
         </div>
-        <div className="flex gap-2 flex-wrap flex-1 justify-end">
-          <Input 
-            placeholder="Buscar aluno..." 
-            className="w-full md:w-48"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="flex gap-2 flex-wrap">
           <Select value={filterClass} onValueChange={setFilterClass}>
             <SelectTrigger className="w-36"><SelectValue placeholder="Turma" /></SelectTrigger>
             <SelectContent>
@@ -377,8 +345,8 @@ export default function CoordView() {
               {['Banca Nacional', 'Banca Acadêmica', 'Avaliação Técnica', 'Banca de Excelência'].map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={handleExportReport} disabled={exporting}>
-            {exporting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <FileDown className="h-4 w-4 mr-1" />} Exportar PDF
+          <Button variant="outline" onClick={handleExportReport}>
+            <FileDown className="h-4 w-4 mr-1" /> Exportar PDF
           </Button>
         </div>
       </div>
@@ -480,57 +448,30 @@ export default function CoordView() {
               </p>
             ) : (
               <div className="space-y-2">
-                {meritStudents.slice((pageMerit - 1) * itemsPerPage, pageMerit * itemsPerPage).map((s, i) => {
-                  const rank = (pageMerit - 1) * itemsPerPage + i + 1;
-                  return (
-                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border bg-gradient-to-r from-amber-50/50 to-transparent dark:from-amber-950/10">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 font-bold text-sm">
-                          {rank}
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">{s.name}</p>
-                          <p className="text-xs text-muted-foreground">Turma {s.turma} • {s.banca}</p>
-                        </div>
+                {meritStudents.map((s, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border bg-gradient-to-r from-amber-50/50 to-transparent dark:from-amber-950/10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 font-bold text-sm">
+                        {i + 1}
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="text-right text-xs">
-                          <span className="text-red-400">{s.notaV1}</span>
-                          <span className="mx-1">→</span>
-                          <span className="text-emerald-600 font-bold">{s.notaV2}</span>
-                          <Badge className="ml-2 bg-amber-500 text-white">+{s.improvement.toFixed(0)}%</Badge>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => setCertStudent(s)}>
-                          <Gem className="h-3 w-3 mr-1" /> Certificado
-                        </Button>
+                      <div>
+                        <p className="font-medium text-sm">{s.name}</p>
+                        <p className="text-xs text-muted-foreground">Turma {s.turma} • {s.banca}</p>
                       </div>
                     </div>
-                  );
-                })}
-
-                {meritStudents.length > itemsPerPage && (
-                  <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPageMerit(p => Math.max(1, p - 1))}
-                      disabled={pageMerit === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-                    </Button>
-                    <span className="text-xs text-muted-foreground font-medium">
-                      Página {pageMerit} de {Math.ceil(meritStudents.length / itemsPerPage)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPageMerit(p => Math.min(Math.ceil(meritStudents.length / itemsPerPage), p + 1))}
-                      disabled={pageMerit >= Math.ceil(meritStudents.length / itemsPerPage)}
-                    >
-                      Próximo <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right text-xs">
+                        <span className="text-red-400">{s.notaV1}</span>
+                        <span className="mx-1">→</span>
+                        <span className="text-emerald-600 font-bold">{s.notaV2}</span>
+                        <Badge className="ml-2 bg-amber-500 text-white">+{s.improvement.toFixed(0)}%</Badge>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => setCertStudent(s)}>
+                        <Gem className="h-3 w-3 mr-1" /> Certificado
+                      </Button>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             )}
           </CardContent>
@@ -542,44 +483,19 @@ export default function CoordView() {
             <CardTitle className="text-sm">Redações Pendentes de Validação</CardTitle>
           </CardHeader>
           <CardContent>
-            {pendingEssays.length === 0 ? (
+            {filtered.filter(e => !e.teacher_validated).length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">Nenhuma redação pendente. 🎉</p>
             ) : (
-              <div className="space-y-2">
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                  {pendingEssays.slice((pagePending - 1) * itemsPerPage, pagePending * itemsPerPage).map(e => (
-                    <div key={e.id} className="flex items-center justify-between p-2 rounded border text-sm">
-                      <div>
-                        <span className="font-medium">{e.student_name || 'Anônimo'}</span>
-                        <span className="text-muted-foreground ml-2">• {e.student_class} • {e.banca}</span>
-                      </div>
-                      <Badge variant="secondary">{e.status}</Badge>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {filtered.filter(e => !e.teacher_validated).slice(0, 20).map(e => (
+                  <div key={e.id} className="flex items-center justify-between p-2 rounded border text-sm">
+                    <div>
+                      <span className="font-medium">{e.student_name || 'Anônimo'}</span>
+                      <span className="text-muted-foreground ml-2">• {e.student_class} • {e.banca}</span>
                     </div>
-                  ))}
-                </div>
-                {pendingEssays.length > itemsPerPage && (
-                  <div className="flex items-center justify-center gap-4 mt-4 py-2 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPagePending(p => Math.max(1, p - 1))}
-                      disabled={pagePending === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-                    </Button>
-                    <span className="text-xs text-muted-foreground font-medium">
-                      Página {pagePending} de {Math.ceil(pendingEssays.length / itemsPerPage)}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPagePending(p => Math.min(Math.ceil(pendingEssays.length / itemsPerPage), p + 1))}
-                      disabled={pagePending >= Math.ceil(pendingEssays.length / itemsPerPage)}
-                    >
-                      Próximo <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
+                    <Badge variant="secondary">{e.status}</Badge>
                   </div>
-                )}
+                ))}
               </div>
             )}
           </CardContent>
@@ -587,7 +503,7 @@ export default function CoordView() {
       </div>
 
       {/* Sim results summary */}
-      {simSummary && (
+      {simResults.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -597,24 +513,24 @@ export default function CoordView() {
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <p className="text-2xl font-bold">{simSummary.total}</p>
+                <p className="text-2xl font-bold">{simResults.length}</p>
                 <p className="text-xs text-muted-foreground">Resultados</p>
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {simSummary.avg.toFixed(0)}%
+                  {(simResults.reduce((a, b) => a + b.percentage, 0) / simResults.length).toFixed(0)}%
                 </p>
                 <p className="text-xs text-muted-foreground">Média Geral</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-emerald-500">
-                  {simSummary.advanced}
+                  {simResults.filter(r => r.proficiency_level === 'avancado').length}
                 </p>
                 <p className="text-xs text-muted-foreground">Avançados</p>
               </div>
               <div>
                 <p className="text-2xl font-bold text-red-500">
-                  {simSummary.belowBasic}
+                  {simResults.filter(r => r.proficiency_level === 'abaixo_basico').length}
                 </p>
                 <p className="text-xs text-muted-foreground">Abaixo Básico</p>
               </div>
@@ -629,7 +545,6 @@ export default function CoordView() {
 
       {/* Certificate modal */}
       {certStudent && <MeritCertificate student={certStudent} onClose={() => setCertStudent(null)} />}
-      <ExportLoadingOverlay isOpen={exporting} />
     </div>
   );
 }

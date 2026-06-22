@@ -1,27 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
-import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    const userId = await getUserIdFromAuth(authHeader);
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
 
     const { theme, mode, subject, grade, aee, questionPrompt } = await req.json();
     if (!theme) return new Response(JSON.stringify({ error: "Tema obrigatório" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
 
     // Question generation mode
     if (mode === 'questions' && questionPrompt) {
@@ -43,11 +35,11 @@ Retorne JSON PURO (sem markdown):
   ]
 }`;
 
-      const qRes = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+      const qRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
-          model: "gemini-2.5-flash",
+          model: "google/gemini-2.5-flash",
           messages: [{ role: "user", content: qPrompt }],
           temperature: 0.6,
         }),
@@ -90,11 +82,11 @@ Retorne JSON PURO (sem markdown):
   ]
 }`;
 
-      const sRes = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+      const sRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
-          model: "gemini-2.5-flash",
+          model: "google/gemini-2.5-flash",
           messages: [{ role: "user", content: sPrompt }],
           temperature: 0.6,
         }),
@@ -195,49 +187,24 @@ Retorne um JSON PURO (sem markdown, sem crases) com esta estrutura:
   ]
 }`;
 
-    const creditCheck = await checkAndDecrementCredits(userId);
-    if (!creditCheck.allowed) {
-      return new Response(JSON.stringify({ error: creditCheck.error }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+      }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`AI error ${res.status}: ${errText}`);
     }
 
-    let res;
-    for (let i = 0; i < 4; i++) {
-      res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: "gemini-2.5-flash",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.7,
-        }),
-      });
-      if (res.ok || (res.status !== 503 && res.status !== 500 && res.status !== 429)) break;
-      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-    }
-
-
-    if (!res!.ok) {
-      const errText = await res!.text();
-      throw new Error(`AI error ${res!.status}: ${errText}`);
-    }
-
-    const data = await res!.json();
+    const data = await res.json();
     let raw = data.choices?.[0]?.message?.content || "";
-    let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-    const start = cleaned.search(/[\{\[]/);
-    const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
-    if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
-    
-    let mindMap;
-    try {
-      mindMap = JSON.parse(cleaned);
-    } catch (e) {
-      console.error("Raw content:", raw);
-      throw e;
-    }
+    const mindMap = extractJson(raw);
 
     return new Response(JSON.stringify(mindMap), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e: any) {

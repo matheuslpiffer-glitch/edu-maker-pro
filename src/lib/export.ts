@@ -1,7 +1,6 @@
 import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 import { RGF_DEFAULT, rgfText } from '@/lib/rgf-format';
-import { latexToUnicode } from '@/lib/latex-to-unicode';
 
 interface QuestionOption {
   id: string;
@@ -16,10 +15,6 @@ interface Question {
   content: string;
   options: QuestionOption[];
   answer: string;
-  explanation?: string;
-  resolution?: string;
-  commentedResolution?: string;
-  correctionMirror?: string;
 }
 
 interface Subject {
@@ -35,29 +30,9 @@ interface Header {
   title: string;
 }
 
-export function stripHtml(text: string): string {
-  if (!text) return '';
-  let out = text.replace(/<[^>]*>/g, '');
-  out = out
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/gi, "'");
-  out = out.replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').trim();
-  return out;
-}
-
-export function sanitizeForDocx(text: string): string {
-  return latexToUnicode(stripHtml(text));
-}
-
-const clean = sanitizeForDocx;
-
-function getCommentedResolution(q: Question): string {
-  return clean(q.explanation || q.resolution || q.commentedResolution || q.correctionMirror || '');
+function stripHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  return doc.body.textContent || '';
 }
 
 export async function exportToPDF(element: HTMLElement, filename: string) {
@@ -96,7 +71,7 @@ export async function exportToDocx(
 
   questions.forEach((q, i) => {
     const subject = subjects.find(s => s.id === q.subject_id);
-    const contentText = clean(q.content);
+    const contentText = stripHtml(q.content);
     children.push(new Paragraph({
       children: [
         new TextRun({ text: `${i + 1}) `, bold: true, size: sz, font }),
@@ -109,7 +84,7 @@ export async function exportToDocx(
     if (q.type === 'multiple-choice') {
       q.options.forEach((opt, j) => {
         children.push(new Paragraph({
-          children: [new TextRun({ text: rgfText(`     ${String.fromCharCode(97 + j)}) ${clean(opt.text)}`), size: sz, font })],
+          children: [new TextRun({ text: rgfText(`     ${String.fromCharCode(97 + j)}) ${opt.text}`), size: sz, font })],
           spacing: { line: 276 },
         }));
       });
@@ -142,17 +117,7 @@ export async function exportToDocx(
         children.push(new Paragraph({
           children: [
             new TextRun({ text: `${i + 1}. `, bold: true, size: 22 }),
-            new TextRun({ text: clean(q.answer) || 'Resposta dissertativa', italics: true, size: 22 }),
-          ],
-        }));
-      }
-
-      const commentedResolution = getCommentedResolution(q);
-      if (commentedResolution) {
-        children.push(new Paragraph({
-          children: [
-            new TextRun({ text: 'Resolução comentada: ', bold: true, size: 22 }),
-            new TextRun({ text: commentedResolution, size: 22 }),
+            new TextRun({ text: q.answer || 'Resposta dissertativa', italics: true, size: 22 }),
           ],
         }));
       }

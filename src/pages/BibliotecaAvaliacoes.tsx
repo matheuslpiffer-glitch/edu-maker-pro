@@ -5,17 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -24,11 +13,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { buildPublicAppUrl } from '@/lib/public-links';
 import { exportToPDF } from '@/lib/export';
 import PisaPrintPreview from '@/components/PisaPrintPreview';
-import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import React from 'react';
 import {
   Loader2, Search, FolderOpen, Folder, Trash2, FileDown, Eye,
-  Share2, ChevronRight, CheckSquare, X, Library, ChevronLeft
+  Share2, ChevronRight, CheckSquare, X, Library
 } from 'lucide-react';
 
 interface PisaSimulator {
@@ -74,27 +62,17 @@ export default function BibliotecaAvaliacoes() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [previewSim, setPreviewSim] = useState<PisaSimulator | null>(null);
   const [pdfSim, setPdfSim] = useState<PisaSimulator | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [page, setPage] = useState(0);
-  const ITEMS_PER_PAGE = 10;
   const pdfRef = React.useRef<HTMLDivElement>(null);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['biblioteca-pisa', page],
+  const { data: simulators = [], isLoading } = useQuery({
+    queryKey: ['biblioteca-pisa'],
     queryFn: async () => {
-      const from = page * ITEMS_PER_PAGE;
-      const to = from + ITEMS_PER_PAGE - 1;
-
-      const { data, error, count } = await supabase
+      const { data, error } = await supabase
         .from('pisa_simulators')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-        .range(from, to);
-
+        .select('*')
+        .order('created_at', { ascending: false });
       if (error) throw error;
-      
-      const mapped = (data || []).map((s: any) => ({
+      return (data || []).map((s: any) => ({
         ...s,
         questions: Array.isArray(s.questions) ? s.questions : [],
         student_results: Array.isArray(s.student_results) ? s.student_results : [],
@@ -102,14 +80,8 @@ export default function BibliotecaAvaliacoes() {
         bimester: s.bimester || 1,
         institution_name: s.institution_name || '',
       })) as PisaSimulator[];
-
-      return { simulators: mapped, totalCount: count || 0 };
     },
   });
-
-  const simulators = data?.simulators || [];
-  const totalCount = data?.totalCount || 0;
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   const deleteMutation = useMutation({
     mutationFn: async (ids: string[]) => {
@@ -122,13 +94,12 @@ export default function BibliotecaAvaliacoes() {
       queryClient.invalidateQueries({ queryKey: ['biblioteca-pisa'] });
       setSelected(new Set());
       toast({ title: 'Avaliações excluídas com sucesso.' });
-      setShowDeleteConfirm(false);
     },
   });
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return simulators;
+    if (!search.trim()) return simulators;
+    const q = search.toLowerCase();
     return simulators.filter(s =>
       s.title.toLowerCase().includes(q) ||
       (COMPETENCY_LABELS[s.competency] || '').toLowerCase().includes(q) ||
@@ -169,36 +140,18 @@ export default function BibliotecaAvaliacoes() {
 
   const handleBatchExport = async () => {
     if (selected.size === 0) return;
-    setIsExporting(true);
-    try {
-      let count = 0;
-      for (const id of selected) {
-        const sim = simulators.find(s => s.id === id);
-        if (sim) {
-          setPdfSim(sim);
-          // Pequena pausa para garantir renderização do componente oculto
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          if (pdfRef.current) {
-            await exportToPDF(pdfRef.current, sim.title || 'simulado');
-            count++;
-          }
+    for (const id of selected) {
+      const sim = simulators.find(s => s.id === id);
+      if (sim) {
+        setPdfSim(sim);
+        await new Promise(resolve => setTimeout(resolve, 600));
+        if (pdfRef.current) {
+          await exportToPDF(pdfRef.current, sim.title || 'simulado');
         }
       }
-      setPdfSim(null);
-      toast({ 
-        title: 'Exportação Concluída', 
-        description: `${count} PDF(s) gerados e baixados com sucesso.` 
-      });
-    } catch (error) {
-      console.error('Batch export error:', error);
-      toast({ 
-        title: 'Erro ao exportar', 
-        description: 'Ocorreu um problema ao gerar os arquivos.',
-        variant: 'destructive' 
-      });
-    } finally {
-      setIsExporting(false);
     }
+    setPdfSim(null);
+    toast({ title: `${selected.size} PDF(s) exportados.` });
   };
 
   const handleShare = (sim: PisaSimulator) => {
@@ -209,29 +162,13 @@ export default function BibliotecaAvaliacoes() {
   };
 
   const handleExportPDF = async (sim: PisaSimulator) => {
-    setIsExporting(true);
     setPdfSim(sim);
-    try {
-      // Pequena pausa para garantir renderização do componente oculto
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    setTimeout(async () => {
       if (pdfRef.current) {
         await exportToPDF(pdfRef.current, sim.title || 'simulado-pisa');
-        toast({ 
-          title: 'Download Iniciado', 
-          description: 'O PDF do simulado foi gerado com sucesso.' 
-        });
+        setPdfSim(null);
       }
-    } catch (error) {
-      console.error('PDF export error:', error);
-      toast({ 
-        title: 'Erro ao exportar', 
-        description: 'Ocorreu um problema ao gerar o PDF.',
-        variant: 'destructive' 
-      });
-    } finally {
-      setPdfSim(null);
-      setIsExporting(false);
-    }
+    }, 500);
   };
 
   return (
@@ -279,39 +216,12 @@ export default function BibliotecaAvaliacoes() {
               <CheckSquare className="h-4 w-4 mr-1" />
               {selected.size === filtered.length ? 'Desmarcar' : 'Selecionar Tudo'}
             </Button>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="text-cyan-700 border-cyan-300 hover:bg-cyan-50" 
-              onClick={handleBatchExport}
-              disabled={isExporting}
-            >
-              {isExporting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileDown className="h-4 w-4 mr-1" />}
-              {isExporting ? 'Gerando PDF...' : 'Exportar em Lote'}
+            <Button size="sm" variant="outline" className="text-cyan-700 border-cyan-300 hover:bg-cyan-50" onClick={handleBatchExport}>
+              <FileDown className="h-4 w-4 mr-1" /> Exportar em Lote
             </Button>
-            
-            <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-              <AlertDialogTrigger asChild>
-                <Button size="sm" variant="destructive" disabled={deleteMutation.isPending}>
-                  <Trash2 className="h-4 w-4 mr-1" /> Excluir
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirmar exclusão em massa</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Tem certeza que deseja excluir os {selected.size} simulados selecionados? Esta ação não poderá ser desfeita.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleBatchDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    Sim, excluir
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            
+            <Button size="sm" variant="destructive" onClick={handleBatchDelete} disabled={deleteMutation.isPending}>
+              <Trash2 className="h-4 w-4 mr-1" /> Excluir
+            </Button>
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>
               <X className="h-4 w-4" />
             </Button>
@@ -323,23 +233,9 @@ export default function BibliotecaAvaliacoes() {
       {isLoading ? (
         <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : folders.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center space-y-4">
-            <p className="text-muted-foreground">Etsimääsi simulaatiota ei löytynyt. Kokeile eri hakusanaa.</p>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSearch('');
-                setSelected(new Set());
-              }}
-            >
-              Tyhjennä suodattimet
-            </Button>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhuma avaliação encontrada.</CardContent></Card>
       ) : (
-        <div className="space-y-6">
-          <div className="space-y-3">
+        <div className="space-y-3">
           {folders.map(([folderName, sims]) => {
             const isOpen = openFolder === folderName;
             return (
@@ -377,18 +273,8 @@ export default function BibliotecaAvaliacoes() {
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setPreviewSim(sim)}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-8 w-8 text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50" 
-                            onClick={() => handleExportPDF(sim)}
-                            disabled={isExporting}
-                          >
-                            {isExporting && pdfSim?.id === sim.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <FileDown className="h-4 w-4" />
-                            )}
+                          <Button size="icon" variant="ghost" className="h-8 w-8 text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50" onClick={() => handleExportPDF(sim)}>
+                            <FileDown className="h-4 w-4" />
                           </Button>
                           <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleShare(sim)}>
                             <Share2 className="h-4 w-4" />
@@ -401,36 +287,6 @@ export default function BibliotecaAvaliacoes() {
               </Card>
             );
           })}
-          </div>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-4 py-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="flex items-center gap-1"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Edellinen
-              </Button>
-              <div className="text-sm font-medium">
-                Sivu {page + 1} / {totalPages}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                className="flex items-center gap-1"
-              >
-                Seuraava
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
         </div>
       )}
 
@@ -451,8 +307,8 @@ export default function BibliotecaAvaliacoes() {
                 <Card key={i}>
                   <CardContent className="p-4 space-y-2">
                     <p className="font-semibold text-sm">Questão {i + 1}</p>
-                    {q.scenario && <p className="text-sm italic text-muted-foreground bg-muted/50 p-2 rounded whitespace-pre-wrap">{q.scenario}</p>}
-                    <p className="text-sm whitespace-pre-wrap">{q.content}</p>
+                    {q.scenario && <p className="text-sm italic text-muted-foreground bg-muted/50 p-2 rounded">{q.scenario}</p>}
+                    <p className="text-sm">{q.content}</p>
                     {q.options?.map((opt: any) => (
                       <p key={opt.letter} className={`text-sm ${opt.isCorrect ? 'font-semibold text-cyan-700' : ''}`}>({opt.letter}) {opt.text}</p>
                     ))}
@@ -478,8 +334,6 @@ export default function BibliotecaAvaliacoes() {
           />
         </div>
       )}
-
-      <ExportLoadingOverlay isOpen={isExporting} />
     </div>
   );
 }

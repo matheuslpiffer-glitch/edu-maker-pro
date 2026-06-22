@@ -1,8 +1,6 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
-import DOMPurify from 'dompurify';
-import MathText from '@/components/MathText';
-import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket, PlusCircle, CheckCircle2, Circle } from 'lucide-react';
+import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket, PlusCircle } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
 import matAvatar from '@/assets/mat-avatar.png';
@@ -308,7 +306,7 @@ export default function AltaPerformance() {
   const [totalQuestoes, setTotalQuestoes] = useState(stored?.totalQuestoes || 10);
   const [niveis, setNiveis] = useState(stored?.niveis || { abaixo: 15, basico: 30, proficiente: 35, avancado: 20 });
   const [loading, setLoading] = useState(false);
-  const [questions, setQuestions] = useState<GeneratedQuestion[]>([]); // Don't restore full array from localStorage to save space
+  const [questions, setQuestions] = useState<GeneratedQuestion[]>(stored?.questions || []);
   const [formato, setFormato] = useState(stored?.formato || 'objetiva');
   const [matrizRef, setMatrizRef] = useState(stored?.matrizRef || 'bncc');
   const previewRef = useRef<HTMLDivElement>(null);
@@ -316,43 +314,13 @@ export default function AltaPerformance() {
   const [savedAccessCode, setSavedAccessCode] = useState<string | null>(stored?.savedAccessCode || null);
   const [qrOpen, setQrOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
-  const [generationStep, setGenerationStep] = useState<0 | 1 | 2 | 3>(0);
 
-
-  // Restore background generation on mount and fetch saved questions if ID exists
+  // Restore background generation on mount
   useEffect(() => {
-    // 1. Fetch questions if we have a saved ID but no questions in state
-    const fetchSavedQuestions = async (id: string) => {
-      try {
-        const { data, error } = await supabase
-          .from('question_banks')
-          .select('questions, question_type')
-          .eq('id', id)
-          .maybeSingle();
-        
-        if (error) throw error;
-        if (data && data.questions) {
-          setQuestions(data.questions as any);
-          if (data.question_type) {
-            setFormato(data.question_type === 'discursiva' ? 'discursiva' : 'objetiva');
-          }
-        }
-      } catch (err) {
-        console.error('Erro ao recuperar questões salvas:', err);
-      }
-    };
-
-    if (savedBankId && questions.length === 0) {
-      fetchSavedQuestions(savedBankId);
-    }
-
-    // 2. Background generation check
     const bg = getGeneration('alta_performance');
-    let interval: any;
-
     if (bg.status === 'running') {
       setLoading(true);
-      interval = setInterval(() => {
+      const interval = setInterval(() => {
         const c = getGeneration('alta_performance');
         if (c.status === 'done') {
           const parsed = Array.isArray(c.result) ? c.result : c.result?.questions || [];
@@ -364,6 +332,7 @@ export default function AltaPerformance() {
           toast({ title: 'Erro ao gerar simulado', description: c.error || '', variant: 'destructive' }); clearInterval(interval);
         }
       }, 500);
+      return () => clearInterval(interval);
     } else if (bg.status === 'done') {
       const parsed = Array.isArray(bg.result) ? bg.result : bg.result?.questions || [];
       setQuestions(parsed); clearGeneration('alta_performance');
@@ -371,17 +340,13 @@ export default function AltaPerformance() {
       toast({ title: 'Erro ao gerar simulado', description: bg.error || '', variant: 'destructive' });
       clearGeneration('alta_performance');
     }
+  }, []);
 
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [savedBankId]); // Added savedBankId to deps to trigger fetch on reload/restore
-
-  // Persist state to localStorage on changes (excluding heavy question array)
+  // Persist state to sessionStorage on changes
   useEffect(() => {
-    const state = { rede, serie, disciplina, topicos, totalQuestoes, niveis, formato, matrizRef, savedBankId, savedAccessCode };
+    const state = { rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode };
     localStorage.setItem('alta_perf_state', JSON.stringify(state));
-  }, [rede, serie, disciplina, topicos, totalQuestoes, niveis, formato, matrizRef, savedBankId, savedAccessCode]);
+  }, [rede, serie, disciplina, topicos, totalQuestoes, niveis, questions, formato, matrizRef, savedBankId, savedAccessCode]);
 
   // Map specific series to content suggestion segment
   const serieSegment = SERIES_ESPECIFICAS.find(s => s.value === serie)?.segment || '';
@@ -415,23 +380,6 @@ export default function AltaPerformance() {
 
   const redeInfo = redesEnsino.find(r => r.value === rede);
 
-  const sanitizedQuestions = useMemo(() => {
-    return questions.map(q => ({
-      ...q,
-      content: DOMPurify.sanitize(q.content),
-      correctionMirror: q.correctionMirror ? DOMPurify.sanitize(q.correctionMirror) : undefined
-    }));
-  }, [questions]);
-
-  const generationIntervalRef = useRef<any>(null);
-
-  // Cleanup interval on unmount
-  useEffect(() => {
-    return () => {
-      if (generationIntervalRef.current) clearInterval(generationIntervalRef.current);
-    };
-  }, []);
-
   const handleGenerate = async () => {
     const isMulti = disciplina === 'Todos';
     if (!rede || !serie || !disciplina || (!isMulti && !topicos)) {
@@ -440,10 +388,8 @@ export default function AltaPerformance() {
     }
     setLoading(true);
     setQuestions([]);
-    setGenerationStep(1);
 
     const matrizInfo = MATRIZ_OPTIONS.find(m => m.value === matrizRef);
-
     const currentParams = {
       examType: isMulti ? 'simulado_semanal' : 'alta_performance',
       subjectArea: isMulti ? 'Multidisciplinar' : disciplina,
@@ -469,40 +415,23 @@ export default function AltaPerformance() {
       return data;
     });
 
-    if (generationIntervalRef.current) clearInterval(generationIntervalRef.current);
-    
-    generationIntervalRef.current = setInterval(() => {
+    const interval = setInterval(() => {
       const c = getGeneration('alta_performance');
-      
-      // Update generation step based on elapsed time or status
-      setGenerationStep(prev => {
-        if (c.status === 'done') return 3;
-        if (prev === 1) return 2; // Move to step 2 after starting
-        return prev;
-      });
-
       if (c.status === 'done') {
         const parsed = Array.isArray(c.result) ? c.result : c.result?.questions || [];
-        setQuestions(parsed); 
-        setLoading(false); 
-        setGenerationStep(3);
-        clearGeneration('alta_performance');
+        setQuestions(parsed); setLoading(false); clearGeneration('alta_performance');
         if (parsed.length === 0) toast({ title: 'Nenhuma questão gerada. Tente novamente.' });
-        clearInterval(generationIntervalRef.current);
-        generationIntervalRef.current = null;
+        clearInterval(interval);
       } else if (c.status === 'error') {
-        setLoading(false);
-        setGenerationStep(0);
-        clearGeneration('alta_performance');
-        import('@/lib/ai-utils').then(({ showAiErrorToast }) => {
-          showAiErrorToast(
-            { message: c.error || '', status: c.errorStatus ?? undefined },
-            toast,
-            'Erro ao gerar simulado',
-          );
+        setLoading(false); clearGeneration('alta_performance');
+        const msg = c.error || 'Erro ao gerar simulado';
+        const isFriendly = msg.includes('processando') || msg.includes('Tente novamente');
+        toast({
+          title: isFriendly ? '⏳ Processando...' : 'Erro ao gerar simulado',
+          description: isFriendly ? msg : 'Estamos processando sua inteligência pedagógica... isso pode levar um momento.',
+          variant: 'destructive',
         });
-        clearInterval(generationIntervalRef.current);
-        generationIntervalRef.current = null;
+        clearInterval(interval);
       }
     }, 500);
   };
@@ -617,7 +546,7 @@ export default function AltaPerformance() {
     `;
 
     // Questions
-    sanitizedQuestions.forEach((q, i) => {
+    questions.forEach((q, i) => {
       let qHtml = `<div style="margin-bottom:20px;page-break-inside:avoid;">
         <h3 style="margin:0 0 8px;color:#1e3a5f;">Questão ${i + 1}</h3>
         <div style="word-wrap:break-word;overflow-wrap:break-word;">${q.content}</div>`;
@@ -640,7 +569,7 @@ export default function AltaPerformance() {
     container.innerHTML += `<div style="page-break-before:always;"></div>`;
     container.innerHTML += `<h2 style="text-align:center;color:#1e3a5f;margin-bottom:16px;">Gabarito e Critérios de Avaliação</h2>`;
 
-    sanitizedQuestions.forEach((q, i) => {
+    questions.forEach((q, i) => {
       if (isDiscursiva) {
         container.innerHTML += `<div style="margin-bottom:16px;page-break-inside:avoid;border:1px solid #e5e7eb;border-radius:8px;padding:12px;">
           <p style="font-weight:bold;margin:0 0 4px;">Questão ${i + 1}</p>
@@ -706,8 +635,8 @@ export default function AltaPerformance() {
             <Trophy size={28} className="text-white" />
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-extrabold tracking-tight">Simulados que impressionam</h1>
-            <p className="text-sm text-slate-300 mt-1">Em 2 minutos, crie avaliações no nível das melhores redes de ensino do Brasil</p>
+            <h1 className="text-2xl font-extrabold tracking-tight">Gerador de Simulados — Alta Performance</h1>
+            <p className="text-sm text-slate-300 mt-1">Crie avaliações com o rigor pedagógico das maiores franquias do país</p>
           </div>
           <Button
             onClick={handleNewSimulado}
@@ -849,71 +778,28 @@ export default function AltaPerformance() {
               <Slider min={5} max={30} step={1} value={[totalQuestoes]} onValueChange={v => setTotalQuestoes(v[0])} />
             </div>
 
-            <div className="space-y-4 rounded-xl border border-border/50 bg-muted/30 p-4">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Equilíbrio de Níveis</p>
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  <span className="text-[10px] font-bold text-primary uppercase">Tempo Real</span>
-                </div>
-              </div>
-
-              {/* Mini Chart Visualization */}
-              <div className="flex h-12 gap-1 px-1 py-1.5 bg-card/50 rounded-lg border border-border/40 overflow-hidden shadow-inner">
-                <div 
-                  className="h-full bg-emerald-500 rounded-sm transition-all duration-500 ease-out relative group"
-                  style={{ width: `${niveis.abaixo}%` }}
-                >
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
-                    Fácil: {niveis.abaixo}%
+            <div className="space-y-3 rounded-xl border border-border/50 bg-muted/30 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Distribuição de Níveis</p>
+              {([
+                { key: 'abaixo' as const, label: 'Abaixo do Básico', color: 'bg-red-500' },
+                { key: 'basico' as const, label: 'Básico', color: 'bg-amber-500' },
+                { key: 'proficiente' as const, label: 'Proficiente', color: 'bg-emerald-500' },
+                { key: 'avancado' as const, label: 'Avançado (Elite)', color: 'bg-purple-500' },
+              ]).map(n => (
+                <div key={n.key} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${n.color}`} />
+                      {n.label}
+                    </span>
+                    <span className="font-bold">{niveis[n.key]}%</span>
                   </div>
+                  <Slider min={0} max={100} step={5} value={[niveis[n.key]]} onValueChange={v => updateNivel(n.key, v[0])} />
                 </div>
-                <div 
-                  className="h-full bg-amber-500 rounded-sm transition-all duration-500 ease-out relative group"
-                  style={{ width: `${niveis.basico + niveis.proficiente}%` }}
-                >
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
-                    Médio: {niveis.basico + niveis.proficiente}%
-                  </div>
-                </div>
-                <div 
-                  className="h-full bg-rose-500 rounded-sm transition-all duration-500 ease-out relative group"
-                  style={{ width: `${niveis.avancado}%` }}
-                >
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20">
-                    Difícil: {niveis.avancado}%
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {([
-                  { key: 'abaixo' as const, label: 'Fácil (Abaixo do Básico)', color: 'bg-emerald-500' },
-                  { key: 'basico' as const, label: 'Básico', color: 'bg-amber-400' },
-                  { key: 'proficiente' as const, label: 'Proficiente', color: 'bg-amber-600' },
-                  { key: 'avancado' as const, label: 'Difícil (Avançado)', color: 'bg-rose-500' },
-                ]).map(n => (
-                  <div key={n.key} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${n.color}`} />
-                        {n.label}
-                      </span>
-                      <span className="font-bold">{niveis[n.key]}%</span>
-                    </div>
-                    <Slider min={0} max={100} step={5} value={[niveis[n.key]]} onValueChange={v => updateNivel(n.key, v[0])} />
-                  </div>
-                ))}
-              </div>
-              
-              <div className="space-y-1.5 mt-2">
-                <p className="text-[10px] text-muted-foreground italic">
-                  💡 Os níveis se autoajustam para manter o total em 100% conforme você configura seu simulado.
-                </p>
-                <p className="text-[10px] text-muted-foreground/80 italic">
-                  🎯 Avançado (Elite): questões interdisciplinares com raciocínio profundo — nível acadêmico de excelência.
-                </p>
-              </div>
+              ))}
+              <p className="text-[10px] text-muted-foreground italic mt-1">
+                🎯 Avançado (Elite): questões interdisciplinares com raciocínio profundo — nível acadêmico de excelência.
+              </p>
             </div>
 
             {disciplina === 'Todos' && (
@@ -922,14 +808,9 @@ export default function AltaPerformance() {
                 {loading ? 'Gerando Simulado Semanal...' : '📅 Gerar Simulado Semanal Integrado'}
               </Button>
             )}
-            <Button 
-              onClick={handleGenerate} 
-              disabled={loading} 
-              size="lg" 
-              className={`w-full text-base font-bold gap-2 h-14 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 ${disciplina === 'Todos' ? 'hidden' : ''}`}
-            >
+            <Button onClick={handleGenerate} disabled={loading} size="lg" className={`w-full text-base font-bold gap-2 h-14 bg-gradient-to-r from-primary to-[hsl(260,80%,55%)] hover:from-primary/90 hover:to-[hsl(260,80%,50%)] shadow-lg shadow-primary/20 ${disciplina === 'Todos' ? 'hidden' : ''}`}>
               {loading ? <Loader2 className="animate-spin" size={20} /> : <Wand2 size={20} />}
-              {loading ? 'Gerando Simulado...' : '✨ Gerar meu simulado agora'}
+              {loading ? 'Gerando Simulado...' : 'Gerar Simulado Premium'}
             </Button>
           </div>
         </div>
@@ -938,102 +819,34 @@ export default function AltaPerformance() {
         <div className="lg:col-span-3">
           <div className="rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 min-h-[400px]">
             {!loading && questions.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-[400px] text-center space-y-6">
-                <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mb-2">
-                  <Trophy size={32} className="text-muted-foreground/40" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-foreground/80">Para começar:</h3>
-                  <div className="flex flex-col gap-3 max-w-xs mx-auto text-left">
-                    <div className="flex items-center gap-3 bg-card border border-border/40 p-3 rounded-xl shadow-sm">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">1</span>
-                      <p className="text-sm font-medium text-muted-foreground">Escolha a rede de ensino</p>
-                    </div>
-                    <div className="flex items-center gap-3 bg-card border border-border/40 p-3 rounded-xl shadow-sm">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">2</span>
-                      <p className="text-sm font-medium text-muted-foreground">Selecione a série e disciplina</p>
-                    </div>
-                    <div className="flex items-center gap-3 bg-card border border-border/40 p-3 rounded-xl shadow-sm">
-                      <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">3</span>
-                      <p className="text-sm font-medium text-muted-foreground">Clique em Gerar — pronto!</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="flex flex-col items-center justify-center h-[400px] text-center">
+                <Trophy size={48} className="text-muted-foreground/30 mb-4" />
+                <p className="text-muted-foreground text-sm">Configure os parâmetros e clique em <strong>Gerar Simulado Premium</strong></p>
               </div>
             )}
 
             {loading && (
-              <div className="space-y-8 py-4">
-                {/* Generation Steps UI */}
-                <div className="max-w-md mx-auto space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-sm">
-                    <div className="flex items-center gap-3">
-                      {generationStep > 1 ? (
-                        <CheckCircle2 className="text-emerald-500" size={20} />
-                      ) : generationStep === 1 ? (
-                        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      ) : (
-                        <Circle className="text-muted-foreground/30" size={20} />
-                      )}
-                      <span className={`text-sm font-medium ${generationStep === 1 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
-                        1️⃣ Analisando parâmetros pedagógicos
-                      </span>
-                    </div>
+              <div className="space-y-6">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-16 w-full" />
+                    {!isDiscursiva && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <Skeleton className="h-8" /><Skeleton className="h-8" />
+                        <Skeleton className="h-8" /><Skeleton className="h-8" />
+                      </div>
+                    )}
+                    {isDiscursiva && <Skeleton className="h-32 w-full" />}
                   </div>
-
-                  <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-sm">
-                    <div className="flex items-center gap-3">
-                      {generationStep > 2 ? (
-                        <CheckCircle2 className="text-emerald-500" size={20} />
-                      ) : generationStep === 2 ? (
-                        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      ) : (
-                        <Circle className="text-muted-foreground/30" size={20} />
-                      )}
-                      <span className={`text-sm font-medium ${generationStep === 2 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
-                        2️⃣ Gerando questões personalizadas
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-card shadow-sm">
-                    <div className="flex items-center gap-3">
-                      {generationStep > 3 ? (
-                        <CheckCircle2 className="text-emerald-500" size={20} />
-                      ) : generationStep === 3 ? (
-                        <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      ) : (
-                        <Circle className="text-muted-foreground/30" size={20} />
-                      )}
-                      <span className={`text-sm font-medium ${generationStep === 3 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
-                        3️⃣ Validando gabarito e critérios de qualidade
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="space-y-3">
-                      <Skeleton className="h-5 w-32" />
-                      <Skeleton className="h-16 w-full" />
-                      {!isDiscursiva && (
-                        <div className="grid grid-cols-2 gap-2">
-                          <Skeleton className="h-8" /><Skeleton className="h-8" />
-                          <Skeleton className="h-8" /><Skeleton className="h-8" />
-                        </div>
-                      )}
-                      {isDiscursiva && <Skeleton className="h-32 w-full" />}
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             )}
 
             {!loading && questions.length > 0 && (
               <div className="space-y-4" ref={previewRef}>
-                {/* Header title for questions */}
-                <div className="flex flex-wrap items-center gap-2 py-2">
+                {/* Action bar */}
+                <div className="flex flex-wrap items-center gap-2 sticky top-0 bg-card/90 backdrop-blur-sm py-2 z-10">
                   <h2 className="text-lg font-bold flex-1">
                     {disciplina === 'Todos' ? '📅 SIMULADO SEMANAL INTEGRADO' : `${questions.length} Questões ${isDiscursiva ? 'Discursivas' : ''} Geradas`}
                   </h2>
@@ -1042,37 +855,32 @@ export default function AltaPerformance() {
                       Áreas do Conhecimento: Linguagens, Matemática, Ciências da Natureza e Humanas
                     </p>
                   )}
-                </div>
-
-                {/* Sticky Action Bar */}
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-4xl z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                  <div className="flex flex-wrap items-center justify-center gap-2 p-3 rounded-2xl border border-white/20 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl shadow-2xl shadow-primary/20">
-                    <Button variant="outline" size="sm" onClick={handleSaveQuestions} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
-                      <Save size={14} /> 💾 Salvar na minha biblioteca
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleSaveGabarito} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
-                      <Save size={14} /> Salvar Gabarito
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
-                      <FileDown size={14} /> Exportar PDF
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleWhatsApp} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
-                      <MessageCircle size={14} /> WhatsApp
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={copyToClipboard} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
-                      <Copy size={14} /> Copiar
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
-                      <Link2 size={14} /> Link do Aluno
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => {
-                      if (!savedBankId) {
-                        toast({ title: 'Salve as questões primeiro para gerar o QR Code.', variant: 'destructive' });
-                        return;
-                      }
-                      setQrOpen(true);
-                    }} className="gap-1.5 h-9 text-xs md:text-sm font-semibold border-primary/20 hover:bg-primary/5">
-                      <QrCode size={14} /> QR Code
+                  <Button variant="outline" size="sm" onClick={handleSaveQuestions} className="gap-1.5">
+                    <Save size={14} /> Salvar Questões
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleSaveGabarito} className="gap-1.5">
+                    <Save size={14} /> Salvar Gabarito
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={exportPDF} className="gap-1.5">
+                    <FileDown size={14} /> Exportar PDF
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleWhatsApp} className="gap-1.5">
+                    <MessageCircle size={14} /> WhatsApp
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={copyToClipboard} className="gap-1.5">
+                    <Copy size={14} /> Copiar
+                  </Button>
+                   <Button variant="outline" size="sm" onClick={handleCopyStudentLink} className="gap-1.5">
+                     <Link2 size={14} /> Link do Aluno
+                   </Button>
+                   <Button variant="outline" size="sm" onClick={() => {
+                     if (!savedBankId) {
+                       toast({ title: 'Salve as questões primeiro para gerar o QR Code.', variant: 'destructive' });
+                       return;
+                     }
+                     setQrOpen(true);
+                   }} className="gap-1.5">
+                     <QrCode size={14} /> QR Code
                     </Button>
                     <Button
                       size="sm"
@@ -1083,13 +891,12 @@ export default function AltaPerformance() {
                         }
                         setLaunchOpen(true);
                       }}
-                      className="gap-1.5 h-9 text-xs md:text-sm text-gray-900 font-bold border-0 shadow-lg"
+                      className="gap-1.5 text-gray-900 font-bold border-0"
                       style={{ background: 'linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7)' }}
                     >
                       <Rocket size={14} /> Lançar Simulado
                     </Button>
                   </div>
-                </div>
 
                 {/* Access Code Display */}
                 {savedAccessCode && (
@@ -1121,15 +928,12 @@ export default function AltaPerformance() {
                         {q.skillCode && <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{q.skillCode}</span>}
                         {isDiscursiva && <span className="text-[10px] font-semibold text-amber-600 bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 px-1.5 py-0.5 rounded">Discursiva</span>}
                       </div>
-                      <div className="text-sm leading-relaxed break-words">
-                        <MathText text={sanitizedQuestions[i].content} />
-                      </div>
+                      <div className="text-sm leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: q.content }} />
                       {!isDiscursiva && q.options && q.options.length > 0 && (
                         <div className="space-y-1 pl-2">
                           {q.options.map((o, j) => (
-                            <div key={j} className={`text-sm py-1.5 px-3 rounded-lg flex gap-1 ${o.isCorrect ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium border border-emerald-500/20' : 'text-foreground'}`}>
-                              <strong>{o.letter})</strong>
-                              <MathText text={o.text} />
+                            <div key={j} className={`text-sm py-1.5 px-3 rounded-lg ${o.isCorrect ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium border border-emerald-500/20' : 'text-foreground'}`}>
+                              <strong>{o.letter})</strong> {o.text}
                             </div>
                           ))}
                         </div>
@@ -1152,9 +956,7 @@ export default function AltaPerformance() {
                     <div key={i} className="rounded-lg border border-border/40 bg-card p-3 space-y-1" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                       <p className="text-sm font-bold text-foreground">Questão {i + 1}</p>
                       {isDiscursiva ? (
-                        <div className="text-sm text-muted-foreground break-words">
-                          <MathText text={sanitizedQuestions[i].correctionMirror || 'Critérios de correção não disponíveis.'} />
-                        </div>
+                        <p className="text-sm text-muted-foreground break-words">{q.correctionMirror || 'Critérios de correção não disponíveis.'}</p>
                       ) : (
                         <p className="text-sm text-muted-foreground">
                           Resposta: <strong className="text-emerald-600 dark:text-emerald-400">{q.options?.find(o => o.isCorrect)?.letter || '—'}</strong>
@@ -1163,8 +965,6 @@ export default function AltaPerformance() {
                     </div>
                   ))}
                 </div>
-                {/* Spacer for Sticky Action Bar */}
-                <div className="h-24 md:h-20" />
               </div>
             )}
 
@@ -1177,7 +977,7 @@ export default function AltaPerformance() {
                 <p className="text-xs text-muted-foreground mt-1">
                   {disciplina === 'Todos'
                     ? `Para este Simulado Semanal das turmas de ${serie || 'sua série'}, você prefere focar nas competências socioemocionais da BNCC ou quer um reforço nos conteúdos básicos de Português e Matemática? 📅`
-                    : 'Oi! Vi que você está preparando uma avaliação. Quer que eu sugira os temas mais cobrados nesta série?'}
+                    : 'Estou aqui para ajudar! Configure os parâmetros ao lado e gere simulados com o padrão das maiores redes de ensino do Brasil. 🚀'}
                 </p>
                 <p className="text-[10px] text-muted-foreground/60 mt-2 italic">EduCreator Pro | Tecnologia de Elite por Matheus Lima Piffer</p>
               </div>

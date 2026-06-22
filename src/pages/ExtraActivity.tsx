@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,6 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Sparkles, Dices, Cloud, Route, Bug, Wrench, CheckCircle2, Scissors, Download } from 'lucide-react';
-import DOMPurify from 'dompurify';
 import PdfToolbar from '@/components/PdfToolbar';
 
 const STORAGE_KEY = 'eduFlow_extra_activity';
@@ -65,42 +63,25 @@ export default function ExtraActivity() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        setDiscipline(saved.discipline || 'logistica');
-        setActivityType(saved.activityType || 'labirinto_decisao');
-        setTopic(saved.topic || '');
-        setHalfA4(saved.halfA4 !== undefined ? saved.halfA4 : true);
-        
         if (saved.result?.length) {
           setResult(saved.result);
+          setDiscipline(saved.discipline || 'logistica');
+          setActivityType(saved.activityType || 'labirinto_decisao');
+          setTopic(saved.topic || '');
           toast({ title: '🔄 Atividade extra recuperada', description: 'Sua última atividade lúdica foi restaurada.' });
         }
       }
     } catch { /* ignore */ }
   }, []);
 
-  // Persist to localStorage
+  // Persist to separate key
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-        result, 
-        discipline, 
-        activityType, 
-        topic,
-        halfA4
-      }));
-    } catch { /* ignore */ }
-  }, [result, discipline, activityType, topic, halfA4]);
-
-  // Sanitize and memoize result content
-  const sanitizedResult = useMemo(() => {
-    return result.map(q => ({
-      ...q,
-      content: DOMPurify.sanitize((q.content || '')
-        .replace(/```html\s*/gi, '')
-        .replace(/```\s*/g, '')
-        .trim())
-    }));
-  }, [result]);
+    if (result.length > 0) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ result, discipline, activityType, topic }));
+      } catch { /* ignore */ }
+    }
+  }, [result, discipline, activityType, topic]);
 
   const handleGenerate = async () => {
     if (!topic.trim()) {
@@ -132,7 +113,7 @@ export default function ExtraActivity() {
       }
     } catch (e: any) {
       console.error(e);
-      showAiErrorToast(e, toast, 'Erro ao gerar atividade')
+      toast({ title: 'Erro ao gerar atividade', description: e.message, variant: 'destructive' });
     } finally {
       setGenerating(false);
     }
@@ -260,7 +241,7 @@ export default function ExtraActivity() {
           </div>
 
           {/* Preview */}
-          {sanitizedResult.length > 0 && (
+          {result.length > 0 && (
             <div className="flex-1 min-w-0">
               <Card className="sticky top-4">
                 <CardHeader>
@@ -295,11 +276,16 @@ export default function ExtraActivity() {
                       <p className="text-xs text-slate-500">{topic} • {DISCIPLINE_MAP[discipline]?.label}</p>
                     </div>
                     <div className="space-y-3">
-                      {sanitizedResult.map((q, i) => (
+                      {result.map((q, i) => (
                         <div key={i} className="border rounded-xl p-3 bg-white print-no-break">
                           <div
                             className="prose prose-sm max-w-none text-sm"
-                            dangerouslySetInnerHTML={{ __html: q.content }}
+                            dangerouslySetInnerHTML={{
+                              __html: (q.content || '')
+                                .replace(/```html\s*/gi, '')
+                                .replace(/```\s*/g, '')
+                                .trim(),
+                            }}
                           />
                         </div>
                       ))}

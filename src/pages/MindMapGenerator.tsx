@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -167,8 +166,8 @@ export default function MindMapGenerator() {
     if (!mapData) return;
     setGeneratingQuestions(true);
     try {
-      const branchSummary = (mapData?.branches || []).map(b =>
-        `${b.label}: ${b.summary}${b.children?.length ? ' (' + (b.children || []).map(c => c.label).join(', ') + ')' : ''}`
+      const branchSummary = mapData.branches.map(b =>
+        `${b.label}: ${b.summary}${b.children?.length ? ' (' + b.children.map(c => c.label).join(', ') + ')' : ''}`
       ).join('\n');
 
       const prompt = `Analise o infográfico pedagógico sobre "${mapData.center.label}" com os seguintes tópicos:\n${branchSummary}\n\nGere exatamente 5 perguntas de análise e interpretação que exijam que o aluno observe as conexões visuais do infográfico.`;
@@ -188,7 +187,7 @@ export default function MindMapGenerator() {
         throw new Error('Formato de resposta inválido');
       }
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao gerar questões')
+      toast({ title: 'Erro ao gerar questões', description: e.message, variant: 'destructive' });
     } finally {
       setGeneratingQuestions(false);
     }
@@ -198,7 +197,7 @@ export default function MindMapGenerator() {
     if (!mapData) return;
     setGeneratingSchedule(true);
     try {
-      const branchLabels = (mapData?.branches || []).map(b => b.label).join(', ');
+      const branchLabels = mapData.branches.map(b => b.label).join(', ');
       const hasQuestions = questions.length > 0;
 
       const schedulePrompt = `Crie um cronograma de estudo semanal (Segunda a Sexta) para um aluno que está estudando o tema "${mapData.center.label}" usando um infográfico pedagógico com os seguintes tópicos: ${branchLabels}.${hasQuestions ? ' O aluno também tem questões de interpretação do infográfico para resolver.' : ''}
@@ -223,7 +222,7 @@ TUDO EM MAIÚSCULAS.`;
         throw new Error('Formato de resposta inválido');
       }
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao gerar cronograma')
+      toast({ title: 'Erro ao gerar cronograma', description: e.message, variant: 'destructive' });
     } finally {
       setGeneratingSchedule(false);
     }
@@ -240,7 +239,7 @@ TUDO EM MAIÚSCULAS.`;
       link.click();
       toast({ title: 'PNG exportado em alta definição! 📸' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro na exportação')
+      toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -251,7 +250,7 @@ TUDO EM MAIÚSCULAS.`;
       await generatePdfFromElement(mapRef.current, `infografico-${theme.replace(/\s+/g, '-')}`, { orientation: 'landscape' });
       toast({ title: 'PDF exportado! 📄' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro na exportação')
+      toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -262,7 +261,7 @@ TUDO EM MAIÚSCULAS.`;
       await generatePdfFromElement(fullContentRef.current, `pacote-completo-${theme.replace(/\s+/g, '-')}`, { orientation: 'portrait' });
       toast({ title: 'PDF completo exportado! 📄' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro na exportação')
+      toast({ title: 'Erro na exportação', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -292,14 +291,14 @@ TUDO EM MAIÚSCULAS.`;
       if (error) throw error;
       toast({ title: 'Infográfico salvo na Biblioteca! 📚' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao salvar')
+      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
   };
 
   const selectedMode = MODES.find(m => m.id === mode);
-  const hasFullContent = (questions?.length || 0) > 0 || (schedule?.length || 0) > 0;
+  const hasFullContent = questions.length > 0 || schedule.length > 0;
 
    return (
      <div className="space-y-6 pb-12">

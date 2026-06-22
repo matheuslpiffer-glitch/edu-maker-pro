@@ -1,7 +1,6 @@
 import { forwardRef } from 'react';
 import MathRenderer from '@/components/MathRenderer';
 import AnswerSheet from '@/components/AnswerSheet';
-import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface QuestionOption {
   id: string;
@@ -166,7 +165,7 @@ const AssessmentPreview = forwardRef<HTMLDivElement, Props>(({
                   {hasLatex ? (
                     <MathRenderer content={contentHtml} className="inline" />
                   ) : (
-                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(contentHtml) }} />
+                    <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
                   )}
                 </div>
               </div>

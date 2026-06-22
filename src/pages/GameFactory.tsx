@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import generateCrossword from 'crossword-layout-generator';
 import { SERIES_CATEGORIAS } from '@/lib/series-data';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
@@ -14,9 +13,8 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Sparkles, Puzzle, Grid3X3, Search, Brain, Layers, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Loader2, Sparkles, Puzzle, Grid3X3, Search, Brain, Layers, CheckCircle2 } from 'lucide-react';
 import PdfToolbar from '@/components/PdfToolbar';
-import DOMPurify from 'dompurify';
 
 interface GameQuestion {
   content: string;
@@ -28,12 +26,10 @@ interface GameQuestion {
 const CrosswordGame = ({ data }: { data: string }) => {
   const crossword = useMemo(() => {
     try {
-      const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+      const parsed = JSON.parse(data);
       if (!parsed.words || !Array.isArray(parsed.words)) return null;
       
       const layout = generateCrossword(parsed.words);
-      if (!layout || !layout.table) return null;
-
       return {
         result: layout.result,
         rows: layout.rows,
@@ -47,17 +43,7 @@ const CrosswordGame = ({ data }: { data: string }) => {
     }
   }, [data]);
 
-  if (!crossword) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8 bg-amber-50 rounded-2xl border border-amber-100 text-center gap-3">
-        <AlertTriangle className="h-10 w-10 text-amber-500" />
-        <p className="text-sm font-medium text-amber-900">
-          Não foi possível estruturar este jogo automaticamente. 
-          Por favor, tente gerar novamente.
-        </p>
-      </div>
-    );
-  }
+  if (!crossword) return <p className="text-red-500">Erro ao gerar grade da cruzadinha.</p>;
 
   // Separate horizontals and verticals based on layout.result
   const horizontals = crossword.result.filter((r: any) => r.orientation === 'across');
@@ -168,16 +154,6 @@ export default function GameFactory() {
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<GameQuestion[]>([]);
 
-  const sanitizedResult = useMemo(() => {
-    return result.map(q => ({
-      ...q,
-      sanitizedContent: DOMPurify.sanitize((q.content || '')
-        .replace(/```html\s*/gi, '')
-        .replace(/```\s*/g, '')
-        .trim())
-    }));
-  }, [result]);
-
   const handleGenerate = async () => {
     if (!topic.trim()) {
       toast({ title: 'Informe o tema do jogo.', variant: 'destructive' });
@@ -215,7 +191,7 @@ export default function GameFactory() {
       }
     } catch (e: any) {
       console.error(e);
-      showAiErrorToast(e, toast, 'Erro ao gerar jogo')
+      toast({ title: 'Erro ao gerar jogo', description: e.message, variant: 'destructive' });
     } finally {
       setGenerating(false);
     }
@@ -396,7 +372,7 @@ export default function GameFactory() {
                 </CardHeader>
                 <CardContent>
                   <div id="pdf-preview-container" className="space-y-4 bg-white p-6 rounded-xl">
-                    {sanitizedResult.map((q: any, i) => {
+                    {result.map((q, i) => {
                       const isCruzadinha = q.skillCode?.includes('CRUZADINHA');
                       
                       return (
@@ -404,7 +380,7 @@ export default function GameFactory() {
                           {isCruzadinha ? (
                             <CrosswordGame data={q.content} />
                           ) : (
-                            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: q.sanitizedContent }} />
+                            <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
                           )}
                         </div>
                       );

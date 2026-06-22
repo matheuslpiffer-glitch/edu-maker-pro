@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,7 +88,11 @@ export default function AIGenerateModal({ open, onOpenChange, subjects, onGenera
       setTopic('');
     } catch (e: any) {
       console.error('AI generation error:', e);
-      showAiErrorToast(e, toast, 'Erro ao gerar questão')
+      toast({
+        title: 'Erro ao gerar questão',
+        description: e.message || 'Tente novamente.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -138,7 +141,11 @@ export default function AIGenerateModal({ open, onOpenChange, subjects, onGenera
       setTopic('');
     } catch (e: any) {
       console.error('AI generation error:', e);
-      showAiErrorToast(e, toast, 'Erro ao gerar questão')
+      toast({
+        title: 'Erro ao gerar questão',
+        description: e.message || 'Tente novamente.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }

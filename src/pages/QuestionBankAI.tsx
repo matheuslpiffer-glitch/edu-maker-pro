@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -13,8 +12,6 @@ import { Loader2, Sparkles, Save, Printer, Eye, Trash2, BookOpen, Download, Sear
 import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
-import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface QBQuestion {
   content: string;
@@ -77,7 +74,6 @@ export default function QuestionBankAI() {
   const [questions, setQuestions] = useState<QBQuestion[]>([]);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
 
   // History
   const [history, setHistory] = useState<SavedBank[]>([]);
@@ -129,7 +125,7 @@ export default function QuestionBankAI() {
       setQuestions(allQuestions);
       toast({ title: `${allQuestions.length} questões geradas com gabarito comentado!` });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao gerar')
+      toast({ title: 'Erro ao gerar', description: e.message, variant: 'destructive' });
     } finally {
       setGenerating(false);
     }
@@ -149,7 +145,7 @@ export default function QuestionBankAI() {
       institution_name: institutionName,
     });
     if (error) {
-      showAiErrorToast(error, toast, 'Erro ao salvar')
+      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Lista salva com sucesso!' });
       loadHistory();
@@ -178,49 +174,42 @@ export default function QuestionBankAI() {
   const handlePDF = async () => {
     const container = printContainerRef.current;
     if (!container) return;
-    setIsExporting(true);
     toast({ title: 'Gerando PDF...' });
 
-    try {
-      const sections = container.querySelectorAll<HTMLElement>('[data-pdf-section]');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const MARGIN_H = 20;
-      const MARGIN_W = 15;
-      const CONTENT_W = 210 - MARGIN_W * 2;
-      let firstPage = true;
+    const sections = container.querySelectorAll<HTMLElement>('[data-pdf-section]');
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const MARGIN_H = 20;
+    const MARGIN_W = 15;
+    const CONTENT_W = 210 - MARGIN_W * 2;
+    let firstPage = true;
 
-      for (const section of Array.from(sections)) {
-        const canvas = await html2canvas(section, {
-          scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794,
-        });
-        const imgW = CONTENT_W;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        const imgData = canvas.toDataURL('image/png');
+    for (const section of Array.from(sections)) {
+      const canvas = await html2canvas(section, {
+        scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794,
+      });
+      const imgW = CONTENT_W;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const imgData = canvas.toDataURL('image/png');
 
-        if (!firstPage) pdf.addPage();
-        firstPage = false;
+      if (!firstPage) pdf.addPage();
+      firstPage = false;
 
-        const pageH = 297 - MARGIN_H * 2;
-        if (imgH <= pageH) {
-          pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H, imgW, imgH);
-        } else {
-          let y = 0;
-          let isFirst = true;
-          while (y < imgH) {
-            if (!isFirst) pdf.addPage();
-            isFirst = false;
-            pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H - y, imgW, imgH);
-            y += pageH;
-          }
+      const pageH = 297 - MARGIN_H * 2;
+      if (imgH <= pageH) {
+        pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H, imgW, imgH);
+      } else {
+        let y = 0;
+        let isFirst = true;
+        while (y < imgH) {
+          if (!isFirst) pdf.addPage();
+          isFirst = false;
+          pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H - y, imgW, imgH);
+          y += pageH;
         }
       }
-      pdf.save(`atividade-${topic || 'lista'}.pdf`);
-      toast({ title: 'PDF gerado!' });
-    } catch (e: any) {
-      toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
-    } finally {
-      setIsExporting(false);
     }
+    pdf.save(`atividade-${topic || 'lista'}.pdf`);
+    toast({ title: 'PDF gerado!' });
   };
 
   const totalQuestions = easyCount + mediumCount + hardCount;
@@ -229,10 +218,6 @@ export default function QuestionBankAI() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <ExportLoadingOverlay 
-        isOpen={isExporting} 
-        message="Processando dados pedagógicos... Por favor, aguarde." 
-      />
       <div className="flex items-center gap-3 mb-6 no-print">
         <BookOpen className="h-7 w-7 text-primary" />
         <div>
@@ -350,7 +335,7 @@ export default function QuestionBankAI() {
                     <div className="flex items-start gap-2">
                       <Badge variant="outline" className="shrink-0">{i + 1}</Badge>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
+                        <div className="text-sm" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
                         {q.options && (
                           <div className="mt-2 space-y-0.5">
                             {q.options.map(opt => (
@@ -424,7 +409,7 @@ export default function QuestionBankAI() {
                       <div key={i} className="mb-5" style={{ pageBreakInside: 'avoid' }}>
                         <div className="flex gap-2">
                           <span className="font-bold whitespace-nowrap">{i + 1})</span>
-                          <div className="flex-1" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
+                          <div className="flex-1" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
                         </div>
                         {q.options && (
                           <div className="ml-5 mt-2 space-y-1">
@@ -626,7 +611,7 @@ export default function QuestionBankAI() {
                 <div key={i} className="mb-5">
                   <div className="flex gap-2">
                     <span className="font-bold">{i + 1})</span>
-                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
+                    <div dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
                   </div>
                   {q.options && (
                     <div className="ml-5 mt-2 space-y-1">

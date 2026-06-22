@@ -10,7 +10,6 @@ interface GenerationEntry {
   status: GenerationStatus;
   result: any;
   error: string | null;
-  errorStatus?: number | null;
   startedAt: number;
   promise?: Promise<any>;
 }
@@ -36,13 +35,7 @@ function saveToStorage(): void {
   try {
     const obj: Record<string, any> = {};
     store.forEach((entry, key) => {
-      obj[key] = {
-        status: entry.status,
-        result: entry.result,
-        error: entry.error,
-        errorStatus: entry.errorStatus ?? null,
-        startedAt: entry.startedAt,
-      };
+      obj[key] = { status: entry.status, result: entry.result, error: entry.error, startedAt: entry.startedAt };
     });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
   } catch { /* ignore */ }
@@ -65,16 +58,9 @@ export function startGeneration(key: string, task: () => Promise<any>): void {
       saveToStorage();
       return result;
     })
-    .catch(async (err) => {
+    .catch((err) => {
       entry.status = 'error';
-      try {
-        const { getFunctionErrorDetails } = await import('./ai-utils');
-        const details = await getFunctionErrorDetails(err, 'Erro desconhecido');
-        entry.error = details.message || 'Erro desconhecido';
-        entry.errorStatus = details.status ?? null;
-      } catch {
-        entry.error = err?.message || 'Erro desconhecido';
-      }
+      entry.error = err?.message || 'Erro desconhecido';
       saveToStorage();
       throw err;
     });
@@ -84,10 +70,10 @@ export function startGeneration(key: string, task: () => Promise<any>): void {
   saveToStorage();
 }
 
-export function getGeneration(key: string): { status: GenerationStatus; result: any; error: string | null; errorStatus?: number | null } {
+export function getGeneration(key: string): { status: GenerationStatus; result: any; error: string | null } {
   const entry = store.get(key);
-  if (!entry) return { status: 'idle', result: null, error: null, errorStatus: null };
-  return { status: entry.status, result: entry.result, error: entry.error, errorStatus: entry.errorStatus ?? null };
+  if (!entry) return { status: 'idle', result: null, error: null };
+  return { status: entry.status, result: entry.result, error: entry.error };
 }
 
 export function clearGeneration(key: string): void {

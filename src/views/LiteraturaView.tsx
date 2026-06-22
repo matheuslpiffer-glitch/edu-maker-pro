@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,7 +12,6 @@ import MathRenderer from '@/components/MathRenderer';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { SimQuestion, SavedSimulator } from './types';
-import { sanitizeHtml } from '@/lib/sanitize-html';
 
 const LITERATURA_MODELS = [
   { value: 'lit_vestibular', label: 'Foco Vestibular', icon: GraduationCap },
@@ -94,7 +92,7 @@ export default function LiteraturaView() {
       setActiveTab('preview');
       toast({ title: '📚 Dossiê literário gerado!' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao gerar dossiê')
+      toast({ title: 'Erro ao gerar dossiê', description: e.message, variant: 'destructive' });
     } finally {
       setGenerating(false);
     }
@@ -122,7 +120,7 @@ export default function LiteraturaView() {
       toast({ title: 'Dossiê salvo!' });
       loadHistory();
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao salvar')
+      toast({ title: 'Erro ao salvar', description: e.message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -158,7 +156,7 @@ export default function LiteraturaView() {
       } as any).from(container).save();
       toast({ title: 'PDF gerado!' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao gerar PDF')
+      toast({ title: 'Erro ao gerar PDF', description: e.message, variant: 'destructive' });
     }
   };
 
@@ -395,7 +393,7 @@ export default function LiteraturaView() {
             {questions.map((q, i) => (
               <div key={i} className="mb-6 pb-4 border-b border-slate-100 last:border-0">
                 <Badge variant="outline" className="text-xs mb-2">{String(i + 1).padStart(2, '0')}</Badge>
-                <div className="prose prose-sm max-w-none text-sm" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content) }} />
+                <div className="prose prose-sm max-w-none text-sm" dangerouslySetInnerHTML={{ __html: (q.content || '').replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim() }} />
               </div>
             ))}
           </div>

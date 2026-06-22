@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,7 +66,7 @@ export default function StudentEssayArena() {
   const [correction, setCorrection] = useState<CorrectionResult | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  const draftKey = user ? `eduFlow_essay_draft_${user.id}` : 'eduFlow_essay_draft_anon';
+  const draftKey = user ? `arena_draft_${user.id}` : 'arena_draft_anon';
   const saveTimer = useRef<ReturnType<typeof setInterval>>();
 
   // Restore draft
@@ -81,16 +80,18 @@ export default function StudentEssayArena() {
         if (parsed.theme) {
           setTheme(parsed.theme);
           setStep('write');
-          toast({ title: '🔄 Redação recuperada', description: 'Seu rascunho foi restaurado com sucesso.' });
         }
       } catch { /* ignore */ }
     }
-  }, [draftKey, toast]);
+  }, [draftKey]);
 
-  // Auto-save draft
+  // Auto-save every 5s
   useEffect(() => {
     if (step !== 'write') return;
-    localStorage.setItem(draftKey, JSON.stringify({ text: essayText, banca, theme }));
+    saveTimer.current = setInterval(() => {
+      localStorage.setItem(draftKey, JSON.stringify({ text: essayText, banca, theme }));
+    }, 5000);
+    return () => clearInterval(saveTimer.current);
   }, [essayText, banca, theme, step, draftKey]);
 
   const lineCount = essayText.split('\n').filter(l => l.trim().length > 0).length;
@@ -153,7 +154,7 @@ export default function StudentEssayArena() {
 
       localStorage.removeItem(draftKey);
     } catch (err: any) {
-      showAiErrorToast(err, toast, 'Erro na correção');
+      toast({ title: 'Erro na correção', description: err?.message || 'Tente novamente.', variant: 'destructive' });
     } finally {
       setCorrecting(false);
     }

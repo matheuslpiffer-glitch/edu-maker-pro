@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,19 +10,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Save, Loader2, Printer, Download, FileText, ArrowLeft, ListChecks, AlignLeft, Eye, Columns2, Sparkles, Leaf, AlertCircle } from 'lucide-react';
+import { Save, Loader2, Printer, Download, FileText, ArrowLeft, ListChecks, AlignLeft, Eye, Columns2, Sparkles, Leaf } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import AssessmentPreview from '@/components/AssessmentPreview';
 import { exportToPDF, exportToDocx } from '@/lib/export';
 
@@ -68,31 +58,6 @@ export default function CreateAssessment() {
   const [twoColumns, setTwoColumns] = useState(false);
   const [mestreMode, setMestreMode] = useState(false);
   const [ecoPrint, setEcoPrint] = useState(false);
-  const [showExitDialog, setShowExitDialog] = useState(false);
-  const [pendingRoute, setPendingRoute] = useState<string | null>(null);
-
-  // Dirty state tracking
-  const isDirty = useMemo(() => {
-    return title.trim() !== '' || 
-           institutionName.trim() !== '' || 
-           teacherName.trim() !== '' || 
-           className.trim() !== '' || 
-           selectedIds.length > 0;
-  }, [title, institutionName, teacherName, className, selectedIds]);
-
-  const handleCancel = () => {
-    if (isDirty) {
-      setPendingRoute('/provas');
-      setShowExitDialog(true);
-    } else {
-      navigate('/provas');
-    }
-  };
-
-  const confirmExit = () => {
-    setShowExitDialog(false);
-    if (pendingRoute) navigate(pendingRoute);
-  };
 
   useEffect(() => {
     async function load() {
@@ -166,14 +131,7 @@ export default function CreateAssessment() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-6 no-print">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={handleCancel}
-          disabled={saving}
-        >
-          <ArrowLeft size={18} />
-        </Button>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/provas')}><ArrowLeft size={18} /></Button>
         <h1 className="text-2xl font-bold">{id ? 'Editar Prova' : 'Nova Prova'}</h1>
       </div>
 
@@ -191,30 +149,30 @@ export default function CreateAssessment() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Nome da Instituição</Label>
-                  <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Escola Municipal..." disabled={saving} />
+                  <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Escola Municipal..." />
                 </div>
                 <div className="space-y-2">
                   <Label>Título da Avaliação</Label>
-                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Prova de Matemática" disabled={saving} />
+                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Prova de Matemática" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>Professor(a)</Label>
-                  <Input value={teacherName} onChange={e => setTeacherName(e.target.value)} placeholder="Nome do professor" disabled={saving} />
+                  <Input value={teacherName} onChange={e => setTeacherName(e.target.value)} placeholder="Nome do professor" />
                 </div>
                 <div className="space-y-2">
                   <Label>Data</Label>
-                  <Input type="date" value={assessmentDate} onChange={e => setAssessmentDate(e.target.value)} disabled={saving} />
+                  <Input type="date" value={assessmentDate} onChange={e => setAssessmentDate(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label>Turma</Label>
-                  <Input value={className} onChange={e => setClassName(e.target.value)} placeholder="8º Ano A" disabled={saving} />
+                  <Input value={className} onChange={e => setClassName(e.target.value)} placeholder="8º Ano A" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label>URL do Logo (opcional)</Label>
-                <Input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." disabled={saving} />
+                <Input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." />
               </div>
             </CardContent>
           </Card>
@@ -225,7 +183,7 @@ export default function CreateAssessment() {
             <CardHeader>
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <CardTitle className="text-lg">Selecionar Questões</CardTitle>
-                <Select value={filterSubject} onValueChange={setFilterSubject} disabled={saving}>
+                <Select value={filterSubject} onValueChange={setFilterSubject}>
                   <SelectTrigger className="w-44"><SelectValue placeholder="Filtrar" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas</SelectItem>
@@ -245,12 +203,12 @@ export default function CreateAssessment() {
                     return (
                       <div
                         key={q.id}
-                        onClick={() => !saving && toggleQuestion(q.id)}
+                        onClick={() => toggleQuestion(q.id)}
                         className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                           isSelected ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
-                        } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        }`}
                       >
-                        <Checkbox checked={isSelected} className="mt-1" disabled={saving} />
+                        <Checkbox checked={isSelected} className="mt-1" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1 flex-wrap">
                             {subject && (
@@ -284,30 +242,29 @@ export default function CreateAssessment() {
                   variant={mestreMode ? 'default' : 'outline'}
                   onClick={() => setMestreMode(v => !v)}
                   className="gap-1"
-                  disabled={saving}
                 >
                   <Sparkles size={16} /> Diagramação Mestre
                 </Button>
                 <div className="flex items-center gap-2">
-                  <Checkbox id="gabarito" checked={showGabarito} onCheckedChange={(v) => setShowGabarito(!!v)} disabled={saving} />
+                  <Checkbox id="gabarito" checked={showGabarito} onCheckedChange={(v) => setShowGabarito(!!v)} />
                   <Label htmlFor="gabarito" className="text-sm cursor-pointer">Gabarito</Label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Switch id="twocol" checked={twoColumns} onCheckedChange={setTwoColumns} disabled={saving} />
+                  <Switch id="twocol" checked={twoColumns} onCheckedChange={setTwoColumns} />
                   <Label htmlFor="twocol" className="text-sm cursor-pointer flex items-center gap-1">
                     <Columns2 size={14} /> Colunas
                   </Label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Switch id="ecoprint" checked={ecoPrint} onCheckedChange={setEcoPrint} disabled={saving} />
+                  <Switch id="ecoprint" checked={ecoPrint} onCheckedChange={setEcoPrint} />
                   <Label htmlFor="ecoprint" className="text-sm cursor-pointer flex items-center gap-1">
                     <Leaf size={14} /> Eco-Print
                   </Label>
                 </div>
                 <div className="flex-1" />
-                <Button variant="outline" size="sm" onClick={handlePrint} disabled={saving}><Printer size={16} className="mr-2" />Imprimir</Button>
-                <Button variant="outline" size="sm" onClick={handlePDF} disabled={saving}><Download size={16} className="mr-2" />PDF</Button>
-                <Button variant="outline" size="sm" onClick={handleDocx} disabled={saving}><FileText size={16} className="mr-2" />DOCX</Button>
+                <Button variant="outline" size="sm" onClick={handlePrint}><Printer size={16} className="mr-2" />Imprimir</Button>
+                <Button variant="outline" size="sm" onClick={handlePDF}><Download size={16} className="mr-2" />PDF</Button>
+                <Button variant="outline" size="sm" onClick={handleDocx}><FileText size={16} className="mr-2" />DOCX</Button>
               </CardContent>
             </Card>
 
@@ -350,31 +307,12 @@ export default function CreateAssessment() {
       </div>
 
       <div className="flex justify-end gap-3 mt-6 no-print">
-        <Button variant="outline" onClick={handleCancel} disabled={saving}>Cancelar</Button>
+        <Button variant="outline" onClick={() => navigate('/provas')}>Cancelar</Button>
         <Button onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
           Salvar Prova
         </Button>
       </div>
-      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              Alterações não salvas
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Você tem alterações não salvas nesta prova. Deseja realmente sair? Os dados digitados serão perdidos.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Continuar Editando</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmExit} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Sair sem Salvar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

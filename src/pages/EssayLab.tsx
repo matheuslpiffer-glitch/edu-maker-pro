@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -276,7 +275,7 @@ function TeacherPanel() {
       .select()
       .single();
     if (error) {
-      showAiErrorToast(error, toast, 'Erro')
+      toast({ title: 'Erro', description: error.message, variant: 'destructive' });
     } else if (data) {
       const sub = data as unknown as Submission;
       toast({ title: '✅ Proposta criada!', description: `Código de acesso: ${sub.access_code}` });
@@ -808,7 +807,7 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
   const [wordCount, setWordCount] = useState(0);
   const lsKey = `eduflow_draft_redacao_${accessCode}`;
   const ssKey = `eduflow_session_redacao_${accessCode}`;
-  const debounceTimer = useRef<ReturnType<typeof setTimeout>>();
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>();
   const dbSyncTimer = useRef<ReturnType<typeof setInterval>>();
   const lastSyncedText = useRef('');
 
@@ -851,13 +850,13 @@ function StudentEditor({ accessCode }: { accessCode: string }) {
 
   // localStorage auto-save (500ms debounce)
   useEffect(() => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = setTimeout(() => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
       const payload = JSON.stringify({ text: essayText, name: studentName, cls: studentClass });
       localStorage.setItem(lsKey, payload);
       sessionStorage.setItem(ssKey, payload);
     }, 500);
-    return () => { if (debounceTimer.current) clearTimeout(debounceTimer.current); };
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [essayText, studentName, studentClass, lsKey, ssKey]);
 
   // DB sync every 10 seconds

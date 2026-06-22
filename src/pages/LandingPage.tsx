@@ -67,14 +67,15 @@ export default function LandingPage() {
         <div className="relative max-w-6xl mx-auto px-6 pt-16 pb-24 md:pt-24 md:pb-36 text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-sm mb-8 border border-white/10">
             <Sparkles className="h-4 w-4 text-[hsl(38,92%,50%)]" />
-            <span>Desenvolvida por um professor, para professores</span>
+            <span>Plataforma de Inteligência Pedagógica</span>
           </div>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight mb-6">
-            Crie simulados, provas e aulas<br />
-            com <span className="text-[hsl(38,92%,50%)]">inteligência artificial</span>
+            EduCreator Pro:<br />
+            <span className="text-[hsl(38,92%,50%)]">Inteligência Pedagógica</span><br />
+            para o Professor
           </h1>
           <p className="text-lg md:text-xl text-white/60 max-w-3xl mx-auto mb-12 leading-relaxed">
-            Plataforma completa para professores automatizarem a criação de materiais pedagógicos alinhados ao Currículo Paulista e BNCC. Desenvolvida por um professor — <span className="text-white/80 font-semibold">Matheus Lima Piffer</span>.
+            Desenvolvido por <span className="text-white/80 font-semibold">Matheus Lima Piffer</span>, o EduCreator Pro é a plataforma definitiva para criação de Simulados, Dossiês Literários e Atividades de Alta Performance com IA generativa.
           </p>
 
           {/* Single Premium Entry Button */}
@@ -83,8 +84,8 @@ export default function LandingPage() {
             onClick={enterSystem}
             className="bg-gradient-to-r from-[hsl(38,92%,50%)] to-[hsl(38,72%,45%)] text-[hsl(222,47%,6%)] hover:from-[hsl(38,92%,55%)] hover:to-[hsl(38,72%,50%)] font-bold text-lg px-12 py-7 rounded-2xl shadow-2xl shadow-[hsl(38,92%,50%)]/20 hover:shadow-[hsl(38,92%,50%)]/30 transition-all duration-300 hover:scale-105"
           >
-            <Sparkles className="mr-2 h-5 w-5" />
-            Criar conta grátis
+            <Lock className="mr-2 h-5 w-5" />
+            Acesso Restrito
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
 
@@ -199,8 +200,8 @@ export default function LandingPage() {
           onClick={enterSystem}
           className="bg-gradient-to-r from-[hsl(38,92%,50%)] to-[hsl(38,72%,45%)] text-[hsl(222,47%,6%)] hover:from-[hsl(38,92%,55%)] hover:to-[hsl(38,72%,50%)] font-bold text-lg px-12 py-7 rounded-2xl shadow-2xl shadow-[hsl(38,92%,50%)]/20"
         >
-          <Sparkles className="mr-2 h-5 w-5" />
-          Criar conta grátis
+          <Lock className="mr-2 h-5 w-5" />
+          Acesso Restrito
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
       </section>

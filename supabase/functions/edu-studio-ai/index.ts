@@ -1,27 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
-import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    const userId = await getUserIdFromAuth(authHeader);
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) throw new Error("GEMINI_API_KEY not set");
+    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
 
     const { tool, params } = await req.json();
     if (!tool) return new Response(JSON.stringify({ error: "Ferramenta não especificada" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-
 
     let prompt = "";
 
@@ -178,55 +170,31 @@ Formato:
       return new Response(JSON.stringify({ error: "Ferramenta desconhecida: " + tool }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const creditCheck = await checkAndDecrementCredits(userId);
-    if (!creditCheck.allowed) {
-      return new Response(JSON.stringify({ error: creditCheck.error }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+      }),
+    });
 
-    let res;
-    for (let i = 0; i < 4; i++) {
-      res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: "gemini-2.5-flash",
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.7,
-        }),
-      });
-      if (res.ok || (res.status !== 503 && res.status !== 500 && res.status !== 429)) break;
-      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-    }
-
-
-    if (!res!.ok) {
-      const errText = await res!.text();
-      if (res!.status === 429) {
+    if (!res.ok) {
+      const errText = await res.text();
+      if (res.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido. Aguarde alguns segundos e tente novamente." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      if (res!.status === 402) {
+      if (res.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos de IA insuficientes. Adicione créditos em Configurações > Workspace > Uso." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      throw new Error(`AI error ${res!.status}: ${errText}`);
+      throw new Error(`AI error ${res.status}: ${errText}`);
     }
 
-    const data = await res!.json();
+    const data = await res.json();
     let raw = data.choices?.[0]?.message?.content || "";
-    let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-    const start = cleaned.search(/[\{\[]/);
-    const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
-    if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
-
-    let result;
-    try {
-      result = JSON.parse(cleaned);
-    } catch (e) {
-      console.error("Failed to parse AI response:", raw);
-      throw e;
-    }
+    raw = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+    const result = JSON.parse(raw);
 
     return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e: any) {

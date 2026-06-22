@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -67,7 +66,7 @@ export default function PisaFeedbackPanel({ questionContent, scenario, modelAnsw
       onFeedbackReceived?.(data as FeedbackResult);
     } catch (e: any) {
       console.error(e);
-      showAiErrorToast(e, toast, 'Erro ao gerar feedback')
+      toast({ title: 'Erro ao gerar feedback', description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -128,7 +127,7 @@ export default function RedacaoView() {
       await loadThemes();
       toast({ title: 'Proposta gerada e salva!' });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro ao gerar proposta')
+      toast({ title: 'Erro ao gerar proposta', description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -179,7 +178,7 @@ export default function RedacaoView() {
       setLabLink(url);
       toast({ title: '🚀 Proposta enviada ao Laboratório!', description: `Código: ${code}` });
     } catch (e: any) {
-      showAiErrorToast(e, toast, 'Erro')
+      toast({ title: 'Erro', description: e.message, variant: 'destructive' });
     } finally {
       setSendingToLab(false);
     }

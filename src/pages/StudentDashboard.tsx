@@ -11,7 +11,6 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Zap, Target, BookOpen, Gamepad2, Trophy, Star, Clock, Brain, Flame, Building2, Cpu, Award, Landmark, Medal, Shield, Sparkles, BarChart3, Eye, ChevronDown, ChevronUp, CheckCircle2, XCircle, MessageCircle, ClipboardList, TrendingUp, Rocket, KeyRound, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { sanitizeHtml } from '@/lib/sanitize-html';
 
 interface SubjectProgress {
   subject: string;
@@ -181,45 +180,28 @@ export default function StudentDashboard() {
   const xpForNextLevel = studentLevel * 500;
   const xpProgress = ((studentXP % 500) / 500) * 100;
 
-  // Protected calculations
-  const { totalQuizCompleted, totalCorrect, unlockedBadges, weeklyAvg, overallAvg } = useMemo(() => {
-    const quizCount = progress.reduce((s, d) => s + (d.quizzes_completed || 0), 0);
-    const correctCount = progress.reduce((s, d) => s + (d.correct_answers || 0), 0);
-    
-    // Weekly average
+  // Weekly average
+  const weeklyAverage = useMemo(() => {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const weekResults = simulatorResults.filter(r => new Date(r.created_at) >= oneWeekAgo);
-    const wAvg = weekResults.length === 0 
-      ? null 
-      : (weekResults.reduce((s, r) => s + (r.percentage || 0), 0) / weekResults.length).toFixed(1);
+    if (weekResults.length === 0) return null;
+    return (weekResults.reduce((s, r) => s + r.percentage, 0) / weekResults.length).toFixed(1);
+  }, [simulatorResults]);
 
-    // Overall average
-    const oAvg = simulatorResults.length === 0 
-      ? null 
-      : (simulatorResults.reduce((s, r) => s + (r.percentage || 0), 0) / simulatorResults.length).toFixed(1);
+  // Has elite badge
+  const hasEliteBadge = simulatorResults.some(r => r.percentage >= 80);
 
-    // Badges logic
-    const hasElite = simulatorResults.some(r => (r.percentage || 0) >= 80);
-    const badges = BADGES.filter(b => {
-      if (b.id === 'elite') return hasElite;
-      if ((b as any).totalQuizzes) return quizCount >= (b as any).totalQuizzes;
-      if ((b as any).requiredQuizzes && (b as any).examType) return (quizCountByExam[(b as any).examType] || 0) >= (b as any).requiredQuizzes;
-      if ((b as any).requiredAccuracy && (b as any).subject) {
-        const p = progress.find(pr => pr.subject?.includes('mat') || pr.subject?.includes('Matem'));
-        return p && p.total_answers > 0 && (p.correct_answers / p.total_answers) * 100 >= (b as any).requiredAccuracy;
-      }
-      return false;
-    });
-
-    return { 
-      totalQuizCompleted: quizCount, 
-      totalCorrect: correctCount, 
-      unlockedBadges: badges, 
-      weeklyAvg: wAvg,
-      overallAvg: oAvg 
-    };
-  }, [progress, simulatorResults, quizCountByExam]);
+  const unlockedBadges = BADGES.filter(b => {
+    if (b.id === 'elite') return hasEliteBadge;
+    if ((b as any).totalQuizzes) return totalQuizCount >= (b as any).totalQuizzes;
+    if ((b as any).requiredQuizzes && (b as any).examType) return (quizCountByExam[(b as any).examType] || 0) >= (b as any).requiredQuizzes;
+    if ((b as any).requiredAccuracy && (b as any).subject) {
+      const p = progress.find(pr => pr.subject.includes('mat') || pr.subject.includes('Matem'));
+      return p && p.total_answers > 0 && (p.correct_answers / p.total_answers) * 100 >= (b as any).requiredAccuracy;
+    }
+    return false;
+  });
 
   // Generate AI study suggestion based on errors
   const generateStudySuggestion = async () => {
@@ -325,7 +307,7 @@ export default function StudentDashboard() {
               <ClipboardList className="text-white" size={22} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{(totalQuizCompleted || 0) + simulatorResults.length}</p>
+              <p className="text-2xl font-bold text-foreground">{totalQuizCount + simulatorResults.length}</p>
               <p className="text-xs text-muted-foreground font-medium">Realizados</p>
             </div>
           </CardContent>
@@ -336,7 +318,7 @@ export default function StudentDashboard() {
               <TrendingUp className="text-white" size={22} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{overallAvg ? `${overallAvg}%` : '—'}</p>
+              <p className="text-2xl font-bold text-foreground">{overallAverage ? `${overallAverage}%` : '—'}</p>
               <p className="text-xs text-muted-foreground font-medium">Média Geral</p>
             </div>
           </CardContent>
@@ -402,14 +384,14 @@ export default function StudentDashboard() {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              {overallAvg && Number(overallAvg) >= 80 ? <Award className="text-yellow-300" size={24} /> : <Star className="text-yellow-300" size={24} />}
+              {hasEliteBadge ? <Award className="text-yellow-300" size={24} /> : <Star className="text-yellow-300" size={24} />}
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold">
                 {user?.user_metadata?.full_name || user?.user_metadata?.name || 'Olá, Estudante!'} 🎓
               </h1>
               <p className="text-white/80 text-sm">
-                {overallAvg && Number(overallAvg) >= 80 ? '⭐ Estudante Elite — Continue brilhando!' : 'Continue treinando para alcançar seus objetivos'}
+                {hasEliteBadge ? '⭐ Estudante Elite — Continue brilhando!' : 'Continue treinando para alcançar seus objetivos'}
               </p>
             </div>
             {user?.user_metadata?.avatar_url && (
@@ -435,7 +417,7 @@ export default function StudentDashboard() {
           <div className="grid grid-cols-4 gap-3 mt-4">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
               <Trophy className="mx-auto text-yellow-300 mb-1" size={20} />
-              <div className="text-xl font-bold">{(totalQuizCompleted || 0) + simulatorResults.length}</div>
+              <div className="text-xl font-bold">{totalQuizCount + simulatorResults.length}</div>
               <div className="text-[10px] text-white/60 uppercase tracking-wider">Atividades</div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
@@ -450,7 +432,7 @@ export default function StudentDashboard() {
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center">
               <BarChart3 className="mx-auto text-cyan-300 mb-1" size={20} />
-              <div className="text-xl font-bold">{weeklyAvg ?? '—'}</div>
+              <div className="text-xl font-bold">{weeklyAverage ?? '—'}</div>
               <div className="text-[10px] text-white/60 uppercase tracking-wider">Média Semanal</div>
             </div>
           </div>
@@ -464,7 +446,7 @@ export default function StudentDashboard() {
             <CardTitle className="flex items-center gap-2 text-lg">
               <BarChart3 size={20} className="text-primary" />
               Meu Progresso
-              {overallAvg && Number(overallAvg) >= 80 && (
+              {hasEliteBadge && (
                 <Badge className="bg-gradient-to-r from-yellow-400 to-amber-600 text-white border-0 ml-2">
                   ⭐ Estudante Elite
                 </Badge>
@@ -537,7 +519,7 @@ export default function StudentDashboard() {
                             <div key={qi} className="text-sm space-y-1">
                               <div className="flex items-start gap-2">
                                 <Badge variant="outline" className="shrink-0">Q{qi + 1}</Badge>
-                                <p className="text-foreground" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content?.slice(0, 200)) }} />
+                                <p className="text-foreground" dangerouslySetInnerHTML={{ __html: q.content?.slice(0, 200) }} />
                               </div>
                               {correctOption && (
                                 <div className="flex items-center gap-1 ml-8 text-xs">

@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { showAiErrorToast } from '@/lib/ai-utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -66,7 +65,7 @@ export default function PisaPedagogicalHighlights({ mainErrors }: Props) {
       setPlanOpen(true);
     } catch (e: any) {
       console.error(e);
-      showAiErrorToast(e, toast, 'Erro ao gerar plano')
+      toast({ title: 'Erro ao gerar plano', description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }

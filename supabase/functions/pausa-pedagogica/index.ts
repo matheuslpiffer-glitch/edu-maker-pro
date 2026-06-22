@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,21 +12,8 @@ serve(async (req) => {
   try {
     const { category, grade } = await req.json();
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
-
-    const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Não autorizado. Faça login novamente." }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const creditCheck = await checkAndDecrementCredits(userId);
-    if (!creditCheck.allowed) {
-      return new Response(JSON.stringify({ error: creditCheck.error }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const categoryDescriptions: Record<string, string> = {
       foco: "Atividade de foco e concentração (respiração, mindfulness, atenção plena)",
@@ -62,44 +48,28 @@ Estrutura:
   "emoji": "🎯"
 }`;
 
-    let response;
-    for (let i = 0; i < 4; i++) {
-      response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "gemini-2.5-flash-lite",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Gere uma dinâmica de ${catDesc} para ${grade || "turma geral"}.` },
-          ],
-        }),
-      });
-      if (response.ok || (response.status !== 503 && response.status !== 500 && response.status !== 429)) break;
-      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-    }
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `Gere uma dinâmica de ${catDesc} para ${grade || "turma geral"}.` },
+        ],
+      }),
+    });
 
-    if (!response!.ok) {
-      const s = response!.status;
+    if (!response.ok) {
+      const s = response.status;
       if (s === 429) return new Response(JSON.stringify({ error: "Limite de requisições." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (s === 402) return new Response(JSON.stringify({ error: "Créditos insuficientes." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       return new Response(JSON.stringify({ error: "Erro ao gerar dinâmica." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const data = await response!.json();
-    const content = data.choices?.[0]?.message?.content || "";
-    let cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-    const start = cleaned.search(/[\{\[]/);
-    const end = cleaned.lastIndexOf(cleaned[start] === "[" ? "]" : "}");
-    if (start !== -1 && end !== -1) cleaned = cleaned.substring(start, end + 1);
-
-    let result;
-    try {
-      result = JSON.parse(cleaned);
-    } catch (e) {
-      console.error("Failed to parse AI response:", content);
-      throw e;
-    }
+    const data = await response.json();
+    const raw = (data.choices?.[0]?.message?.content || "").replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+    const result = JSON.parse(raw);
 
     return new Response(JSON.stringify({ result }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {

@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle, Trophy, TrendingUp, Star, BookOpen, Target, Clock, Lightbulb, CheckCircle2, Share2, FileText, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import QRCode from 'qrcode';
@@ -502,26 +501,6 @@ async function generateElitePDF(
   doc.save(fileName);
 }
 
-const handleExportPDFWrapper = async (
-  result: EliteResult,
-  plan: InterventionPlan | null,
-  studentName: string,
-  levelLabel: string,
-  setExporting: (v: boolean) => void,
-  toast: any
-) => {
-  setExporting(true);
-  try {
-    await generateElitePDF(result, plan, studentName, levelLabel);
-    toast({ title: '✅ PDF descarregado com sucesso!' });
-  } catch (err: any) {
-    console.error('[handleExportPDFWrapper] error:', err);
-    toast({ title: '❌ Erro ao gerar PDF', description: err.message, variant: 'destructive' });
-  } finally {
-    setExporting(false);
-  }
-};
-
 export default function EssayEliteCorrector() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -539,7 +518,6 @@ export default function EssayEliteCorrector() {
   const [interventionPlan, setInterventionPlan] = useState<InterventionPlan | null>(null);
   const [loadingPlan, setLoadingPlan] = useState(false);
   const [sharing, setSharing] = useState(false);
-  const [exporting, setExporting] = useState(false);
   // Restore accepted scan from storage on mount
   useEffect(() => {
     const cachedCapture = readStoredScannerCapture();
@@ -1126,8 +1104,7 @@ export default function EssayEliteCorrector() {
                   )}
                 </Button>
                 <Button
-                  onClick={() => handleExportPDFWrapper(result, interventionPlan, studentName, levelLabel, setExporting, toast)}
-                  disabled={exporting}
+                  onClick={() => generateElitePDF(result, interventionPlan, studentName, levelLabel)}
                   className="rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-lg"
                 >
                   <FileText size={16} className="mr-2" /> GERAR PDF
@@ -1158,7 +1135,6 @@ export default function EssayEliteCorrector() {
           </div>
         </div>
       )}
-      <ExportLoadingOverlay isOpen={exporting || sharing} />
     </div>
   );
 }
