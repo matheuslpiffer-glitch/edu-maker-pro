@@ -28,11 +28,11 @@ const diretrizesBlock = extractObjectBlock(source, 'diretrizesPorPerfil');
 const labelBlock = extractObjectBlock(source, 'perfilLabel');
 
 function extractEntry(block: string, key: string): string {
-  // Captura até a próxima crase de fechamento da template string
-  const re = new RegExp(`${key}\\s*:\\s*\`([\\s\\S]*?)\``);
-  const m = block.match(re);
-  if (!m) throw new Error(`Entrada ${key} não encontrada`);
-  return m[1];
+  // Captura todas as ocorrências (chaves duplicadas em objeto literal — a última prevalece em runtime)
+  const re = new RegExp(`${key}\\s*:\\s*\`([\\s\\S]*?)\``, 'g');
+  const matches = [...block.matchAll(re)];
+  if (matches.length === 0) throw new Error(`Entrada ${key} não encontrada`);
+  return matches[matches.length - 1][1];
 }
 
 const NEW_PROFILES: Array<{
