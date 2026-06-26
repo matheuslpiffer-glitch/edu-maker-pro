@@ -99,9 +99,18 @@ const INCLUSION_CARDS = [
 ];
 
  const GRADE_OPTIONS = [
-   { value: 'fundamental_1', label: 'Ensino Fundamental I (1º ao 5º ano)' },
-   { value: 'fundamental_2', label: 'Ensino Fundamental II (6º ao 9º ano)' },
-   { value: 'ensino_medio', label: 'Ensino Médio (1ª a 3ª série)' },
+  { value: 'ano_1', label: '1º Ano (Fund. I)' },
+  { value: 'ano_2', label: '2º Ano (Fund. I)' },
+  { value: 'ano_3', label: '3º Ano (Fund. I)' },
+  { value: 'ano_4', label: '4º Ano (Fund. I)' },
+  { value: 'ano_5', label: '5º Ano (Fund. I)' },
+  { value: 'ano_6', label: '6º Ano (Fund. II)' },
+  { value: 'ano_7', label: '7º Ano (Fund. II)' },
+  { value: 'ano_8', label: '8º Ano (Fund. II)' },
+  { value: 'ano_9', label: '9º Ano (Fund. II)' },
+  { value: 'serie_1', label: '1ª Série (Ensino Médio)' },
+  { value: 'serie_2', label: '2ª Série (Ensino Médio)' },
+  { value: 'serie_3', label: '3ª Série (Ensino Médio)' },
  ];
 
 type ActiveView = 'dashboard' | 'adaptar' | 'triagem';
