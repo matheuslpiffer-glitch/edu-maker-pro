@@ -16,7 +16,8 @@ import {
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
   ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
-  Trash2, Library, Search, X, Glasses, VolumeX
+  Trash2, Library, Search, X, Glasses, VolumeX,
+  ListChecks, CloudRain, Headphones, MessagesSquare, Waves
 
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -51,6 +52,11 @@ const AEE_PROFILES = [
   { value: 'aee_baixa_visao', label: 'Baixa Visão', icon: Glasses, color: 'cyan' },
   { value: 'aee_surdez', label: 'Surdez', icon: VolumeX, color: 'teal' },
   { value: 'aee_altas_habilidades', label: 'Altas Habilidades', icon: Lightbulb, color: 'yellow' },
+  { value: 'aee_toc', label: 'TOC (T. Obsessivo-Compulsivo)', icon: ListChecks, color: 'lime' },
+  { value: 'aee_tag', label: 'TAG (Ansiedade Generalizada)', icon: CloudRain, color: 'slate' },
+  { value: 'aee_tpac', label: 'TPAC (Proc. Auditivo Central)', icon: Headphones, color: 'fuchsia' },
+  { value: 'aee_tdl', label: 'TDL (T. Desenv. da Linguagem)', icon: MessagesSquare, color: 'red' },
+  { value: 'aee_sensorial', label: 'T. Proc. Sensorial', icon: Waves, color: 'blue' },
 ];
 
 const AEE_MODES = [
