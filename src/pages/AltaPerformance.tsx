@@ -2,6 +2,7 @@ import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { startGeneration, getGeneration, clearGeneration } from '@/lib/background-generation';
 import DOMPurify from 'dompurify';
 import MathText from '@/components/MathText';
+import { sanitizeMathData } from '@/lib/sanitize-math';
 import { Trophy, Wand2, Copy, FileDown, Loader2, Save, MessageCircle, Link2, Sparkles, CalendarDays, QrCode, Rocket, PlusCircle, CheckCircle2, Circle } from 'lucide-react';
 import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
@@ -418,8 +419,11 @@ export default function AltaPerformance() {
   const sanitizedQuestions = useMemo(() => {
     return questions.map(q => ({
       ...q,
-      content: DOMPurify.sanitize(q.content),
-      correctionMirror: q.correctionMirror ? DOMPurify.sanitize(q.correctionMirror) : undefined
+      content: sanitizeMathData(DOMPurify.sanitize(q.content)),
+      correctionMirror: q.correctionMirror
+        ? sanitizeMathData(DOMPurify.sanitize(q.correctionMirror))
+        : undefined,
+      options: q.options?.map(o => ({ ...o, text: sanitizeMathData(o.text) })),
     }));
   }, [questions]);
 
