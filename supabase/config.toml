@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.payments-webhook]
 verify_jwt = false
+
+[functions.adapt-vision]
+verify_jwt = false
