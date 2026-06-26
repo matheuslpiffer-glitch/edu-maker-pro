@@ -37,7 +37,7 @@ function extractEntry(block: string, key: string): string {
 
 const NEW_PROFILES: Array<{
   key: string;
-  label: string;
+  label: RegExp;
   mustInclude: RegExp[];
 }> = [
   {
