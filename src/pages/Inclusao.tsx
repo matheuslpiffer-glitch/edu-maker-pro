@@ -1381,7 +1381,7 @@ export default function Inclusao() {
 
                     type="file"
 
-                    accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp"
+                    accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
                     className="hidden"
 
