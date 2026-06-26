@@ -74,6 +74,10 @@ const CoordView = lazy(() => import("@/pages/CoordView"));
 const StudentEssayArena = lazy(() => import("@/pages/StudentEssayArena"));
 const Pricing = lazy(() => import("@/pages/Pricing"));
 const CheckoutReturn = lazy(() => import("@/pages/CheckoutReturn"));
+const HubRedacao = lazy(() => import("@/pages/HubRedacao"));
+const HubCriar = lazy(() => import("@/pages/HubCriar"));
+const HubAvaliacoes = lazy(() => import("@/pages/HubAvaliacoes"));
+const HubBiblioteca = lazy(() => import("@/pages/HubBiblioteca"));
 
 const queryClient = new QueryClient();
 
@@ -175,6 +179,10 @@ function AppRoutes() {
           <Route path="/jogos" element={<GameFactory />} />
           <Route path="/atividade-extra" element={<ExtraActivity />} />
           <Route path="/redacao-lab" element={<EssayLab />} />
+          <Route path="/redacao-hub" element={<HubRedacao />} />
+          <Route path="/criar-hub" element={<HubCriar />} />
+          <Route path="/avaliacoes-hub" element={<HubAvaliacoes />} />
+          <Route path="/biblioteca-hub" element={<HubBiblioteca />} />
           <Route path="/bussola-vocacional" element={<BussolaVocacional />} />
           <Route path="/escuta-ativa" element={<EscutaAtiva />} />
           <Route path="/pausa-pedagogica" element={<PausaPedagogica />} />
