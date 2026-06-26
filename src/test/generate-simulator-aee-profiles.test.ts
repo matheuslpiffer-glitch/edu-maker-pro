@@ -77,17 +77,12 @@ describe('generate-simulator-questions — perfis AEE novos', () => {
   });
 
   it.each(NEW_PROFILES)('expõe label legível para $key', ({ key, label }) => {
-    const value = extractEntry.call(null, labelBlock.replace(/`/g, "'"), key) // fallback
-      ? null
-      : null;
     // labels usam aspas simples, não crase — extraímos com regex dedicada
-    const re = new RegExp(`${key}\\s*:\\s*'([^']+)'`);
-    const matches = [...labelBlock.matchAll(new RegExp(re, 'g'))];
+    const matches = [...labelBlock.matchAll(new RegExp(`${key}\\s*:\\s*'([^']+)'`, 'g'))];
     expect(matches.length).toBeGreaterThan(0);
     // a última definição é a que prevalece em runtime para chaves duplicadas
     const finalLabel = matches[matches.length - 1][1];
     expect(finalLabel).toMatch(label);
-    void value;
   });
 
   it('simula montagem da diretriz combinada para múltiplos perfis novos', () => {
