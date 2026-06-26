@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { showAiErrorToast } from '@/lib/ai-utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -38,18 +38,55 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   subjects: Subject[];
   onGenerate: (data: GeneratedQuestion) => void;
+  /**
+   * 'fill'   = devolve a questão para o formulário (padrão)
+   * 'append' = insere direto na tabela `questions` (banco) e chama onGenerate só pra notificar
+   */
+  mode?: 'fill' | 'append';
+  defaults?: {
+    subjectId?: string;
+    type?: string;
+    difficulty?: string;
+    topic?: string;
+  };
 }
 
-export default function AIGenerateModal({ open, onOpenChange, subjects, onGenerate }: Props) {
+export default function AIGenerateModal({ open, onOpenChange, subjects, onGenerate, mode = 'fill', defaults }: Props) {
   const { toast } = useToast();
-  const [subjectId, setSubjectId] = useState('');
-  const [topic, setTopic] = useState('');
-  const [difficulty, setDifficulty] = useState('medium');
-  const [type, setType] = useState('multiple-choice');
+  const [subjectId, setSubjectId] = useState(defaults?.subjectId || '');
+  const [topic, setTopic] = useState(defaults?.topic || '');
+  const [difficulty, setDifficulty] = useState(defaults?.difficulty || 'medium');
+  const [type, setType] = useState(defaults?.type || 'multiple-choice');
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState('manual');
 
+  // Sincroniza defaults toda vez que o modal abre (modo 'append').
+  useEffect(() => {
+    if (!open || !defaults) return;
+    if (defaults.subjectId) setSubjectId(defaults.subjectId);
+    if (defaults.type) setType(defaults.type);
+    if (defaults.difficulty) setDifficulty(defaults.difficulty);
+    if (defaults.topic !== undefined) setTopic(defaults.topic);
+  }, [open, defaults?.subjectId, defaults?.type, defaults?.difficulty, defaults?.topic]);
+
   const subjectName = subjects.find(s => s.id === subjectId)?.name || '';
+
+  const persistIfAppend = async (generated: GeneratedQuestion) => {
+    if (mode !== 'append') return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('questions').insert({
+      user_id: user.id,
+      subject_id: generated.subjectId,
+      type: generated.type,
+      difficulty: generated.difficulty,
+      topic: generated.topic,
+      content: generated.content,
+      options: (generated.type === 'multiple-choice' ? generated.options : []) as any,
+      answer: generated.type === 'essay' ? generated.answer : '',
+    });
+    toast({ title: 'Questão adicionada ao banco!', description: 'Nova questão criada com tipo/tópico diferentes.' });
+  };
 
   const generateWithAI = async (skillCode: string, skillDescription: string, grade: string) => {
     setLoading(true);
@@ -84,6 +121,7 @@ export default function AIGenerateModal({ open, onOpenChange, subjects, onGenera
         answer: type === 'essay' ? (data.answer || '') : '',
       };
 
+      await persistIfAppend(generated);
       onGenerate(generated);
       onOpenChange(false);
       setTopic('');
@@ -133,6 +171,7 @@ export default function AIGenerateModal({ open, onOpenChange, subjects, onGenera
         answer: type === 'essay' ? (data.answer || '') : '',
       };
 
+      await persistIfAppend(generated);
       onGenerate(generated);
       onOpenChange(false);
       setTopic('');

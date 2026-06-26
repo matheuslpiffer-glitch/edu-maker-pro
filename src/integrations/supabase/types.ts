@@ -616,6 +616,7 @@ export type Database = {
           content: string
           created_at: string
           difficulty: string
+          explanation: string | null
           id: string
           options: Json
           subject_id: string
@@ -628,6 +629,7 @@ export type Database = {
           content?: string
           created_at?: string
           difficulty: string
+          explanation?: string | null
           id?: string
           options?: Json
           subject_id: string
@@ -640,6 +642,7 @@ export type Database = {
           content?: string
           created_at?: string
           difficulty?: string
+          explanation?: string | null
           id?: string
           options?: Json
           subject_id?: string
