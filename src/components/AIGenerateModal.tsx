@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { showAiErrorToast } from '@/lib/ai-utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -60,12 +60,14 @@ export default function AIGenerateModal({ open, onOpenChange, subjects, onGenera
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState('manual');
 
-  // Re-aplica defaults quando o modal reabre.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useState(() => undefined);
-  if (open && defaults && !subjectId && defaults.subjectId) {
-    // hidrata uma única vez por abertura
-  }
+  // Sincroniza defaults toda vez que o modal abre (modo 'append').
+  useEffect(() => {
+    if (!open || !defaults) return;
+    if (defaults.subjectId) setSubjectId(defaults.subjectId);
+    if (defaults.type) setType(defaults.type);
+    if (defaults.difficulty) setDifficulty(defaults.difficulty);
+    if (defaults.topic !== undefined) setTopic(defaults.topic);
+  }, [open, defaults?.subjectId, defaults?.type, defaults?.difficulty, defaults?.topic]);
 
   const subjectName = subjects.find(s => s.id === subjectId)?.name || '';
 
