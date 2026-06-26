@@ -12,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSavedQuestionsBank } from '@/hooks/useSavedQuestionsBank';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Loader2, Sparkles, Accessibility, Brain, Shapes, Zap, RefreshCw,
+  Loader2, Sparkles, FileUp, Accessibility, Brain, Shapes, Zap, RefreshCw,
   BookMarked, CheckCircle2, Eye, Save, FileDown, MessageCircle,
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
   ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
