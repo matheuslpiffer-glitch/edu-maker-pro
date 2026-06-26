@@ -17,7 +17,7 @@ import {
   Users, Hand, Ear, Wand2, ImageIcon, Type, Image, Copy, KeyRound, QrCode,
   ArrowLeft, Volume2, Languages, Lightbulb, Stethoscope, GraduationCap,
   Trash2, Library, Search, X, Glasses, VolumeX,
-  ListChecks, CloudRain, Headphones, MessagesSquare, Waves
+  ListChecks, CloudRain, Headphones, MessagesSquare, Waves, Repeat
 
 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -52,6 +52,11 @@ const AEE_PROFILES = [
   { value: 'aee_baixa_visao', label: 'Baixa Visão', icon: Glasses, color: 'cyan' },
   { value: 'aee_surdez', label: 'Surdez', icon: VolumeX, color: 'teal' },
   { value: 'aee_altas_habilidades', label: 'Altas Habilidades', icon: Lightbulb, color: 'yellow' },
+  { value: 'aee_toc', label: 'TOC (Obsessivo-Compulsivo)', icon: Repeat, color: 'violet' },
+  { value: 'aee_tag', label: 'TAG (Ansiedade Generalizada)', icon: CloudRain, color: 'sky' },
+  { value: 'aee_tpac', label: 'TPAC (Proc. Auditivo Central)', icon: Headphones, color: 'teal' },
+  { value: 'aee_tdl', label: 'TDL (Desenv. da Linguagem)', icon: MessageCircle, color: 'rose' },
+  { value: 'aee_sensorial', label: 'Processamento Sensorial', icon: Waves, color: 'emerald' },
   { value: 'aee_toc', label: 'TOC (T. Obsessivo-Compulsivo)', icon: ListChecks, color: 'lime' },
   { value: 'aee_tag', label: 'TAG (Ansiedade Generalizada)', icon: CloudRain, color: 'slate' },
   { value: 'aee_tpac', label: 'TPAC (Proc. Auditivo Central)', icon: Headphones, color: 'fuchsia' },
