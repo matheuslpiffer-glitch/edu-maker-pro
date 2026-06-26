@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, type LucideIcon } from 'lucide-react';
+import { ArrowRight, Inbox, type LucideIcon } from 'lucide-react';
 
 export interface HubItem {
   to: string;
@@ -30,7 +30,19 @@ export default function HubGrid({ title, subtitle, icon: HeaderIcon, items }: Hu
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {items.map((f) => {
+        {items.length === 0 ? (
+          <div
+            role="status"
+            className="col-span-full flex flex-col items-center justify-center text-center py-16 px-6 rounded-lg border border-dashed border-border bg-muted/30"
+          >
+            <Inbox className="h-10 w-10 text-muted-foreground mb-3" aria-hidden="true" />
+            <h2 className="font-semibold text-lg mb-1">Nada por aqui ainda</h2>
+            <p className="text-sm text-muted-foreground max-w-md">
+              Nenhum item disponível neste hub no momento. Volte em breve — novas ferramentas aparecerão aqui assim que forem liberadas.
+            </p>
+          </div>
+        ) : (
+          items.map((f) => {
           const Icon = f.icon;
           return (
             <button
@@ -52,7 +64,8 @@ export default function HubGrid({ title, subtitle, icon: HeaderIcon, items }: Hu
               </Card>
             </button>
           );
-        })}
+          })
+        )}
       </div>
     </div>
   );
