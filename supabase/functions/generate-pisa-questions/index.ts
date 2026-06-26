@@ -71,13 +71,16 @@ Níveis PISA de referência:
 
     const latexRule = `
 
-FORMATAÇÃO MATEMÁTICA — USE LATEX SEMPRE:
-Toda notação matemática (cenário, enunciado, alternativas, modelAnswer, dataTable) DEVE ser escrita em LaTeX (a interface renderiza com KaTeX).
-- Inline: $...$  (ex.: $x^2$, $\\frac{a}{b}$, $\\sqrt{2}$, $\\pi r^2$)
-- Bloco/destaque: $$...$$ (ex.: $$\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}$$)
-- Use LaTeX para: frações (\\frac), expoentes (^), raízes (\\sqrt), índices (_), funções,
-  somatórios, integrais, letras gregas, sistemas (\\begin{cases}), matrizes, conjuntos.
-- NUNCA escreva fórmula em texto corrido; sempre delimite em $...$ ou $$...$$.`;
+FORMATAÇÃO BLINDADA — REGRA INVIOLÁVEL (Matemática/Física PISA):
+Está TERMINANTEMENTE PROIBIDO o uso do caractere cifrão ($) como delimitador ou de qualquer comando LaTeX
+(\\(...\\), \\[...\\], \\frac, \\sqrt, \\pi, \\alpha, \\sum, \\int, \\begin{cases}, etc.) em QUALQUER campo
+(cenário, enunciado, alternativas, modelAnswer, dataTable, gabarito). O parser do frontend quebra com "$".
+Está PROIBIDO também usar tags HTML de formatação (<sup>, <sub>, <b>, <i>, <em>, <strong>) em alternativas e gabarito.
+Use EXCLUSIVAMENTE texto puro Unicode: π, ², ³, √, ±, ×, ÷, °, %, ≠, ≤, ≥, ≈, ∞, ½, ⅓, ¼, ¾, α, β, γ, δ, θ, Δ, Σ, Ω.
+Para frações use barra comum (1/3, 2/7); para expoentes use ⁰¹²³⁴⁵⁶⁷⁸⁹; para subscritos ₀₁₂₃₄₅₆₇₈₉.
+Exemplo: escreva "área = π × r²" e NÃO "$\\pi r^2$".
+O gabarito deve espelhar EXATAMENTE a mesma limpeza — sem $, sem LaTeX, sem tags.
+VALIDAÇÃO FINAL: confirme que NENHUM "$", "\\(", "\\[", "\\frac" ou tag de formatação aparece no JSON antes de responder.`;
 
     const userPrompt = `Gere ${count} questões PISA ${eliteMode ? 'ELITE (níveis 5-6)' : `nível ${proficiencyLevel}`} para "${competencyLabel}". Retorne APENAS o JSON.`;
 
