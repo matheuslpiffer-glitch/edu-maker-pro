@@ -577,6 +577,10 @@ export default function Inclusao() {
   const [specificNecessity, setSpecificNecessity] = useState('');
   const [consultancyTip, setConsultancyTip] = useAutoSaveDraft<string>(INCLUSAO_DRAFT_KEYS.consultancyTip, '');
    const [grade, setGrade] = useState('');
+
+  const [adaptFile, setAdaptFile] = useState<File | null>(null);
+
+  const [adapting, setAdapting] = useState(false);
   const [complexity, setComplexity] = useState('basico');
 
    const canGenerate = !!subject && selectedProfiles.length > 0 && !!topic && !!grade && !!complexity;
