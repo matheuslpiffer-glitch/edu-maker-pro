@@ -691,7 +691,7 @@ export default function Inclusao() {
 
   const handleAdaptFile = async () => {
 
-    if (!adaptFile) { toast({ title: 'Selecione um arquivo (PDF ou imagem) primeiro.', variant: 'destructive' }); return; }
+    if (!adaptFile) { toast({ title: 'Selecione um arquivo (PDF, imagem ou Word) primeiro.', variant: 'destructive' }); return; }
 
     if (selectedProfiles.length === 0) { toast({ title: 'Selecione ao menos um perfil de adaptação.', variant: 'destructive' }); return; }
 
@@ -705,67 +705,7 @@ export default function Inclusao() {
 
     setConsultancyTip('');
 
-    try {
-
-      const base64 = await new Promise<string>((resolve, reject) => {
-
-        const reader = new FileReader();
-
-        reader.onload = () => resolve(((reader.result as string).split(',')[1]) || '');
-
-        reader.onerror = reject;
-
-        reader.readAsDataURL(adaptFile);
-
-      });
-
-      const aeeProfileLabels = selectedProfiles
-
-        .map(p => AEE_PROFILES.find(ap => ap.value === p)?.label || p)
-
-        .join(' + ');
-
-      const { data: { session } } = await supabase.auth.getSession();
-
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/adapt-vision`, {
-
-        method: 'POST',
-
-        headers: {
-
-          'Content-Type': 'application/json',
-
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-
-          Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-
-        },
-
-        body: JSON.stringify({
-
-          fileBase64: base64,
-
-          fileMime: adaptFile.type,
-
-          aeeProfileLabels,
-
-          aeeTopic: topic || 'Material adaptado',
-
-          serie: grade,
-
-          aeeMode,
-
-        }),
-
-      });
-
-      const raw = await response.text();
-
-      let data: any = null;
-
-      try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
-
-      if (!response.ok) throw new Error(data?.error || `Erro ${response.status} ao adaptar o arquivo.`);
+    const applyResult = (data: any) => {
 
       if (data?.error) throw new Error(data.error);
 
@@ -801,7 +741,127 @@ export default function Inclusao() {
 
       } else {
 
-        toast({ title: 'A IA não conseguiu ler o arquivo. Tente um PDF/foto mais legível.', variant: 'destructive' });
+        toast({ title: 'A IA não conseguiu ler o arquivo. Tente um arquivo mais legível.', variant: 'destructive' });
+
+      }
+
+    };
+
+    try {
+
+      const fileName = adaptFile.name.toLowerCase();
+
+      const isDocx = fileName.endsWith('.docx') || adaptFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+      if (isDocx) {
+
+        const arrayBuffer = await adaptFile.arrayBuffer();
+
+        const mod: any = await import('mammoth/mammoth.browser');
+
+        const mammoth = mod.default ?? mod;
+
+        const { value: extractedText } = await mammoth.extractRawText({ arrayBuffer });
+
+        if (!extractedText || extractedText.trim().length < 10) {
+
+          toast({ title: 'Não consegui ler texto deste Word. Verifique se o arquivo tem conteúdo.', variant: 'destructive' });
+
+          return;
+
+        }
+
+        const data = await fetchAeeWithRetry({
+
+          isInclusao: true,
+
+          activeDna: selectedProfiles.join(','),
+
+          aeeProfiles: selectedProfiles,
+
+          aeeMode,
+
+          aeeTopic: topic,
+
+          aeeContent: extractedText,
+
+          aeeQuestionCount: questionCount,
+
+          aeeQuestionType: questionType,
+
+          aeeImageMode: imageMode,
+
+          specificTopic: topic,
+
+          specificNecessity,
+
+          serie: grade,
+
+          nivelComplexidade: complexity,
+
+        });
+
+        applyResult(data);
+
+      } else {
+
+        const base64 = await new Promise<string>((resolve, reject) => {
+
+          const reader = new FileReader();
+
+          reader.onload = () => resolve(((reader.result as string).split(',')[1]) || '');
+
+          reader.onerror = reject;
+
+          reader.readAsDataURL(adaptFile);
+
+        });
+
+        const aeeProfileLabels = selectedProfiles.map(p => AEE_PROFILES.find(ap => ap.value === p)?.label || p).join(' + ');
+
+        const { data: { session } } = await supabase.auth.getSession();
+
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/adapt-vision`, {
+
+          method: 'POST',
+
+          headers: {
+
+            'Content-Type': 'application/json',
+
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+
+            Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+
+          },
+
+          body: JSON.stringify({
+
+            fileBase64: base64,
+
+            fileMime: adaptFile.type,
+
+            aeeProfileLabels,
+
+            aeeTopic: topic || 'Material adaptado',
+
+            serie: grade,
+
+            aeeMode,
+
+          }),
+
+        });
+
+        const raw = await response.text();
+
+        let data: any = null;
+
+        try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
+
+        if (!response.ok) throw new Error(data?.error || `Erro ${response.status} ao adaptar o arquivo.`);
+
+        applyResult(data);
 
       }
 
@@ -1305,7 +1365,7 @@ export default function Inclusao() {
 
                   <Label className="text-xs font-bold uppercase tracking-wider text-purple-700">
 
-                    📎 Ou envie a prova como arquivo (PDF, foto ou imagem)
+                    📎 Ou envie a prova como arquivo (PDF, foto, imagem ou Word)
 
                   </Label>
 
@@ -1321,7 +1381,7 @@ export default function Inclusao() {
 
                     type="file"
 
-                    accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp"
+                    accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
                     className="hidden"
 
