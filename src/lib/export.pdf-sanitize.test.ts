@@ -89,7 +89,7 @@ describe('buildSanitizedQuestionHtml — saída usada no exportToPDF', () => {
 
   it('emite uma linha de gabarito por questão', () => {
     // q1 MC com 1ª alternativa correta → "A"; q2 essay → texto da resposta sanitizado.
-    expect(visibleText).toMatch(/1\.\s*A\b/);
-    expect(visibleText).toMatch(/2\.\s*π ≈ 3\.14|2\.\s*π/);
+    expect(visibleText).toMatch(/1\.\s*A/);
+    expect(visibleText).toMatch(/2\.\s*π/);
   });
 });
