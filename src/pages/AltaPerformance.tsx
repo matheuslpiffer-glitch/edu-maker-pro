@@ -418,8 +418,11 @@ export default function AltaPerformance() {
   const sanitizedQuestions = useMemo(() => {
     return questions.map(q => ({
       ...q,
-      content: DOMPurify.sanitize(q.content),
-      correctionMirror: q.correctionMirror ? DOMPurify.sanitize(q.correctionMirror) : undefined
+      content: sanitizeMathData(DOMPurify.sanitize(q.content)),
+      correctionMirror: q.correctionMirror
+        ? sanitizeMathData(DOMPurify.sanitize(q.correctionMirror))
+        : undefined,
+      options: q.options?.map(o => ({ ...o, text: sanitizeMathData(o.text) })),
     }));
   }, [questions]);
 
