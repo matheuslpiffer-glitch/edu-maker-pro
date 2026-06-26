@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`generate-simulator-questions — fixtures/snapshot dos novos perfis AEE > simula a chamada da edge function e injeta diretrizes para múltiplos perfis (snapshot) 1`] = `
+"PERFIL: TOC (Transtorno Obsessivo-Compulsivo) + TAG (Transtorno de Ansiedade Generalizada) + TPAC (Transtorno do Processamento Auditivo Central) + TDL (Transtorno do Desenvolvimento da Linguagem) + Transtorno do Processamento Sensorial
+
+DIRETRIZES:
+Use ESTRUTURA PREVISÍVEL e ROTINA CLARA em todas as questões (sempre o mesmo padrão visual: enunciado → alternativas → marcação). Evite quantidades ou números "abertos" que induzam à contagem repetitiva (prefira valores fechados e exatos). Forneça INSTRUÇÕES OBJETIVAS e únicas por questão ("faça 1 vez", "marque apenas 1 alternativa"). Use checklists simples (☐) para tarefas em etapas, com critério de conclusão EXPLÍCITO. EVITE linguagem ambígua, perfeccionista ou que sugira "fazer de novo até ficar certo". Tom calmo, validador e sem urgência.
+
+Use tom ACOLHEDOR, CALMO e PREVISÍVEL. Reduza a carga cognitiva: frases curtas, UMA pergunta por vez, sem armadilhas. Evite cronômetros, contagem regressiva ou linguagem de pressão ("rápido", "urgente", "você tem X segundos"). Inclua FRASES DE SEGURANÇA no enunciado (ex.: "Não tem problema errar, vamos pensar juntos."). Ofereça DICAS escalonadas (Dica 1, Dica 2) para evitar travamento. Encerre cada bloco com uma mensagem de reforço positivo (🌿💙). Alternativas devem ser claramente distintas, sem pegadinhas.
+
+Priorize CANAL VISUAL e ESCRITO; NÃO dependa de áudio, ritmo, rima, entonação ou discriminação sonora. Use frases CURTAS na ordem direta (sujeito–verbo–objeto). DESTAQUE palavras-chave em <strong>negrito</strong> e separe instruções em passos numerados (1, 2, 3). Apoie cada palavra-chave com um ícone/emoji (ex.: "ouvir 👂", "escrever ✏️"). EVITE instruções longas faladas ou que exijam memorização auditiva. Toda informação essencial deve estar ESCRITA e VISÍVEL ao lado da questão.
+
+Use VOCABULÁRIO SIMPLES e de ALTA FREQUÊNCIA (palavras do dia a dia). Frases CURTAS (máx. 8 palavras) na ordem direta (sujeito–verbo–objeto), sem orações subordinadas longas. EVITE metáforas, expressões idiomáticas, sinônimos raros e duplo sentido. Apoie cada conceito com IMAGEM/EMOJI ao lado da palavra-chave (ex.: "chuva 🌧️", "planta 🌱"). Reformule a pergunta de DUAS formas diferentes quando possível ("Em outras palavras: ..."). Alternativas devem ser CURTAS, com no máximo uma ideia cada. Inclua um GLOSSÁRIO mínimo no final, definindo as palavras novas em linguagem simples.
+
+Reduza a SOBRECARGA SENSORIAL: layout LIMPO, muito espaço em branco, sem bordas piscantes, sem cores saturadas ou contrastes agressivos. Use no máximo 1 imagem por questão e evite poluição visual (muitos ícones, molduras, sombras). Linguagem CURTA, calma e previsível. EVITE descrições de estímulos intensos (barulho alto, luzes piscantes, texturas desagradáveis); quando o tema exigir, descreva de forma neutra e ofereça alternativa de resposta escrita. Inclua pausas sugeridas entre blocos de questões (ex.: "🌿 Pausa: respire fundo antes da próxima."). Permita que o aluno marque a alternativa apenas circulando ou apontando, sem exigir gestos complexos."
+`;
