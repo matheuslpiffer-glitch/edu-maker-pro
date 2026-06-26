@@ -1365,7 +1365,7 @@ export default function Inclusao() {
 
                   <Label className="text-xs font-bold uppercase tracking-wider text-purple-700">
 
-                    📎 Ou envie a prova como arquivo (PDF, foto ou imagem)
+                    📎 Ou envie a prova como arquivo (PDF, foto, imagem ou Word)
 
                   </Label>
 
