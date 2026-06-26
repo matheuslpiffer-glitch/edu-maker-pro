@@ -689,6 +689,136 @@ export default function Inclusao() {
     }
   };
 
+  const handleAdaptFile = async () => {
+
+    if (!adaptFile) { toast({ title: 'Selecione um arquivo (PDF ou imagem) primeiro.', variant: 'destructive' }); return; }
+
+    if (selectedProfiles.length === 0) { toast({ title: 'Selecione ao menos um perfil de adaptação.', variant: 'destructive' }); return; }
+
+    setAdapting(true);
+
+    setResult(null);
+
+    setGeneratedImages({});
+
+    setSavedAccessCode('');
+
+    setConsultancyTip('');
+
+    try {
+
+      const base64 = await new Promise<string>((resolve, reject) => {
+
+        const reader = new FileReader();
+
+        reader.onload = () => resolve(((reader.result as string).split(',')[1]) || '');
+
+        reader.onerror = reject;
+
+        reader.readAsDataURL(adaptFile);
+
+      });
+
+      const aeeProfileLabels = selectedProfiles
+
+        .map(p => AEE_PROFILES.find(ap => ap.value === p)?.label || p)
+
+        .join(' + ');
+
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/adapt-vision`, {
+
+        method: 'POST',
+
+        headers: {
+
+          'Content-Type': 'application/json',
+
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+
+          Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+
+        },
+
+        body: JSON.stringify({
+
+          fileBase64: base64,
+
+          fileMime: adaptFile.type,
+
+          aeeProfileLabels,
+
+          aeeTopic: topic || 'Material adaptado',
+
+          serie: grade,
+
+          aeeMode,
+
+        }),
+
+      });
+
+      const raw = await response.text();
+
+      let data: any = null;
+
+      try { data = raw ? JSON.parse(raw) : null; } catch { data = null; }
+
+      if (!response.ok) throw new Error(data?.error || `Erro ${response.status} ao adaptar o arquivo.`);
+
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.questions) {
+
+        const sanitized = data.questions.map((q: any) => sanitizeQuestion(q));
+
+        setResult(sanitized);
+
+        addQuestions(sanitized.map((q: any, i: number) => ({
+
+          id: `aee-${Date.now()}-${i}`,
+
+          banca: 'AEE',
+
+          tema: topic || 'Inclusão',
+
+          conteudo: q.content,
+
+          tipo: 'Adaptada',
+
+          options: q.options,
+
+          dataCriacao: new Date().toISOString(),
+
+        })));
+
+        const profileLabel = AEE_PROFILES.find(p => p.value === selectedProfiles[0])?.label || '';
+
+        setConsultancyTip(`Professor, este material foi adaptado a partir do arquivo enviado, com foco em ${profileLabel}, seguindo o Desenho Universal para a Aprendizagem (DUA).`);
+
+        toast({ title: '✅ Arquivo adaptado com sucesso!' });
+
+      } else {
+
+        toast({ title: 'A IA não conseguiu ler o arquivo. Tente um PDF/foto mais legível.', variant: 'destructive' });
+
+      }
+
+    } catch (e: any) {
+
+      console.error(e);
+
+      showAiErrorToast(e, toast, 'Erro ao adaptar o arquivo');
+
+    } finally {
+
+      setAdapting(false);
+
+    }
+
+  };
+
   const handleSave = async () => {
     if (!user || !result) return;
     setSaving(true);
