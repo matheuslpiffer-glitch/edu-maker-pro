@@ -1299,6 +1299,64 @@ export default function Inclusao() {
                 />
               </div>
 
+              {aeeMode === 'adaptar_antigas' && (
+
+                <div className="space-y-3 rounded-2xl border-2 border-dashed border-purple-300 bg-purple-50/50 p-4">
+
+                  <Label className="text-xs font-bold uppercase tracking-wider text-purple-700">
+
+                    📎 Ou envie a prova como arquivo (PDF, foto ou imagem)
+
+                  </Label>
+
+                  <p className="text-[11px] text-muted-foreground">
+
+                    A IA lê o arquivo — inclusive provas escaneadas ou fotografadas — e adapta conforme o perfil escolhido. Não precisa colar o texto.
+
+                  </p>
+
+                  <input
+
+                    id="aee-file-input"
+
+                    type="file"
+
+                    accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp"
+
+                    className="hidden"
+
+                    onChange={(e) => setAdaptFile(e.target.files?.[0] || null)}
+
+                  />
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+
+                    <Button type="button" variant="outline" onClick={() => document.getElementById('aee-file-input')?.click()} className="rounded-2xl gap-2">
+
+                      <FileUp className="h-4 w-4" /> {adaptFile ? 'Trocar arquivo' : 'Escolher arquivo'}
+
+                    </Button>
+
+                    <Button type="button" onClick={handleAdaptFile} disabled={adapting || !adaptFile} className="rounded-2xl gap-2 flex-1">
+
+                      {adapting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+
+                      {adapting ? 'Adaptando arquivo...' : 'Adaptar arquivo enviado'}
+
+                    </Button>
+
+                  </div>
+
+                  {adaptFile && (
+
+                    <p className="text-xs text-foreground font-medium truncate">📄 {adaptFile.name}</p>
+
+                  )}
+
+                </div>
+
+              )}
+
               {aeeMode === 'gerar_novas' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
