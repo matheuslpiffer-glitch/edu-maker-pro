@@ -78,6 +78,7 @@ const HubRedacao = lazy(() => import("@/pages/HubRedacao"));
 const HubCriar = lazy(() => import("@/pages/HubCriar"));
 const HubAvaliacoes = lazy(() => import("@/pages/HubAvaliacoes"));
 const HubBiblioteca = lazy(() => import("@/pages/HubBiblioteca"));
+const OAuthConsent = lazy(() => import("@/pages/OAuthConsent"));
 
 const queryClient = new QueryClient();
 
@@ -239,6 +240,7 @@ const App = () => (
                       <Route path="/aluno/simulado/:id" element={<StudentSimulatorView />} />
                       <Route path="/s/:code" element={<ShortLinkRedirect />} />
                       <Route path="/checkout/return" element={<CheckoutReturn />} />
+                      <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                       <Route path="/*" element={<AppRoutes />} />
                     </Routes>
                   </Suspense>
