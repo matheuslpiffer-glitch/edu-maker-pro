@@ -836,21 +836,24 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     if (!container) return;
     
     setIsExporting(true);
-    // Largura útil da A4 descontando as margens do PDF (210mm - 2x12mm = 186mm ≈ 703px @96dpi)
-    const PDF_CONTENT_WIDTH = 703;
-    const prevWidth = container.style.width;
-    const prevMinWidth = container.style.minWidth;
-    const prevMaxWidth = container.style.maxWidth;
+    // Largura útil da A4 descontando as margens escolhidas pelo usuário.
+    const PDF_CONTENT_WIDTH = usableWidthPx(pdfMargins);
+    const captureStyle = captureStyleFor(pdfMargins);
+    const prevStyle: Record<string, string> = {};
+    // Safari: colunas CSS durante a captura fazem o html2canvas medir errado.
+    const prevColumns = columns;
+    if (columns === 2) setColumns(1);
     try {
-      // Ajusta o container para a largura útil antes da captura (evita margem estourada)
-      container.style.width = `${PDF_CONTENT_WIDTH}px`;
-      container.style.minWidth = `${PDF_CONTENT_WIDTH}px`;
-      container.style.maxWidth = `${PDF_CONTENT_WIDTH}px`;
-      await new Promise((r) => setTimeout(r, 300));
+      // Fixa a largura em px e neutraliza colunas antes da captura (evita margem estourada)
+      Object.entries(captureStyle).forEach(([prop, value]) => {
+        prevStyle[prop] = (container.style as any)[prop] || '';
+        (container.style as any)[prop] = value;
+      });
+      await new Promise((r) => setTimeout(r, 400));
 
       const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set({
-        margin: [12, 12, 12, 12] as [number, number, number, number],
+        margin: toHtml2PdfMargin(pdfMargins),
         filename: `${title || 'simulado'}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { 
@@ -875,9 +878,10 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       console.error('PDF error:', e);
       showAiErrorToast(e, toast, 'Erro ao gerar PDF')
     } finally {
-      container.style.width = prevWidth;
-      container.style.minWidth = prevMinWidth;
-      container.style.maxWidth = prevMaxWidth;
+      Object.entries(prevStyle).forEach(([prop, value]) => {
+        (container.style as any)[prop] = value;
+      });
+      if (prevColumns === 2) setColumns(2);
       setIsExporting(false);
     }
   };
