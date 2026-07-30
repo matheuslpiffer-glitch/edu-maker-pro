@@ -2420,13 +2420,25 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       </Tabs>
       </div>{/* end unified workspace card */}
       {/* Print-only view */}
-      <div className="print-only fixed inset-0 z-[999] bg-white overflow-hidden p-0 m-0">
+      <div className="print-only print-sheet-root bg-white p-0 m-0">
         {(questions || []).length > 0 && (
-          <div className="w-full h-full">
+          <div className="w-full">
             <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions || []} isDiscursiva={isDiscursiva} columns={columns} isSenaiMode={isSenaiMode} />
-            {!isDiscursiva && <AnswerSheet questionCount={(questions || []).length} simulatorId={currentId} title={title} institutionName={institutionName} />}
-            {!isDiscursiva && showGabarito && <GabaritoOficial questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />}
-            {isDiscursiva && <EspelhoCorrecao questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} />}
+            {!isDiscursiva && (
+              <div className="print-page-break">
+                <AnswerSheet questionCount={(questions || []).length} simulatorId={currentId} title={title} institutionName={institutionName} />
+              </div>
+            )}
+            {!isDiscursiva && showGabarito && (
+              <div className="print-page-break">
+                <GabaritoOficial questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />
+              </div>
+            )}
+            {isDiscursiva && (
+              <div className="print-page-break">
+                <EspelhoCorrecao questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} />
+              </div>
+            )}
           </div>
         )}
       </div>
