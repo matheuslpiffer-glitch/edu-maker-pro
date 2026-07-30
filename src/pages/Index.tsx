@@ -91,18 +91,6 @@ export default function Index() {
     },
   ];
 
-  /* ── Secondary engines ── */
-  const engines = [
-    { id: 'vestibulares', to: '/vestibulares', icon: Landmark, label: 'Vestibulares & Seleções', gradient: 'from-blue-600 to-indigo-600' },
-    { id: 'tecnicos', to: '/tecnicos', icon: Cpu, label: 'Técnicos & Institutos', gradient: 'from-emerald-500 to-teal-600' },
-    { id: 'inclusao', to: '/inclusao', icon: Accessibility, label: 'Inclusão AEE', gradient: 'from-cyan-500 to-teal-500' },
-    { id: 'eduslides', to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', gradient: 'from-violet-500 to-purple-600' },
-    { id: 'infograficos', to: '/mapa-mental', icon: Map, label: 'Infográficos', gradient: 'from-amber-500 to-orange-600' },
-    { id: 'planejamento', to: '/planejamento', icon: CalendarDays, label: 'Planejamento 360°', gradient: 'from-sky-500 to-blue-600' },
-    { id: 'jogos', to: '/jogos', icon: Gamepad2, label: 'Game Factory', gradient: 'from-lime-500 to-green-600' },
-    { id: 'biblioteca_sec', to: '/biblioteca', icon: Library, label: 'Minha Biblioteca', gradient: 'from-slate-500 to-gray-600' },
-  ];
-
   const statCards = [
     { id: 'questions', label: 'Questões', value: stats?.questions || 0, icon: BookOpen, gradient: 'from-indigo-500 to-blue-600' },
     { id: 'assessments', label: 'Provas', value: stats?.assessments || 0, icon: FileText, gradient: 'from-violet-500 to-purple-600' },
