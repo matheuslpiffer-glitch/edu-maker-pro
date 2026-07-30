@@ -13,15 +13,15 @@ import { Switch } from '@/components/ui/switch';
 
 const teacherLinks = [
   { to: '/dashboard-professor', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
-  { to: '/hub-360', icon: Sparkles, label: 'Hub Planejamento 360º', section: 'Principal' },
+  { to: '/hub-360', icon: Sparkles, label: 'Hub Planejamento 360º', section: 'Principal', adminOnly: true },
   { to: '/criar-hub', icon: Puzzle, label: '🎨 Criar Conteúdo', section: '🏫 Sala de Aula' },
   { to: '/redacao-hub', icon: PenLine, label: '📝 Redação', section: '🏫 Sala de Aula' },
   { to: '/avaliacoes-hub', icon: ClipboardList, label: '📊 Simulados & Avaliações', section: '📊 Avaliação' },
   { to: '/resultados-alunos', icon: BarChart3, label: 'Resultados e Desempenho', section: '📊 Avaliação' },
-  { to: '/coordenacao', icon: Trophy, label: '🏆 Painel Coordenação', section: '📊 Avaliação' },
-  { to: '/escuta-ativa', icon: Heart, label: 'Escuta Ativa (CNV)', section: '🤝 Gestão Humanizada' },
+  { to: '/coordenacao', icon: Trophy, label: '🏆 Painel Coordenação', section: '📊 Avaliação', adminOnly: true },
+  { to: '/escuta-ativa', icon: Heart, label: 'Escuta Ativa (CNV)', section: '🤝 Gestão Humanizada', adminOnly: true },
   { to: '/inclusao', icon: Accessibility, label: 'Inclusão (AEE)', section: '🤝 Gestão Humanizada' },
-  { to: '/bussola-vocacional', icon: Compass, label: 'Bússola Vocacional', section: '🤝 Gestão Humanizada' },
+  { to: '/bussola-vocacional', icon: Compass, label: 'Bússola Vocacional', section: '🤝 Gestão Humanizada', adminOnly: true },
   { to: '/biblioteca-hub', icon: Library, label: '📁 Biblioteca', section: '📁 Biblioteca' },
   { to: '/guia', icon: HelpCircle, label: 'Guia do Sistema', section: '📖 Documentação' },
   { to: '/manual', icon: BookMarked, label: 'Manual do Professor', section: '📖 Documentação' },
@@ -65,7 +65,9 @@ export default function AppSidebar({ open, onClose }: Props) {
     }
   };
 
-  const links = isStudentMode ? studentLinks : teacherLinks;
+  const links = isStudentMode
+    ? studentLinks
+    : teacherLinks.filter((l) => !('adminOnly' in l && (l as any).adminOnly) || isSuperAdmin);
 
   return (
     <aside
