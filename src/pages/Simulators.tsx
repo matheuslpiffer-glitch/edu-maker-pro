@@ -836,17 +836,31 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     if (!container) return;
     
     setIsExporting(true);
+    // Largura útil da A4 descontando as margens do PDF (210mm - 2x12mm = 186mm ≈ 703px @96dpi)
+    const PDF_CONTENT_WIDTH = 703;
+    const prevWidth = container.style.width;
+    const prevMinWidth = container.style.minWidth;
+    const prevMaxWidth = container.style.maxWidth;
     try {
+      // Ajusta o container para a largura útil antes da captura (evita margem estourada)
+      container.style.width = `${PDF_CONTENT_WIDTH}px`;
+      container.style.minWidth = `${PDF_CONTENT_WIDTH}px`;
+      container.style.maxWidth = `${PDF_CONTENT_WIDTH}px`;
+      await new Promise((r) => setTimeout(r, 300));
+
       const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set({
-        margin: [15, 15, 15, 15] as [number, number, number, number],
+        margin: [12, 12, 12, 12] as [number, number, number, number],
         filename: `${title || 'simulado'}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { 
           scale: 2, 
           useCORS: true, 
           backgroundColor: '#ffffff', 
-          windowWidth: 794,
+          windowWidth: PDF_CONTENT_WIDTH,
+          width: PDF_CONTENT_WIDTH,
+          scrollX: 0,
+          scrollY: 0,
           removeContainer: true // Garante limpeza de elementos clonados
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const },
@@ -861,6 +875,9 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       console.error('PDF error:', e);
       showAiErrorToast(e, toast, 'Erro ao gerar PDF')
     } finally {
+      container.style.width = prevWidth;
+      container.style.minWidth = prevMinWidth;
+      container.style.maxWidth = prevMaxWidth;
       setIsExporting(false);
     }
   };
