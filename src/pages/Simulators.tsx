@@ -2290,6 +2290,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         </Button>
                       )}
                       <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={14} className="mr-1" />Imprimir</Button>
+                      <PdfMarginControls margins={pdfMargins} onChange={setPdfMargins} />
                       <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                         <Download size={14} className="mr-1" />PDF
                       </Button>
@@ -2342,6 +2343,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={16} className="mr-2" />Imprimir</Button>
+                <PdfMarginControls margins={pdfMargins} onChange={setPdfMargins} />
                 <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                   <Download size={16} className="mr-2" />Baixar PDF
                 </Button>
