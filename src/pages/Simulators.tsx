@@ -27,6 +27,7 @@ import QRCodeModal from '@/components/QRCodeModal';
 import SimuladoLaunchScreen from '@/components/SimuladoLaunchScreen';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
 import SimulatorPreview from '@/components/SimulatorPreview';
 import AnswerSheet from '@/components/AnswerSheet';
 import GabaritoOficial from '@/components/GabaritoOficial';
