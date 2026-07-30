@@ -427,6 +427,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [customMaterial, setCustomMaterial] = useState('');
   const [bloomLevel, setBloomLevel] = useState(2);
   const [columns, setColumns] = useState<1 | 2>(1);
+  const [pdfMargins, setPdfMargins] = useState<PdfMargins>(DEFAULT_PDF_MARGINS);
   const [activeSerie, setActiveSerie] = useState('ano_9');
   const [generationJobId, setGenerationJobId] = useState<string | null>(null);
   const [generationProgress, setGenerationProgress] = useState(0);
