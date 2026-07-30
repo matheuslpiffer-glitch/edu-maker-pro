@@ -156,23 +156,6 @@ export default function Index() {
           </div>
         </div>
 
-        {/* ═══ Secondary Engines ═══ */}
-        <div className="mb-8">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">Todos os Motores</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {engines.map(e => (
-              <Link key={e.id} to={e.to}>
-                <div className="bg-white/90 backdrop-blur-2xl rounded-2xl border border-slate-200/60 p-4 hover:shadow-md hover:scale-[1.03] transition-all duration-200 cursor-pointer group text-center h-full">
-                  <div className={`flex h-10 w-10 mx-auto items-center justify-center rounded-xl bg-gradient-to-br ${e.gradient} shadow-md group-hover:scale-110 transition-transform`}>
-                    <e.icon size={18} className="text-white" />
-                  </div>
-                  <p className="font-bold text-slate-700 mt-2 text-xs">{e.label}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
         <div className="grid grid-cols-3 gap-3 mb-8">
           {statCards.map(s => (
             <div key={s.id} className="bg-white/90 backdrop-blur-2xl rounded-2xl border border-slate-200/60 p-4 flex items-center gap-3 shadow-sm min-h-[76px]">
