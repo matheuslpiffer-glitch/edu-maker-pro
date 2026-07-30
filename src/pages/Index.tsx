@@ -1,9 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import {
-  ScanLine, History, BookText, HelpCircle,
-  Sparkles, BookOpen, FileText, Layers,
-  Landmark, Cpu, Accessibility, PenLine,
-  Presentation, Map, CalendarDays, Gamepad2, Library,
+  ScanLine, Sparkles, BookOpen, FileText, Layers,
+  Accessibility, Trophy, ClipboardList, Library,
   Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
