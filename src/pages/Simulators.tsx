@@ -399,36 +399,41 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const previewRef = useRef<HTMLDivElement>(null);
   const printContainerRef = useRef<HTMLDivElement>(null);
 
-  const [examType, setExamType] = useState('saresp');
+  // Chaves de rascunho isoladas por motor (simulado geral / vestibulares / técnicos)
+  const draftNs = `simuladores:${mode || 'geral'}`;
+  const draftKey = (k: string) => `${draftNs}:${k}`;
+
+  const [examType, setExamType] = useAutoSaveDraft<string>(draftKey('examType'), 'saresp');
   const [activeMotor, setActiveMotor] = useState(mode ? 'simulado' : 'simulado');
-  const [examModel, setExamModel] = useState(
+  const [examModel, setExamModel] = useAutoSaveDraft<string>(
+    draftKey('examModel'),
     mode === 'vestibulares' ? 'vest_publicos'
     : mode === 'tecnicos' ? 'vestibulinhos'
     : 'padrao'
   );
-  const [selectedFormat, setSelectedFormat] = useState('');
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
-  const [grade, setGrade] = useState('');
+  const [selectedFormat, setSelectedFormat] = useAutoSaveDraft<string>(draftKey('selectedFormat'), '');
+  const [selectedSubjects, setSelectedSubjects] = useAutoSaveDraft<string[]>(draftKey('selectedSubjects'), []);
+  const [grade, setGrade] = useAutoSaveDraft<string>(draftKey('grade'), '');
   const [isExporting, setIsExporting] = useState(false);
-  const [title, setTitle] = useState('');
-  const [institutionName, setInstitutionName] = useState('');
-  const [specificTopic, setSpecificTopic] = useState('');
+  const [title, setTitle] = useAutoSaveDraft<string>(draftKey('title'), '');
+  const [institutionName, setInstitutionName] = useAutoSaveDraft<string>(draftKey('institutionName'), '');
+  const [specificTopic, setSpecificTopic] = useAutoSaveDraft<string>(draftKey('specificTopic'), '');
 
-  const [easyCount, setEasyCount] = useState(3);
-  const [mediumCount, setMediumCount] = useState(4);
-  const [hardCount, setHardCount] = useState(3);
+  const [easyCount, setEasyCount] = useAutoSaveDraft<number>(draftKey('easyCount'), 3);
+  const [mediumCount, setMediumCount] = useAutoSaveDraft<number>(draftKey('mediumCount'), 4);
+  const [hardCount, setHardCount] = useAutoSaveDraft<number>(draftKey('hardCount'), 3);
 
-  const [questions, setQuestions] = useState<SimQuestion[]>([]);
+  const [questions, setQuestions] = useAutoSaveDraft<SimQuestion[]>(draftKey('questions'), []);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [savedId, setSavedId] = useState<string | null>(null);
-  const [showGabarito, setShowGabarito] = useState(true);
-  const [isDiscursiva, setIsDiscursiva] = useState(false);
-  const [customMaterial, setCustomMaterial] = useState('');
-  const [bloomLevel, setBloomLevel] = useState(2);
-  const [columns, setColumns] = useState<1 | 2>(1);
-  const [pdfMargins, setPdfMargins] = useState<PdfMargins>(DEFAULT_PDF_MARGINS);
-  const [activeSerie, setActiveSerie] = useState('ano_9');
+  const [savedId, setSavedId] = useAutoSaveDraft<string | null>(draftKey('savedId'), null);
+  const [showGabarito, setShowGabarito] = useAutoSaveDraft<boolean>(draftKey('showGabarito'), true);
+  const [isDiscursiva, setIsDiscursiva] = useAutoSaveDraft<boolean>(draftKey('isDiscursiva'), false);
+  const [customMaterial, setCustomMaterial] = useAutoSaveDraft<string>(draftKey('customMaterial'), '');
+  const [bloomLevel, setBloomLevel] = useAutoSaveDraft<number>(draftKey('bloomLevel'), 2);
+  const [columns, setColumns] = useAutoSaveDraft<1 | 2>(draftKey('columns'), 1);
+  const [pdfMargins, setPdfMargins] = useAutoSaveDraft<PdfMargins>(draftKey('pdfMargins'), DEFAULT_PDF_MARGINS);
+  const [activeSerie, setActiveSerie] = useAutoSaveDraft<string>(draftKey('activeSerie'), 'ano_9');
   const [generationJobId, setGenerationJobId] = useState<string | null>(null);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStep, setGenerationStep] = useState(0);
