@@ -3,6 +3,14 @@ import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
 import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
+import PdfMarginControls from '@/components/PdfMarginControls';
+import {
+  DEFAULT_PDF_MARGINS,
+  captureStyleFor,
+  toHtml2PdfMargin,
+  usableWidthPx,
+  type PdfMargins,
+} from '@/lib/pdf-margins';
 import { useAuth } from '@/hooks/useAuth';
 import { useCustomLogo } from '@/hooks/useCustomLogo';
 import { Button } from '@/components/ui/button';
