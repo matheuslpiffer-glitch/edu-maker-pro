@@ -3,6 +3,14 @@ import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
 import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
+import PdfMarginControls from '@/components/PdfMarginControls';
+import {
+  DEFAULT_PDF_MARGINS,
+  captureStyleFor,
+  toHtml2PdfMargin,
+  usableWidthPx,
+  type PdfMargins,
+} from '@/lib/pdf-margins';
 import { useAuth } from '@/hooks/useAuth';
 import { useCustomLogo } from '@/hooks/useCustomLogo';
 import { Button } from '@/components/ui/button';
@@ -419,6 +427,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [customMaterial, setCustomMaterial] = useState('');
   const [bloomLevel, setBloomLevel] = useState(2);
   const [columns, setColumns] = useState<1 | 2>(1);
+  const [pdfMargins, setPdfMargins] = useState<PdfMargins>(DEFAULT_PDF_MARGINS);
   const [activeSerie, setActiveSerie] = useState('ano_9');
   const [generationJobId, setGenerationJobId] = useState<string | null>(null);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -836,21 +845,24 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     if (!container) return;
     
     setIsExporting(true);
-    // Largura útil da A4 descontando as margens do PDF (210mm - 2x12mm = 186mm ≈ 703px @96dpi)
-    const PDF_CONTENT_WIDTH = 703;
-    const prevWidth = container.style.width;
-    const prevMinWidth = container.style.minWidth;
-    const prevMaxWidth = container.style.maxWidth;
+    // Largura útil da A4 descontando as margens escolhidas pelo usuário.
+    const PDF_CONTENT_WIDTH = usableWidthPx(pdfMargins);
+    const captureStyle = captureStyleFor(pdfMargins);
+    const prevStyle: Record<string, string> = {};
+    // Safari: colunas CSS durante a captura fazem o html2canvas medir errado.
+    const prevColumns = columns;
+    if (columns === 2) setColumns(1);
     try {
-      // Ajusta o container para a largura útil antes da captura (evita margem estourada)
-      container.style.width = `${PDF_CONTENT_WIDTH}px`;
-      container.style.minWidth = `${PDF_CONTENT_WIDTH}px`;
-      container.style.maxWidth = `${PDF_CONTENT_WIDTH}px`;
-      await new Promise((r) => setTimeout(r, 300));
+      // Fixa a largura em px e neutraliza colunas antes da captura (evita margem estourada)
+      Object.entries(captureStyle).forEach(([prop, value]) => {
+        prevStyle[prop] = (container.style as any)[prop] || '';
+        (container.style as any)[prop] = value;
+      });
+      await new Promise((r) => setTimeout(r, 400));
 
       const html2pdf = (await import('html2pdf.js')).default;
       await html2pdf().set({
-        margin: [12, 12, 12, 12] as [number, number, number, number],
+        margin: toHtml2PdfMargin(pdfMargins),
         filename: `${title || 'simulado'}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { 
@@ -875,9 +887,10 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       console.error('PDF error:', e);
       showAiErrorToast(e, toast, 'Erro ao gerar PDF')
     } finally {
-      container.style.width = prevWidth;
-      container.style.minWidth = prevMinWidth;
-      container.style.maxWidth = prevMaxWidth;
+      Object.entries(prevStyle).forEach(([prop, value]) => {
+        (container.style as any)[prop] = value;
+      });
+      if (prevColumns === 2) setColumns(2);
       setIsExporting(false);
     }
   };
@@ -2277,6 +2290,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                         </Button>
                       )}
                       <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={14} className="mr-1" />Imprimir</Button>
+                      <PdfMarginControls margins={pdfMargins} onChange={setPdfMargins} />
                       <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                         <Download size={14} className="mr-1" />PDF
                       </Button>
@@ -2329,6 +2343,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   </Button>
                 )}
                 <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={16} className="mr-2" />Imprimir</Button>
+                <PdfMarginControls margins={pdfMargins} onChange={setPdfMargins} />
                 <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
                   <Download size={16} className="mr-2" />Baixar PDF
                 </Button>
