@@ -148,36 +148,6 @@ export default function AppSidebar({ open, onClose }: Props) {
         )}
       </div>
 
-      {/* Mode Toggle — only for teachers */}
-      {!collapsed && isTeacher && (
-        <div className="px-3 py-3 border-b border-slate-800/50">
-          <button
-            onClick={handleToggleMode}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
-              isStudentMode
-                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30'
-                : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800'
-            )}
-          >
-            <div className={cn(
-              "w-7 h-7 rounded-lg flex items-center justify-center",
-              isStudentMode ? 'bg-amber-500/30' : 'bg-indigo-500/20'
-            )}>
-              {isStudentMode ? <Eye size={14} className="text-amber-400" /> : <Eye size={14} className="text-indigo-400" />}
-            </div>
-            <span className="text-xs font-semibold text-slate-300 flex-1 text-left">
-              {isStudentMode ? 'Modo Visualização' : 'Ver como Aluno'}
-            </span>
-            <Switch
-              checked={isStudentMode}
-              onCheckedChange={handleToggleMode}
-              className="scale-75"
-            />
-          </button>
-        </div>
-      )}
-
       {/* Nav */}
       <nav className="flex-1 px-2 mt-3 space-y-0.5 overflow-y-auto">
         {!isStudentMode && (
