@@ -1,9 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import {
-  ScanLine, History, BookText, HelpCircle,
-  Sparkles, BookOpen, FileText, Layers,
-  Landmark, Cpu, Accessibility, PenLine,
-  Presentation, Map, CalendarDays, Gamepad2, Library,
+  ScanLine, Sparkles, BookOpen, FileText, Layers,
+  Accessibility, Trophy, ClipboardList, Library,
   Loader2,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,59 +37,58 @@ export default function Index() {
     {
       to: '/redacao/elite',
       icon: ScanLine,
-      label: 'Scanner de Elite IA',
-      desc: 'Escaneie a redação manuscrita, a IA decifra o garrancho, corrige por nível e gera o relatório PDF profissional.',
+      label: 'Redação Elite',
+      desc: 'Escaneie, corrija e gere relatórios de redação com inteligência artificial de elite.',
       gradient: 'from-violet-600 via-purple-600 to-indigo-700',
       shadow: 'shadow-purple-500/30',
-      span: 'sm:col-span-2 sm:row-span-2',
+      span: 'sm:col-span-2',
       iconSize: 44,
       hero: true,
     },
     {
-      to: '/biblioteca',
-      icon: History,
-      label: 'Histórico de Correções',
-      desc: 'Acesse todos os relatórios e redações já corrigidas pela Super IA.',
+      to: '/alta-performance',
+      icon: Trophy,
+      label: 'Módulo Alta Performance',
+      desc: 'Avaliações de alta performance com questões inteligentes e relatórios detalhados.',
+      gradient: 'from-amber-500 to-orange-500',
+      shadow: 'shadow-amber-500/20',
+      span: '',
+      iconSize: 28,
+      hero: false,
+    },
+    {
+      to: '/simuladores',
+      icon: ClipboardList,
+      label: 'Simuladores Elite',
+      desc: 'Simulados completos para todos os anos e disciplinas, com folha de respostas e gabarito.',
+      gradient: 'from-emerald-500 to-teal-600',
+      shadow: 'shadow-emerald-500/20',
+      span: '',
+      iconSize: 28,
+      hero: false,
+    },
+    {
+      to: '/inclusao',
+      icon: Accessibility,
+      label: 'Inclusão (AEE)',
+      desc: 'Materiais adaptados e acessíveis para alunos com necessidades especiais.',
+      gradient: 'from-cyan-500 to-teal-500',
+      shadow: 'shadow-cyan-500/20',
+      span: '',
+      iconSize: 28,
+      hero: false,
+    },
+    {
+      to: '/minha-biblioteca',
+      icon: Library,
+      label: 'Minha Biblioteca',
+      desc: 'Tudo o que você criou em um só lugar: provas, questões, redações e materiais.',
       gradient: 'from-blue-600 to-indigo-600',
       shadow: 'shadow-blue-500/20',
       span: '',
       iconSize: 28,
       hero: false,
     },
-    {
-      to: '/redacao',
-      icon: BookText,
-      label: 'Modelos de Redação',
-      desc: 'Temas, propostas e simulações oficiais de vestibulares.',
-      gradient: 'from-rose-500 to-pink-600',
-      shadow: 'shadow-rose-500/20',
-      span: '',
-      iconSize: 28,
-      hero: false,
-    },
-    {
-      to: '/sobre',
-      icon: HelpCircle,
-      label: 'Suporte Piffer EduTech',
-      desc: 'Dúvidas, tutoriais e contato direto com a equipe.',
-      gradient: 'from-amber-500 to-orange-500',
-      shadow: 'shadow-amber-500/20',
-      span: 'sm:col-span-2',
-      iconSize: 28,
-      hero: false,
-    },
-  ];
-
-  /* ── Secondary engines ── */
-  const engines = [
-    { id: 'vestibulares', to: '/vestibulares', icon: Landmark, label: 'Vestibulares & Seleções', gradient: 'from-blue-600 to-indigo-600' },
-    { id: 'tecnicos', to: '/tecnicos', icon: Cpu, label: 'Técnicos & Institutos', gradient: 'from-emerald-500 to-teal-600' },
-    { id: 'inclusao', to: '/inclusao', icon: Accessibility, label: 'Inclusão AEE', gradient: 'from-cyan-500 to-teal-500' },
-    { id: 'eduslides', to: '/eduslides', icon: Presentation, label: 'Aulas & Slides', gradient: 'from-violet-500 to-purple-600' },
-    { id: 'infograficos', to: '/mapa-mental', icon: Map, label: 'Infográficos', gradient: 'from-amber-500 to-orange-600' },
-    { id: 'planejamento', to: '/planejamento', icon: CalendarDays, label: 'Planejamento 360°', gradient: 'from-sky-500 to-blue-600' },
-    { id: 'jogos', to: '/jogos', icon: Gamepad2, label: 'Game Factory', gradient: 'from-lime-500 to-green-600' },
-    { id: 'biblioteca_sec', to: '/biblioteca', icon: Library, label: 'Minha Biblioteca', gradient: 'from-slate-500 to-gray-600' },
   ];
 
   const statCards = [
@@ -153,23 +150,6 @@ export default function Index() {
                     <h2 className={`font-black tracking-tight ${card.hero ? 'text-xl sm:text-2xl' : 'text-sm'}`}>{card.label}</h2>
                     <p className={`text-white/70 mt-1 ${card.hero ? 'text-sm max-w-sm' : 'text-xs'}`}>{card.desc}</p>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* ═══ Secondary Engines ═══ */}
-        <div className="mb-8">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mb-4">Todos os Motores</p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {engines.map(e => (
-              <Link key={e.id} to={e.to}>
-                <div className="bg-white/90 backdrop-blur-2xl rounded-2xl border border-slate-200/60 p-4 hover:shadow-md hover:scale-[1.03] transition-all duration-200 cursor-pointer group text-center h-full">
-                  <div className={`flex h-10 w-10 mx-auto items-center justify-center rounded-xl bg-gradient-to-br ${e.gradient} shadow-md group-hover:scale-110 transition-transform`}>
-                    <e.icon size={18} className="text-white" />
-                  </div>
-                  <p className="font-bold text-slate-700 mt-2 text-xs">{e.label}</p>
                 </div>
               </Link>
             ))}

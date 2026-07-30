@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Eye, Sparkles, Heart, Coffee, Loader2, Dices, Gem, Workflow, Crown } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Sparkles, Heart, Coffee, Loader2, Dices, Gem, Workflow, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
@@ -9,7 +9,6 @@ import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { useBackgroundGeneration } from '@/hooks/useBackgroundGeneration';
 import { useCredits } from '@/hooks/useCredits';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 
 const teacherLinks = [
   { to: '/dashboard-professor', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
@@ -47,23 +46,12 @@ interface Props {
 export default function AppSidebar({ open, onClose }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const { signOut } = useAuth();
   const { isSuperAdmin, isTeacher } = useRole();
-  const { isStudentMode, toggleStudentMode, studentLevel, studentXP } = useStudentMode();
+  const { isStudentMode, studentLevel, studentXP } = useStudentMode();
   const { canInstall, install } = usePWAInstall();
   const { isRouteGenerating } = useBackgroundGeneration();
   const { isPro } = useCredits();
-
-  const handleToggleMode = () => {
-    const wasStudent = isStudentMode;
-    toggleStudentMode();
-    if (wasStudent) {
-      navigate('/dashboard-professor');
-    } else {
-      navigate('/portal-aluno');
-    }
-  };
 
   const links = isStudentMode
     ? studentLinks
@@ -147,36 +135,6 @@ export default function AppSidebar({ open, onClose }: Props) {
           </div>
         )}
       </div>
-
-      {/* Mode Toggle — only for teachers */}
-      {!collapsed && isTeacher && (
-        <div className="px-3 py-3 border-b border-slate-800/50">
-          <button
-            onClick={handleToggleMode}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
-              isStudentMode
-                ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30'
-                : 'bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800'
-            )}
-          >
-            <div className={cn(
-              "w-7 h-7 rounded-lg flex items-center justify-center",
-              isStudentMode ? 'bg-amber-500/30' : 'bg-indigo-500/20'
-            )}>
-              {isStudentMode ? <Eye size={14} className="text-amber-400" /> : <Eye size={14} className="text-indigo-400" />}
-            </div>
-            <span className="text-xs font-semibold text-slate-300 flex-1 text-left">
-              {isStudentMode ? 'Modo Visualização' : 'Ver como Aluno'}
-            </span>
-            <Switch
-              checked={isStudentMode}
-              onCheckedChange={handleToggleMode}
-              className="scale-75"
-            />
-          </button>
-        </div>
-      )}
 
       {/* Nav */}
       <nav className="flex-1 px-2 mt-3 space-y-0.5 overflow-y-auto">
