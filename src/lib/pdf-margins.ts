@@ -65,7 +65,7 @@ export function usableHeightMm(m: PdfMargins): number {
 }
 
 export function mmToPx(mm: number): number {
-  return Math.floor(mm * PX_PER_MM);
+  return Math.round(mm * PX_PER_MM);
 }
 
 /** Largura útil em px @96dpi — é a largura fixa aplicada ao container na captura. */
