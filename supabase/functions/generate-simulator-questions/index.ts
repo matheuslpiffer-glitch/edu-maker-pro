@@ -945,6 +945,28 @@ Rigor de banca examinadora (CESPE, FCC, Vunesp). Questões CURTAS e DIRETAS.\n`
       ? `\nIMPORTANTE: Esta prova é multidisciplinar. Distribua as ${count} questões de forma equilibrada entre as disciplinas: ${subjectString}. Organize-as por blocos de disciplina, indicando claramente a qual disciplina cada questão pertence no campo skillCode.`
       : "";
 
+    // ── EDUCAÇÃO FINANCEIRA (tema contemporâneo transversal BNCC) ──
+    const isFinanceira = subjectList.some((s: string) =>
+      (s || '').toLowerCase().includes('financeira')
+    ) || (specificTopic || '').toLowerCase().includes('educação financeira');
+
+    const finEduInstruction = isFinanceira
+      ? `\nDISCIPLINA: EDUCAÇÃO FINANCEIRA (Tema Contemporâneo Transversal — BNCC, macroárea "Economia": Trabalho, Educação Financeira e Educação Fiscal).
+DIRETRIZES OBRIGATÓRIAS:
+- Toda questão deve partir de uma SITUAÇÃO-PROBLEMA REAL de consumo, poupança, renda, planejamento ou cidadania fiscal, com dados numéricos plausíveis em REAIS (use "R$" seguido de espaço, ex.: R$ 1.250,00).
+- Integre competências de Matemática (porcentagem, proporção, juros, função) com leitura crítica de gráficos, tabelas, boletos, extratos, faturas e anúncios.
+- Desenvolva atitudes: consumo consciente, diferença entre desejo e necessidade, prevenção ao endividamento, ética financeira e sustentabilidade.
+PROGRESSÃO POR SÉRIE (calibre ao nível informado):
+- Educação Infantil: noções de troca, valor, "guardar para depois", cuidado com os próprios objetos — em atividades lúdicas.
+- 1º e 2º anos: reconhecer cédulas e moedas do Real, comparar preços simples, contar dinheiro em situações de brincadeira (mercadinho).
+- 3º ao 5º ano: somar e subtrair valores, troco, listas de compras, mesada, poupança simples, desejo x necessidade.
+- 6º ao 9º ano: porcentagem, descontos, acréscimos, orçamento familiar, comparação à vista x parcelado, juros simples, propaganda e consumo consciente.
+- Ensino Médio: juros compostos, inflação, financiamento, investimentos (poupança, CDB, Tesouro), impostos e tributos, crédito, score, previdência, planejamento de vida financeira e empreendedorismo.
+- Cursos técnicos/profissionalizantes: custos, precificação, fluxo de caixa, margem de lucro, capital de giro, tributos sobre serviços.
+CAMPO "skillCode": use códigos BNCC de Matemática quando houver correspondência (ex.: EF06MA13, EF09MA05, EM13MAT203) e prefixe com "EDFIN — " (ex.: "EDFIN — EF09MA05").
+CAMPO "descriptor": descreva a competência financeira avaliada (ex.: "Comparar compra à vista e parcelada").\n`
+      : "";
+
     const formatLabels: Record<string, string> = {
       matematica: 'Matemática e Raciocínio Lógico',
       linguagens: 'Linguagens (Língua Portuguesa, Interpretação de Texto, Gramática)',
@@ -1048,7 +1070,7 @@ Responda em JSON:
     const leanFormattingInstruction = `\nFORMATAÇÃO ENXUTA: priorize conteúdo pedagógico e estrutura simples. Use apenas HTML básico necessário (parágrafos, listas, tabelas simples). Não adicione estilos inline longos, introduções extensas nem blocos decorativos.\nRESUMO NO CABEÇALHO: Se incluir um resumo ou descrição do simulado, ele deve ter NO MÁXIMO 500 caracteres. Seja direto, objetivo e conciso para que caiba perfeitamente no cabeçalho da prova sem estourar o layout.`;
 
     const systemPrompt = `Você cria avaliações brasileiras alinhadas ao formato ${examLabel}.
-${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${senaiInstruction}${compactInstruction}${leanFormattingInstruction}
+${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}${bloomInstruction}${ragInstruction}${antiFraudInstruction}${topicInstruction}${serieInstruction}${finEduInstruction}${questoesOnlyInstruction}${multiSubjectInstruction}${NO_IMG_RULE}${techDisciplineInstruction}${provaFormatInstruction}${studentModeInstruction}${fastTrackInstruction}${concursoInstruction}${senaiInstruction}${compactInstruction}${leanFormattingInstruction}
 ${questionFormatInstruction}
 Responda APENAS com JSON válido, sem markdown.`;
 

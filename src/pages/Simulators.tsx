@@ -216,6 +216,7 @@ const SUBJECT_AREAS = [
   { name: 'Biologia', icon: '🧬' }, { name: 'Filosofia', icon: '💭' },
   { name: 'Sociologia', icon: '👥' }, { name: 'Arte', icon: '🎨' },
   { name: 'Educação Física', icon: '⚽' }, { name: 'Língua Inglesa', icon: '🌍' },
+  { name: 'Educação Financeira', icon: '💰' },
   { name: 'Atualidades', icon: '🌐' },
 ];
 
