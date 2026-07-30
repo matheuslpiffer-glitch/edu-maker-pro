@@ -2305,6 +2305,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                           <Share2 size={14} /> Enviar
                         </Button>
                       )}
+                      <DraftSavedIndicator scope={draftNs} />
                       <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={14} className="mr-1" />Imprimir</Button>
                       <PdfMarginControls margins={pdfMargins} onChange={setPdfMargins} />
                       <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
@@ -2358,6 +2359,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     Salvar & Enviar
                   </Button>
                 )}
+                <DraftSavedIndicator scope={draftNs} />
                 <Button variant="outline" size="sm" onClick={() => window.print()}><Printer size={16} className="mr-2" />Imprimir</Button>
                 <PdfMarginControls margins={pdfMargins} onChange={setPdfMargins} />
                 <Button size="sm" onClick={handlePDF} className="bg-indigo-600 hover:bg-indigo-700 text-white">
@@ -2435,17 +2437,17 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
           <div className="w-full">
             <SimulatorPreview title={title} institutionName={institutionName} examType={examType} questions={questions || []} isDiscursiva={isDiscursiva} columns={columns} isSenaiMode={isSenaiMode} />
             {!isDiscursiva && (
-              <div className="print-page-break">
+              <div className={PAGE_BREAK_CLASS}>
                 <AnswerSheet questionCount={(questions || []).length} simulatorId={currentId} title={title} institutionName={institutionName} />
               </div>
             )}
             {!isDiscursiva && showGabarito && (
-              <div className="print-page-break">
+              <div className={PAGE_BREAK_CLASS}>
                 <GabaritoOficial questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />
               </div>
             )}
             {isDiscursiva && (
-              <div className="print-page-break">
+              <div className={PAGE_BREAK_CLASS}>
                 <EspelhoCorrecao questions={questions || []} simulatorId={currentId} title={title} institutionName={institutionName} />
               </div>
             )}
