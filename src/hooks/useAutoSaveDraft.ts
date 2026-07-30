@@ -1,5 +1,13 @@
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+
+export const DRAFT_DIRTY_EVENT = 'educreator:draft-dirty';
+export const DRAFT_SAVED_EVENT = 'educreator:draft-saved';
+
+function emitDraftEvent(name: string, storageKey: string) {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent(name, { detail: { storageKey, at: Date.now() } }));
+}
 
 /**
  * Hook de Persistência Ativa - EduCreator Pro
@@ -29,10 +37,17 @@ export function useAutoSaveDraft<T>(storageKey: string, initialValue: T): [T, Di
     });
 
     // 2. Efeito de Debounce: Aguarda 500ms de inatividade para gravar no disco local
+    const isFirstRun = useRef(true);
     useEffect(() => {
+        if (isFirstRun.current) {
+            isFirstRun.current = false;
+            return;
+        }
+        emitDraftEvent(DRAFT_DIRTY_EVENT, storageKey);
         const handler = setTimeout(() => {
             try {
                 localStorage.setItem(storageKey, JSON.stringify(state));
+                emitDraftEvent(DRAFT_SAVED_EVENT, storageKey);
             } catch (error) {
                 console.error("Erro ao salvar rascunho local:", error);
             }
