@@ -46,23 +46,12 @@ interface Props {
 export default function AppSidebar({ open, onClose }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const { signOut } = useAuth();
   const { isSuperAdmin, isTeacher } = useRole();
-  const { isStudentMode, toggleStudentMode, studentLevel, studentXP } = useStudentMode();
+  const { isStudentMode, studentLevel, studentXP } = useStudentMode();
   const { canInstall, install } = usePWAInstall();
   const { isRouteGenerating } = useBackgroundGeneration();
   const { isPro } = useCredits();
-
-  const handleToggleMode = () => {
-    const wasStudent = isStudentMode;
-    toggleStudentMode();
-    if (wasStudent) {
-      navigate('/dashboard-professor');
-    } else {
-      navigate('/portal-aluno');
-    }
-  };
 
   const links = isStudentMode
     ? studentLinks
