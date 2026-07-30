@@ -35,22 +35,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}
       <AppSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden overflow-y-auto bg-slate-50 max-w-full">
-        {/* Super Admin Switch */}
-        {isMasterAdmin && !isPreviewMode && (
-          <div className="bg-primary text-primary-foreground text-center text-xs font-medium py-1.5 px-4 flex items-center justify-center gap-2 no-print shrink-0">
-            <ArrowLeftRight size={14} />
-            <span>Super Admin</span>
-            <button
-              onClick={() => {
-                setStudentMode(true);
-                navigate('/portal-aluno');
-              }}
-              className="underline font-bold hover:opacity-80 ml-1"
-            >
-              Trocar para Visão de Aluno
-            </button>
-          </div>
-        )}
         {/* Preview banner */}
         {isPreviewMode && (
           <div className="bg-amber-500 text-amber-950 text-center text-sm font-medium py-2 px-4 flex items-center justify-center gap-2 no-print shrink-0">
