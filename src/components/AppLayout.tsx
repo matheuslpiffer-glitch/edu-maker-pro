@@ -7,18 +7,12 @@ import SyncButton from './SyncButton';
 import CreditBadge from './CreditBadge';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { useRole } from '@/hooks/useRole';
-import { useAuth } from '@/hooks/useAuth';
-
-const SUPER_ADMIN_EMAILS = ['matheuslpiffer@gmail.com', 'profmatheuspiffer@gmail.com'];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isStudentMode, setStudentMode } = useStudentMode();
-  const { isTeacher, isSuperAdmin } = useRole();
-  const { user } = useAuth();
+  const { isTeacher } = useRole();
   const navigate = useNavigate();
-
-  const isMasterAdmin = isSuperAdmin && SUPER_ADMIN_EMAILS.includes(user?.email ?? '');
 
   /* Teacher previewing as student */
   const isPreviewMode = isStudentMode && isTeacher;
