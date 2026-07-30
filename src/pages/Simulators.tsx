@@ -1060,16 +1060,24 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
         isSenaiMode={isSenaiMode}
       />
       {!isDiscursiva && (
-        <AnswerSheet questionCount={questions.length} simulatorId={currentId} title={title} institutionName={institutionName} />
+        <div className={PAGE_BREAK_CLASS}>
+          <AnswerSheet questionCount={questions.length} simulatorId={currentId} title={title} institutionName={institutionName} />
+        </div>
       )}
       {!isDiscursiva && showGabarito && (
-        <GabaritoOficial questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />
+        <div className={PAGE_BREAK_CLASS}>
+          <GabaritoOficial questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} examType={examType} />
+        </div>
       )}
       {isDiscursiva && (
-        <EspelhoCorrecao questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} />
+        <div className={PAGE_BREAK_CLASS}>
+          <EspelhoCorrecao questions={questions} simulatorId={currentId} title={title} institutionName={institutionName} />
+        </div>
       )}
       {isSenaiMode && (
-        <SenaiIndustrialTemplates institutionName={institutionName} title={title} />
+        <div className={PAGE_BREAK_CLASS}>
+          <SenaiIndustrialTemplates institutionName={institutionName} title={title} />
+        </div>
       )}
       </div>
     </div>
