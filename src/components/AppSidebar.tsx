@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 const teacherLinks = [
   { to: '/dashboard-professor', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
   { to: '/hub-360', icon: Sparkles, label: 'Hub Planejamento 360º', section: 'Principal', adminOnly: true },
-  { to: '/criar-hub', icon: Puzzle, label: '🎨 Criar Conteúdo', section: '🏫 Sala de Aula' },
+  { to: '/criar-hub', icon: Puzzle, label: '🎨 Criar Conteúdo', section: '🏫 Sala de Aula', adminOnly: true },
   { to: '/redacao-hub', icon: PenLine, label: '📝 Redação', section: '🏫 Sala de Aula' },
   { to: '/avaliacoes-hub', icon: ClipboardList, label: '📊 Simulados & Avaliações', section: '📊 Avaliação' },
   { to: '/resultados-alunos', icon: BarChart3, label: 'Resultados e Desempenho', section: '📊 Avaliação' },
