@@ -353,8 +353,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               {[
                 { label: '📄 Resumir Documento', text: 'Resuma este documento focando nos pontos pedagógicos e objetivos de aprendizagem.' },
                 { label: '✨ Melhore este Texto', text: 'Melhore este texto pedagógico, tornando-o mais claro, formal e alinhado com a BNCC.' },
+                { label: '♿ Acessibilidade PEI', text: 'Adapte esta atividade/conteúdo para 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade e PEI.' },
+                { label: '📊 Análise de Desempenho', text: 'Analise esta planilha de notas/frequência e gere um relatório de risco, defasagens BNCC e plano de recomposição.' },
+                { label: '🎭 Simular Gestão', text: 'Ative o modo simulação: encene uma reunião pedagógica/atendimento a pais sobre este contexto.' },
                 { label: '📝 Corrigir/Gabaritar Prova', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
-                { label: '📊 Matrizes & Descritores', text: 'Identifique quais matrizes de referência e descritores da BNCC estão presentes neste conteúdo.' }
               ].map((chip) => (
                 <button
                   key={chip.label}
