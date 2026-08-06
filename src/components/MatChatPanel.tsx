@@ -753,7 +753,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                 { label: '♿ Gerar PEI / Adaptação', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
                 { label: '📊 Diagnóstico de Planilha', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
                 { label: '👥 Simulador de Gestão', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
-                { label: '🎥 Vídeo Educacional (8s)', text: 'Crie um vídeo educacional cinematográfico de 8 segundos sobre: [digite o tema aqui]' },
+                { label: '🎥 Vídeo Educacional (10s)', text: 'Crie um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR) sobre: [digite o tema aqui]' },
               ].map((chip) => (
                 <button
                   key={chip.label}
