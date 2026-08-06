@@ -15,9 +15,9 @@ export default function MatChat() {
       <header className="flex items-center justify-between gap-4 px-4 sm:px-8 py-4 border-b border-slate-100">
         <div className="flex items-center gap-4">
           <MatAvatar size="lg" />
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">Fale com o Mat</h1>
-            <p className="text-xs text-slate-500 font-medium">
+          <div className="flex flex-col justify-center h-[52px]">
+            <h1 className="text-lg font-bold text-slate-900 leading-tight">Fale com o Mat</h1>
+            <p className="text-xs text-slate-500 font-medium leading-tight">
               Consultor pedagógico digital do EduCreator Pro
             </p>
           </div>
