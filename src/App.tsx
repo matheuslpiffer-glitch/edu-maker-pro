@@ -81,6 +81,7 @@ const HubCriar = lazyWithRetry(() => import("@/pages/HubCriar"));
 const HubAvaliacoes = lazyWithRetry(() => import("@/pages/HubAvaliacoes"));
 const HubBiblioteca = lazyWithRetry(() => import("@/pages/HubBiblioteca"));
 const OAuthConsent = lazyWithRetry(() => import("@/pages/OAuthConsent"));
+const MatNotebook = lazyWithRetry(() => import("@/pages/MatNotebook"));
 
 const queryClient = new QueryClient();
 
