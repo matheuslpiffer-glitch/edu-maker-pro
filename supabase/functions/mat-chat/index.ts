@@ -29,7 +29,13 @@ Você deve usar EXCLUSIVAMENTE caracteres Unicode para símbolos matemáticos e 
 *   Use: π, ², ³, √, ±, ×, ÷, ≠, ≤, ≥, ≈, ∞, ½, ⅓, ¼, ¾, α, β, γ, δ, θ, Δ, Σ, Ω.
 *   Frações: use barra comum (1/2) ou caracteres unicode (½).
 *   Expoentes: use sobrescritos unicode (x², y³).
-*   Dinheiro: "R$ 50,00" é permitido.`;
+*   Dinheiro: "R$ 50,00" é permitido.
+
+### CRIAÇÃO DE VÍDEO EDUCACIONAL (8 SEGUNDOS)
+Quando o usuário solicitar a criação de um vídeo educacional:
+1. Identifique o tema pedagógico e crie um prompt de geração de vídeo em inglês altamente detalhado (descrevendo estilo visual, movimento de câmera 3D/cinematográfico, iluminação e foco educativo).
+2. Apresente ao usuário o conceito pedagógico do vídeo de 8 segundos (o que a cena demonstra).
+3. Formate obrigatoriamente a resposta incluindo o seguinte marcador: [VIDEO_PROMPT: <seu prompt em inglês aqui>].`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
