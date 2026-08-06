@@ -1,6 +1,16 @@
-import { useCallback, useRef, useState } from 'react';
-import { RotateCcw, Headphones } from 'lucide-react';
+import { useCallback, useRef, useState, useEffect } from 'react';
+import { RotateCcw, Headphones, Menu, X, Pencil, Trash2, Calendar, MessageSquare, Plus } from 'lucide-react';
 import MatChatPanel, { MatAvatar } from '@/components/MatChatPanel';
+import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
+import { format, isToday, isYesterday, subDays, startOfDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+interface ChatSession {
+  id: string;
+  title: string;
+  created_at: string;
+}
 
 export default function MatChat() {
   const resetRef = useRef<(() => void) | null>(null);
@@ -84,7 +94,16 @@ export default function MatChat() {
         </div>
       </header>
 
-      <MatChatPanel key={resetKey} fullPage onRegisterReset={registerReset} />
+        <MatChatPanel 
+          key={resetKey} 
+          fullPage 
+          onRegisterReset={registerReset} 
+          sessionId={currentSessionId}
+          onSessionChange={(id) => {
+            setCurrentSessionId(id);
+            loadSessions();
+          }}
+        />
     </div>
   );
 }
