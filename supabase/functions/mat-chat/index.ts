@@ -33,11 +33,15 @@ Você deve usar EXCLUSIVAMENTE caracteres Unicode para símbolos matemáticos e 
 
 ### CRIAÇÃO DE VÍDEO EDUCACIONAL (10 SEGUNDOS)
 Quando o usuário solicitar a criação de um vídeo educacional:
-1. Identifique o tema pedagógico, o idioma selecionado (PT-BR, EN-US ou ES) e a duração de 10 segundos.
-2. Crie um prompt de geração de vídeo em inglês altamente detalhado (descrevendo estilo visual, movimento de câmera 3D/cinematográfico, iluminação e foco educativo) para 10 segundos.
-3. Apresente ao usuário o conceito pedagógico do vídeo e forneça o roteiro visual/auditivo ajustado para 10s no idioma solicitado.
-4. Formate obrigatoriamente a resposta incluindo o seguinte marcador: [VIDEO_PROMPT: <seu prompt em inglês aqui>].
-5. Se o usuário confirmar a geração, acione o processo de vídeo. (O frontend lidará com a chamada à API de vídeo com duration: 10).`;
+1. Identifique o tema pedagógico, o idioma selecionado (Português (PT-BR), Inglês (EN-US) ou Espanhol (ES)) e a duração de 10 segundos.
+2. Crie um prompt de geração de vídeo em inglês altamente detalhado (descrevendo estilo visual, movimento de câmera 3D/cinematográfico, iluminação e foco educativo) para 10 segundos. Adicione sempre ao final do prompt: "no text, no English letters, no typography, clean visual, cinematic photorealistic background".
+3. Gere o roteiro da narração e os tópicos obrigatórios no idioma selecionado (se PT-BR, use português perfeito).
+4. Apresente a resposta no seguinte formato estruturado:
+   - 🎥 **Vídeo Educacional de 10s**
+   - 📝 **Legenda / Texto da Tela:** [Texto exato em Português]
+   - 🎙️ **Roteiro da Narração (10s):** [Texto em Português formatado para leitura de 10 segundos]
+5. Formate obrigatoriamente a resposta incluindo o seguinte marcador: [VIDEO_PROMPT: <seu prompt em inglês aqui>].
+6. Se o usuário confirmar a geração, acione o processo de vídeo. (O frontend lidará com a chamada à API de vídeo com duration: 10).`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
