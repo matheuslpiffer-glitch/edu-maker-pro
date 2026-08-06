@@ -437,7 +437,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                             <div className="aspect-video bg-slate-900 flex items-center justify-center relative group">
                               <div className="text-white text-center p-4">
                                 <Video className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                                <p className="text-xs font-bold text-slate-400">VÍDEO EDUCACIONAL (8S)</p>
+                                <p className="text-xs font-bold text-slate-400">🎥 O Mat está gerando seu vídeo educacional de 8 segundos... isso pode levar de 30 a 60 segundos</p>
                                 <p className="text-[10px] text-slate-500 mt-1 italic max-w-[200px] truncate mx-auto">
                                   {videoPromptMatch[1]}
                                 </p>
