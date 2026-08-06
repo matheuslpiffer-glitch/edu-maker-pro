@@ -182,11 +182,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               <div className={cn('text-sm leading-relaxed px-1 py-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3' : 'text-slate-700')}>
                 {msg.role === 'assistant' ? (
                   <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkMath]}
-                      rehypePlugins={[rehypeRaw, rehypeKatex]}
-                    >
-                      {msg.content}
+                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                      {renderMathAsUnicode(msg.content)}
                     </ReactMarkdown>
                   </div>
                 ) : msg.content}
