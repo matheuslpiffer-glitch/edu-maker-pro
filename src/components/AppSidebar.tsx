@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Sparkles, Heart, Coffee, Loader2, Dices, Gem, Workflow, Crown } from 'lucide-react';
+import { LayoutDashboard, BookOpen, FileText, Layers, GraduationCap, ChevronLeft, ChevronRight, LogOut, Shield, PenLine, Camera, Presentation, ClipboardList, BarChart3, HelpCircle, BookMarked, Globe, Library, BookText, Puzzle, Landmark, Cpu, Target, Gamepad2, Brain, Users, ScanEye, Accessibility, Download, BookOpenCheck, Trophy, Compass, Sparkles, Heart, Coffee, Loader2, Dices, Gem, Workflow, Crown, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 
 const teacherLinks = [
   { to: '/dashboard-professor', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
+  { to: '/mat-chat', icon: MessageSquare, label: '💬 Pedi para o Mat', section: 'Principal' },
   { to: '/hub-360', icon: Sparkles, label: 'Hub Planejamento 360º', section: 'Principal', adminOnly: true },
   { to: '/criar-hub', icon: Puzzle, label: '🎨 Criar Conteúdo', section: '🏫 Sala de Aula', adminOnly: true },
   { to: '/redacao-hub', icon: PenLine, label: '📝 Redação', section: '🏫 Sala de Aula' },
