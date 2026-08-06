@@ -551,84 +551,16 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               </div>
             );
           })}
-
-              {/* Action Buttons for Assistant Messages */}
-              {msg.role === 'assistant' && msg.content.length > 5 && (
-                <div className="flex flex-wrap gap-2 mt-1 ml-12 no-print">
-                  <button 
-                    onClick={() => speak(msg.content, i)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all shadow-sm bg-white",
-                      speakingMsgIndex === i 
-                        ? "border-blue-200 bg-blue-50 text-blue-600 ring-1 ring-blue-100" 
-                        : "border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300"
-                    )}
-                  >
-                    {speakingMsgIndex === i ? (
-                      <>
-                        <Square className="h-3.5 w-3.5 fill-current" />
-                        PARAR LEITURA
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 className="h-3.5 w-3.5" />
-                        OUVIR RESPOSTA
-                      </>
-                    )}
-                  </button>
-
-                  <button 
-                    onClick={() => copyToClipboard(msg.content, i)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
-                  >
-                    {copiedIndex === i ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-green-500" />
-                        COPIADO!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5" />
-                        COPIAR TEXTO
-                      </>
-                    )}
-                  </button>
-
-                  <button 
-                    onClick={() => downloadAsPdf(msg.content)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
-                  >
-                    <FileDown className="h-3.5 w-3.5 text-blue-500" />
-                    BAIXAR PDF / DOCX
-                  </button>
-                  
-                  {(msg.content.includes('|') || msg.content.includes('<table>')) && (
-                    <button 
-                      onClick={() => {
-                        setInput(`Converta as tabelas da resposta anterior em formato CSV/Excel pronto para exportação.`);
-                        inputRef.current?.focus();
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
-                    >
-                      <FileSpreadsheet className="h-3.5 w-3.5 text-green-500" />
-                      EXPORTAR TABELA
-                    </button>
-                  )}
-
-                  <button 
-                    onClick={() => {
-                      setInput(`Reorganize o conteúdo acima em um roteiro estruturado para slides de apresentação.`);
-                      inputRef.current?.focus();
-                    }}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
-                  >
-                    <Presentation className="h-3.5 w-3.5 text-orange-500" />
-                    ROTEIRO DE SLIDES
-                  </button>
-                </div>
-              )}
+          {isLoading && messages[messages.length - 1]?.role === 'user' && (
+            <div className="flex gap-4">
+              <MatAvatar size="sm" />
+              <div className="flex items-center gap-1 py-2">
+                <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" />
+              </div>
             </div>
-          ))}
+          )}
           {isLoading && messages[messages.length - 1]?.role === 'user' && (
             <div className="flex gap-4">
               <MatAvatar size="sm" />
