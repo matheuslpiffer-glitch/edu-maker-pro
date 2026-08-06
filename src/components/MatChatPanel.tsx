@@ -561,16 +561,6 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               </div>
             </div>
           )}
-          {isLoading && messages[messages.length - 1]?.role === 'user' && (
-            <div className="flex gap-4">
-              <MatAvatar size="sm" />
-              <div className="flex items-center gap-1 py-2">
-                <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" />
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
