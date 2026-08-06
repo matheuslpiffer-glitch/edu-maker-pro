@@ -24,6 +24,14 @@ export const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu con
 
 export const STUDENT_GREETING = 'Oi! 👋 Sou o **Mat**, seu tutor digital no **EduCreator Pro**. Se tiver dúvida em alguma questão que errou, **clique nela** e eu te explico o conceito por trás da resposta correta! Também posso sugerir materiais de estudo e te ajudar a revisar conteúdos. 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
 
+interface MatChatPanelProps {
+  /** Renders wider spacing/typography for the full page layout */
+  fullPage?: boolean;
+  /** Exposes the reset handler to the parent (header buttons) */
+  onRegisterReset?: (reset: () => void) => void;
+  className?: string;
+}
+
 /** Shared avatar — shows the whole picture (PNG transparent, no border) */
 export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
   const { customAvatar } = useMatAvatar();
