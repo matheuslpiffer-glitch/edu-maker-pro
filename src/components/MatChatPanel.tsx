@@ -428,7 +428,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               </div>
 
               {/* Action Buttons for Assistant Messages */}
-              {msg.role === 'assistant' && msg.content.length > 10 && (
+              {msg.role === 'assistant' && msg.content.length > 5 && (
                 <div className="flex flex-wrap gap-2 mt-1 ml-12 no-print">
                   <button 
                     onClick={() => speak(msg.content, i)}
