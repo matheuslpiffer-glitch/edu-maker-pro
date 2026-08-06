@@ -81,6 +81,22 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
+  const loadMemory = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) return;
+
+    const { data, error } = await supabase
+      .from('user_pedagogical_memory' as any)
+      .select('id, memory_fact')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setUserMemory(data);
+      setShowMemory(true);
+    }
+  }, []);
+
   // Sync with prop if it changes
   useEffect(() => {
     if (sessionId !== undefined && sessionId !== currentSessionId) {
@@ -110,7 +126,6 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       }
     } catch (err) {
       console.error('Error loading messages:', err);
-      // Fallback to localStorage if offline logic could go here
     } finally {
       setIsLoading(false);
     }
@@ -318,7 +333,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         // Save to DB (Fire and forget or handle properly)
         const { data: { session: currentAuth } } = await supabase.auth.getSession();
         if (currentAuth?.user?.id) {
-          await supabase.from('user_pedagogical_memory').insert({
+          await supabase.from('user_pedagogical_memory' as any).insert({
             user_id: currentAuth.user.id,
             memory_fact: fact
           });
