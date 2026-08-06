@@ -22,6 +22,7 @@ import { useEffect, useRef, lazy, Suspense } from "react";
 const LandingProfessor = lazy(() => import("@/pages/LandingProfessor"));
 const LandingEstudo = lazy(() => import("@/pages/LandingEstudo"));
 const Index = lazy(() => import("@/pages/Index"));
+const MatChat = lazy(() => import("@/pages/MatChat"));
 const QuestionBank = lazy(() => import("@/pages/QuestionBank"));
 const CreateQuestion = lazy(() => import("@/pages/CreateQuestion"));
 const Assessments = lazy(() => import("@/pages/Assessments"));
@@ -152,7 +153,7 @@ function AppRoutes() {
     <AppLayout>
       <Suspense fallback={<LazyFallback />}>
         <Routes>
-          <Route path="/mat-chat" element={<Navigate to="/dashboard-professor" replace />} />
+          <Route path="/mat-chat" element={<MatChat />} />
           <Route path="/" element={<Navigate to="/dashboard-professor" replace />} />
           <Route path="/dashboard-professor" element={<Index />} />
           <Route path="/sobre" element={<SobreProjeto />} />
