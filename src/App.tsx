@@ -152,6 +152,7 @@ function AppRoutes() {
     <AppLayout>
       <Suspense fallback={<LazyFallback />}>
         <Routes>
+          <Route path="/mat-chat" element={<Navigate to="/dashboard-professor" replace />} />
           <Route path="/" element={<Navigate to="/dashboard-professor" replace />} />
           <Route path="/dashboard-professor" element={<Index />} />
           <Route path="/sobre" element={<SobreProjeto />} />

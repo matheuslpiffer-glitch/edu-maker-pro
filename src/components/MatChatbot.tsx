@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { X, Send, Settings, HelpCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,7 @@ export default function MatChatbot() {
   const { customAvatar, zoom, offsetX, offsetY, saveAvatar, clearAvatar } = useMatAvatar();
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const avatarSrc = customAvatar || defaultAvatar;
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const { isStudentMode } = useStudentMode();
   const [messages, setMessages] = useState<Msg[]>([
@@ -39,6 +41,12 @@ export default function MatChatbot() {
   useEffect(() => {
     if (open && inputRef.current) inputRef.current.focus();
   }, [open]);
+
+  useEffect(() => {
+    if (location.pathname === '/mat-chat') {
+      setOpen(true);
+    }
+  }, [location.pathname]);
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
