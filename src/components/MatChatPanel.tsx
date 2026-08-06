@@ -583,7 +583,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                     <button 
                                       onClick={() => {
-                                        const lang = prompt("Escolha o idioma do vídeo (PT-BR, EN-US, ES):", "PT-BR");
+                                        const lang = prompt("Escolha o idioma do vídeo (Português (PT-BR), Inglês (EN-US), Espanhol (ES)):", "Português (PT-BR)");
                                         if (lang) {
                                           generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
                                         }
