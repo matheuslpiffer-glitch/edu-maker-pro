@@ -140,34 +140,53 @@ export default function MatChatbot() {
     <>
       {/* Chat Window — anchored to bottom-right */}
       {open && (
-        <div className="fixed bottom-20 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[420px] max-h-[70vh] flex flex-col bg-white/80 backdrop-blur-2xl border border-slate-200/60 rounded-[2rem] shadow-2xl shadow-indigo-500/10 animate-in fade-in slide-in-from-bottom-4 duration-300 overflow-hidden">
+        <div className="fixed bottom-20 right-4 sm:right-6 z-[60] w-[calc(100vw-2rem)] sm:w-[500px] h-[75vh] flex flex-col bg-white border border-slate-200 shadow-2xl rounded-2xl animate-in fade-in slide-in-from-bottom-4 duration-300 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200/50 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-t-[2rem]">
-            <img src={avatarSrc} alt="Mat" className="h-10 w-10 rounded-xl object-cover ring-2 ring-white/30" />
-            <div className="flex-1">
-              <h3 className="text-sm font-black text-white">Mat</h3>
-              <p className="text-[10px] text-white/60">Coordenador Pedagógico Digital</p>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 ring-1 ring-slate-200">
+                <img src={avatarSrc} alt="Mat" className="w-full h-full object-cover" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900">Mat</h3>
+                <p className="text-[10px] text-slate-500 font-medium">EduCreator AI Assistant</p>
+              </div>
             </div>
-            <button
-              onClick={() => setOpen(false)}
-              className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"
-            >
-              <X className="h-4 w-4 text-white" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMessages([{ role: 'assistant', content: isStudentMode ? STUDENT_GREETING : TEACHER_GREETING }])}
+                className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                title="Limpar chat"
+              >
+                <span className="text-[10px] uppercase font-bold tracking-wider">Limpar</span>
+              </button>
+              <button
+                onClick={() => setOpen(false)}
+                className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4 space-y-3 min-h-[200px] max-h-[50vh]">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-8 space-y-8 bg-white scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
             {messages.map((msg, i) => (
-              <div key={i} className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
+              <div key={i} className={cn(
+                'flex gap-4 max-w-[90%]',
+                msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
+              )}>
+                {msg.role === 'assistant' && (
+                  <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 shrink-0 ring-1 ring-slate-200">
+                    <img src={avatarSrc} alt="Mat" className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <div className={cn(
-                  'max-w-[85%] px-4 py-3 text-sm leading-relaxed',
-                  msg.role === 'user'
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-[1.25rem] rounded-br-lg shadow-md shadow-indigo-500/15'
-                    : 'bg-slate-100/80 text-slate-800 rounded-[1.25rem] rounded-bl-lg shadow-sm'
+                  'text-sm leading-relaxed px-1 py-1',
+                  msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3' : 'text-slate-700'
                 )}>
                   {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm prose-slate max-w-none [&_p]:my-1 [&_ul]:my-1 [&_li]:my-0.5">
+                    <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
                       <ReactMarkdown>{msg.content}</ReactMarkdown>
                     </div>
                   ) : msg.content}
@@ -175,38 +194,49 @@ export default function MatChatbot() {
               </div>
             ))}
             {isLoading && messages[messages.length - 1]?.role === 'user' && (
-              <div className="flex justify-start">
-                <div className="bg-slate-100/80 rounded-[1.25rem] rounded-bl-lg px-5 py-3 shadow-sm flex items-center gap-1.5">
-                  <span className="text-xs text-slate-500 font-medium mr-1">Mat está preparando...</span>
-                  <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:0ms]" />
-                  <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:150ms]" />
-                  <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-bounce [animation-delay:300ms]" />
+              <div className="flex gap-4">
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 shrink-0 ring-1 ring-slate-200">
+                  <img src={avatarSrc} alt="Mat" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex items-center gap-1 py-2">
+                  <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <div className="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" />
                 </div>
               </div>
             )}
           </div>
 
-          {/* Input */}
-          <div className="px-4 pb-4 pt-2 border-t border-slate-200/50">
-            <div className="flex items-center gap-2 bg-slate-100/60 rounded-2xl p-1.5">
-              <input
-                ref={inputRef}
+          {/* Input Area */}
+          <div className="px-6 py-4 bg-white border-t border-slate-100">
+            <div className="relative flex items-end gap-2 bg-slate-50 rounded-2xl border border-slate-200 focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-300 transition-all p-2">
+              <textarea
+                rows={1}
                 value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                placeholder="Fale com o Mat..."
-                className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-700 placeholder:text-slate-400 px-3 py-2"
+                onChange={e => {
+                  setInput(e.target.value);
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                  }
+                }}
+                placeholder="Pergunte ao Mat..."
+                className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-800 placeholder:text-slate-400 px-3 py-2.5 resize-none min-h-[40px] max-h-[120px]"
               />
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || isLoading}
-                className="h-9 w-9 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-center hover:shadow-lg hover:scale-105 transition-all disabled:opacity-40 disabled:scale-100 disabled:shadow-none shrink-0"
+                className="mb-1 h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors disabled:opacity-20 disabled:cursor-not-allowed shrink-0"
               >
                 <Send className="h-4 w-4" />
               </button>
             </div>
-            <p className="text-center text-[9px] text-slate-400 mt-2">
-              Mat · Seu parceiro pedagógico no EduCreator
+            <p className="text-center text-[10px] text-slate-400 mt-3 font-medium">
+              O Mat pode cometer erros. Verifique informações importantes.
             </p>
           </div>
         </div>
