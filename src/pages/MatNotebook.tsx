@@ -228,10 +228,10 @@ export default function MatNotebook() {
         content: data.content
       };
 
-      const { data: saved, error: saveErr } = await supabase
-        .from('notebook_artifacts')
-        .insert(newArtifact)
-        .select()
+      const { data: saved, error: saveErr } = await (supabase
+        .from('notebook_artifacts' as any)
+        .insert(newArtifact as any)
+        .select() as any)
         .single();
 
       if (!saveErr && saved) {
