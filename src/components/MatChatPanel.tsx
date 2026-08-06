@@ -1,17 +1,22 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
-import 'katex/dist/katex.min.css';
 import { cn } from '@/lib/utils';
+import { latexToUnicode } from '@/lib/latex-to-unicode';
 import defaultAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { supabase } from '@/integrations/supabase/client';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
+
+/** Converte qualquer LaTeX que escape do prompt em Unicode legível (padrão da plataforma). */
+export function renderMathAsUnicode(text: string): string {
+  const converted = latexToUnicode(text);
+  // Remove cifrões órfãos deixados por LaTeX malformado, preservando "R$ 50,00"
+  return converted.replace(/(^|[^R])\$(?!\s?\d)/g, '$1');
+}
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 
@@ -177,11 +182,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               <div className={cn('text-sm leading-relaxed px-1 py-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3' : 'text-slate-700')}>
                 {msg.role === 'assistant' ? (
                   <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkMath]}
-                      rehypePlugins={[rehypeRaw, rehypeKatex]}
-                    >
-                      {msg.content}
+                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                      {renderMathAsUnicode(msg.content)}
                     </ReactMarkdown>
                   </div>
                 ) : msg.content}
