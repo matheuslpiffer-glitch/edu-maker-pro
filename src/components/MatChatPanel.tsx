@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { cn } from '@/lib/utils';
@@ -50,8 +50,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [messages, setMessages] = useState<Msg[]>([{ role: 'assistant', content: greeting }]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -166,6 +168,98 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     inputRef.current?.focus();
   }, [input, isLoading, messages]);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const userMsg: Msg = { role: 'user', content: `📎 Arquivo enviado: ${file.name}` };
+    setMessages(prev => [...prev, userMsg]);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(((reader.result as string).split(',')[1]) || '');
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/adapt-vision`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          fileBase64: base64,
+          fileMime: file.type,
+          aeeProfileLabels: "adaptação geral",
+          aeeTopic: "Arquivo enviado pelo chat",
+          aeeMode: "adaptar_antigas"
+        }),
+      });
+
+      if (!resp.ok) throw new Error('Falha ao processar arquivo');
+      const data = await resp.json();
+      
+      const assistantMsg: Msg = { 
+        role: 'assistant', 
+        content: `Recebi seu arquivo! Ele contém ${data.questions?.length || 0} questões/blocos de conteúdo. Como você gostaria que eu adaptasse esse material? Me diga a **série** e a **necessidade específica (AEE)**.` 
+      };
+      setMessages(prev => [...prev, assistantMsg]);
+    } catch (error) {
+      console.error(error);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Desculpe, tive um erro ao ler esse arquivo. Tente um PDF ou imagem mais legível.' }]);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const downloadAsPdf = async (content: string) => {
+    try {
+      const html2pdf = (await import('html2pdf.js')).default;
+      const element = document.createElement('div');
+      element.style.padding = '20mm';
+      element.style.fontFamily = 'Arial, sans-serif';
+      
+      // Basic formatting for the PDF content
+      const formattedContent = content
+        .replace(/\n/g, '<br/>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/### (.*?)(\n|$)/g, '<h3>$1</h3>')
+        .replace(/## (.*?)(\n|$)/g, '<h2>$1</h2>')
+        .replace(/# (.*?)(\n|$)/g, '<h1>$1</h1>');
+
+      element.innerHTML = `
+        <div style="text-align:center;border-bottom:2px solid #0891b2;margin-bottom:20px;padding-bottom:10px;">
+          <h1 style="margin:0;color:#0F172A;">EduCreator Pro</h1>
+          <p style="margin:5px 0 0;font-size:12px;color:#64748b;">Material Gerado via Assistente Mat</p>
+        </div>
+        <div style="font-size:12pt;line-height:1.5;">${formattedContent}</div>
+        <div style="margin-top:30px;font-size:10px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:10px;">
+          Desenvolvido por Matheus Lima Piffer
+        </div>
+      `;
+
+      const opt = {
+        margin: 10,
+        filename: 'mat-documento.pdf',
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('PDF Error:', err);
+    }
+  };
+
   return (
     <div className={cn('flex flex-col min-h-0 flex-1 bg-white', className)}>
       <div
@@ -179,12 +273,21 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
           {messages.map((msg, i) => (
             <div key={i} className={cn('flex gap-4 max-w-[90%]', msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto')}>
               {msg.role === 'assistant' && <MatAvatar size="sm" />}
-              <div className={cn('text-sm leading-relaxed px-1 py-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3' : 'text-slate-700')}>
+              <div className={cn('text-sm leading-relaxed px-1 py-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3' : 'text-slate-700 w-full')}>
                 {msg.role === 'assistant' ? (
                   <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
                     <ReactMarkdown rehypePlugins={[rehypeRaw]}>
                       {renderMathAsUnicode(msg.content)}
                     </ReactMarkdown>
+                    {msg.content.length > 100 && (
+                      <button 
+                        onClick={() => downloadAsPdf(msg.content)}
+                        className="mt-4 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors no-print"
+                      >
+                        <FileDown className="h-3 w-3" />
+                        Baixar em PDF
+                      </button>
+                    )}
                   </div>
                 ) : msg.content}
               </div>
@@ -206,6 +309,21 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       <div className={cn('bg-white border-t border-slate-100', fullPage ? 'px-4 sm:px-8 py-4' : 'px-6 py-4')}>
         <div className={cn(fullPage && 'mx-auto w-full max-w-3xl')}>
           <div className="relative flex items-end gap-2 bg-slate-50 rounded-2xl border border-slate-200 focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-300 transition-all p-2">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              onChange={handleFileUpload}
+              accept=".pdf,.png,.jpg,.jpeg,.webp"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading || isUploading}
+              className="mb-1 h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex items-center justify-center transition-colors shrink-0"
+              title="Subir arquivo"
+            >
+              {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
+            </button>
             <textarea
               ref={inputRef}
               rows={1}
