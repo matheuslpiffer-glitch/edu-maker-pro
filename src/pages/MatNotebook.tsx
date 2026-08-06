@@ -197,10 +197,10 @@ export default function MatNotebook() {
       setChat(prev => [...prev, data]);
       
       // Save to DB
-      await supabase.from('notebook_chat_messages').insert([
+      await (supabase.from('notebook_chat_messages' as any).insert([
         { notebook_id: activeNotebook.id, role: 'user', content: userMsg.content },
         { notebook_id: activeNotebook.id, role: 'assistant', content: data.content, citations: data.citations }
-      ]);
+      ] as any));
     } catch (err) {
       console.error(err);
       toast({ title: 'Erro ao processar', variant: 'destructive' });
