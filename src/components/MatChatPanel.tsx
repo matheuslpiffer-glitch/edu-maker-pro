@@ -5,7 +5,7 @@ import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
 import { cn } from '@/lib/utils';
 import { latexToUnicode } from '@/lib/latex-to-unicode';
-import defaultAvatar from '@/assets/mat-avatar-closeup.png';
+import defaultAvatar from '@/assets/mat-avatar-3d.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { supabase } from '@/integrations/supabase/client';
@@ -42,16 +42,15 @@ export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg
   const { customAvatar } = useMatAvatar();
   const src = customAvatar || defaultAvatar;
   
-  // Custom sizing and styling for MAT avatar per request: 
-  // width: 54px; height: auto; object-fit: contain; filter: drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15));
-  const dim = size === 'lg' ? 'w-[54px]' : size === 'md' ? 'w-10' : 'w-8';
-  
+  // Avatar do Mat: PNG transparente, sem moldura ou recorte circular
+  const dim = size === 'lg' ? 'w-[60px]' : size === 'md' ? 'w-10' : 'w-8';
+
   return (
-    <div className={cn(dim, 'shrink-0 flex items-center justify-center', className)}>
-      <img 
-        src={src} 
-        alt="Mat" 
-        className="w-full h-auto object-contain filter drop-shadow-[0px_2px_5px_rgba(0,0,0,0.15)]" 
+    <div className={cn(dim, 'shrink-0 flex items-center justify-center overflow-visible bg-transparent', className)}>
+      <img
+        src={src}
+        alt="Mat"
+        className="mat-avatar-header w-full h-auto object-contain bg-transparent rounded-none filter drop-shadow-[0px_3px_6px_rgba(0,0,0,0.15)] transition-transform duration-200 ease-in-out hover:scale-105"
       />
     </div>
   );
