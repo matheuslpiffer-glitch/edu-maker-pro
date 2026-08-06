@@ -92,7 +92,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       .order('created_at', { ascending: false });
 
     if (!error && data) {
-      setUserMemory(data);
+      setUserMemory(data as any);
       setShowMemory(true);
     }
   }, []);
