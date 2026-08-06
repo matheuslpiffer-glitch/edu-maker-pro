@@ -318,22 +318,12 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
     
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ prompt }),
+      const { data, error } = await supabase.functions.invoke('generate-video', {
+        body: { prompt },
       });
+      if (error) throw error;
+      if (!data?.url) throw new Error(data?.error || 'Falha ao gerar vídeo');
 
-      if (!resp.ok) throw new Error('Falha ao gerar vídeo');
-      const data = await resp.json();
-      
       setVideoStatus(prev => ({ 
         ...prev, 
         [index]: { loading: false, url: data.url } 
