@@ -28,7 +28,7 @@ serve(async (req) => {
     const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
     if (!userId) return json({ error: "Não autorizado. Faça login novamente." }, 401);
 
-    let payload: { prompt?: string };
+    let payload: { prompt?: string; image?: string; duration?: number };
     try {
       payload = await req.json();
     } catch {
@@ -49,15 +49,21 @@ serve(async (req) => {
       "Content-Type": "application/json",
     };
 
+    const videoPayload: any = {
+      model: "google/veo-3.1-lite",
+      prompt: `${prompt} | no text, no letters, no English typography, clean background`,
+      seconds: String(payload.duration || 10),
+      size: "1280x720",
+    };
+
+    if (payload.image) {
+      videoPayload.image_url = payload.image;
+    }
+
     const createRes = await fetch("https://ai.gateway.lovable.dev/v1/videos", {
       method: "POST",
       headers: authHeaders,
-      body: JSON.stringify({
-        model: "google/veo-3.1-lite",
-        prompt,
-        seconds: "8",
-        size: "1280x720",
-      }),
+      body: JSON.stringify(videoPayload),
     });
 
     if (!createRes.ok) {

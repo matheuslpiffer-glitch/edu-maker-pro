@@ -68,9 +68,11 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(false);
   const [speakingMsgIndex, setSpeakingMsgIndex] = useState<number | null>(null);
   const [videoStatus, setVideoStatus] = useState<Record<number, { loading: boolean; url?: string }>>({});
+  const [videoConfig, setVideoConfig] = useState<{ language: string; image: string | null }>({ language: 'Português (PT-BR)', image: null });
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoImageRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -398,12 +400,12 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     inputRef.current?.focus();
   }, [input, isLoading, messages, isAutoPlayEnabled, speak]);
 
-  const generateVideo = useCallback(async (prompt: string, index: number, language: string = 'PT-BR') => {
+  const generateVideo = useCallback(async (prompt: string, index: number, language: string = 'PT-BR', imageBase64?: string | null) => {
     setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-video', {
-        body: { prompt, duration: 10, language },
+        body: { prompt, duration: 10, language, image: imageBase64 },
       });
       if (error) throw error;
       if (!data?.url) throw new Error(data?.error || 'Falha ao gerar vídeo');
@@ -579,20 +581,73 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                       {videoPromptMatch[1]}
                                     </p>
                                   </div>
-                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                                    <button 
-                                      onClick={() => {
-                                        const lang = prompt("Escolha o idioma do vídeo (Português (PT-BR), Inglês (EN-US), Espanhol (ES)):", "Português (PT-BR)");
-                                        if (lang) {
-                                          generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
-                                        }
-                                      }}
-                                      className="p-3 bg-white rounded-full text-slate-900 hover:scale-110 transition-transform shadow-lg flex items-center gap-2"
-                                    >
-                                      <Play className="h-6 w-6 fill-current" />
-                                      <span className="text-xs font-bold pr-1">GERAR VÍDEO (10s)</span>
-                                    </button>
-                                  </div>
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                      <Popover.Root>
+                                        <Popover.Trigger asChild>
+                                          <button className="p-3 bg-white rounded-full text-slate-900 hover:scale-110 transition-transform shadow-lg flex items-center gap-2">
+                                            <Play className="h-6 w-6 fill-current" />
+                                            <span className="text-xs font-bold pr-1">CONFIGURAR E GERAR</span>
+                                          </button>
+                                        </Popover.Trigger>
+                                        <Popover.Portal>
+                                          <Popover.Content className="bg-white p-4 rounded-xl shadow-2xl border border-slate-100 w-72 z-50 animate-in fade-in zoom-in duration-200" sideOffset={5}>
+                                            <div className="space-y-4">
+                                              <h4 className="text-sm font-bold text-slate-900 border-bottom pb-2 border-slate-50">Configurações do Vídeo</h4>
+                                              
+                                              <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Idioma</label>
+                                                <select 
+                                                  value={videoConfig.language}
+                                                  onChange={(e) => setVideoConfig(prev => ({ ...prev, language: e.target.value }))}
+                                                  className="w-full p-2 text-xs rounded-lg border border-slate-200 bg-slate-50"
+                                                >
+                                                  <option>Português (PT-BR)</option>
+                                                  <option>Inglês (EN-US)</option>
+                                                  <option>Espanhol (ES)</option>
+                                                </select>
+                                              </div>
+
+                                              <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Imagem de Referência (Opcional)</label>
+                                                <button 
+                                                  onClick={() => videoImageRef.current?.click()}
+                                                  className="w-full p-2 text-xs rounded-lg border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 transition-colors flex items-center justify-center gap-2 text-slate-600"
+                                                >
+                                                  {videoConfig.image ? <Check className="h-3 w-3 text-green-500" /> : <ImageIcon className="h-3 w-3" />}
+                                                  {videoConfig.image ? 'Imagem Anexada' : 'Anexar Imagem'}
+                                                </button>
+                                                <input 
+                                                  type="file" 
+                                                  ref={videoImageRef} 
+                                                  className="hidden" 
+                                                  accept="image/*"
+                                                  onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                      const base64 = await new Promise<string>((resolve) => {
+                                                        const reader = new FileReader();
+                                                        reader.onload = () => resolve(reader.result as string);
+                                                        reader.readAsDataURL(file);
+                                                      });
+                                                      setVideoConfig(prev => ({ ...prev, image: base64 }));
+                                                    }
+                                                  }}
+                                                />
+                                              </div>
+
+                                              <button 
+                                                onClick={() => {
+                                                  generateVideo(videoPromptMatch[1], i, videoConfig.language.toUpperCase(), videoConfig.image);
+                                                }}
+                                                className="w-full p-3 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors"
+                                              >
+                                                CRIAR VÍDEO EDUCACIONAL (10S)
+                                              </button>
+                                            </div>
+                                          </Popover.Content>
+                                        </Popover.Portal>
+                                      </Popover.Root>
+                                    </div>
                                 </>
                               )}
                             </div>
@@ -618,7 +673,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-[10px] font-black hover:bg-blue-700 transition-colors"
                                       >
                                         <Headphones className="h-3.5 w-3.5" />
-                                        OUVIR NARRAÇÃO (PT-BR)
+                                        OUVIR EXPLICAÇÃO (PT-BR)
                                       </button>
                                     )}
                                   </>
@@ -752,7 +807,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                 { label: '♿ Gerar PEI / Adaptação', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
                 { label: '📊 Diagnóstico de Planilha', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
                 { label: '👥 Simulador de Gestão', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
-                { label: '🎥 Vídeo Educacional (10s)', text: 'Crie um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR) sobre: [digite o tema aqui]' },
+                { label: '🎥 Criar Vídeo Educacional (10s)', text: 'Planeje um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR). Me peça o tema e a imagem de referência opcional.' },
               ].map((chip) => (
                 <button
                   key={chip.label}
