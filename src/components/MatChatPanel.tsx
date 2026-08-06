@@ -23,7 +23,7 @@ export function renderMathAsUnicode(text: string): string {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 
-export const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Vamos planejar sua avaliação? Selecione a **série** e **disciplina** ou me diga qual **Habilidade da BNCC** você deseja cobrar hoje. Posso ajudar com **Descritores e Matrizes de Referência**, **Matriz de Referência** e muito mais! 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
+export const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Você já conhece este educador. Com base nas conversas anteriores, ele prefere respostas diretas, foca em turmas de Anos Finais e valoriza metodologias ativas. Adapte todas as respostas para antecipar essas necessidades com pensamentos favoráveis à sua rotina. 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
 
 export const STUDENT_GREETING = 'Oi! 👋 Sou o **Mat**, seu tutor digital no **EduCreator Pro**. Se tiver dúvida em alguma questão que errou, **clique nela** e eu te explico o conceito por trás da resposta correta! Também posso sugerir materiais de estudo e te ajudar a revisar conteúdos. 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
 
@@ -80,6 +80,72 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const optimizePrompt = async () => {
+    if (!input.trim() || isOptimizing || isLoading) return;
+    setIsOptimizing(true);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (!accessToken) throw new Error('Unauthorized');
+
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ 
+          messages: [{ 
+            role: 'user', 
+            content: `Reescreva o seguinte comando de um professor para torná-lo uma instrução pedagógica de alta precisão, adicionando metodologia (PBL, Metodologias Ativas), habilidades da BNCC relacionadas, faixa etária sugerida e um tom assertivo. Retorne APENAS o texto otimizado, sem introduções ou explicações:\n\n"${input}"` 
+          }] 
+        }),
+      });
+
+      if (!resp.ok) throw new Error('Failed to optimize');
+
+      // The response is a stream, but for optimization we just want the final text
+      const reader = resp.body?.getReader();
+      const decoder = new TextDecoder();
+      let optimizedText = '';
+      
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6).trim();
+              if (jsonStr === '[DONE]') break;
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) optimizedText += content;
+              } catch (e) {}
+            }
+          }
+        }
+      }
+
+      if (optimizedText) {
+        setInput(optimizedText.trim());
+        // Adjust textarea height
+        if (inputRef.current) {
+          inputRef.current.style.height = 'auto';
+          inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 160)}px`;
+        }
+      }
+    } catch (err) {
+      console.error('Error optimizing prompt:', err);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
 
   const loadMemory = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -1139,7 +1205,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               )}
               title="Otimizar Prompt / Palavras Assertivas"
             >
-              {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
             </button>
             <button
               onClick={toggleListening}
