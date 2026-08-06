@@ -16,10 +16,10 @@ export default function MatChat() {
         <div className="flex items-center justify-between gap-4 px-4 sm:px-8 py-4">
           <div className="flex items-center gap-4">
             <MatAvatar size="lg" />
-            <div className="flex flex-col justify-center h-[52px]">
-              <h1 className="text-lg font-bold text-slate-900 leading-tight">MAT</h1>
-              <p className="text-[10px] text-slate-500 font-medium leading-tight">
-                Copiloto de IA Pedagógica
+            <div className="flex flex-col justify-center">
+              <h1 className="text-xl font-bold text-slate-900 leading-tight">Fale com o Mat</h1>
+              <p className="text-xs text-slate-500 font-medium leading-tight">
+                Consultor pedagógico digital do EduCreator Pro
               </p>
             </div>
           </div>
@@ -34,10 +34,10 @@ export default function MatChat() {
         
         {/* Context Selectors */}
         <div className="flex flex-wrap items-center gap-3 px-4 sm:px-8 pb-4">
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 shadow-sm">
-            <span className="text-[9px] uppercase font-black text-slate-400">Nível / Etapa</span>
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 shadow-sm">
+            <span className="text-[10px] uppercase font-black text-slate-400">Etapa</span>
             <select 
-              className="bg-transparent text-[11px] font-bold text-slate-600 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-slate-600 focus:outline-none cursor-pointer"
               defaultValue="Anos Finais"
             >
               <option>Educação Infantil</option>
@@ -48,14 +48,14 @@ export default function MatChat() {
             </select>
           </div>
           
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 shadow-sm">
-            <span className="text-[9px] uppercase font-black text-slate-400">Foco de Atuação</span>
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 shadow-sm">
+            <span className="text-[10px] uppercase font-black text-slate-400">Foco</span>
             <select 
-              className="bg-transparent text-[11px] font-bold text-slate-600 focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-slate-600 focus:outline-none cursor-pointer"
               defaultValue="Plano de Aula"
             >
               <option>Plano de Aula</option>
-              <option>Avaliação / Prova</option>
+              <option>Prova / Avaliação</option>
               <option>Acessibilidade (PEI)</option>
               <option>Gestão / ATPC</option>
               <option>Eletivas / Projetos</option>

@@ -37,7 +37,8 @@ export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg
   const { customAvatar } = useMatAvatar();
   const src = customAvatar || defaultAvatar;
   
-  // Custom sizing and styling for MAT avatar
+  // Custom sizing and styling for MAT avatar per request: 
+  // width: 52px; height: auto; object-fit: contain; filter: drop-shadow(0px 3px 6px rgba(0, 0, 0, 0.12));
   const dim = size === 'lg' ? 'w-[52px]' : size === 'md' ? 'w-10' : 'w-8';
   
   return (
@@ -45,7 +46,7 @@ export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg
       <img 
         src={src} 
         alt="Mat" 
-        className="w-full h-auto object-contain drop-shadow-[0px_3px_6px_rgba(0,0,0,0.12)]" 
+        className="w-full h-auto object-contain filter drop-shadow-[0px_3px_6px_rgba(0,0,0,0.12)]" 
       />
     </div>
   );
@@ -351,10 +352,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               {[
                 { label: '📄 Resumir Documento', text: 'Resuma este documento focando nos pontos pedagógicos e objetivos de aprendizagem.' },
                 { label: '✨ Melhore este Texto', text: 'Melhore este texto pedagógico, tornando-o mais claro, formal e alinhado com a BNCC.' },
-                { label: '♿ Acessibilidade PEI', text: 'Adapte esta atividade/conteúdo para 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade e PEI.' },
-                { label: '📊 Análise de Desempenho', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
-                { label: '🎭 Simular Gestão', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino.' },
                 { label: '📝 Corrigir/Gabaritar Prova', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
+                { label: '♿ Gerar PEI / Adaptação', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
+                { label: '📊 Diagnóstico de Planilha', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
+                { label: '👥 Simulador de Gestão', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
               ].map((chip) => (
                 <button
                   key={chip.label}
@@ -379,11 +380,31 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
             />
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => {
+                if (fileInputRef.current) {
+                  fileInputRef.current.accept = ".png,.jpg,.jpeg,.webp";
+                  fileInputRef.current.click();
+                }
+              }}
               disabled={isLoading || isUploading}
               className="mb-1 h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex items-center justify-center transition-colors shrink-0"
-              title="Subir arquivo (PDF, DOCX, TXT) ou foto (PNG, JPG)"
+              title="Subir foto (PNG, JPG)"
             >
+              <ImageIcon className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => {
+                if (fileInputRef.current) {
+                  fileInputRef.current.accept = ".pdf,.docx,.txt,.csv,.xlsx";
+                  fileInputRef.current.click();
+                }
+              }}
+              disabled={isLoading || isUploading}
+              className="mb-1 h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex items-center justify-center transition-colors shrink-0"
+              title="Subir documento (PDF, DOCX, TXT, CSV, XLSX)"
+            >
+              <FileUp className="h-5 w-5" />
+            </button>
               {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
             </button>
             <textarea
