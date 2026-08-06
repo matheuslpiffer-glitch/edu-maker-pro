@@ -4,104 +4,111 @@ import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  // CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  // Only POST is allowed for generation
+  if (req.method !== "POST") {
+    return json({ error: "Método não permitido. Use POST." }, 405);
+  }
 
   try {
     const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Não autorizado." }), {
-        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      });
+    if (!userId) return json({ error: "Não autorizado. Faça login novamente." }, 401);
+
+    let payload: { prompt?: string };
+    try {
+      payload = await req.json();
+    } catch {
+      return json({ error: "Corpo da requisição inválido." }, 400);
     }
 
-    const { prompt } = await req.json();
-    if (!prompt) {
-      return new Response(JSON.stringify({ error: "Prompt é obrigatório." }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      });
-    }
+    const prompt = (payload.prompt || "").trim();
+    if (!prompt) return json({ error: "Prompt é obrigatório." }, 400);
 
-    const REPLICATE_API_TOKEN = Deno.env.get("REPLICATE_API_TOKEN");
-    if (!REPLICATE_API_TOKEN) {
-      // Fallback for demonstration if no key is set, but in production we need the key
-      console.error("REPLICATE_API_TOKEN not found");
-      // For now, return a mock success to allow UI testing if the user hasn't provided a key yet
-      // In a real scenario, we'd return an error 500
-    }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) return json({ error: "Serviço de vídeo não configurado." }, 500);
 
     const creditCheck = await checkAndDecrementCredits(userId);
-    if (!creditCheck.allowed) {
-      return new Response(JSON.stringify({ error: creditCheck.error }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } 
-      });
-    }
+    if (!creditCheck.allowed) return json({ error: creditCheck.error }, 402);
 
-    // Using Luma Dream Machine on Replicate as an example
-    // This is an async generation, usually takes 30-60s
-    const response = await fetch("https://api.replicate.com/v1/predictions", {
+    const authHeaders = {
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "Content-Type": "application/json",
+    };
+
+    const createRes = await fetch("https://ai.gateway.lovable.dev/v1/videos", {
       method: "POST",
-      headers: {
-        "Authorization": `Token ${REPLICATE_API_TOKEN}`,
-        "Content-Type": "application/json",
-      },
+      headers: authHeaders,
       body: JSON.stringify({
-        version: "83088734002e21b069d5f782c974917a80b1e434e320d41e247400d3c0617300", // Luma Dream Machine
-        input: {
-          prompt: prompt,
-          aspect_ratio: "16:9",
-          loop: true
-        }
+        model: "google/veo-3.1-lite",
+        prompt,
+        seconds: "8",
+        size: "1280x720",
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Falha ao iniciar geração de vídeo");
+    if (!createRes.ok) {
+      const errText = await createRes.text();
+      console.error("Video create failed:", createRes.status, errText);
+      if (createRes.status === 402) return json({ error: "Créditos insuficientes para gerar vídeo." }, 402);
+      if (createRes.status === 429) return json({ error: "Muitas gerações em andamento. Tente em instantes." }, 429);
+      return json({ error: "Não foi possível iniciar a geração do vídeo." }, 500);
     }
 
-    const prediction = await response.json();
-    let videoUrl = null;
-    let status = prediction.status;
-    let currentPrediction = prediction;
+    const job = await createRes.json();
+    const jobId = job.id as string;
 
-    // Polling for the result (since it's a short 8s video, we can poll for a bit)
-    // In a more robust implementation, we'd use webhooks
-    let attempts = 0;
-    while ((status === "starting" || status === "processing") && attempts < 20) {
-      await new Promise(r => setTimeout(r, 3000));
-      const pollResp = await fetch(`https://api.replicate.com/v1/predictions/${currentPrediction.id}`, {
-        headers: { "Authorization": `Token ${REPLICATE_API_TOKEN}` }
+    // Poll until completed (up to ~4 minutes)
+    let status = job.status as string;
+    for (let i = 0; i < 48 && (status === "in_progress" || status === "queued"); i++) {
+      await new Promise((r) => setTimeout(r, 5000));
+      const pollRes = await fetch(`https://ai.gateway.lovable.dev/v1/videos/${jobId}`, {
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}` },
       });
-      currentPrediction = await pollResp.json();
-      status = currentPrediction.status;
-      attempts++;
+      if (!pollRes.ok) continue;
+      const polled = await pollRes.json();
+      status = polled.status;
+      if (status === "failed") {
+        console.error("Video job failed:", polled.error);
+        return json({ error: polled?.error?.message || "A geração do vídeo falhou." }, 500);
+      }
     }
 
-    if (status === "succeeded") {
-      videoUrl = currentPrediction.output; // This is usually a URL or an array of URLs
-      if (Array.isArray(videoUrl)) videoUrl = videoUrl[0];
-    } else if (status === "failed") {
-      throw new Error("Geração de vídeo falhou no servidor.");
-    } else {
-      throw new Error("Tempo limite de geração de vídeo excedido.");
+    if (status !== "completed") {
+      return json({ error: "Tempo limite de geração de vídeo excedido. Tente novamente." }, 504);
     }
 
-    return new Response(JSON.stringify({ url: videoUrl }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const contentRes = await fetch(`https://ai.gateway.lovable.dev/v1/videos/${jobId}/content`, {
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}` },
     });
+    if (!contentRes.ok) {
+      console.error("Video download failed:", contentRes.status);
+      return json({ error: "Não foi possível baixar o vídeo gerado." }, 500);
+    }
 
+    const bytes = new Uint8Array(await contentRes.arrayBuffer());
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    }
+    const dataUrl = `data:video/mp4;base64,${btoa(binary)}`;
+
+    return json({ url: dataUrl });
   } catch (e) {
     console.error("generate-video error:", e);
-    // Return a mock video for testing purposes if it fails due to missing keys or timeout
-    // Remove this in final production
-    return new Response(JSON.stringify({ 
-      url: "https://replicate.delivery/pbxt/f16f592f-1a9c-4903-886d-355607a97693/output.mp4",
-      mock: true 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: e instanceof Error ? e.message : "Erro desconhecido" }, 500);
   }
 });
