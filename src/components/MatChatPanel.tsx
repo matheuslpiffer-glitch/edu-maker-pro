@@ -81,71 +81,6 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const optimizePrompt = async () => {
-    if (!input.trim() || isOptimizing || isLoading) return;
-    setIsOptimizing(true);
-    
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!accessToken) throw new Error('Unauthorized');
-
-      const resp = await fetch(CHAT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ 
-          messages: [{ 
-            role: 'user', 
-            content: `Reescreva o seguinte comando de um professor para torná-lo uma instrução pedagógica de alta precisão, adicionando metodologia (PBL, Metodologias Ativas), habilidades da BNCC relacionadas, faixa etária sugerida e um tom assertivo. Retorne APENAS o texto otimizado, sem introduções ou explicações:\n\n"${input}"` 
-          }] 
-        }),
-      });
-
-      if (!resp.ok) throw new Error('Failed to optimize');
-
-      // The response is a stream, but for optimization we just want the final text
-      const reader = resp.body?.getReader();
-      const decoder = new TextDecoder();
-      let optimizedText = '';
-      
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value);
-          const lines = chunk.split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const jsonStr = line.slice(6).trim();
-              if (jsonStr === '[DONE]') break;
-              try {
-                const parsed = JSON.parse(jsonStr);
-                const content = parsed.choices?.[0]?.delta?.content;
-                if (content) optimizedText += content;
-              } catch (e) {}
-            }
-          }
-        }
-      }
-
-      if (optimizedText) {
-        setInput(optimizedText.trim());
-        // Adjust textarea height
-        if (inputRef.current) {
-          inputRef.current.style.height = 'auto';
-          inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 160)}px`;
-        }
-      }
-    } catch (err) {
-      console.error('Error optimizing prompt:', err);
-    } finally {
-      setIsOptimizing(false);
-    }
-  };
 
   const loadMemory = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -535,7 +470,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
   }, []);
 
-  const optimizePrompt = async () => {
+  const optimizePrompt = useCallback(async () => {
     if (!input.trim() || isOptimizing) return;
     setIsOptimizing(true);
     try {
@@ -550,7 +485,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         body: JSON.stringify({ 
           messages: [{ 
             role: 'user', 
-            content: `Reescreva o seguinte comando de um professor, transformando-o em uma instrução pedagógica de alta precisão (adicionando metodologia, habilidades da BNCC, faixa etária e tom assertivo). Retorne APENAS o texto otimizado, sem introduções: "${input}"` 
+            content: `Reescreva o seguinte comando de um professor para torná-lo uma instrução pedagógica de alta precisão, adicionando metodologia (PBL, Metodologias Ativas), habilidades da BNCC relacionadas, faixa etária sugerida e um tom assertivo. Retorne APENAS o texto otimizado, sem introduções ou explicações:\n\n"${input}"` 
           }] 
         }),
       });
