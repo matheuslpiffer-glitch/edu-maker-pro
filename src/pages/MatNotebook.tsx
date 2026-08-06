@@ -113,14 +113,14 @@ export default function MatNotebook() {
   const loadNotebookContent = async (id: string) => {
     setLoading(true);
     const [sourcesRes, chatRes, artifactsRes] = await Promise.all([
-      supabase.from('notebook_sources').select('*').eq('notebook_id', id),
-      supabase.from('notebook_chat_messages').select('*').eq('notebook_id', id).order('created_at', { ascending: true }),
-      supabase.from('notebook_artifacts').select('*').eq('notebook_id', id).order('created_at', { ascending: false })
+      (supabase.from('notebook_sources' as any).select('*') as any).eq('notebook_id', id),
+      (supabase.from('notebook_chat_messages' as any).select('*') as any).eq('notebook_id', id).order('created_at', { ascending: true }),
+      (supabase.from('notebook_artifacts' as any).select('*') as any).eq('notebook_id', id).order('created_at', { ascending: false })
     ]);
 
-    if (sourcesRes.data) setSources(sourcesRes.data);
+    if (sourcesRes.data) setSources(sourcesRes.data as any);
     if (chatRes.data) setChat(chatRes.data as any);
-    if (artifactsRes.data) setArtifacts(artifactsRes.data);
+    if (artifactsRes.data) setArtifacts(artifactsRes.data as any);
     setLoading(false);
   };
 
