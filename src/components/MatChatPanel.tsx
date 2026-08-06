@@ -482,11 +482,16 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                   </div>
                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                     <button 
-                                      onClick={() => generateVideo(videoPromptMatch[1], i)}
+                                      onClick={() => {
+                                        const lang = prompt("Escolha o idioma do vídeo (PT-BR, EN-US, ES):", "PT-BR");
+                                        if (lang) {
+                                          generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
+                                        }
+                                      }}
                                       className="p-3 bg-white rounded-full text-slate-900 hover:scale-110 transition-transform shadow-lg flex items-center gap-2"
                                     >
                                       <Play className="h-6 w-6 fill-current" />
-                                      <span className="text-xs font-bold pr-1">GERAR VÍDEO</span>
+                                      <span className="text-xs font-bold pr-1">GERAR VÍDEO (10s)</span>
                                     </button>
                                   </div>
                                 </>
@@ -507,7 +512,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                 <button 
                                   onClick={() => {
                                     if (videoStatus[i]?.url) {
-                                      generateVideo(videoPromptMatch[1], i);
+                                      const lang = prompt("Escolha o idioma do vídeo (PT-BR, EN-US, ES):", "PT-BR");
+                                      if (lang) {
+                                        generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
+                                      }
                                     } else {
                                       setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
                                       inputRef.current?.focus();
