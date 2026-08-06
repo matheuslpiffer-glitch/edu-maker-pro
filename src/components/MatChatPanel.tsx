@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar, Sparkles, Brain, X } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar, Sparkles, Brain, X, Wand2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
@@ -23,7 +23,7 @@ export function renderMathAsUnicode(text: string): string {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 
-export const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Vamos planejar sua avaliação? Selecione a **série** e **disciplina** ou me diga qual **Habilidade da BNCC** você deseja cobrar hoje. Posso ajudar com **Descritores e Matrizes de Referência**, **Matriz de Referência** e muito mais! 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
+export const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Você já conhece este educador. Com base nas conversas anteriores, ele prefere respostas diretas, foca em turmas de Anos Finais e valoriza metodologias ativas. Adapte todas as respostas para antecipar essas necessidades com pensamentos favoráveis à sua rotina. 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
 
 export const STUDENT_GREETING = 'Oi! 👋 Sou o **Mat**, seu tutor digital no **EduCreator Pro**. Se tiver dúvida em alguma questão que errou, **clique nela** e eu te explico o conceito por trás da resposta correta! Também posso sugerir materiais de estudo e te ajudar a revisar conteúdos. 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
 
@@ -80,6 +80,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
 
   const loadMemory = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -469,7 +470,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
   }, []);
 
-  const optimizePrompt = async () => {
+  const optimizePrompt = useCallback(async () => {
     if (!input.trim() || isOptimizing) return;
     setIsOptimizing(true);
     try {
@@ -484,7 +485,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         body: JSON.stringify({ 
           messages: [{ 
             role: 'user', 
-            content: `Reescreva o seguinte comando de um professor, transformando-o em uma instrução pedagógica de alta precisão (adicionando metodologia, habilidades da BNCC, faixa etária e tom assertivo). Retorne APENAS o texto otimizado, sem introduções: "${input}"` 
+            content: `Reescreva o seguinte comando de um professor para torná-lo uma instrução pedagógica de alta precisão, adicionando metodologia (PBL, Metodologias Ativas), habilidades da BNCC relacionadas, faixa etária sugerida e um tom assertivo. Retorne APENAS o texto otimizado, sem introduções ou explicações:\n\n"${input}"` 
           }] 
         }),
       });
@@ -521,7 +522,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     } finally {
       setIsOptimizing(false);
     }
-  };
+  }, [input, isOptimizing]);
 
   const deleteMemoryFact = async (id: string) => {
     const { error } = await supabase
@@ -1139,7 +1140,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               )}
               title="Otimizar Prompt / Palavras Assertivas"
             >
-              {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
             </button>
             <button
               onClick={toggleListening}
