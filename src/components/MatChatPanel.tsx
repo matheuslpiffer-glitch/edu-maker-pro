@@ -312,7 +312,38 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
     setIsLoading(false);
     inputRef.current?.focus();
-  }, [input, isLoading, messages]);
+  }, [input, isLoading, messages, isAutoPlayEnabled, speak]);
+
+  const generateVideo = useCallback(async (prompt: string, index: number) => {
+    setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-video`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!resp.ok) throw new Error('Falha ao gerar vídeo');
+      const data = await resp.json();
+      
+      setVideoStatus(prev => ({ 
+        ...prev, 
+        [index]: { loading: false, url: data.url } 
+      }));
+    } catch (error) {
+      console.error(error);
+      setVideoStatus(prev => ({ ...prev, [index]: { loading: false } }));
+      alert('Desculpe, tive um erro ao gerar seu vídeo. Tente novamente em instantes.');
+    }
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
