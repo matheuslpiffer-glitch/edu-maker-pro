@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { cn } from '@/lib/utils';
@@ -290,30 +290,40 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                       <div className="mt-4 flex flex-wrap gap-2 no-print">
                         <button 
                           onClick={() => downloadAsPdf(msg.content)}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
                         >
-                          <FileDown className="h-3 w-3" />
-                          Baixar em PDF
+                          <FileDown className="h-3.5 w-3.5 text-blue-500" />
+                          Baixar Word/PDF
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setInput(`Gere uma planilha Excel/CSV baseada no conteúdo acima.`);
+                            inputRef.current?.focus();
+                          }}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+                        >
+                          <FileSpreadsheet className="h-3.5 w-3.5 text-green-500" />
+                          Exportar Excel/CSV
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setInput(`Crie uma estrutura de slides para este conteúdo.`);
+                            inputRef.current?.focus();
+                          }}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+                        >
+                          <Presentation className="h-3.5 w-3.5 text-orange-500" />
+                          Estrutura de Slides
                         </button>
                         <button 
                           onClick={() => {
                             setInput(`Crie um resumo pedagógico estruturado com base no conteúdo acima.`);
                             inputRef.current?.focus();
                           }}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
                         >
-                          <FileText className="h-3 w-3" />
-                          Criar Resumo
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setInput(`Crie um folder pedagógico ilustrativo sobre: ${msg.content.slice(0, 50)}...`);
-                            inputRef.current?.focus();
-                          }}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
-                        >
-                          <ImageIcon className="h-3 w-3" />
-                          Criar Folder/Mapa
+                          <FileText className="h-3.5 w-3.5 text-indigo-500" />
+                          Resumo
                         </button>
                       </div>
                     )}
