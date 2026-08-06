@@ -63,6 +63,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [isListening, setIsListening] = useState(false);
   const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(false);
   const [speakingMsgIndex, setSpeakingMsgIndex] = useState<number | null>(null);
+  const [videoStatus, setVideoStatus] = useState<Record<number, { loading: boolean; url?: string }>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -434,35 +435,67 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
                         {videoPromptMatch && (
                           <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shadow-sm">
-                            <div className="aspect-video bg-slate-900 flex items-center justify-center relative group">
-                              <div className="text-white text-center p-4">
-                                <Video className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                                <p className="text-xs font-bold text-slate-400">🎥 O Mat está gerando seu vídeo educacional de 8 segundos... isso pode levar de 30 a 60 segundos</p>
-                                <p className="text-[10px] text-slate-500 mt-1 italic max-w-[200px] truncate mx-auto">
-                                  {videoPromptMatch[1]}
-                                </p>
-                              </div>
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                                <button className="p-3 bg-white rounded-full text-slate-900 hover:scale-110 transition-transform shadow-lg">
-                                  <Play className="h-6 w-6 fill-current" />
-                                </button>
-                              </div>
+                            <div className="aspect-video bg-slate-900 flex flex-col items-center justify-center relative group">
+                              {videoStatus[i]?.loading ? (
+                                <div className="text-white text-center p-4 animate-pulse">
+                                  <Loader2 className="h-12 w-12 mx-auto mb-3 text-blue-400 animate-spin" />
+                                  <p className="text-xs font-bold text-slate-300">🎥 O Mat está gerando seu vídeo educacional de 8 segundos...</p>
+                                  <p className="text-[10px] text-slate-500 mt-2 italic">Isso pode levar de 30 a 60 segundos.</p>
+                                </div>
+                              ) : videoStatus[i]?.url ? (
+                                <video 
+                                  src={videoStatus[i].url} 
+                                  controls 
+                                  autoPlay 
+                                  loop 
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <>
+                                  <div className="text-white text-center p-4">
+                                    <Video className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">VÍDEO EDUCACIONAL (8S)</p>
+                                    <p className="text-[10px] text-slate-500 mt-1 italic max-w-[240px] truncate mx-auto">
+                                      {videoPromptMatch[1]}
+                                    </p>
+                                  </div>
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                    <button 
+                                      onClick={() => generateVideo(videoPromptMatch[1], i)}
+                                      className="p-3 bg-white rounded-full text-slate-900 hover:scale-110 transition-transform shadow-lg flex items-center gap-2"
+                                    >
+                                      <Play className="h-6 w-6 fill-current" />
+                                      <span className="text-xs font-bold pr-1">GERAR VÍDEO</span>
+                                    </button>
+                                  </div>
+                                </>
+                              )}
                             </div>
                             <div className="p-3 flex items-center justify-between border-t border-slate-200 bg-white">
                               <div className="flex gap-2">
-                                <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-black hover:bg-slate-800 transition-colors">
-                                  <FileDown className="h-3.5 w-3.5" />
-                                  BAIXAR MP4
-                                </button>
+                                {videoStatus[i]?.url && (
+                                  <a 
+                                    href={videoStatus[i].url}
+                                    download="mat-video-educacional.mp4"
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-black hover:bg-slate-800 transition-colors"
+                                  >
+                                    <FileDown className="h-3.5 w-3.5" />
+                                    BAIXAR MP4
+                                  </a>
+                                )}
                                 <button 
                                   onClick={() => {
-                                    setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
-                                    inputRef.current?.focus();
+                                    if (videoStatus[i]?.url) {
+                                      generateVideo(videoPromptMatch[1], i);
+                                    } else {
+                                      setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
+                                      inputRef.current?.focus();
+                                    }
                                   }}
                                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black text-slate-500 hover:bg-slate-50 transition-colors"
                                 >
                                   <RefreshCw className="h-3.5 w-3.5" />
-                                  GERAR VARIAÇÃO
+                                  {videoStatus[i]?.url ? 'GERAR NOVA VERSÃO' : 'GERAR VARIAÇÃO'}
                                 </button>
                               </div>
                             </div>
