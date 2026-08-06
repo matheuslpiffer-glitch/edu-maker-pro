@@ -420,10 +420,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             const displayContent = msg.content.replace(/\[VIDEO_PROMPT:.*?\]/g, '').trim();
             
             return (
-              <div key={i} className={cn('flex flex-col gap-2 max-w-[90%]', msg.role === 'user' ? 'ml-auto items-end' : 'mr-auto items-start')}>
-                <div className={cn('flex gap-4 w-full', msg.role === 'user' ? 'flex-row-reverse' : '')}>
+              <div key={i} className={cn('flex flex-col gap-2 w-full', msg.role === 'user' ? 'items-end' : 'items-start')}>
+                <div className={cn('flex gap-4 w-full max-w-[90%]', msg.role === 'user' ? 'flex-row-reverse' : '')}>
                   {msg.role === 'assistant' && <MatAvatar size="sm" />}
-                  <div className={cn('text-sm leading-relaxed px-1 py-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100' : 'text-slate-700 w-full')}>
+                  <div className={cn('text-sm leading-relaxed px-1 py-1 flex-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100 max-w-max' : 'text-slate-700')}>
                     {msg.role === 'assistant' ? (
                       <div className="space-y-4">
                         <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
@@ -433,22 +433,24 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                         </div>
 
                         {videoPromptMatch && (
-                          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden">
+                          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shadow-sm">
                             <div className="aspect-video bg-slate-900 flex items-center justify-center relative group">
                               <div className="text-white text-center p-4">
-                                <Video className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                                <p className="text-xs font-medium text-slate-400">Vídeo Educacional Gerado (8s)</p>
-                                <p className="text-[10px] text-slate-500 mt-1 italic">Prompt: {videoPromptMatch[1].substring(0, 50)}...</p>
+                                <Video className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                                <p className="text-xs font-bold text-slate-400">VÍDEO EDUCACIONAL (8S)</p>
+                                <p className="text-[10px] text-slate-500 mt-1 italic max-w-[200px] truncate mx-auto">
+                                  {videoPromptMatch[1]}
+                                </p>
                               </div>
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                                <button className="p-3 bg-white rounded-full text-slate-900 hover:scale-110 transition-transform">
+                                <button className="p-3 bg-white rounded-full text-slate-900 hover:scale-110 transition-transform shadow-lg">
                                   <Play className="h-6 w-6 fill-current" />
                                 </button>
                               </div>
                             </div>
                             <div className="p-3 flex items-center justify-between border-t border-slate-200 bg-white">
                               <div className="flex gap-2">
-                                <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-bold hover:bg-slate-800 transition-colors">
+                                <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-black hover:bg-slate-800 transition-colors">
                                   <FileDown className="h-3.5 w-3.5" />
                                   BAIXAR MP4
                                 </button>
@@ -457,7 +459,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                     setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
                                     inputRef.current?.focus();
                                   }}
-                                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black text-slate-500 hover:bg-slate-50 transition-colors"
                                 >
                                   <RefreshCw className="h-3.5 w-3.5" />
                                   GERAR VARIAÇÃO
@@ -470,6 +472,82 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                     ) : msg.content}
                   </div>
                 </div>
+
+                {/* Action Buttons for Assistant Messages */}
+                {msg.role === 'assistant' && msg.content.length > 5 && (
+                  <div className="flex flex-wrap gap-2 mt-1 ml-12 no-print">
+                    <button 
+                      onClick={() => speak(msg.content, i)}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all shadow-sm bg-white",
+                        speakingMsgIndex === i 
+                          ? "border-blue-200 bg-blue-50 text-blue-600 ring-1 ring-blue-100" 
+                          : "border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300"
+                      )}
+                    >
+                      {speakingMsgIndex === i ? (
+                        <>
+                          <Square className="h-3.5 w-3.5 fill-current" />
+                          PARAR LEITURA
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="h-3.5 w-3.5" />
+                          OUVIR RESPOSTA
+                        </>
+                      )}
+                    </button>
+
+                    <button 
+                      onClick={() => copyToClipboard(msg.content, i)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                    >
+                      {copiedIndex === i ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-green-500" />
+                          COPIADO!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          COPIAR TEXTO
+                        </>
+                      )}
+                    </button>
+
+                    <button 
+                      onClick={() => downloadAsPdf(msg.content)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                    >
+                      <FileDown className="h-3.5 w-3.5 text-blue-500" />
+                      BAIXAR PDF / DOCX
+                    </button>
+                    
+                    {(msg.content.includes('|') || msg.content.includes('<table>')) && (
+                      <button 
+                        onClick={() => {
+                          setInput(`Converta as tabelas da resposta anterior em formato CSV/Excel pronto para exportação.`);
+                          inputRef.current?.focus();
+                        }}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                      >
+                        <FileSpreadsheet className="h-3.5 w-3.5 text-green-500" />
+                        EXPORTAR TABELA
+                      </button>
+                    )}
+
+                    <button 
+                      onClick={() => {
+                        setInput(`Reorganize o conteúdo acima em um roteiro estruturado para slides de apresentação.`);
+                        inputRef.current?.focus();
+                      }}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                    >
+                      <Presentation className="h-3.5 w-3.5 text-orange-500" />
+                      ROTEIRO DE SLIDES
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}
