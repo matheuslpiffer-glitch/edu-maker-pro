@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
@@ -61,10 +61,36 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(false);
+  const [speakingMsgIndex, setSpeakingMsgIndex] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
+  const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleToggle = () => {
+      setIsAutoPlayEnabled(prev => {
+        const next = !prev;
+        const toggleBtn = document.getElementById('autoplay-toggle');
+        if (toggleBtn) {
+          const span = toggleBtn.querySelector('div > span');
+          const div = toggleBtn.querySelector('div');
+          if (span && div) {
+            div.setAttribute('data-state', next ? 'active' : 'inactive');
+            span.setAttribute('data-state', next ? 'active' : 'inactive');
+          }
+        }
+        return next;
+      });
+    };
+    
+    const element = document.querySelector('[data-chat-panel]');
+    element?.addEventListener('toggleAutoPlay', handleToggle);
+    return () => element?.removeEventListener('toggleAutoPlay', handleToggle);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -134,6 +160,42 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
   }, [isListening]);
 
+  const speak = useCallback((text: string, index: number) => {
+    if (!window.speechSynthesis) return;
+
+    if (speakingMsgIndex === index) {
+      window.speechSynthesis.cancel();
+      setSpeakingMsgIndex(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    
+    // Clean text from markdown and extra symbols for better TTS
+    const cleanText = text
+      .replace(/(\*\*|__)(.*?)\1/g, '$2')
+      .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+      .replace(/#{1,6}\s/g, '')
+      .replace(/`{1,3}.*?`{1,3}/gs, '')
+      .replace(/- /g, '');
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'pt-BR';
+    utterance.onend = () => setSpeakingMsgIndex(null);
+    utterance.onerror = () => setSpeakingMsgIndex(null);
+    
+    synthesisRef.current = utterance;
+    setSpeakingMsgIndex(index);
+    window.speechSynthesis.speak(utterance);
+  }, [speakingMsgIndex]);
+
+  const copyToClipboard = useCallback((text: string, index: number) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    });
+  }, []);
+
   const reset = useCallback(() => {
     setMessages([{ role: 'assistant', content: greeting }]);
   }, [greeting]);
@@ -162,6 +224,18 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         }
         return [...prev.slice(0, newMessages.length), { role: 'assistant', content: assistantSoFar }];
       });
+    };
+
+    const handleAutoPlay = (finalContent: string) => {
+      if (isAutoPlayEnabled) {
+        // Find the index of the message we just added
+        setMessages(prev => {
+          const index = prev.length - 1;
+          // We use a slight timeout to ensure state is settled or we just trigger speak directly
+          setTimeout(() => speak(finalContent, index), 100);
+          return prev;
+        });
+      }
     };
 
     const { data: { session } } = await supabase.auth.getSession();
@@ -332,7 +406,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   };
 
   return (
-    <div className={cn('flex flex-col min-h-0 flex-1 bg-white', className)}>
+    <div className={cn('flex flex-col min-h-0 flex-1 bg-white', className)} data-chat-panel>
       <div
         ref={scrollRef}
         className={cn(
@@ -357,8 +431,47 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               </div>
 
               {/* Action Buttons for Assistant Messages */}
-              {msg.role === 'assistant' && msg.content.length > 50 && (
+              {msg.role === 'assistant' && msg.content.length > 5 && (
                 <div className="flex flex-wrap gap-2 mt-1 ml-12 no-print">
+                  <button 
+                    onClick={() => speak(msg.content, i)}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all shadow-sm bg-white",
+                      speakingMsgIndex === i 
+                        ? "border-blue-200 bg-blue-50 text-blue-600 ring-1 ring-blue-100" 
+                        : "border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300"
+                    )}
+                  >
+                    {speakingMsgIndex === i ? (
+                      <>
+                        <Square className="h-3.5 w-3.5 fill-current" />
+                        PARAR LEITURA
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="h-3.5 w-3.5" />
+                        OUVIR RESPOSTA
+                      </>
+                    )}
+                  </button>
+
+                  <button 
+                    onClick={() => copyToClipboard(msg.content, i)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                  >
+                    {copiedIndex === i ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-green-500" />
+                        COPIADO!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        COPIAR TEXTO
+                      </>
+                    )}
+                  </button>
+
                   <button 
                     onClick={() => downloadAsPdf(msg.content)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
