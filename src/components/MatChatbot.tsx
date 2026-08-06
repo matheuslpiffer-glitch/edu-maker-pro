@@ -8,6 +8,7 @@ import { useMatAvatar } from '@/hooks/useMatAvatar';
 import MatAvatarEditor from '@/components/MatAvatarEditor';
 import MatAvatarArtwork from '@/components/MatAvatarArtwork';
 import { useStudentMode } from '@/hooks/useStudentMode';
+import { supabase } from '@/integrations/supabase/client';
 
 type Msg = { role: 'user' | 'assistant'; content: string };
 
