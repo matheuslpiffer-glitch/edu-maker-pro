@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2 } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import { cn } from '@/lib/utils';
@@ -280,13 +280,35 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                       {renderMathAsUnicode(msg.content)}
                     </ReactMarkdown>
                     {msg.content.length > 100 && (
-                      <button 
-                        onClick={() => downloadAsPdf(msg.content)}
-                        className="mt-4 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors no-print"
-                      >
-                        <FileDown className="h-3 w-3" />
-                        Baixar em PDF
-                      </button>
+                      <div className="mt-4 flex flex-wrap gap-2 no-print">
+                        <button 
+                          onClick={() => downloadAsPdf(msg.content)}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                        >
+                          <FileDown className="h-3 w-3" />
+                          Baixar em PDF
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setInput(`Crie um resumo pedagógico estruturado com base no conteúdo acima.`);
+                            inputRef.current?.focus();
+                          }}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                        >
+                          <FileText className="h-3 w-3" />
+                          Criar Resumo
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setInput(`Crie um folder pedagógico ilustrativo sobre: ${msg.content.slice(0, 50)}...`);
+                            inputRef.current?.focus();
+                          }}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+                        >
+                          <ImageIcon className="h-3 w-3" />
+                          Criar Folder/Mapa
+                        </button>
+                      </div>
                     )}
                   </div>
                 ) : msg.content}
@@ -320,9 +342,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || isUploading}
               className="mb-1 h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex items-center justify-center transition-colors shrink-0"
-              title="Subir arquivo"
+              title="Subir arquivo ou foto"
             >
-              {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileUp className="h-4 w-4" />}
+              {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
             </button>
             <textarea
               ref={inputRef}
