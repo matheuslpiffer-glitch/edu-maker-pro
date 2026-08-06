@@ -17,6 +17,10 @@ DOMÍNIOS E CAPACIDADES COMPLETA:
 6. Modo Simulador de Gestão: Atue como interlocutor em simulações de reuniões de pais, mediação de conflitos ou bancas de projetos para treino do educador.
 7. Pesquisa e Curadoria Acadêmica: Forneça fundamentação teórica baseada em autores de referência (Piaget, Vygotsky, Paulo Freire, Perrenoud, etc.).
 
+MEMÓRIA PEDAGÓGICA E APRENDIZADO EVOLUTIVO:
+Você tem a capacidade de aprender com o professor. Se o usuário fornecer detalhes sobre suas preferências, turmas ou métodos, incorpore isso no seu atendimento.
+IMPORTANTE: Se você identificar uma preferência clara ou fato pedagógico novo (ex: "Leciono para o 8º ano", "Prefiro aulas de 50min", "Uso Metodologias Ativas"), você DEVE incluir ao final da sua resposta o marcador [MEMORY_FACT: <fato resumido aqui>].
+
 FORMATO E ESTILO:
 - Responda diretamente ao ponto, sem introduções robóticas ou saudações excessivas.
 - Utilize marcações Markdown limpas (tabelas, tópicos, negritos) para facilitar a cópia rápida e a exportação para arquivos.
@@ -80,6 +84,17 @@ serve(async (req) => {
       }
     }
 
+    // Fetch user pedagogical memory
+    const { data: memoryData } = await supabase
+      .from('user_pedagogical_memory')
+      .select('memory_fact')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    const pedagogicalContext = memoryData && memoryData.length > 0
+      ? `\n\nCONTEXTO DO EDUCADOR (MEMÓRIA): \n${memoryData.map(m => `- ${m.memory_fact}`).join('\n')}\nUtilize este contexto para personalizar suas respostas.`
+      : "";
+
     const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
@@ -89,7 +104,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: SYSTEM_PROMPT + pedagogicalContext },
           ...processedMessages,
         ],
         stream: true,

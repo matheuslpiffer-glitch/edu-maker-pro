@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar, Sparkles, Brain, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
@@ -64,9 +64,12 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [input, setInput] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(false);
+  const [showMemory, setShowMemory] = useState(false);
+  const [userMemory, setUserMemory] = useState<{ id: string; memory_fact: string }[]>([]);
   const [speakingMsgIndex, setSpeakingMsgIndex] = useState<number | null>(null);
   const [videoStatus, setVideoStatus] = useState<Record<number, { loading: boolean; url?: string }>>({});
   const [videoConfig, setVideoConfig] = useState<{ language: string; image: string | null }>({ language: 'Português (PT-BR)', image: null });
@@ -77,6 +80,22 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  const loadMemory = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) return;
+
+    const { data, error } = await supabase
+      .from('user_pedagogical_memory' as any)
+      .select('id, memory_fact')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setUserMemory(data as any);
+      setShowMemory(true);
+    }
+  }, []);
 
   // Sync with prop if it changes
   useEffect(() => {
@@ -107,7 +126,6 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       }
     } catch (err) {
       console.error('Error loading messages:', err);
-      // Fallback to localStorage if offline logic could go here
     } finally {
       setIsLoading(false);
     }
@@ -132,8 +150,12 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     
     const element = document.querySelector('[data-chat-panel]');
     element?.addEventListener('toggleAutoPlay', handleToggle);
-    return () => element?.removeEventListener('toggleAutoPlay', handleToggle);
-  }, []);
+    element?.addEventListener('openMemory', loadMemory);
+    return () => {
+      element?.removeEventListener('toggleAutoPlay', handleToggle);
+      element?.removeEventListener('openMemory', loadMemory);
+    };
+  }, [loadMemory]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -298,8 +320,26 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
 
     let assistantSoFar = '';
-    const upsertAssistant = (chunk: string) => {
+    const upsertAssistant = async (chunk: string) => {
       assistantSoFar += chunk;
+      
+      // Check for memory facts in the response
+      const memoryMatch = assistantSoFar.match(/\[MEMORY_FACT:\s*(.*?)\]/);
+      if (memoryMatch && memoryMatch[1]) {
+        const fact = memoryMatch[1].trim();
+        // Remove the tag from what is displayed to the user
+        assistantSoFar = assistantSoFar.replace(/\[MEMORY_FACT:.*?\]/g, '').trim();
+        
+        // Save to DB (Fire and forget or handle properly)
+        const { data: { session: currentAuth } } = await supabase.auth.getSession();
+        if (currentAuth?.user?.id) {
+          await supabase.from('user_pedagogical_memory' as any).insert({
+            user_id: currentAuth.user.id,
+            memory_fact: fact
+          });
+        }
+      }
+
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === 'assistant' && prev.length > newMessages.length) {
@@ -429,6 +469,71 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
   }, []);
 
+  const optimizePrompt = async () => {
+    if (!input.trim() || isOptimizing) return;
+    setIsOptimizing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ 
+          messages: [{ 
+            role: 'user', 
+            content: `Reescreva o seguinte comando de um professor, transformando-o em uma instrução pedagógica de alta precisão (adicionando metodologia, habilidades da BNCC, faixa etária e tom assertivo). Retorne APENAS o texto otimizado, sem introduções: "${input}"` 
+          }] 
+        }),
+      });
+
+      if (!resp.ok) throw new Error('Optimization failed');
+      
+      const reader = resp.body?.getReader();
+      const decoder = new TextDecoder();
+      let optimizedText = '';
+      
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') break;
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) optimizedText += content;
+              } catch (e) {}
+            }
+          }
+        }
+      }
+      
+      if (optimizedText) setInput(optimizedText.trim());
+    } catch (err) {
+      console.error('Error optimizing prompt:', err);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
+  const deleteMemoryFact = async (id: string) => {
+    const { error } = await supabase
+      .from('user_pedagogical_memory' as any)
+      .delete()
+      .eq('id', id);
+    
+    if (!error) {
+      setUserMemory(prev => prev.filter(m => m.id !== id));
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -522,7 +627,62 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   };
 
   return (
-    <div className={cn('flex flex-col min-h-0 flex-1 bg-white', className)} data-chat-panel>
+    <div className={cn('flex flex-col min-h-0 flex-1 bg-white relative', className)} data-chat-panel>
+      {/* Memory Modal Overlay */}
+      {showMemory && (
+        <div className="absolute inset-0 z-50 bg-white/95 backdrop-blur-sm p-8 flex flex-col animate-in fade-in duration-200">
+          <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Brain className="h-6 w-6 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 leading-tight">O que o Mat aprendeu sobre você</h2>
+                <p className="text-xs text-slate-500 font-medium">Suas preferências pedagógicas memorizadas para personalizar o atendimento</p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowMemory(false)}
+              className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+            {userMemory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-slate-400 text-center">
+                <Brain className="h-12 w-12 mb-4 opacity-20" />
+                <p className="text-sm font-medium">Ainda não memorizei preferências pedagógicas.</p>
+                <p className="text-xs max-w-xs mt-1">Converse comigo e me conte sobre suas turmas, métodos e rotina para que eu possa aprender!</p>
+              </div>
+            ) : (
+              userMemory.map((fact) => (
+                <div key={fact.id} className="flex items-start justify-between p-4 bg-slate-50 border border-slate-100 rounded-xl group hover:border-blue-100 hover:bg-white transition-all">
+                  <p className="text-sm text-slate-700 leading-relaxed font-medium">{fact.memory_fact}</p>
+                  <button 
+                    onClick={() => deleteMemoryFact(fact.id)}
+                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    title="Remover este aprendizado"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+          
+          <div className="mt-6 pt-6 border-t border-slate-100">
+            <button 
+              onClick={() => setShowMemory(false)}
+              className="w-full py-3 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors shadow-lg"
+            >
+              ENTENDIDO
+            </button>
+          </div>
+        </div>
+      )}
+
       <div
         ref={scrollRef}
         className={cn(
@@ -968,6 +1128,19 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               placeholder={selectedImage ? "O que deseja fazer com esta imagem?..." : "Pergunte ao Mat..."}
               className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-800 placeholder:text-slate-400 px-3 py-2.5 resize-none min-h-[40px] max-h-[160px]"
             />
+            <button
+              onClick={optimizePrompt}
+              disabled={!input.trim() || isOptimizing || isLoading}
+              className={cn(
+                "mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0",
+                isOptimizing 
+                  ? "bg-blue-50 text-blue-500 animate-pulse" 
+                  : "text-slate-400 hover:bg-blue-50 hover:text-blue-600"
+              )}
+              title="Otimizar Prompt / Palavras Assertivas"
+            >
+              {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            </button>
             <button
               onClick={toggleListening}
               className={cn(

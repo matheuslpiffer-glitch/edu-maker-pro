@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { RotateCcw, Headphones, Menu, X, Pencil, Trash2, Calendar, MessageSquare, Plus } from 'lucide-react';
+import { RotateCcw, Headphones, Menu, X, Pencil, Trash2, Calendar, MessageSquare, Plus, Brain } from 'lucide-react';
 import MatChatPanel, { MatAvatar } from '@/components/MatChatPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -119,6 +119,21 @@ export default function MatChat() {
           >
             <Plus className="h-4 w-4" />
             Nova conversa
+          </button>
+
+          <button
+            onClick={() => {
+              const chatPanel = document.querySelector('[data-chat-panel]');
+              if (chatPanel) {
+                // We'll need to expose loadMemory through a custom event or shared state
+                const event = new CustomEvent('openMemory');
+                chatPanel.dispatchEvent(event);
+              }
+            }}
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-blue-50 border border-blue-100 rounded-lg text-sm font-bold text-blue-700 hover:bg-blue-100 transition-all shadow-sm mb-6"
+          >
+            <Brain className="h-4 w-4" />
+            O que o Mat aprendeu?
           </button>
 
           <div className="flex-1 overflow-y-auto space-y-6 scrollbar-thin scrollbar-thumb-slate-200">
