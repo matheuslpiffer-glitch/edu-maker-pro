@@ -54,25 +54,6 @@ export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg
 }
 
 export default function MatChatPanel({ fullPage = false, onRegisterReset, className }: MatChatPanelProps) {
-  useEffect(() => {
-    const handleToggle = () => {
-      setIsAutoPlayEnabled(prev => !prev);
-      const toggleBtn = document.getElementById('autoplay-toggle');
-      if (toggleBtn) {
-        const span = toggleBtn.querySelector('div > span');
-        const div = toggleBtn.querySelector('div');
-        if (span && div) {
-          const isActive = div.getAttribute('data-state') === 'active';
-          div.setAttribute('data-state', isActive ? 'inactive' : 'active');
-          span.setAttribute('data-state', isActive ? 'inactive' : 'active');
-        }
-      }
-    };
-    
-    const element = document.querySelector('[data-chat-panel]');
-    element?.addEventListener('toggleAutoPlay', handleToggle);
-    return () => element?.removeEventListener('toggleAutoPlay', handleToggle);
-  }, []);
   const { isStudentMode } = useStudentMode();
   const greeting = isStudentMode ? STUDENT_GREETING : TEACHER_GREETING;
   const [messages, setMessages] = useState<Msg[]>([{ role: 'assistant', content: greeting }]);
@@ -88,6 +69,28 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleToggle = () => {
+      setIsAutoPlayEnabled(prev => {
+        const next = !prev;
+        const toggleBtn = document.getElementById('autoplay-toggle');
+        if (toggleBtn) {
+          const span = toggleBtn.querySelector('div > span');
+          const div = toggleBtn.querySelector('div');
+          if (span && div) {
+            div.setAttribute('data-state', next ? 'active' : 'inactive');
+            span.setAttribute('data-state', next ? 'active' : 'inactive');
+          }
+        }
+        return next;
+      });
+    };
+    
+    const element = document.querySelector('[data-chat-panel]');
+    element?.addEventListener('toggleAutoPlay', handleToggle);
+    return () => element?.removeEventListener('toggleAutoPlay', handleToggle);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
