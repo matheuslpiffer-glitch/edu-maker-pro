@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
@@ -415,98 +415,142 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         )}
       >
         <div className={cn(fullPage ? 'mx-auto w-full max-w-3xl space-y-8' : 'space-y-8')}>
-          {messages.map((msg, i) => (
-            <div key={i} className={cn('flex flex-col gap-2 max-w-[90%]', msg.role === 'user' ? 'ml-auto items-end' : 'mr-auto items-start')}>
-              <div className={cn('flex gap-4 w-full', msg.role === 'user' ? 'flex-row-reverse' : '')}>
-                {msg.role === 'assistant' && <MatAvatar size="sm" />}
-                <div className={cn('text-sm leading-relaxed px-1 py-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100' : 'text-slate-700 w-full')}>
-                  {msg.role === 'assistant' ? (
-                    <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
-                      <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-                        {renderMathAsUnicode(msg.content)}
-                      </ReactMarkdown>
-                    </div>
-                  ) : msg.content}
+          {messages.map((msg, i) => {
+            const videoPromptMatch = msg.content.match(/\[VIDEO_PROMPT:\s*(.*?)\]/);
+            const displayContent = msg.content.replace(/\[VIDEO_PROMPT:.*?\]/g, '').trim();
+            
+            return (
+              <div key={i} className={cn('flex flex-col gap-2 w-full', msg.role === 'user' ? 'items-end' : 'items-start')}>
+                <div className={cn('flex gap-4 w-full max-w-[90%]', msg.role === 'user' ? 'flex-row-reverse' : '')}>
+                  {msg.role === 'assistant' && <MatAvatar size="sm" />}
+                  <div className={cn('text-sm leading-relaxed px-1 py-1 flex-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100 max-w-max' : 'text-slate-700')}>
+                    {msg.role === 'assistant' ? (
+                      <div className="space-y-4">
+                        <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
+                          <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                            {renderMathAsUnicode(displayContent)}
+                          </ReactMarkdown>
+                        </div>
+
+                        {videoPromptMatch && (
+                          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shadow-sm">
+                            <div className="aspect-video bg-slate-900 flex items-center justify-center relative group">
+                              <div className="text-white text-center p-4">
+                                <Video className="h-12 w-12 mx-auto mb-2 opacity-30" />
+                                <p className="text-xs font-bold text-slate-400">VÍDEO EDUCACIONAL (8S)</p>
+                                <p className="text-[10px] text-slate-500 mt-1 italic max-w-[200px] truncate mx-auto">
+                                  {videoPromptMatch[1]}
+                                </p>
+                              </div>
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                                <button className="p-3 bg-white rounded-full text-slate-900 hover:scale-110 transition-transform shadow-lg">
+                                  <Play className="h-6 w-6 fill-current" />
+                                </button>
+                              </div>
+                            </div>
+                            <div className="p-3 flex items-center justify-between border-t border-slate-200 bg-white">
+                              <div className="flex gap-2">
+                                <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-black hover:bg-slate-800 transition-colors">
+                                  <FileDown className="h-3.5 w-3.5" />
+                                  BAIXAR MP4
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
+                                    inputRef.current?.focus();
+                                  }}
+                                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black text-slate-500 hover:bg-slate-50 transition-colors"
+                                >
+                                  <RefreshCw className="h-3.5 w-3.5" />
+                                  GERAR VARIAÇÃO
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : <div className="whitespace-pre-wrap">{msg.content}</div>}
+                  </div>
                 </div>
-              </div>
 
-              {/* Action Buttons for Assistant Messages */}
-              {msg.role === 'assistant' && msg.content.length > 5 && (
-                <div className="flex flex-wrap gap-2 mt-1 ml-12 no-print">
-                  <button 
-                    onClick={() => speak(msg.content, i)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all shadow-sm bg-white",
-                      speakingMsgIndex === i 
-                        ? "border-blue-200 bg-blue-50 text-blue-600 ring-1 ring-blue-100" 
-                        : "border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300"
-                    )}
-                  >
-                    {speakingMsgIndex === i ? (
-                      <>
-                        <Square className="h-3.5 w-3.5 fill-current" />
-                        PARAR LEITURA
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 className="h-3.5 w-3.5" />
-                        OUVIR RESPOSTA
-                      </>
-                    )}
-                  </button>
+                {/* Action Buttons for Assistant Messages */}
+                {msg.role === 'assistant' && msg.content.length > 5 && (
+                  <div className="flex flex-wrap gap-2 mt-1 ml-12 no-print">
+                    <button 
+                      onClick={() => speak(msg.content, i)}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all shadow-sm bg-white",
+                        speakingMsgIndex === i 
+                          ? "border-blue-200 bg-blue-50 text-blue-600 ring-1 ring-blue-100" 
+                          : "border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300"
+                      )}
+                    >
+                      {speakingMsgIndex === i ? (
+                        <>
+                          <Square className="h-3.5 w-3.5 fill-current" />
+                          PARAR LEITURA
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="h-3.5 w-3.5" />
+                          OUVIR RESPOSTA
+                        </>
+                      )}
+                    </button>
 
-                  <button 
-                    onClick={() => copyToClipboard(msg.content, i)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
-                  >
-                    {copiedIndex === i ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-green-500" />
-                        COPIADO!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5" />
-                        COPIAR TEXTO
-                      </>
-                    )}
-                  </button>
+                    <button 
+                      onClick={() => copyToClipboard(msg.content, i)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                    >
+                      {copiedIndex === i ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-green-500" />
+                          COPIADO!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          COPIAR TEXTO
+                        </>
+                      )}
+                    </button>
 
-                  <button 
-                    onClick={() => downloadAsPdf(msg.content)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
-                  >
-                    <FileDown className="h-3.5 w-3.5 text-blue-500" />
-                    BAIXAR PDF / DOCX
-                  </button>
-                  
-                  {(msg.content.includes('|') || msg.content.includes('<table>')) && (
+                    <button 
+                      onClick={() => downloadAsPdf(msg.content)}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                    >
+                      <FileDown className="h-3.5 w-3.5 text-blue-500" />
+                      BAIXAR PDF / DOCX
+                    </button>
+                    
+                    {(msg.content.includes('|') || msg.content.includes('<table>')) && (
+                      <button 
+                        onClick={() => {
+                          setInput(`Converta as tabelas da resposta anterior em formato CSV/Excel pronto para exportação.`);
+                          inputRef.current?.focus();
+                        }}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                      >
+                        <FileSpreadsheet className="h-3.5 w-3.5 text-green-500" />
+                        EXPORTAR TABELA
+                      </button>
+                    )}
+
                     <button 
                       onClick={() => {
-                        setInput(`Converta as tabelas da resposta anterior em formato CSV/Excel pronto para exportação.`);
+                        setInput(`Reorganize o conteúdo acima em um roteiro estruturado para slides de apresentação.`);
                         inputRef.current?.focus();
                       }}
                       className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
                     >
-                      <FileSpreadsheet className="h-3.5 w-3.5 text-green-500" />
-                      EXPORTAR TABELA
+                      <Presentation className="h-3.5 w-3.5 text-orange-500" />
+                      ROTEIRO DE SLIDES
                     </button>
-                  )}
-
-                  <button 
-                    onClick={() => {
-                      setInput(`Reorganize o conteúdo acima em um roteiro estruturado para slides de apresentação.`);
-                      inputRef.current?.focus();
-                    }}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
-                  >
-                    <Presentation className="h-3.5 w-3.5 text-orange-500" />
-                    ROTEIRO DE SLIDES
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {isLoading && messages[messages.length - 1]?.role === 'user' && (
             <div className="flex gap-4">
               <MatAvatar size="sm" />
@@ -532,6 +576,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                 { label: '♿ Gerar PEI / Adaptação', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
                 { label: '📊 Diagnóstico de Planilha', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
                 { label: '👥 Simulador de Gestão', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
+                { label: '🎥 Vídeo Educacional (8s)', text: 'Crie um vídeo educacional cinematográfico de 8 segundos sobre: [digite o tema aqui]' },
               ].map((chip) => (
                 <button
                   key={chip.label}
