@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import * as Popover from '@radix-ui/react-popover';
 import { cn } from '@/lib/utils';
 import { latexToUnicode } from '@/lib/latex-to-unicode';
 import defaultAvatar from '@/assets/mat-avatar-closeup.png';
@@ -38,15 +39,15 @@ export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg
   const src = customAvatar || defaultAvatar;
   
   // Custom sizing and styling for MAT avatar per request: 
-  // width: 52px; height: auto; object-fit: contain; filter: drop-shadow(0px 3px 6px rgba(0, 0, 0, 0.12));
-  const dim = size === 'lg' ? 'w-[52px]' : size === 'md' ? 'w-10' : 'w-8';
+  // width: 54px; height: auto; object-fit: contain; filter: drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.15));
+  const dim = size === 'lg' ? 'w-[54px]' : size === 'md' ? 'w-10' : 'w-8';
   
   return (
     <div className={cn(dim, 'shrink-0 flex items-center justify-center', className)}>
       <img 
         src={src} 
         alt="Mat" 
-        className="w-full h-auto object-contain filter drop-shadow-[0px_3px_6px_rgba(0,0,0,0.12)]" 
+        className="w-full h-auto object-contain filter drop-shadow-[0px_2px_5px_rgba(0,0,0,0.15)]" 
       />
     </div>
   );
@@ -379,33 +380,65 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               onChange={handleFileUpload}
               accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
             />
-            <button
-              onClick={() => {
-                if (fileInputRef.current) {
-                  fileInputRef.current.accept = ".png,.jpg,.jpeg,.webp";
-                  fileInputRef.current.click();
-                }
-              }}
-              disabled={isLoading || isUploading}
-              className="mb-1 h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex items-center justify-center transition-colors shrink-0"
-              title="Subir foto (PNG, JPG)"
-            >
-              <ImageIcon className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => {
-                if (fileInputRef.current) {
-                  fileInputRef.current.accept = ".pdf,.docx,.txt,.csv,.xlsx";
-                  fileInputRef.current.click();
-                }
-              }}
-              disabled={isLoading || isUploading}
-              className="mb-1 h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex items-center justify-center transition-colors shrink-0"
-              title="Subir documento (PDF, DOCX, TXT, CSV, XLSX)"
-            >
-              <FileUp className="h-5 w-5" />
-            </button>
-              {isUploading && <Loader2 className="h-4 w-4 animate-spin text-slate-400 mb-2 ml-1" />}
+            <Popover.Root>
+              <Popover.Trigger asChild>
+                <button
+                  disabled={isLoading || isUploading}
+                  className="mb-1 h-8 w-8 rounded-lg text-slate-500 hover:bg-slate-200 hover:text-slate-900 flex items-center justify-center transition-colors shrink-0 bg-slate-100 border border-slate-200"
+                  title="Anexar arquivos"
+                >
+                  <Plus className="h-5 w-5" />
+                </button>
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Content 
+                  className="z-50 w-56 bg-white rounded-xl shadow-xl border border-slate-200 p-2 animate-in fade-in zoom-in duration-200"
+                  sideOffset={8}
+                  align="start"
+                >
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => {
+                        if (fileInputRef.current) {
+                          fileInputRef.current.accept = ".png,.jpg,.jpeg,.webp";
+                          fileInputRef.current.click();
+                        }
+                      }}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <ImageIcon className="h-4 w-4 text-blue-500" />
+                      <span>🖼️ Enviar Imagem / Foto</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (fileInputRef.current) {
+                          fileInputRef.current.accept = ".pdf,.docx,.txt";
+                          fileInputRef.current.click();
+                        }
+                      }}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <FileText className="h-4 w-4 text-orange-500" />
+                      <span>📄 Enviar Documento (PDF...)</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (fileInputRef.current) {
+                          fileInputRef.current.accept = ".csv,.xlsx";
+                          fileInputRef.current.click();
+                        }
+                      }}
+                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <FileSpreadsheet className="h-4 w-4 text-green-500" />
+                      <span>📊 Enviar Planilha (CSV...)</span>
+                    </button>
+                  </div>
+                  <Popover.Arrow className="fill-white" />
+                </Popover.Content>
+              </Popover.Portal>
+            </Popover.Root>
+            {isUploading && <Loader2 className="h-4 w-4 animate-spin text-slate-400 mb-2 ml-1" />}
             <textarea
               ref={inputRef}
               rows={1}

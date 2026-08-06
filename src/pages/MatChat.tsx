@@ -17,7 +17,7 @@ export default function MatChat() {
           <div className="flex items-center gap-4">
             <MatAvatar size="lg" />
             <div className="flex flex-col justify-center">
-              <h1 className="text-xl font-bold text-slate-900 leading-tight">Fale com o Mat</h1>
+              <h1 className="text-xl font-bold text-slate-900 leading-tight">Pergunte ao Mat</h1>
               <p className="text-xs text-slate-500 font-medium leading-tight">
                 Consultor pedagógico digital do EduCreator Pro
               </p>
