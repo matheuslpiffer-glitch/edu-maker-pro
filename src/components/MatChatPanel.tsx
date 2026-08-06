@@ -469,7 +469,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                           </div>
                         )}
                       </div>
-                    ) : msg.content}
+                    ) : <div className="whitespace-pre-wrap">{msg.content}</div>}
                   </div>
                 </div>
 
