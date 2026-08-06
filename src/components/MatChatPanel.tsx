@@ -627,7 +627,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                 <button 
                                   onClick={() => {
                                     if (videoStatus[i]?.url) {
-                                      const lang = prompt("Escolha o idioma do vídeo (PT-BR, EN-US, ES):", "PT-BR");
+                                      const lang = prompt("Escolha o idioma do vídeo (Português (PT-BR), Inglês (EN-US), Espanhol (ES)):", "Português (PT-BR)");
                                       if (lang) {
                                         generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
                                       }
