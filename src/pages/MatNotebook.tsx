@@ -97,9 +97,9 @@ export default function MatNotebook() {
   }, [chat]);
 
   const loadNotebooks = async () => {
-    const { data, error } = await supabase
-      .from('mat_notebooks')
-      .select('*')
+    const { data, error } = await (supabase
+      .from('mat_notebooks' as any)
+      .select('*') as any)
       .order('created_at', { ascending: false });
     
     if (!error && data) {
