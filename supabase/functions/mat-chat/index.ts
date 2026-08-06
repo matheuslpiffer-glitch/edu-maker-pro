@@ -84,6 +84,17 @@ serve(async (req) => {
       }
     }
 
+    // Fetch user pedagogical memory
+    const { data: memoryData } = await supabase
+      .from('user_pedagogical_memory')
+      .select('memory_fact')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    const pedagogicalContext = memoryData && memoryData.length > 0
+      ? `\n\nCONTEXTO DO EDUCADOR (MEMÓRIA): \n${memoryData.map(m => `- ${m.memory_fact}`).join('\n')}\nUtilize este contexto para personalizar suas respostas.`
+      : "";
+
     const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
@@ -93,7 +104,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: SYSTEM_PROMPT + pedagogicalContext },
           ...processedMessages,
         ],
         stream: true,
