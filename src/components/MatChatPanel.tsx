@@ -526,6 +526,12 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             const videoPromptMatch = msg.content.match(/\[VIDEO_PROMPT:\s*(.*?)\]/);
             const displayContent = msg.content.replace(/\[VIDEO_PROMPT:.*?\]/g, '').trim();
             
+            // Extrair legenda e roteiro se for uma resposta de vídeo
+            const overlayTextMatch = msg.content.match(/📝 \*\*Legenda \/ Texto da Tela:\*\* (.*?)(\n|$)/);
+            const narrationMatch = msg.content.match(/🎙️ \*\*Roteiro da Narração \(10s\):\*\* (.*?)(\n|$)/s);
+            const overlayText = overlayTextMatch ? overlayTextMatch[1] : '';
+            const narrationText = narrationMatch ? narrationMatch[1] : '';
+
             return (
               <div key={i} className={cn('flex flex-col gap-2 w-full', msg.role === 'user' ? 'items-end' : 'items-start')}>
                 <div className={cn('flex gap-4 w-full max-w-[90%]', msg.role === 'user' ? 'flex-row-reverse' : '')}>
@@ -545,22 +551,31 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                               {videoStatus[i]?.loading ? (
                                 <div className="text-white text-center p-4 animate-pulse">
                                   <Loader2 className="h-12 w-12 mx-auto mb-3 text-blue-400 animate-spin" />
-                                  <p className="text-xs font-bold text-slate-300">🎥 O Mat está gerando seu vídeo educacional de 8 segundos...</p>
+                                  <p className="text-xs font-bold text-slate-300">🎥 O Mat está gerando seu vídeo educacional de 10 segundos...</p>
                                   <p className="text-[10px] text-slate-500 mt-2 italic">Isso pode levar de 30 a 60 segundos.</p>
                                 </div>
                               ) : videoStatus[i]?.url ? (
-                                <video 
-                                  src={videoStatus[i].url} 
-                                  controls 
-                                  autoPlay 
-                                  loop 
-                                  className="w-full h-full object-cover"
-                                />
+                                <div className="relative w-full h-full">
+                                  <video 
+                                    src={videoStatus[i].url} 
+                                    controls 
+                                    autoPlay 
+                                    loop 
+                                    className="w-full h-full object-cover"
+                                  />
+                                  {overlayText && (
+                                    <div className="absolute top-4 left-0 right-0 flex justify-center px-4 pointer-events-none">
+                                      <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 text-white text-sm font-bold shadow-xl animate-in fade-in duration-500">
+                                        {overlayText}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               ) : (
                                 <>
                                   <div className="text-white text-center p-4">
                                     <Video className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">VÍDEO EDUCACIONAL (8S)</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">VÍDEO EDUCACIONAL (10S)</p>
                                     <p className="text-[10px] text-slate-500 mt-1 italic max-w-[240px] truncate mx-auto">
                                       {videoPromptMatch[1]}
                                     </p>
@@ -568,7 +583,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                     <button 
                                       onClick={() => {
-                                        const lang = prompt("Escolha o idioma do vídeo (PT-BR, EN-US, ES):", "PT-BR");
+                                        const lang = prompt("Escolha o idioma do vídeo (Português (PT-BR), Inglês (EN-US), Espanhol (ES)):", "Português (PT-BR)");
                                         if (lang) {
                                           generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
                                         }
@@ -583,21 +598,36 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                               )}
                             </div>
                             <div className="p-3 flex items-center justify-between border-t border-slate-200 bg-white">
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 items-center">
                                 {videoStatus[i]?.url && (
-                                  <a 
-                                    href={videoStatus[i].url}
-                                    download="mat-video-educacional.mp4"
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-black hover:bg-slate-800 transition-colors"
-                                  >
-                                    <FileDown className="h-3.5 w-3.5" />
-                                    BAIXAR MP4
-                                  </a>
+                                  <>
+                                    <a 
+                                      href={videoStatus[i].url}
+                                      download="mat-video-educacional.mp4"
+                                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-black hover:bg-slate-800 transition-colors"
+                                    >
+                                      <FileDown className="h-3.5 w-3.5" />
+                                      BAIXAR MP4
+                                    </a>
+                                    {narrationText && (
+                                      <button 
+                                        onClick={() => {
+                                          const utterance = new SpeechSynthesisUtterance(narrationText);
+                                          utterance.lang = 'pt-BR';
+                                          window.speechSynthesis.speak(utterance);
+                                        }}
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-[10px] font-black hover:bg-blue-700 transition-colors"
+                                      >
+                                        <Headphones className="h-3.5 w-3.5" />
+                                        OUVIR NARRAÇÃO (PT-BR)
+                                      </button>
+                                    )}
+                                  </>
                                 )}
                                 <button 
                                   onClick={() => {
                                     if (videoStatus[i]?.url) {
-                                      const lang = prompt("Escolha o idioma do vídeo (PT-BR, EN-US, ES):", "PT-BR");
+                                      const lang = prompt("Escolha o idioma do vídeo (Português (PT-BR), Inglês (EN-US), Espanhol (ES)):", "Português (PT-BR)");
                                       if (lang) {
                                         generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
                                       }
@@ -723,7 +753,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                 { label: '♿ Gerar PEI / Adaptação', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
                 { label: '📊 Diagnóstico de Planilha', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
                 { label: '👥 Simulador de Gestão', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
-                { label: '🎥 Vídeo Educacional (8s)', text: 'Crie um vídeo educacional cinematográfico de 8 segundos sobre: [digite o tema aqui]' },
+                { label: '🎥 Vídeo Educacional (10s)', text: 'Crie um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR) sobre: [digite o tema aqui]' },
               ].map((chip) => (
                 <button
                   key={chip.label}
