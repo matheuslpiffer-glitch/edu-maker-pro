@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
@@ -9,6 +9,8 @@ import defaultAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { supabase } from '@/integrations/supabase/client';
+import { format, isToday, isYesterday, subDays, startOfDay } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -31,6 +33,8 @@ interface MatChatPanelProps {
   /** Exposes the reset handler to the parent (header buttons) */
   onRegisterReset?: (reset: () => void) => void;
   className?: string;
+  sessionId?: string | null;
+  onSessionChange?: (id: string | null) => void;
 }
 
 /** Shared avatar — shows the whole picture (PNG transparent, no border) */
@@ -53,10 +57,11 @@ export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg
   );
 }
 
-export default function MatChatPanel({ fullPage = false, onRegisterReset, className }: MatChatPanelProps) {
+export default function MatChatPanel({ fullPage = false, onRegisterReset, className, sessionId, onSessionChange }: MatChatPanelProps) {
   const { isStudentMode } = useStudentMode();
   const greeting = isStudentMode ? STUDENT_GREETING : TEACHER_GREETING;
   const [messages, setMessages] = useState<Msg[]>([{ role: 'assistant', content: greeting }]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -70,6 +75,41 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+
+  // Sync with prop if it changes
+  useEffect(() => {
+    if (sessionId !== undefined && sessionId !== currentSessionId) {
+      setCurrentSessionId(sessionId);
+      if (sessionId) {
+        loadSessionMessages(sessionId);
+      } else {
+        setMessages([{ role: 'assistant', content: greeting }]);
+      }
+    }
+  }, [sessionId, greeting]);
+
+  const loadSessionMessages = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('role, content')
+        .eq('session_id', id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setMessages(data as Msg[]);
+      } else {
+        setMessages([{ role: 'assistant', content: greeting }]);
+      }
+    } catch (err) {
+      console.error('Error loading messages:', err);
+      // Fallback to localStorage if offline logic could go here
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const handleToggle = () => {
@@ -199,7 +239,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
   const reset = useCallback(() => {
     setMessages([{ role: 'assistant', content: greeting }]);
-  }, [greeting]);
+    setCurrentSessionId(null);
+    onSessionChange?.(null);
+  }, [greeting, onSessionChange]);
 
   useEffect(() => {
     onRegisterReset?.(reset);
@@ -214,6 +256,40 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     setMessages(newMessages);
     setInput('');
     setIsLoading(true);
+
+    const { data: { session: authSession } } = await supabase.auth.getSession();
+    const userId = authSession?.user?.id;
+    let sessionIdToUse = currentSessionId;
+
+    // Create session if it doesn't exist
+    if (!sessionIdToUse && userId) {
+      try {
+        const { data, error } = await supabase
+          .from('chat_sessions')
+          .insert({ 
+            user_id: userId, 
+            title: text.substring(0, 50) + (text.length > 50 ? '...' : '') 
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        sessionIdToUse = data.id;
+        setCurrentSessionId(data.id);
+        onSessionChange?.(data.id);
+      } catch (err) {
+        console.error('Error creating session:', err);
+      }
+    }
+
+    // Save user message to DB
+    if (sessionIdToUse) {
+      supabase.from('chat_messages').insert({
+        session_id: sessionIdToUse,
+        role: 'user',
+        content: text
+      }).then(({ error }) => error && console.error('Error saving user msg:', error));
+    }
 
     let assistantSoFar = '';
     const upsertAssistant = (chunk: string) => {
@@ -310,16 +386,25 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       }
     }
 
+    // Save assistant message to DB
+    if (sessionIdToUse && assistantSoFar) {
+      supabase.from('chat_messages').insert({
+        session_id: sessionIdToUse,
+        role: 'assistant',
+        content: assistantSoFar
+      }).then(({ error }) => error && console.error('Error saving assistant msg:', error));
+    }
+
     setIsLoading(false);
     inputRef.current?.focus();
   }, [input, isLoading, messages, isAutoPlayEnabled, speak]);
 
-  const generateVideo = useCallback(async (prompt: string, index: number) => {
+  const generateVideo = useCallback(async (prompt: string, index: number, language: string = 'PT-BR') => {
     setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-video', {
-        body: { prompt },
+        body: { prompt, duration: 10, language },
       });
       if (error) throw error;
       if (!data?.url) throw new Error(data?.error || 'Falha ao gerar vídeo');
@@ -482,11 +567,16 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                   </div>
                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                                     <button 
-                                      onClick={() => generateVideo(videoPromptMatch[1], i)}
+                                      onClick={() => {
+                                        const lang = prompt("Escolha o idioma do vídeo (PT-BR, EN-US, ES):", "PT-BR");
+                                        if (lang) {
+                                          generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
+                                        }
+                                      }}
                                       className="p-3 bg-white rounded-full text-slate-900 hover:scale-110 transition-transform shadow-lg flex items-center gap-2"
                                     >
                                       <Play className="h-6 w-6 fill-current" />
-                                      <span className="text-xs font-bold pr-1">GERAR VÍDEO</span>
+                                      <span className="text-xs font-bold pr-1">GERAR VÍDEO (10s)</span>
                                     </button>
                                   </div>
                                 </>
@@ -507,7 +597,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                 <button 
                                   onClick={() => {
                                     if (videoStatus[i]?.url) {
-                                      generateVideo(videoPromptMatch[1], i);
+                                      const lang = prompt("Escolha o idioma do vídeo (PT-BR, EN-US, ES):", "PT-BR");
+                                      if (lang) {
+                                        generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
+                                      }
                                     } else {
                                       setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
                                       inputRef.current?.focus();
