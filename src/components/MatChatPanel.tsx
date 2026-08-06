@@ -523,25 +523,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
   };
 
-  const loadMemory = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.id) return;
-
-    const { data, error } = await supabase
-      .from('user_pedagogical_memory')
-      .select('id, memory_fact')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setUserMemory(data);
-      setShowMemory(true);
-    }
-  };
-
   const deleteMemoryFact = async (id: string) => {
     const { error } = await supabase
-      .from('user_pedagogical_memory')
+      .from('user_pedagogical_memory' as any)
       .delete()
       .eq('id', id);
     
