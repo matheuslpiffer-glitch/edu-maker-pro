@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { X, Settings, Maximize2 } from 'lucide-react';
-import defaultAvatar from '@/assets/mat-avatar-closeup.png';
+import defaultAvatar from '@/assets/mat-avatar-3d.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
 import MatAvatarEditor from '@/components/MatAvatarEditor';
 import MatAvatarArtwork from '@/components/MatAvatarArtwork';
