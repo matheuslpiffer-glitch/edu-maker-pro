@@ -21,6 +21,7 @@ export default function MatChatbot() {
   const { customAvatar, zoom, offsetX, offsetY, saveAvatar, clearAvatar } = useMatAvatar();
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const avatarSrc = customAvatar || defaultAvatar;
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const { isStudentMode } = useStudentMode();
   const [messages, setMessages] = useState<Msg[]>([
