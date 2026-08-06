@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
@@ -60,9 +60,11 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -71,6 +73,66 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        if (finalTranscript || interimTranscript) {
+          setInput(prev => {
+            const newVal = prev + (finalTranscript || interimTranscript);
+            // Adjust textarea height
+            if (inputRef.current) {
+              inputRef.current.style.height = 'auto';
+              inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 160)}px`;
+            }
+            return newVal;
+          });
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleListening = useCallback(() => {
+    if (!recognitionRef.current) {
+      alert('Seu navegador não suporta reconhecimento de voz.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      setIsListening(true);
+      recognitionRef.current.start();
+    }
+  }, [isListening]);
 
   const reset = useCallback(() => {
     setMessages([{ role: 'assistant', content: greeting }]);
@@ -457,6 +519,18 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               placeholder="Pergunte ao Mat..."
               className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-800 placeholder:text-slate-400 px-3 py-2.5 resize-none min-h-[40px] max-h-[160px]"
             />
+            <button
+              onClick={toggleListening}
+              className={cn(
+                "mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0",
+                isListening 
+                  ? "bg-red-50 text-red-500 animate-pulse ring-2 ring-red-200" 
+                  : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              )}
+              title={isListening ? "Parar de ouvir" : "Ditar mensagem"}
+            >
+              <Mic className={cn("h-4 w-4", isListening && "fill-red-500")} />
+            </button>
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
