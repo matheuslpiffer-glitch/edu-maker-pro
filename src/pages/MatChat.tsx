@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { RotateCcw, Headphones, Menu, X, Pencil, Trash2, Calendar, MessageSquare, Plus } from 'lucide-react';
+import { RotateCcw, Headphones, Menu, X, Pencil, Trash2, Calendar, MessageSquare, Plus, Brain } from 'lucide-react';
 import MatChatPanel, { MatAvatar } from '@/components/MatChatPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
