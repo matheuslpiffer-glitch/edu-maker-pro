@@ -16,11 +16,22 @@ export default function MatChat() {
         <div className="flex items-center gap-4">
           <MatAvatar size="lg" />
           <div className="flex flex-col justify-center h-[52px]">
-            <h1 className="text-lg font-bold text-slate-900 leading-tight">Fale com o Mat</h1>
-            <p className="text-xs text-slate-500 font-medium leading-tight">
-              Consultor pedagógico digital do EduCreator Pro
+            <h1 className="text-lg font-bold text-slate-900 leading-tight">MAT</h1>
+            <p className="text-[10px] text-slate-500 font-medium leading-tight">
+              Copiloto de IA Pedagógica
             </p>
           </div>
+        </div>
+        <div className="flex-1 max-w-xs mx-4">
+          <select 
+            className="w-full bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-600 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-300 transition-all"
+            defaultValue="Anos Finais"
+          >
+            <option>Educação Infantil</option>
+            <option>Anos Iniciais</option>
+            <option>Anos Finais</option>
+            <option>Ensino Médio / EJA / Técnico</option>
+          </select>
         </div>
         <button
           onClick={() => { resetRef.current?.(); setResetKey(k => k + 1); }}
