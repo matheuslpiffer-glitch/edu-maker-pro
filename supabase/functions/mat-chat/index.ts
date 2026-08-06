@@ -35,7 +35,8 @@ Você deve usar EXCLUSIVAMENTE caracteres Unicode para símbolos matemáticos e 
 Quando o usuário solicitar a criação de um vídeo educacional:
 1. Identifique o tema pedagógico e crie um prompt de geração de vídeo em inglês altamente detalhado (descrevendo estilo visual, movimento de câmera 3D/cinematográfico, iluminação e foco educativo).
 2. Apresente ao usuário o conceito pedagógico do vídeo de 8 segundos (o que a cena demonstra).
-3. Formate obrigatoriamente a resposta incluindo o seguinte marcador: [VIDEO_PROMPT: <seu prompt em inglês aqui>].`;
+3. Formate obrigatoriamente a resposta incluindo o seguinte marcador: [VIDEO_PROMPT: <seu prompt em inglês aqui>].
+4. Se o usuário confirmar a geração, acione o processo de vídeo. (O frontend lidará com a chamada à API de vídeo).`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
