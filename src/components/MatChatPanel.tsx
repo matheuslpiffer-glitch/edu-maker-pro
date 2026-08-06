@@ -314,12 +314,12 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     inputRef.current?.focus();
   }, [input, isLoading, messages, isAutoPlayEnabled, speak]);
 
-  const generateVideo = useCallback(async (prompt: string, index: number) => {
+  const generateVideo = useCallback(async (prompt: string, index: number, language: string = 'PT-BR') => {
     setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
     
     try {
       const { data, error } = await supabase.functions.invoke('generate-video', {
-        body: { prompt },
+        body: { prompt, duration: 10, language },
       });
       if (error) throw error;
       if (!data?.url) throw new Error(data?.error || 'Falha ao gerar vídeo');
