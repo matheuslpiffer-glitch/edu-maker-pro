@@ -62,6 +62,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [messages, setMessages] = useState<Msg[]>([{ role: 'assistant', content: greeting }]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
   const [input, setInput] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -250,12 +251,16 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
-    if (!text || isLoading) return;
+    if ((!text && !selectedImage) || isLoading) return;
 
-    const userMsg: Msg = { role: 'user', content: text };
+    const userMsg: Msg = { 
+      role: 'user', 
+      content: selectedImage ? `${text}\n\n[IMAGE_ATTACHED: ${selectedImage.substring(0, 50)}...]` : text 
+    };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
+    setSelectedImage(null);
     setIsLoading(true);
 
     const { data: { session: authSession } } = await supabase.auth.getSession();
@@ -336,7 +341,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify({ messages: newMessages }),
+          body: JSON.stringify({ 
+            messages: newMessages,
+            image: selectedImage // Sending the selected image for vision analysis
+          }),
         });
 
         if (resp.status === 429 || resp.status === 402) {
@@ -823,14 +831,55 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             </div>
           )}
 
-          <div className="relative flex items-end gap-2 bg-slate-50 rounded-2xl border border-slate-200 focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-300 transition-all p-2">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              onChange={handleFileUpload}
-              accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
-            />
+          <div 
+            className="relative flex flex-col bg-slate-50 rounded-2xl border border-slate-200 focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-300 transition-all p-2"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.add('bg-slate-100');
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove('bg-slate-100');
+            }}
+            onDrop={async (e) => {
+              e.preventDefault();
+              e.currentTarget.classList.remove('bg-slate-100');
+              const file = e.dataTransfer.files?.[0];
+              if (file && file.type.startsWith('image/')) {
+                const base64 = await new Promise<string>((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result as string);
+                  reader.readAsDataURL(file);
+                });
+                setSelectedImage(base64);
+              }
+            }}
+          >
+            {selectedImage && (
+              <div className="flex px-3 pt-2">
+                <div className="relative group">
+                  <img 
+                    src={selectedImage} 
+                    alt="Preview" 
+                    className="w-12 h-12 rounded-lg object-cover border border-slate-200 shadow-sm"
+                  />
+                  <button
+                    onClick={() => setSelectedImage(null)}
+                    className="absolute -top-2 -right-2 bg-white text-slate-900 rounded-full p-1 shadow-md border border-slate-200 hover:bg-slate-100 transition-colors"
+                  >
+                    <Plus className="h-3 w-3 rotate-45" />
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="relative flex items-end gap-2 w-full">
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                onChange={handleFileUpload}
+                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
+              />
             <Popover.Root>
               <Popover.Trigger asChild>
                 <button
@@ -852,13 +901,24 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                       onClick={() => {
                         if (fileInputRef.current) {
                           fileInputRef.current.accept = ".png,.jpg,.jpeg,.webp";
+                          fileInputRef.current.onchange = async (e: any) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const base64 = await new Promise<string>((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result as string);
+                                reader.readAsDataURL(file);
+                              });
+                              setSelectedImage(base64);
+                            }
+                          };
                           fileInputRef.current.click();
                         }
                       }}
                       className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
                     >
                       <ImageIcon className="h-4 w-4 text-blue-500" />
-                      <span>🖼️ Enviar Imagem / Foto</span>
+                      <span>🖼️ Anexar Imagem para o Vídeo / Roteiro</span>
                     </button>
                     <button
                       onClick={() => {
@@ -905,7 +965,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                   sendMessage();
                 }
               }}
-              placeholder="Pergunte ao Mat..."
+              placeholder={selectedImage ? "O que deseja fazer com esta imagem?..." : "Pergunte ao Mat..."}
               className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-800 placeholder:text-slate-400 px-3 py-2.5 resize-none min-h-[40px] max-h-[160px]"
             />
             <button
@@ -922,12 +982,13 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             </button>
             <button
               onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
+              disabled={(!input.trim() && !selectedImage) || isLoading}
               className="mb-1 h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors disabled:opacity-20 disabled:cursor-not-allowed shrink-0"
               aria-label="Enviar mensagem"
             >
               <Send className="h-4 w-4" />
             </button>
+            </div>
           </div>
           <p className="text-center text-[10px] text-slate-400 mt-3 font-medium">
             O Mat pode cometer erros. Verifique informações importantes.
