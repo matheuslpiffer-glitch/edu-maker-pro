@@ -405,8 +405,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             >
               <FileUp className="h-5 w-5" />
             </button>
-              {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
-            </button>
+              {isUploading && <Loader2 className="h-4 w-4 animate-spin text-slate-400 mb-2 ml-1" />}
             <textarea
               ref={inputRef}
               rows={1}
