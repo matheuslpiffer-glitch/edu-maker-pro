@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { X, Send, Settings, HelpCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,12 @@ export default function MatChatbot() {
   useEffect(() => {
     if (open && inputRef.current) inputRef.current.focus();
   }, [open]);
+
+  useEffect(() => {
+    if (location.pathname === '/mat-chat') {
+      setOpen(true);
+    }
+  }, [location.pathname]);
 
   const sendMessage = useCallback(async () => {
     const text = input.trim();
