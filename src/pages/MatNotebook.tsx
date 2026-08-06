@@ -162,12 +162,12 @@ export default function MatNotebook() {
       const file = files[i];
       // Logic for upload to storage and text extraction would go here
       // Mocking source insertion:
-      await supabase.from('notebook_sources').insert({
+      await (supabase.from('notebook_sources' as any).insert({
         notebook_id: activeNotebook.id,
         title: file.name,
         type: file.name.split('.').pop() || 'txt',
         is_active: true
-      });
+      } as any));
     }
     loadNotebookContent(activeNotebook.id);
     setIsUploading(false);
