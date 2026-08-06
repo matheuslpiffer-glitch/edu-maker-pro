@@ -278,58 +278,56 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       >
         <div className={cn(fullPage ? 'mx-auto w-full max-w-3xl space-y-8' : 'space-y-8')}>
           {messages.map((msg, i) => (
-            <div key={i} className={cn('flex gap-4 max-w-[90%]', msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto')}>
-              {msg.role === 'assistant' && <MatAvatar size="sm" />}
-              <div className={cn('text-sm leading-relaxed px-1 py-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3' : 'text-slate-700 w-full')}>
-                {msg.role === 'assistant' ? (
-                  <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
-                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-                      {renderMathAsUnicode(msg.content)}
-                    </ReactMarkdown>
-                    {msg.content.length > 100 && (
-                      <div className="mt-4 flex flex-wrap gap-2 no-print">
-                        <button 
-                          onClick={() => downloadAsPdf(msg.content)}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-                        >
-                          <FileDown className="h-3.5 w-3.5 text-blue-500" />
-                          Baixar Word/PDF
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setInput(`Gere uma planilha Excel/CSV baseada no conteúdo acima.`);
-                            inputRef.current?.focus();
-                          }}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-                        >
-                          <FileSpreadsheet className="h-3.5 w-3.5 text-green-500" />
-                          Exportar Excel/CSV
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setInput(`Crie uma estrutura de slides para este conteúdo.`);
-                            inputRef.current?.focus();
-                          }}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-                        >
-                          <Presentation className="h-3.5 w-3.5 text-orange-500" />
-                          Estrutura de Slides
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setInput(`Crie um resumo pedagógico estruturado com base no conteúdo acima.`);
-                            inputRef.current?.focus();
-                          }}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
-                        >
-                          <FileText className="h-3.5 w-3.5 text-indigo-500" />
-                          Resumo
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : msg.content}
+            <div key={i} className={cn('flex flex-col gap-2 max-w-[90%]', msg.role === 'user' ? 'ml-auto items-end' : 'mr-auto items-start')}>
+              <div className={cn('flex gap-4 w-full', msg.role === 'user' ? 'flex-row-reverse' : '')}>
+                {msg.role === 'assistant' && <MatAvatar size="sm" />}
+                <div className={cn('text-sm leading-relaxed px-1 py-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100' : 'text-slate-700 w-full')}>
+                  {msg.role === 'assistant' ? (
+                    <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
+                      <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                        {renderMathAsUnicode(msg.content)}
+                      </ReactMarkdown>
+                    </div>
+                  ) : msg.content}
+                </div>
               </div>
+
+              {/* Action Buttons for Assistant Messages */}
+              {msg.role === 'assistant' && msg.content.length > 50 && (
+                <div className="flex flex-wrap gap-2 mt-1 ml-12 no-print">
+                  <button 
+                    onClick={() => downloadAsPdf(msg.content)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                  >
+                    <FileDown className="h-3.5 w-3.5 text-blue-500" />
+                    BAIXAR PDF / DOCX
+                  </button>
+                  
+                  {(msg.content.includes('|') || msg.content.includes('<table>')) && (
+                    <button 
+                      onClick={() => {
+                        setInput(`Converta as tabelas da resposta anterior em formato CSV/Excel pronto para exportação.`);
+                        inputRef.current?.focus();
+                      }}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                    >
+                      <FileSpreadsheet className="h-3.5 w-3.5 text-green-500" />
+                      EXPORTAR TABELA
+                    </button>
+                  )}
+
+                  <button 
+                    onClick={() => {
+                      setInput(`Reorganize o conteúdo acima em um roteiro estruturado para slides de apresentação.`);
+                      inputRef.current?.focus();
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
+                  >
+                    <Presentation className="h-3.5 w-3.5 text-orange-500" />
+                    ROTEIRO DE SLIDES
+                  </button>
+                </div>
+              )}
             </div>
           ))}
           {isLoading && messages[messages.length - 1]?.role === 'user' && (
@@ -354,8 +352,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                 { label: '📄 Resumir Documento', text: 'Resuma este documento focando nos pontos pedagógicos e objetivos de aprendizagem.' },
                 { label: '✨ Melhore este Texto', text: 'Melhore este texto pedagógico, tornando-o mais claro, formal e alinhado com a BNCC.' },
                 { label: '♿ Acessibilidade PEI', text: 'Adapte esta atividade/conteúdo para 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade e PEI.' },
-                { label: '📊 Análise de Desempenho', text: 'Analise esta planilha de notas/frequência e gere um relatório de risco, defasagens BNCC e plano de recomposição.' },
-                { label: '🎭 Simular Gestão', text: 'Ative o modo simulação: encene uma reunião pedagógica/atendimento a pais sobre este contexto.' },
+                { label: '📊 Análise de Desempenho', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
+                { label: '🎭 Simular Gestão', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino.' },
                 { label: '📝 Corrigir/Gabaritar Prova', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
               ].map((chip) => (
                 <button

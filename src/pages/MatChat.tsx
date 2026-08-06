@@ -34,10 +34,10 @@ export default function MatChat() {
         
         {/* Context Selectors */}
         <div className="flex flex-wrap items-center gap-3 px-4 sm:px-8 pb-4">
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Etapa</span>
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 shadow-sm">
+            <span className="text-[9px] uppercase font-black text-slate-400">Nível / Etapa</span>
             <select 
-              className="bg-transparent text-[11px] font-semibold text-slate-600 focus:outline-none"
+              className="bg-transparent text-[11px] font-bold text-slate-600 focus:outline-none cursor-pointer"
               defaultValue="Anos Finais"
             >
               <option>Educação Infantil</option>
@@ -48,10 +48,10 @@ export default function MatChat() {
             </select>
           </div>
           
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Foco</span>
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 shadow-sm">
+            <span className="text-[9px] uppercase font-black text-slate-400">Foco de Atuação</span>
             <select 
-              className="bg-transparent text-[11px] font-semibold text-slate-600 focus:outline-none"
+              className="bg-transparent text-[11px] font-bold text-slate-600 focus:outline-none cursor-pointer"
               defaultValue="Plano de Aula"
             >
               <option>Plano de Aula</option>
