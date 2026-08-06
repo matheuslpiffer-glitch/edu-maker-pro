@@ -128,15 +128,15 @@ export default function MatNotebook() {
     const title = prompt('Nome do Caderno:');
     if (!title) return;
 
-    const { data, error } = await supabase
-      .from('mat_notebooks')
+    const { data, error } = await (supabase
+      .from('mat_notebooks' as any)
       .insert({ title, user_id: user?.id })
-      .select()
+      .select() as any)
       .single();
 
     if (!error && data) {
-      setNotebooks([data, ...notebooks]);
-      setActiveNotebook(data);
+      setNotebooks([data as any, ...notebooks]);
+      setActiveNotebook(data as any);
       toast({ title: 'Caderno criado!' });
     }
   };
@@ -145,7 +145,7 @@ export default function MatNotebook() {
     e.stopPropagation();
     if (!confirm('Excluir este caderno e tudo dentro dele?')) return;
     
-    const { error } = await supabase.from('mat_notebooks').delete().eq('id', id);
+    const { error } = await (supabase.from('mat_notebooks' as any).delete() as any).eq('id', id);
     if (!error) {
       setNotebooks(notebooks.filter(n => n.id !== id));
       if (activeNotebook?.id === id) setActiveNotebook(null);
