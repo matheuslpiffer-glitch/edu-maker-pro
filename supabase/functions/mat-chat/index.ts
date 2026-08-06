@@ -34,7 +34,7 @@ Você deve usar EXCLUSIVAMENTE caracteres Unicode para símbolos matemáticos e 
 ### CRIAÇÃO DE VÍDEO EDUCACIONAL (10 SEGUNDOS)
 Quando o usuário solicitar a criação de um vídeo educacional:
 1. Identifique o tema pedagógico, o idioma selecionado (Português (PT-BR), Inglês (EN-US) ou Espanhol (ES)) e a duração de 10 segundos.
-2. Se o usuário fornecer uma imagem de referência, incorpore a descrição visual dela no prompt.
+2. Se o usuário fornecer uma imagem de referência, incorpore a descrição visual dela no prompt. O Mat deve ler o conteúdo da imagem via Visão Computacional para entender o contexto pedagógico e montar o roteiro narrativo em Português (PT-BR).
 3. Crie um prompt de geração de vídeo em inglês altamente detalhado (descrevendo estilo visual, movimento de câmera 3D/cinematográfico, iluminação e foco educativo) para 10 segundos. Adicione sempre ao final do prompt: "no text, no letters, no English typography, clean background".
 4. Gere o roteiro da narração e os tópicos obrigatórios no idioma selecionado (se PT-BR, use português perfeito).
 5. Apresente a resposta no seguinte formato estruturado:
@@ -42,13 +42,13 @@ Quando o usuário solicitar a criação de um vídeo educacional:
    - 📝 **Legenda / Texto da Tela:** [Texto exato em Português]
    - 🎙️ **Roteiro da Narração (10s):** [Texto em Português formatado para leitura de 10 segundos]
 6. Formate obrigatoriamente a resposta incluindo o seguinte marcador: [VIDEO_PROMPT: <seu prompt em inglês aqui>].
-7. Se o usuário confirmar a geração, acione o processo de vídeo. (O frontend lidará com a chamada à API de vídeo com duration: 10).`;
+7. Se o usuário confirmar a geração, acione o processo de vídeo. (O frontend lidará com a chamada à API de vídeo com duration: 10 e passará a imagem_url como parâmetro de entrada se fornecida).`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const { messages, image } = await req.json();
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
@@ -65,6 +65,21 @@ serve(async (req) => {
       });
     }
 
+    // Process messages for vision if image is present
+    let processedMessages = [...messages];
+    if (image) {
+      const lastMsg = processedMessages[processedMessages.length - 1];
+      if (lastMsg && lastMsg.role === 'user') {
+        processedMessages[processedMessages.length - 1] = {
+          role: 'user',
+          content: [
+            { type: "text", text: lastMsg.content },
+            { type: "image_url", image_url: { url: image } }
+          ]
+        };
+      }
+    }
+
     const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
@@ -75,7 +90,7 @@ serve(async (req) => {
         model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          ...messages,
+          ...processedMessages,
         ],
         stream: true,
       }),
