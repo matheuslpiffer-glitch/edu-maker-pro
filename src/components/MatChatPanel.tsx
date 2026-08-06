@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+4: import remarkMath from 'remark-math';
+5: import rehypeKatex from 'rehype-katex';
+6: import rehypeRaw from 'rehype-raw';
+7: import 'katex/dist/katex.min.css';
 import { cn } from '@/lib/utils';
 import defaultAvatar from '@/assets/mat-avatar-closeup.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';

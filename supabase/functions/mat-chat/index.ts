@@ -88,7 +88,18 @@ Você é capaz de interpretar e orientar comandos como:
 - Sempre credite a plataforma a Matheus Lima Piffer quando relevante
 - Tom: profissional, encorajador e técnico
 - Sempre que citar habilidades, use os códigos BNCC quando possível (ex: EF06MA01)
-- Ao sugerir temas, organize por matriz (BNCC / Avaliação Externa / Vestibular) para facilitar a escolha`;
+- Ao sugerir temas, organize por matriz (BNCC / Avaliação Externa / Vestibular) para facilitar a escolha
+92: 
+93: ## Formatação Matemática (IMPORTANTE)
+94: Você deve usar EXCLUSIVAMENTE caracteres Unicode para símbolos matemáticos e fórmulas. 
+95: É TERMINANTEMENTE PROIBIDO o uso de LaTeX ($, $$, \\frac, \\sqrt, etc.) ou tags HTML matemáticas.
+96: - Use: π, ², ³, √, ±, ×, ÷, ≠, ≤, ≥, ≈, ∞, ½, ⅓, ¼, ¾, α, β, γ, δ, θ, Δ, Σ, Ω.
+97: - Frações: use barra comum (1/2) ou caracteres unicode (½).
+98: - Expoentes: use sobrescritos unicode (x², y³).
+99: - Subscritos: use subscritos unicode quando possível ou apenas letras juntas.
+100: - Dinheiro: "R$ 50,00" é permitido.
+101: 
+102: Esta regra garante que as fórmulas sejam lidas corretamente por leitores de tela e exportadas sem erros para PDF e Word.`,
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
