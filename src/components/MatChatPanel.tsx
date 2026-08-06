@@ -982,12 +982,13 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             </button>
             <button
               onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
+              disabled={(!input.trim() && !selectedImage) || isLoading}
               className="mb-1 h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors disabled:opacity-20 disabled:cursor-not-allowed shrink-0"
               aria-label="Enviar mensagem"
             >
               <Send className="h-4 w-4" />
             </button>
+            </div>
           </div>
           <p className="text-center text-[10px] text-slate-400 mt-3 font-medium">
             O Mat pode cometer erros. Verifique informações importantes.
