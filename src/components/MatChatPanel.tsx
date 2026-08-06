@@ -522,7 +522,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     } finally {
       setIsOptimizing(false);
     }
-  };
+  }, [input, isOptimizing]);
 
   const deleteMemoryFact = async (id: string) => {
     const { error } = await supabase
