@@ -24,22 +24,21 @@ export const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu con
 
 export const STUDENT_GREETING = 'Oi! 👋 Sou o **Mat**, seu tutor digital no **EduCreator Pro**. Se tiver dúvida em alguma questão que errou, **clique nela** e eu te explico o conceito por trás da resposta correta! Também posso sugerir materiais de estudo e te ajudar a revisar conteúdos. 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
 
-interface MatChatPanelProps {
-  /** Renders wider spacing/typography for the full page layout */
-  fullPage?: boolean;
-  /** Exposes the reset handler to the parent (header buttons) */
-  onRegisterReset?: (reset: () => void) => void;
-  className?: string;
-}
-
-/** Shared avatar bubble — shows the whole picture (never cropped) */
+/** Shared avatar — shows the whole picture (PNG transparent, no border) */
 export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
   const { customAvatar } = useMatAvatar();
   const src = customAvatar || defaultAvatar;
-  const dim = size === 'lg' ? 'w-16 h-16' : size === 'md' ? 'w-10 h-10' : 'w-8 h-8';
+  
+  // Custom sizing and styling for MAT avatar
+  const dim = size === 'lg' ? 'w-[52px]' : size === 'md' ? 'w-10' : 'w-8';
+  
   return (
-    <div className={cn(dim, 'rounded-full overflow-hidden bg-slate-100 ring-1 ring-slate-200 shrink-0 flex items-center justify-center', className)}>
-      <img src={src} alt="Mat" className="w-full h-full object-contain" />
+    <div className={cn(dim, 'shrink-0 flex items-center justify-center', className)}>
+      <img 
+        src={src} 
+        alt="Mat" 
+        className="w-full h-auto object-contain drop-shadow-[0px_3px_6px_rgba(0,0,0,0.12)]" 
+      />
     </div>
   );
 }
@@ -330,19 +329,42 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
       <div className={cn('bg-white border-t border-slate-100', fullPage ? 'px-4 sm:px-8 py-4' : 'px-6 py-4')}>
         <div className={cn(fullPage && 'mx-auto w-full max-w-3xl')}>
+          {/* Quick Action Chips */}
+          {!isStudentMode && (
+            <div className="flex flex-wrap gap-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
+              {[
+                { label: '📄 Resumir Documento', text: 'Resuma este documento focando nos pontos pedagógicos e objetivos de aprendizagem.' },
+                { label: '✨ Melhore este Texto', text: 'Melhore este texto pedagógico, tornando-o mais claro, formal e alinhado com a BNCC.' },
+                { label: '📝 Corrigir/Gabaritar Prova', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
+                { label: '📊 Matrizes & Descritores', text: 'Identifique quais matrizes de referência e descritores da BNCC estão presentes neste conteúdo.' }
+              ].map((chip) => (
+                <button
+                  key={chip.label}
+                  onClick={() => {
+                    setInput(chip.text);
+                    inputRef.current?.focus();
+                  }}
+                  className="whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-all shadow-sm"
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="relative flex items-end gap-2 bg-slate-50 rounded-2xl border border-slate-200 focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-300 transition-all p-2">
             <input 
               type="file" 
               ref={fileInputRef} 
               className="hidden" 
               onChange={handleFileUpload}
-              accept=".pdf,.png,.jpg,.jpeg,.webp"
+              accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
             />
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading || isUploading}
               className="mb-1 h-8 w-8 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 flex items-center justify-center transition-colors shrink-0"
-              title="Subir arquivo ou foto"
+              title="Subir arquivo (PDF, DOCX, TXT) ou foto (PNG, JPG)"
             >
               {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
             </button>
