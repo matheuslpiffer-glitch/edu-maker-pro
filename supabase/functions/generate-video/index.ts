@@ -49,15 +49,19 @@ serve(async (req) => {
       "Content-Type": "application/json",
     };
 
+    // A API aceita apenas 4, 6 ou 8 segundos
+    const requested = Number(payload.duration) || 8;
+    const seconds = requested <= 4 ? "4" : requested <= 6 ? "6" : "8";
+
     const videoPayload: any = {
       model: "google/veo-3.1-lite",
       prompt: `${prompt} | no text, no letters, no English typography, clean background`,
-      seconds: String(payload.duration || 10),
+      seconds,
       size: "1280x720",
     };
 
     if (payload.image) {
-      videoPayload.image_url = payload.image;
+      videoPayload.input_reference = payload.image;
     }
 
     const createRes = await fetch("https://ai.gateway.lovable.dev/v1/videos", {
