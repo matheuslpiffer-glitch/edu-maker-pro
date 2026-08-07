@@ -430,24 +430,70 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     chatInputRef.current?.focus();
   }, [isLoading, messages, isAutoPlayEnabled, speak, currentSessionId, onSessionChange]);
 
-  const generateVideo = useCallback(async (prompt: string, index: number, language: string = 'PT-BR', imageBase64?: string | null) => {
-    setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-video', {
-        body: { prompt, duration: 10, language, image: imageBase64 },
-      });
-      if (error) throw error;
-      if (!data?.url) throw new Error(data?.error || 'Falha ao gerar vídeo');
+  const generateVideo = useCallback(async (
+    prompt: string,
+    index: number,
+    language: string = 'PT-BR',
+    imageBase64?: string | null,
+    totalDuration: VideoDuration = 30,
+  ) => {
+    const scenes = planScenes(prompt, totalDuration);
+    setVideoStatus(prev => ({
+      ...prev,
+      [index]: { loading: true, segments: [], done: 0, total: scenes.length, duration: totalDuration },
+    }));
 
-      setVideoStatus(prev => ({ 
-        ...prev, 
-        [index]: { loading: false, url: data.url } 
-      }));
+    const segments: string[] = [];
+
+    try {
+      // As cenas são geradas em sequência (a API gera clipes curtos por chamada)
+      // e depois reproduzidas encadeadas para formar o vídeo completo.
+      for (const scene of scenes) {
+        const { data, error } = await supabase.functions.invoke('generate-video', {
+          body: {
+            prompt: scene.prompt,
+            duration: scene.seconds,
+            duration_seconds: scene.seconds,
+            total_duration: totalDuration,
+            scene_index: scene.index + 1,
+            scene_count: scenes.length,
+            scene_block: scene.block.label,
+            language,
+            image: scene.index === 0 ? imageBase64 : undefined,
+          },
+        });
+        if (error) throw error;
+        if (!data?.url) throw new Error(data?.error || 'Falha ao gerar vídeo');
+
+        segments.push(data.url);
+        setVideoStatus(prev => ({
+          ...prev,
+          [index]: {
+            loading: segments.length < scenes.length,
+            url: segments[0],
+            segments: [...segments],
+            done: segments.length,
+            total: scenes.length,
+            duration: totalDuration,
+          },
+        }));
+      }
     } catch (error) {
       console.error(error);
-      setVideoStatus(prev => ({ ...prev, [index]: { loading: false } }));
-      alert('Desculpe, tive um erro ao gerar seu vídeo. Tente novamente em instantes.');
+      setVideoStatus(prev => ({
+        ...prev,
+        [index]: {
+          loading: false,
+          url: segments[0],
+          segments,
+          done: segments.length,
+          total: scenes.length,
+          duration: totalDuration,
+        },
+      }));
+      if (segments.length === 0) {
+        alert('Desculpe, tive um erro ao gerar seu vídeo. Tente novamente em instantes.');
+      }
     }
   }, []);
 
@@ -459,7 +505,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       if (!m.content.includes('VIDEO_MEDIA')) return;
       if (videoStatus[i]) return;
       const prompt = sanitizeChatText(m.content).replace(/<video[^>]*\/?>/g, '').slice(0, 900).trim();
-      if (prompt) generateVideo(prompt, i, videoConfig.language, videoConfig.image);
+      if (prompt) generateVideo(prompt, i, videoConfig.language, videoConfig.image, videoConfig.duration);
     });
   }, [messages, isLoading, videoStatus, generateVideo, videoConfig]);
 
