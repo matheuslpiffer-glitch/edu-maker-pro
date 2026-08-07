@@ -449,6 +449,18 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
   }, []);
 
+  // Dispara automaticamente a geração do MP4 quando a IA marca <video src="VIDEO_MEDIA" />
+  useEffect(() => {
+    if (isLoading) return;
+    messages.forEach((m, i) => {
+      if (m.role !== 'assistant') return;
+      if (!m.content.includes('VIDEO_MEDIA')) return;
+      if (videoStatus[i]) return;
+      const prompt = sanitizeChatText(m.content).replace(/<video[^>]*\/?>/g, '').slice(0, 900).trim();
+      if (prompt) generateVideo(prompt, i, videoConfig.language, videoConfig.image);
+    });
+  }, [messages, isLoading, videoStatus, generateVideo, videoConfig]);
+
   const optimizePrompt = useCallback(async (text: string) => {
     if (!text.trim() || isOptimizing) return;
     setIsOptimizing(true);
