@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
 import { FileText, Sliders, Sparkles, Check, Printer, Copy, ChevronRight } from 'lucide-react';
 
