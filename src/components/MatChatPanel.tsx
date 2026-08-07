@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar, Sparkles, Brain, X, Wand2, CheckSquare, Accessibility, BarChart2, Users } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar, Sparkles, Brain, X, Wand2, CheckSquare, Accessibility, BarChart2, Users, Search } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
@@ -56,6 +56,16 @@ export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg
   );
 }
 
+const MAT_ACTIONS = [
+  { id: 'resumir', label: 'Resumir Documento', category: 'Ações Rápidas', icon: FileText, color: 'text-blue-500', text: 'Resuma este documento focando nos pontos pedagógicos e objetivos de aprendizagem.' },
+  { id: 'melhorar', label: 'Melhore este Texto', category: 'Ações Rápidas', icon: Sparkles, color: 'text-amber-500', text: 'Melhore este texto pedagógico, tornando-o mais claro, formal e alinhado com a BNCC.' },
+  { id: 'gabarito', label: 'Corrigir/Gabaritar Prova', category: 'Pedagógico', icon: CheckSquare, color: 'text-emerald-500', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
+  { id: 'pei', label: 'Gerar PEI / Adaptação', category: 'Pedagógico', icon: Accessibility, color: 'text-indigo-500', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
+  { id: 'planilha', label: 'Diagnóstico de Planilha', category: 'Gestão', icon: BarChart2, color: 'text-green-600', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
+  { id: 'gestao', label: 'Simulador de Gestão', category: 'Gestão', icon: Users, color: 'text-purple-500', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
+  { id: 'video', label: 'Criar Vídeo Educacional (10s)', category: 'Mídia', icon: Video, color: 'text-rose-500', text: 'Planeje um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR), com narração e legenda em PT-BR. Me peça o tema e a imagem de referência opcional.' },
+] as const;
+
 export default function MatChatPanel({ fullPage = false, onRegisterReset, className, sessionId, onSessionChange }: MatChatPanelProps) {
   const { isStudentMode } = useStudentMode();
   const greeting = isStudentMode ? STUDENT_GREETING : TEACHER_GREETING;
@@ -80,6 +90,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [actionSearch, setActionSearch] = useState('');
+  const [activeChip, setActiveChip] = useState<typeof MAT_ACTIONS[number] | null>(null);
 
 
   const loadMemory = useCallback(async () => {
@@ -273,7 +286,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   }, [onRegisterReset, reset]);
 
   const sendMessage = useCallback(async () => {
-    const text = input.trim();
+    const typed = input.trim();
+    const text = [activeChip?.text, typed].filter(Boolean).join('\n\n');
     if ((!text && !selectedImage) || isLoading) return;
 
     const userMsg: Msg = { 
@@ -284,6 +298,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     setMessages(newMessages);
     setInput('');
     setSelectedImage(null);
+    setActiveChip(null);
     setIsLoading(true);
 
     const { data: { session: authSession } } = await supabase.auth.getSession();
@@ -447,7 +462,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
     setIsLoading(false);
     inputRef.current?.focus();
-  }, [input, isLoading, messages, isAutoPlayEnabled, speak]);
+  }, [input, isLoading, messages, isAutoPlayEnabled, speak, activeChip, selectedImage]);
 
   const generateVideo = useCallback(async (prompt: string, index: number, language: string = 'PT-BR', imageBase64?: string | null) => {
     setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
@@ -1000,8 +1015,18 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               }
             }}
           >
-            {selectedImage && (
-              <div className="flex px-3 pt-2">
+            {(selectedImage || activeChip) && (
+              <div className="flex flex-wrap items-center gap-2 px-3 pt-2">
+                {activeChip && (
+                  <div className="flex items-center gap-1.5 bg-slate-200/80 text-slate-800 text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-300">
+                    <activeChip.icon className={cn('h-3.5 w-3.5', activeChip.color)} />
+                    <span>{activeChip.label}</span>
+                    <button type="button" onClick={() => setActiveChip(null)} className="ml-1 hover:text-red-500">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {selectedImage && (
                 <div className="relative group">
                   <img 
                     src={selectedImage} 
@@ -1015,6 +1040,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                     <Plus className="h-3 w-3 rotate-45" />
                   </button>
                 </div>
+                )}
               </div>
             )}
             <div className="relative flex items-end gap-2 w-full">
@@ -1025,11 +1051,14 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                 onChange={handleFileUpload}
                 accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
               />
-            <Popover.Root>
+            <Popover.Root open={menuOpen} onOpenChange={(o) => { setMenuOpen(o); if (!o) setActionSearch(''); }}>
               <Popover.Trigger asChild>
                 <button
                   disabled={isLoading || isUploading}
-                  className="mb-1 h-8 w-8 rounded-lg text-slate-500 hover:bg-slate-200 hover:text-slate-900 flex items-center justify-center transition-colors shrink-0 bg-slate-100 border border-slate-200"
+                  className={cn(
+                    "mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0 border border-slate-200",
+                    menuOpen ? "bg-slate-200 text-slate-900 rotate-45" : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900"
+                  )}
                   title="Anexar arquivos"
                 >
                   <Plus className="h-5 w-5" />
@@ -1041,24 +1070,28 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                   sideOffset={8}
                   align="start"
                 >
+                  <div className="relative mb-2">
+                    <Search className="h-4 w-4 absolute left-3 top-2.5 text-slate-400" />
+                    <input
+                      type="text"
+                      autoFocus
+                      value={actionSearch}
+                      onChange={(e) => setActionSearch(e.target.value)}
+                      placeholder="Buscar ação ou recurso..."
+                      className="w-full bg-slate-50 text-sm text-slate-700 pl-9 pr-3 py-1.5 rounded-xl outline-none border border-slate-100 focus:border-slate-300"
+                    />
+                  </div>
                   {!isStudentMode && (
                     <div className="flex flex-col gap-1 pb-2 mb-2 border-b border-slate-100">
                       <div className="text-[10px] font-bold text-slate-400 px-3 py-1.5 uppercase tracking-wider">
-                        O que você quer criar?
+                        Criar &amp; Analisar
                       </div>
-                      {[
-                        { label: 'Resumir Documento', icon: FileText, color: 'text-blue-500', text: 'Resuma este documento focando nos pontos pedagógicos e objetivos de aprendizagem.' },
-                        { label: 'Melhore este Texto', icon: Sparkles, color: 'text-amber-500', text: 'Melhore este texto pedagógico, tornando-o mais claro, formal e alinhado com a BNCC.' },
-                        { label: 'Corrigir/Gabaritar Prova', icon: CheckSquare, color: 'text-emerald-500', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
-                        { label: 'Gerar PEI / Adaptação', icon: Accessibility, color: 'text-indigo-500', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
-                        { label: 'Diagnóstico de Planilha', icon: BarChart2, color: 'text-green-600', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
-                        { label: 'Simulador de Gestão', icon: Users, color: 'text-purple-500', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
-                        { label: 'Criar Vídeo Educacional (10s)', icon: Video, color: 'text-rose-500', text: 'Planeje um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR). Me peça o tema e a imagem de referência opcional.' },
-                      ].map((action) => (
-                        <Popover.Close asChild key={action.label}>
+                      {MAT_ACTIONS.filter((a) => a.label.toLowerCase().includes(actionSearch.toLowerCase())).map((action) => (
+                        <Popover.Close asChild key={action.id}>
                           <button
                             onClick={() => {
-                              setInput(action.text);
+                              setActiveChip(action);
+                              setInput((prev) => (prev.trim() === '/' ? '' : prev));
                               setTimeout(() => inputRef.current?.focus(), 0);
                             }}
                             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
@@ -1068,6 +1101,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                           </button>
                         </Popover.Close>
                       ))}
+                      {MAT_ACTIONS.filter((a) => a.label.toLowerCase().includes(actionSearch.toLowerCase())).length === 0 && (
+                        <div className="text-xs text-slate-400 px-3 py-2 text-center">Nenhuma ação encontrada</div>
+                      )}
                     </div>
                   )}
                   <div className="flex flex-col gap-1">
@@ -1129,7 +1165,12 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               rows={1}
               value={input}
               onChange={e => {
-                setInput(e.target.value);
+                const val = e.target.value;
+                setInput(val);
+                if (val === '/') {
+                  setActionSearch('');
+                  setMenuOpen(true);
+                }
                 e.target.style.height = 'auto';
                 e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
               }}
@@ -1139,7 +1180,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                   sendMessage();
                 }
               }}
-              placeholder={selectedImage ? "O que deseja fazer com esta imagem?..." : "Pergunte ao Mat..."}
+              placeholder={activeChip ? "Digite instruções adicionais..." : selectedImage ? "O que deseja fazer com esta imagem?..." : "Pergunte ao Mat... (ou digite /)"}
               className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-800 placeholder:text-slate-400 px-3 py-2.5 resize-none min-h-[40px] max-h-[160px]"
             />
             <button
@@ -1169,7 +1210,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             </button>
             <button
               onClick={sendMessage}
-              disabled={(!input.trim() && !selectedImage) || isLoading}
+              disabled={(!input.trim() && !selectedImage && !activeChip) || isLoading}
               className="mb-1 h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors disabled:opacity-20 disabled:cursor-not-allowed shrink-0"
               aria-label="Enviar mensagem"
             >
