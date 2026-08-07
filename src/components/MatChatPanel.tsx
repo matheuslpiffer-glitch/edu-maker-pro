@@ -821,26 +821,35 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                         {videoPromptMatch && (
                           <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shadow-sm">
                             <div className="aspect-video bg-slate-900 flex flex-col items-center justify-center relative group">
-                              {videoStatus[i]?.loading ? (
-                                <div className="text-white text-center p-4 animate-pulse">
+                              {videoStatus[i]?.loading && !videoStatus[i]?.segments?.length ? (
+                                <div className="text-white text-center p-4 w-full max-w-xs">
                                   <Loader2 className="h-12 w-12 mx-auto mb-3 text-blue-400 animate-spin" />
-                                  <p className="text-xs font-bold text-slate-300">🎥 O Mat está gerando seu vídeo educacional de 10 segundos...</p>
-                                  <p className="text-[10px] text-slate-500 mt-2 italic">Isso pode levar de 30 a 60 segundos.</p>
+                                  <p className="text-xs font-bold text-slate-300">
+                                    🎥 Gerando cenas e áudio para vídeo de {videoStatus[i]?.duration ?? videoConfig.duration}s...
+                                  </p>
+                                  <div className="h-1.5 w-full rounded-full bg-slate-700 overflow-hidden mt-3">
+                                    <div
+                                      className="h-full bg-blue-500 transition-all"
+                                      style={{ width: `${((videoStatus[i]?.done ?? 0) / Math.max(videoStatus[i]?.total ?? 1, 1)) * 100}%` }}
+                                    />
+                                  </div>
+                                  <p className="text-[10px] text-slate-500 mt-2 italic">
+                                    Cena {(videoStatus[i]?.done ?? 0) + 1} de {videoStatus[i]?.total ?? 1} — pode levar alguns minutos.
+                                  </p>
                                 </div>
-                              ) : videoStatus[i]?.url ? (
+                              ) : videoStatus[i]?.segments?.length ? (
                                 <div className="relative w-full h-full">
-                                  <video 
-                                    src={videoStatus[i].url} 
-                                    controls 
-                                    autoPlay 
-                                    loop 
-                                    className="w-full h-full object-cover"
+                                  <VideoLabPlayer
+                                    segments={videoStatus[i].segments as string[]}
+                                    durationSeconds={videoStatus[i]?.duration ?? videoConfig.duration}
+                                    subtitleText={overlayText}
+                                    showSubtitles={videoConfig.subtitles}
+                                    className="border-0"
                                   />
-                                  {overlayText && videoConfig.subtitles && (
-                                    <div className="absolute bottom-14 left-0 right-0 flex justify-center px-4 pointer-events-none">
-                                      <div className="bg-black/70 px-4 py-2 rounded-lg border border-white/20 text-white text-sm font-bold shadow-xl text-center animate-in fade-in duration-500">
-                                        {overlayText}
-                                      </div>
+                                  {videoStatus[i]?.loading && (
+                                    <div className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1.5">
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                      {videoStatus[i]?.done}/{videoStatus[i]?.total} cenas
                                     </div>
                                   )}
                                 </div>
@@ -848,7 +857,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                 <>
                                   <div className="text-white text-center p-4">
                                     <Video className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">VÍDEO EDUCACIONAL (10S)</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                      VÍDEO EDUCACIONAL (ATÉ 60S)
+                                    </p>
                                     <p className="text-[10px] text-slate-500 mt-1 italic max-w-[240px] truncate mx-auto">
                                       {videoPromptMatch[1]}
                                     </p>
