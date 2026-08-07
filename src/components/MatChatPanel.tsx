@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, isToday, isYesterday, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ChatInput, { MAT_ACTIONS, type ChatInputPayload, type ChatInputHandle } from '@/components/ChatInput';
+import { sanitizeChatText } from '@/lib/chat-sanitize';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -314,14 +315,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         }
       }
 
-      // Cleanup JSON/Internal data from display
-      let displayContent = assistantSoFar
-        .replace(/\{[\s\S]*?"database"[\s\S]*?\}/g, '') // Remove internal JSON blocks
-        .replace(/\[VIDEO_PROMPT:.*?\]/g, '')
-        .replace(/\[IMAGE_DATA:.*?\]/g, '')
-        .replace(/\[ANEXOS_PRESENTES:.*?\]/g, '')
-        .replace(/^\{[\s\S]*?\}$/gm, '') // Remove any potential leftover root JSON object
-        .trim();
+      // Mantém o conteúdo bruto no estado (necessário para extrair [VIDEO_PROMPT]);
+      // a sanitização acontece na renderização.
+      const displayContent = assistantSoFar;
 
       setMessages(prev => {
         const last = prev[prev.length - 1];
