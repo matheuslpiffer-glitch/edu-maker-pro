@@ -1091,6 +1091,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                           <button
                             onClick={() => {
                               setActiveChip(action);
+                              setInput((prev) => (prev.trim() === '/' ? '' : prev));
                               setTimeout(() => inputRef.current?.focus(), 0);
                             }}
                             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
