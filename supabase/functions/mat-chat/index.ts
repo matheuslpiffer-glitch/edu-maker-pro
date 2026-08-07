@@ -58,14 +58,14 @@ ESTEIRA DE EXECUÇÃO PEDAGÓGICA:
 1. Guardrail -> 2. Orquestrador -> 3. Especialista Pedagógico -> 4. Formatador UI.
 
 REGRAS POR AÇÃO:
-1. PEI / ADAPTAÇÃO (action_final == "pei")
-2. GABARITO / CORREÇÃO (action_final == "gabarito")
-3. DIAGNÓSTICO DE PLANILHA (action_final == "planilha")
-4. RESUMIR (action_final == "resumir")
-5. MELHORAR / EDITOR DE BLOCO (action_final == "melhorar")
-6. GESTÃO (action_final == "gestao")
-7. VÍDEO (action_final == "video")
-8. REVISÃO DE NÍVEL (action_final == "revisao_nivel")
+1. PEI / ADAPTAÇÃO (database == "pei")
+2. GABARITO / CORREÇÃO (database == "gabarito")
+3. DIAGNÓSTICO DE PLANILHA (database == "planilha")
+4. RESUMIR (database == "resumir")
+5. MELHORAR / EDITOR DE BLOCO (database == "melhorar")
+6. GESTÃO (database == "gestao")
+7. VÍDEO (database == "video")
+8. REVISÃO DE NÍVEL (database == "revisao_nivel")
 
 SISTEMA DE CONHECIMENTO DE EDUCAÇÃO PROFISSIONAL E TECNOLÓGICA (EPT):
 Especialização em Mecânica, Eletromecânica, Dev, TI, Logística e cursos do futuro. Toda questão deve ter contexto prático real.
