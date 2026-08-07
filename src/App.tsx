@@ -82,6 +82,7 @@ const HubAvaliacoes = lazyWithRetry(() => import("@/pages/HubAvaliacoes"));
 const HubBiblioteca = lazyWithRetry(() => import("@/pages/HubBiblioteca"));
 const OAuthConsent = lazyWithRetry(() => import("@/pages/OAuthConsent"));
 const MatNotebook = lazyWithRetry(() => import("@/pages/MatNotebook"));
+const EduCanvas = lazyWithRetry(() => import("@/pages/EduCanvas"));
 
 const queryClient = new QueryClient();
 
@@ -157,6 +158,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/mat-chat" element={<MatChat />} />
           <Route path="/mat-notebook" element={<MatNotebook />} />
+          <Route path="/edu-canvas" element={<EduCanvas />} />
           <Route path="/" element={<Navigate to="/dashboard-professor" replace />} />
           <Route path="/dashboard-professor" element={<Index />} />
           <Route path="/sobre" element={<SobreProjeto />} />
