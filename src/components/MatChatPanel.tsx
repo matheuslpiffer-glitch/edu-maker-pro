@@ -1027,10 +1027,39 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               </Popover.Trigger>
               <Popover.Portal>
                 <Popover.Content 
-                  className="z-50 w-56 bg-white rounded-xl shadow-xl border border-slate-200 p-2 animate-in fade-in zoom-in duration-200"
+                  className="z-50 w-72 max-h-[70vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-2 animate-in fade-in zoom-in duration-200"
                   sideOffset={8}
                   align="start"
                 >
+                  {!isStudentMode && (
+                    <div className="flex flex-col gap-1 pb-2 mb-2 border-b border-slate-100">
+                      <div className="text-[10px] font-bold text-slate-400 px-3 py-1.5 uppercase tracking-wider">
+                        O que você quer criar?
+                      </div>
+                      {[
+                        { label: 'Resumir Documento', icon: FileText, color: 'text-blue-500', text: 'Resuma este documento focando nos pontos pedagógicos e objetivos de aprendizagem.' },
+                        { label: 'Melhore este Texto', icon: Sparkles, color: 'text-amber-500', text: 'Melhore este texto pedagógico, tornando-o mais claro, formal e alinhado com a BNCC.' },
+                        { label: 'Corrigir/Gabaritar Prova', icon: CheckSquare, color: 'text-emerald-500', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
+                        { label: 'Gerar PEI / Adaptação', icon: Accessibility, color: 'text-indigo-500', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
+                        { label: 'Diagnóstico de Planilha', icon: BarChart2, color: 'text-green-600', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
+                        { label: 'Simulador de Gestão', icon: Users, color: 'text-purple-500', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
+                        { label: 'Criar Vídeo Educacional (10s)', icon: Video, color: 'text-rose-500', text: 'Planeje um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR). Me peça o tema e a imagem de referência opcional.' },
+                      ].map((action) => (
+                        <Popover.Close asChild key={action.label}>
+                          <button
+                            onClick={() => {
+                              setInput(action.text);
+                              setTimeout(() => inputRef.current?.focus(), 0);
+                            }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
+                          >
+                            <action.icon className={cn('h-4 w-4 shrink-0', action.color)} />
+                            <span>{action.label}</span>
+                          </button>
+                        </Popover.Close>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex flex-col gap-1">
                     <button
                       onClick={() => {
