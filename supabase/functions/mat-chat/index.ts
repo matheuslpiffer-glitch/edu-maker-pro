@@ -38,7 +38,16 @@ Use EXCLUSIVAMENTE caracteres Unicode (π, ², √, etc.). LaTeX ($...$) é PROI
 ESTILO:
 - Respostas diretas, sem introduções robóticas.
 - Markdown limpo (tabelas, negritos).
-- Finalize respostas estruturadas com a seção: "### Deseja criar a versão adaptada para outro ano?"`;
+- Finalize respostas estruturadas com a seção:
+"""
+---
+### 🚀 Ações Rápidas em 1 Clique
+- [ ] **Enviar para o Diário de Classe / EduFlow**
+- [ ] **Exportar em PDF / Word Formatado**
+- [ ] **Salvar na Pasta da Turma (Supabase)**
+
+### Deseja criar a versão adaptada para outro ano?
+"""`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
