@@ -131,12 +131,11 @@ export default function EduCanvasLayout() {
                     : 'bg-white text-slate-800 border border-slate-200 shadow-sm rounded-bl-none'
                 }`}
               >
-                <ReactMarkdown 
-                  className="prose prose-sm max-w-none prose-slate"
-                  remarkPlugins={[remarkGfm]}
-                >
-                  {msg.text}
-                </ReactMarkdown>
+                <div className="prose prose-sm max-w-none prose-slate">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {msg.text}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           ))}
