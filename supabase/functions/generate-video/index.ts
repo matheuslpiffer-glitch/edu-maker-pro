@@ -28,7 +28,16 @@ serve(async (req) => {
     const userId = await getUserIdFromAuth(req.headers.get("Authorization"));
     if (!userId) return json({ error: "Não autorizado. Faça login novamente." }, 401);
 
-    let payload: { prompt?: string; image?: string; duration?: number };
+    let payload: {
+      prompt?: string;
+      image?: string;
+      duration?: number;
+      duration_seconds?: number;
+      total_duration?: number;
+      scene_index?: number;
+      scene_count?: number;
+      scene_block?: string;
+    };
     try {
       payload = await req.json();
     } catch {
@@ -49,13 +58,22 @@ serve(async (req) => {
       "Content-Type": "application/json",
     };
 
-    // A API aceita apenas 4, 6 ou 8 segundos
-    const requested = Number(payload.duration) || 8;
+    // A API aceita apenas 4, 6 ou 8 segundos por cena.
+    // Vídeos mais longos (até 60s) são montados pelo cliente encadeando várias cenas.
+    const requested = Number(payload.duration_seconds ?? payload.duration) || 8;
     const seconds = requested <= 4 ? "4" : requested <= 6 ? "6" : "8";
+
+    const sceneIndex = Number(payload.scene_index) || 1;
+    const sceneCount = Number(payload.scene_count) || 1;
+    const totalDuration = Math.min(Number(payload.total_duration) || requested, 60);
+    const sceneContext =
+      sceneCount > 1
+        ? ` | Esta é a cena ${sceneIndex} de ${sceneCount} de um vídeo educacional de ${totalDuration} segundos${payload.scene_block ? ` (etapa: ${payload.scene_block})` : ""}. Mantenha continuidade visual, mesma paleta e mesmo ritmo das demais cenas.`
+        : "";
 
     const videoPayload: any = {
       model: "google/veo-3.1-lite",
-      prompt: `${prompt} | Narração falada em PORTUGUÊS DO BRASIL (pt-BR), voz clara e didática de professor. O áudio deve ser exclusivamente em português brasileiro, sem inglês. | no text, no letters, no English typography, clean background`,
+      prompt: `${prompt}${sceneContext} | Narração falada em PORTUGUÊS DO BRASIL (pt-BR), voz clara e didática de professor. O áudio deve ser exclusivamente em português brasileiro, sem inglês. | no text, no letters, no English typography, clean background`,
       seconds,
       size: "1280x720",
     };
