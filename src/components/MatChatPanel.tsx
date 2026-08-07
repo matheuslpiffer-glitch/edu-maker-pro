@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, forwardRef } from 'react';
 import { FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Trash2, Brain, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
@@ -39,23 +39,29 @@ interface MatChatPanelProps {
 }
 
 /** Shared avatar — shows the whole picture (PNG transparent, no border) */
-export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
-  const { customAvatar } = useMatAvatar();
-  const src = customAvatar || defaultAvatar;
-  
-  // Avatar do Mat: PNG transparente, sem moldura ou recorte circular
-  const dim = size === 'lg' ? 'w-[60px]' : size === 'md' ? 'w-10' : 'w-8';
+export const MatAvatar = forwardRef<HTMLDivElement, { size?: 'sm' | 'md' | 'lg'; className?: string }>(
+  ({ size = 'md', className }, ref) => {
+    const { customAvatar } = useMatAvatar();
+    const src = customAvatar || defaultAvatar;
+    
+    // Avatar do Mat: PNG transparente, sem moldura ou recorte circular
+    const dim = size === 'lg' ? 'w-[60px]' : size === 'md' ? 'w-10' : 'w-8';
 
-  return (
-    <div className={cn(dim, 'shrink-0 flex items-center justify-center overflow-visible bg-transparent', className)}>
-      <img
-        src={src}
-        alt="Mat"
-        className="mat-avatar-header w-full h-auto object-contain bg-transparent rounded-none filter drop-shadow-[0px_3px_6px_rgba(0,0,0,0.15)] transition-transform duration-200 ease-in-out hover:scale-105"
-      />
-    </div>
-  );
-}
+    return (
+      <div 
+        ref={ref}
+        className={cn(dim, 'shrink-0 flex items-center justify-center overflow-visible bg-transparent', className)}
+      >
+        <img
+          src={src}
+          alt="Mat"
+          className="mat-avatar-header w-full h-auto object-contain bg-transparent rounded-none filter drop-shadow-[0px_3px_6px_rgba(0,0,0,0.15)] transition-transform duration-200 ease-in-out hover:scale-105"
+        />
+      </div>
+    );
+  }
+);
+MatAvatar.displayName = 'MatAvatar';
 
 export default function MatChatPanel({ fullPage = false, onRegisterReset, className, sessionId, onSessionChange }: MatChatPanelProps) {
   const { isStudentMode } = useStudentMode();

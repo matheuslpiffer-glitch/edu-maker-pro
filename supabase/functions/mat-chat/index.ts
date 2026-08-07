@@ -64,7 +64,7 @@ REGRAS POR AÇÃO:
 4. RESUMIR (database == "resumir")
 5. MELHORAR / EDITOR DE BLOCO (database == "melhorar")
 6. GESTÃO (database == "gestao")
-7. VÍDEO (database == "video")
+7. VÍDEO (database == "video") - IMPORTANTE: Ao detectar esta ação, você deve planejar o roteiro E incluir a instrução técnica de vídeo no JSON final. O sistema de IA gerará o vídeo automaticamente se o campo "database" for "video".
 8. REVISÃO DE NÍVEL (database == "revisao_nivel")
 
 SISTEMA DE CONHECIMENTO DE EDUCAÇÃO PROFISSIONAL E TECNOLÓGICA (EPT):

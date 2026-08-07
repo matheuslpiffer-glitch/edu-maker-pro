@@ -122,8 +122,8 @@ const autoGrow = (el: HTMLTextAreaElement | null) => {
 /* Component                                                           */
 /* ------------------------------------------------------------------ */
 
-const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput(
-  {
+const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>((props, ref) => {
+  const {
     onSendMessage,
     disabled = false,
     placeholder = 'Pergunte ao Mat... (ou digite /)',
@@ -135,9 +135,7 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput
     isOptimizing = false,
     fullPage = false,
     className,
-  },
-  ref,
-) {
+  } = props;
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [activeChip, setActiveChip] = useState<ChatAction | null>(null);
