@@ -440,7 +440,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     imageBase64?: string | null,
     totalDuration: VideoDuration = 30,
   ) => {
-    const scenes = planScenes(prompt, totalDuration);
+    const effectiveDuration = (canUseLongVideos
+      ? totalDuration
+      : Math.min(totalDuration, FREE_MAX_VIDEO_SECONDS)) as VideoDuration;
+    const scenes = planScenes(prompt, effectiveDuration);
     setVideoStatus(prev => ({
       ...prev,
       [index]: { loading: true, segments: [], done: 0, total: scenes.length, duration: totalDuration },
