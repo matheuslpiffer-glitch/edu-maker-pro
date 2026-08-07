@@ -286,7 +286,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   }, [onRegisterReset, reset]);
 
   const sendMessage = useCallback(async () => {
-    const text = input.trim();
+    const typed = input.trim();
+    const text = [activeChip?.text, typed].filter(Boolean).join('\n\n');
     if ((!text && !selectedImage) || isLoading) return;
 
     const userMsg: Msg = { 
@@ -297,6 +298,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     setMessages(newMessages);
     setInput('');
     setSelectedImage(null);
+    setActiveChip(null);
     setIsLoading(true);
 
     const { data: { session: authSession } } = await supabase.auth.getSession();
