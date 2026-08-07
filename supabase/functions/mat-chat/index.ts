@@ -38,7 +38,7 @@ REGRAS POR AÇÃO:
      - Nível 1 (Essencial): Simplifique estrutura, adicione apoios visuais esquemáticos, tópicos curtos e reduza densidade.
      - Nível 2 (Padrão): Alinhamento rigoroso com a BNCC, equilíbrio técnico/claro.
      - Nível 3 (Desafio): Eleve nível cognitivo (análise/criação), problemas interdisciplinares, elimine pistas diretas.
-   - Retorne APENAS o JSON atualizado com os blocos de texto modificados para substituição direta no Canvas.
+   - Retorne APENAS o JSON atualizado com os blocos de texto para substituição direta no Canvas.
 
 FORMATAÇÃO MATEMÁTICA:
 Use EXCLUSIVAMENTE caracteres Unicode (π, ², √, etc.). LaTeX ($...$) é PROIBIDO.
