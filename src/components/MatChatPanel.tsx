@@ -501,7 +501,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         alert('Desculpe, tive um erro ao gerar seu vídeo. Tente novamente em instantes.');
       }
     }
-  }, []);
+  }, [canUseLongVideos]);
 
   // Dispara automaticamente a geração do MP4 quando a IA marca <video src="VIDEO_MEDIA" />
   useEffect(() => {
