@@ -213,7 +213,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     // Resolve action template text
     const action = MAT_ACTIONS.find((a) => a.id === payload.action);
     const typed = payload.text;
-    const text = [action?.text, typed].filter(Boolean).join('\n\n');
+    const text = [action?.text, typed, payload.files[0]?.name].filter(Boolean).join('\n\n');
 
     // Convert image attachments to a base64 data URL for vision
     let imageBase64: string | null = null;
