@@ -671,7 +671,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         <div className={cn(fullPage ? 'mx-auto w-full max-w-3xl space-y-8' : 'space-y-8')}>
           {messages.map((msg, i) => {
             const videoPromptMatch = msg.content.match(/\[VIDEO_PROMPT:\s*(.*?)\]/);
-            const displayContent = msg.content;
+            const displayContent = sanitizeChatText(msg.content);
             
             // Extrair legenda e roteiro se for uma resposta de vídeo
             const overlayTextMatch = msg.content.match(/📝 \*\*Legenda \/ Texto da Tela:\*\* (.*?)(\n|$)/);
@@ -694,27 +694,44 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                               thead: ({node, ...props}) => <thead className="bg-slate-50" {...props} />,
                               th: ({node, ...props}) => <th className="border border-slate-200 px-3 py-2 text-left font-bold text-slate-700" {...props} />,
                               td: ({node, ...props}) => <td className="border border-slate-200 px-3 py-2 text-slate-600" {...props} />,
-                              video: ({node, ...props}) => (
-                                <div className="my-4 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-black aspect-video flex flex-col">
-                                  <video 
-                                    controls 
-                                    className="w-full h-full object-contain" 
-                                    poster={defaultAvatar}
-                                    {...props} 
-                                  />
-                                  <div className="bg-slate-900 p-3 flex items-center justify-between">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">EduCreator VideoLab</span>
-                                    <a 
-                                      href={props.src as string} 
-                                      download="video-educacional.mp4"
-                                      className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-500 transition-colors"
-                                    >
-                                      <FileDown className="w-3 h-3" />
-                                      DOWNLOAD
-                                    </a>
+                              video: ({node, ...props}) => {
+                                const generatedUrl = videoStatus[i]?.url;
+                                const rawSrc = typeof props.src === 'string' ? props.src : '';
+                                const isPlaceholder = !rawSrc || rawSrc === 'VIDEO_MEDIA';
+                                const src = isPlaceholder ? generatedUrl : rawSrc;
+                                return (
+                                  <div className="my-4 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-black aspect-video flex flex-col">
+                                    {src ? (
+                                      <video
+                                        controls
+                                        autoPlay
+                                        className="w-full h-full object-contain"
+                                        src={src}
+                                        key={src}
+                                      />
+                                    ) : (
+                                      <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-900">
+                                        <Loader2 className="w-10 h-10 mb-3 text-indigo-400 animate-spin" />
+                                        <h4 className="text-xs font-bold text-white">Gerando animação do avatar e áudio...</h4>
+                                        <p className="text-[10px] text-slate-400 mt-1">O vídeo de 10s aparecerá aqui assim que ficar pronto.</p>
+                                      </div>
+                                    )}
+                                    <div className="bg-slate-900 p-3 flex items-center justify-between">
+                                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">EduCreator VideoLab</span>
+                                      {src && (
+                                        <a
+                                          href={src}
+                                          download="video-educacional.mp4"
+                                          className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-500 transition-colors"
+                                        >
+                                          <FileDown className="w-3 h-3" />
+                                          DOWNLOAD
+                                        </a>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              )
+                                );
+                              }
                             }}
                           >
                             {renderMathAsUnicode(displayContent)}
@@ -885,7 +902,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                           </div>
                         )}
                       </div>
-                    ) : <div className="whitespace-pre-wrap">{msg.content}</div>}
+                    ) : <div className="whitespace-pre-wrap">{sanitizeChatText(msg.content)}</div>}
                   </div>
                 </div>
 
