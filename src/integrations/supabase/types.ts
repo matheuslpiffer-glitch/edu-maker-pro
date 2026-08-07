@@ -229,6 +229,42 @@ export type Database = {
         }
         Relationships: []
       }
+      documentos_pedagogicos: {
+        Row: {
+          componente_curricular: string | null
+          conteudo_json: Json
+          created_at: string
+          id: string
+          nivel_complexidade: number | null
+          tags_bncc: string[] | null
+          tipo_documento: string
+          titulo: string
+          user_id: string | null
+        }
+        Insert: {
+          componente_curricular?: string | null
+          conteudo_json: Json
+          created_at?: string
+          id?: string
+          nivel_complexidade?: number | null
+          tags_bncc?: string[] | null
+          tipo_documento: string
+          titulo: string
+          user_id?: string | null
+        }
+        Update: {
+          componente_curricular?: string | null
+          conteudo_json?: Json
+          created_at?: string
+          id?: string
+          nivel_complexidade?: number | null
+          tags_bncc?: string[] | null
+          tipo_documento?: string
+          titulo?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       essay_corrections: {
         Row: {
           comp1_justification: string
