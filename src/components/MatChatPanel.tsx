@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar, Sparkles, Brain, X, Wand2, CheckSquare, Accessibility, BarChart2, Users, Search } from 'lucide-react';
+import { FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Trash2, Brain, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
@@ -11,6 +11,7 @@ import { useStudentMode } from '@/hooks/useStudentMode';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isToday, isYesterday, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import ChatInput, { MAT_ACTIONS, type ChatInputPayload, type ChatInputHandle } from '@/components/ChatInput';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -56,27 +57,14 @@ export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg
   );
 }
 
-const MAT_ACTIONS = [
-  { id: 'resumir', label: 'Resumir Documento', category: 'Ações Rápidas', icon: FileText, color: 'text-blue-500', text: 'Resuma este documento focando nos pontos pedagógicos e objetivos de aprendizagem.' },
-  { id: 'melhorar', label: 'Melhore este Texto', category: 'Ações Rápidas', icon: Sparkles, color: 'text-amber-500', text: 'Melhore este texto pedagógico, tornando-o mais claro, formal e alinhado com a BNCC.' },
-  { id: 'gabarito', label: 'Corrigir/Gabaritar Prova', category: 'Pedagógico', icon: CheckSquare, color: 'text-emerald-500', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
-  { id: 'pei', label: 'Gerar PEI / Adaptação', category: 'Pedagógico', icon: Accessibility, color: 'text-indigo-500', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
-  { id: 'planilha', label: 'Diagnóstico de Planilha', category: 'Gestão', icon: BarChart2, color: 'text-green-600', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
-  { id: 'gestao', label: 'Simulador de Gestão', category: 'Gestão', icon: Users, color: 'text-purple-500', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
-  { id: 'video', label: 'Criar Vídeo Educacional (10s)', category: 'Mídia', icon: Video, color: 'text-rose-500', text: 'Planeje um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR), com narração e legenda em PT-BR. Me peça o tema e a imagem de referência opcional.' },
-] as const;
-
 export default function MatChatPanel({ fullPage = false, onRegisterReset, className, sessionId, onSessionChange }: MatChatPanelProps) {
   const { isStudentMode } = useStudentMode();
   const greeting = isStudentMode ? STUDENT_GREETING : TEACHER_GREETING;
   const [messages, setMessages] = useState<Msg[]>([{ role: 'assistant', content: greeting }]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
-  const [input, setInput] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(false);
   const [showMemory, setShowMemory] = useState(false);
   const [userMemory, setUserMemory] = useState<{ id: string; memory_fact: string }[]>([]);
@@ -84,15 +72,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [videoStatus, setVideoStatus] = useState<Record<number, { loading: boolean; url?: string }>>({});
   const [videoConfig, setVideoConfig] = useState<{ language: string; image: string | null; subtitles: boolean }>({ language: 'Português (PT-BR)', image: null, subtitles: true });
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const chatInputRef = useRef<ChatInputHandle>(null);
   const videoImageRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [actionSearch, setActionSearch] = useState('');
-  const [activeChip, setActiveChip] = useState<typeof MAT_ACTIONS[number] | null>(null);
 
 
   const loadMemory = useCallback(async () => {
@@ -176,68 +159,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   }, [messages, isLoading]);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    chatInputRef.current?.focus();
   }, []);
-
-  useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'pt-BR';
-      recognition.continuous = true;
-      recognition.interimResults = true;
-
-      recognition.onresult = (event: any) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          } else {
-            interimTranscript += event.results[i][0].transcript;
-          }
-        }
-
-        if (finalTranscript || interimTranscript) {
-          setInput(prev => {
-            const newVal = prev + (finalTranscript || interimTranscript);
-            // Adjust textarea height
-            if (inputRef.current) {
-              inputRef.current.style.height = 'auto';
-              inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 160)}px`;
-            }
-            return newVal;
-          });
-        }
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error', event.error);
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
-    }
-  }, []);
-
-  const toggleListening = useCallback(() => {
-    if (!recognitionRef.current) {
-      alert('Seu navegador não suporta reconhecimento de voz.');
-      return;
-    }
-
-    if (isListening) {
-      recognitionRef.current.stop();
-    } else {
-      setIsListening(true);
-      recognitionRef.current.start();
-    }
-  }, [isListening]);
 
   const speak = useCallback((text: string, index: number) => {
     if (!window.speechSynthesis) return;
@@ -279,26 +202,38 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     setMessages([{ role: 'assistant', content: greeting }]);
     setCurrentSessionId(null);
     onSessionChange?.(null);
+    chatInputRef.current?.reset();
   }, [greeting, onSessionChange]);
 
   useEffect(() => {
     onRegisterReset?.(reset);
   }, [onRegisterReset, reset]);
 
-  const sendMessage = useCallback(async () => {
-    const typed = input.trim();
-    const text = [activeChip?.text, typed].filter(Boolean).join('\n\n');
-    if ((!text && !selectedImage) || isLoading) return;
+  const handleSendMessage = useCallback(async (payload: ChatInputPayload) => {
+    // Resolve action template text
+    const action = MAT_ACTIONS.find((a) => a.id === payload.action);
+    const typed = payload.text;
+    const text = [action?.text, typed].filter(Boolean).join('\n\n');
+
+    // Convert image attachments to a base64 data URL for vision
+    let imageBase64: string | null = null;
+    const imageFile = payload.files.find((f) => f.type.startsWith('image/'));
+    if (imageFile) {
+      imageBase64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(imageFile);
+      });
+    }
+
+    if ((!text && !imageBase64) || isLoading) return;
 
     const userMsg: Msg = { 
       role: 'user', 
-      content: selectedImage ? `${text}\n\n[IMAGE_ATTACHED: ${selectedImage.substring(0, 50)}...]` : text 
+      content: imageBase64 ? `${text}\n\n[IMAGE_ATTACHED: ${imageBase64.substring(0, 50)}...]` : text 
     };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
-    setInput('');
-    setSelectedImage(null);
-    setActiveChip(null);
     setIsLoading(true);
 
     const { data: { session: authSession } } = await supabase.auth.getSession();
@@ -399,7 +334,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
           },
           body: JSON.stringify({ 
             messages: newMessages,
-            image: selectedImage // Sending the selected image for vision analysis
+            image: imageBase64, // Sending the selected image for vision analysis
+            web_search: payload.webSearch,
           }),
         });
 
@@ -461,8 +397,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
 
     setIsLoading(false);
-    inputRef.current?.focus();
-  }, [input, isLoading, messages, isAutoPlayEnabled, speak, activeChip, selectedImage]);
+    chatInputRef.current?.focus();
+  }, [isLoading, messages, isAutoPlayEnabled, speak, currentSessionId, onSessionChange]);
 
   const generateVideo = useCallback(async (prompt: string, index: number, language: string = 'PT-BR', imageBase64?: string | null) => {
     setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
@@ -485,8 +421,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
   }, []);
 
-  const optimizePrompt = useCallback(async () => {
-    if (!input.trim() || isOptimizing) return;
+  const optimizePrompt = useCallback(async (text: string) => {
+    if (!text.trim() || isOptimizing) return;
     setIsOptimizing(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -500,7 +436,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         body: JSON.stringify({ 
           messages: [{ 
             role: 'user', 
-            content: `Reescreva o seguinte comando de um professor para torná-lo uma instrução pedagógica de alta precisão, adicionando metodologia (PBL, Metodologias Ativas), habilidades da BNCC relacionadas, faixa etária sugerida e um tom assertivo. Retorne APENAS o texto otimizado, sem introduções ou explicações:\n\n"${input}"` 
+            content: `Reescreva o seguinte comando de um professor para torná-lo uma instrução pedagógica de alta precisão, adicionando metodologia (PBL, Metodologias Ativas), habilidades da BNCC relacionadas, faixa etária sugerida e um tom assertivo. Retorne APENAS o texto otimizado, sem introduções ou explicações:\n\n"${text}"` 
           }] 
         }),
       });
@@ -531,13 +467,13 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         }
       }
       
-      if (optimizedText) setInput(optimizedText.trim());
+      if (optimizedText) chatInputRef.current?.setInput(optimizedText.trim());
     } catch (err) {
       console.error('Error optimizing prompt:', err);
     } finally {
       setIsOptimizing(false);
     }
-  }, [input, isOptimizing]);
+  }, [isOptimizing]);
 
   const deleteMemoryFact = async (id: string) => {
     const { error } = await supabase
@@ -550,8 +486,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = useCallback(async (file: File) => {
     if (!file) return;
 
     setIsUploading(true);
@@ -598,9 +533,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       setMessages(prev => [...prev, { role: 'assistant', content: 'Desculpe, tive um erro ao ler esse arquivo. Tente um PDF ou imagem mais legível.' }]);
     } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-  };
+  }, []);
 
   const downloadAsPdf = async (content: string) => {
     try {
@@ -618,7 +552,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         .replace(/# (.*?)(\n|$)/g, '<h1>$1</h1>');
 
       element.innerHTML = `
-        <div style="text-align:center;border-bottom:2px solid #0891b2;margin-bottom:20px;padding-bottom:10px;">
+        <div style="text-align:center;border-bottom:2px solid #0891c2;margin-bottom:20px;padding-bottom:10px;">
           <h1 style="margin:0;color:#0F172A;">EduCreator Pro</h1>
           <p style="margin:5px 0 0;font-size:12px;color:#64748b;">Material Gerado via Assistente Mat</p>
         </div>
@@ -880,8 +814,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                     if (videoStatus[i]?.url) {
                                       generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image);
                                     } else {
-                                      setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
-                                      inputRef.current?.focus();
+                                      chatInputRef.current?.setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
+                                      chatInputRef.current?.focus();
                                     }
                                   }}
                                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black text-slate-500 hover:bg-slate-50 transition-colors"
@@ -951,8 +885,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                     {(msg.content.includes('|') || msg.content.includes('<table>')) && (
                       <button 
                         onClick={() => {
-                          setInput(`Converta as tabelas da resposta anterior em formato CSV/Excel pronto para exportação.`);
-                          inputRef.current?.focus();
+                          chatInputRef.current?.setInput(`Converta as tabelas da resposta anterior em formato CSV/Excel pronto para exportação.`);
+                          chatInputRef.current?.focus();
                         }}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
                       >
@@ -963,8 +897,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
                     <button 
                       onClick={() => {
-                        setInput(`Reorganize o conteúdo acima em um roteiro estruturado para slides de apresentação.`);
-                        inputRef.current?.focus();
+                        chatInputRef.current?.setInput(`Reorganize o conteúdo acima em um roteiro estruturado para slides de apresentação.`);
+                        chatInputRef.current?.focus();
                       }}
                       className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
                     >
@@ -989,240 +923,17 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         </div>
       </div>
 
-      <div className={cn('bg-white border-t border-slate-100', fullPage ? 'px-4 sm:px-8 py-4' : 'px-6 py-4')}>
-        <div className={cn(fullPage && 'mx-auto w-full max-w-3xl')}>
-          <div 
-            className="relative flex flex-col bg-slate-50 rounded-2xl border border-slate-200 focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-300 transition-all p-2"
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.add('bg-slate-100');
-            }}
-            onDragLeave={(e) => {
-              e.preventDefault();
-              e.currentTarget.classList.remove('bg-slate-100');
-            }}
-            onDrop={async (e) => {
-              e.preventDefault();
-              e.currentTarget.classList.remove('bg-slate-100');
-              const file = e.dataTransfer.files?.[0];
-              if (file && file.type.startsWith('image/')) {
-                const base64 = await new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onload = () => resolve(reader.result as string);
-                  reader.readAsDataURL(file);
-                });
-                setSelectedImage(base64);
-              }
-            }}
-          >
-            {(selectedImage || activeChip) && (
-              <div className="flex flex-wrap items-center gap-2 px-3 pt-2">
-                {activeChip && (
-                  <div className="flex items-center gap-1.5 bg-slate-200/80 text-slate-800 text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-300">
-                    <activeChip.icon className={cn('h-3.5 w-3.5', activeChip.color)} />
-                    <span>{activeChip.label}</span>
-                    <button type="button" onClick={() => setActiveChip(null)} className="ml-1 hover:text-red-500">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-                {selectedImage && (
-                <div className="relative group">
-                  <img 
-                    src={selectedImage} 
-                    alt="Preview" 
-                    className="w-12 h-12 rounded-lg object-cover border border-slate-200 shadow-sm"
-                  />
-                  <button
-                    onClick={() => setSelectedImage(null)}
-                    className="absolute -top-2 -right-2 bg-white text-slate-900 rounded-full p-1 shadow-md border border-slate-200 hover:bg-slate-100 transition-colors"
-                  >
-                    <Plus className="h-3 w-3 rotate-45" />
-                  </button>
-                </div>
-                )}
-              </div>
-            )}
-            <div className="relative flex items-end gap-2 w-full">
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
-                onChange={handleFileUpload}
-                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
-              />
-            <Popover.Root open={menuOpen} onOpenChange={(o) => { setMenuOpen(o); if (!o) setActionSearch(''); }}>
-              <Popover.Trigger asChild>
-                <button
-                  disabled={isLoading || isUploading}
-                  className={cn(
-                    "mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0 border border-slate-200",
-                    menuOpen ? "bg-slate-200 text-slate-900 rotate-45" : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-900"
-                  )}
-                  title="Anexar arquivos"
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </Popover.Trigger>
-              <Popover.Portal>
-                <Popover.Content 
-                  className="z-50 w-72 max-h-[70vh] overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-2 animate-in fade-in zoom-in duration-200"
-                  sideOffset={8}
-                  align="start"
-                >
-                  <div className="relative mb-2">
-                    <Search className="h-4 w-4 absolute left-3 top-2.5 text-slate-400" />
-                    <input
-                      type="text"
-                      autoFocus
-                      value={actionSearch}
-                      onChange={(e) => setActionSearch(e.target.value)}
-                      placeholder="Buscar ação ou recurso..."
-                      className="w-full bg-slate-50 text-sm text-slate-700 pl-9 pr-3 py-1.5 rounded-xl outline-none border border-slate-100 focus:border-slate-300"
-                    />
-                  </div>
-                  {!isStudentMode && (
-                    <div className="flex flex-col gap-1 pb-2 mb-2 border-b border-slate-100">
-                      <div className="text-[10px] font-bold text-slate-400 px-3 py-1.5 uppercase tracking-wider">
-                        Criar &amp; Analisar
-                      </div>
-                      {MAT_ACTIONS.filter((a) => a.label.toLowerCase().includes(actionSearch.toLowerCase())).map((action) => (
-                        <Popover.Close asChild key={action.id}>
-                          <button
-                            onClick={() => {
-                              setActiveChip(action);
-                              setInput((prev) => (prev.trim() === '/' ? '' : prev));
-                              setTimeout(() => inputRef.current?.focus(), 0);
-                            }}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left"
-                          >
-                            <action.icon className={cn('h-4 w-4 shrink-0', action.color)} />
-                            <span>{action.label}</span>
-                          </button>
-                        </Popover.Close>
-                      ))}
-                      {MAT_ACTIONS.filter((a) => a.label.toLowerCase().includes(actionSearch.toLowerCase())).length === 0 && (
-                        <div className="text-xs text-slate-400 px-3 py-2 text-center">Nenhuma ação encontrada</div>
-                      )}
-                    </div>
-                  )}
-                  <div className="flex flex-col gap-1">
-                    <button
-                      onClick={() => {
-                        if (fileInputRef.current) {
-                          fileInputRef.current.accept = ".png,.jpg,.jpeg,.webp";
-                          fileInputRef.current.onchange = async (e: any) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const base64 = await new Promise<string>((resolve) => {
-                                const reader = new FileReader();
-                                reader.onload = () => resolve(reader.result as string);
-                                reader.readAsDataURL(file);
-                              });
-                              setSelectedImage(base64);
-                            }
-                          };
-                          fileInputRef.current.click();
-                        }
-                      }}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
-                    >
-                      <ImageIcon className="h-4 w-4 text-blue-500" />
-                      <span>🖼️ Anexar Imagem para o Vídeo / Roteiro</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (fileInputRef.current) {
-                          fileInputRef.current.accept = ".pdf,.docx,.txt";
-                          fileInputRef.current.click();
-                        }
-                      }}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
-                    >
-                      <FileText className="h-4 w-4 text-orange-500" />
-                      <span>📄 Enviar Documento (PDF...)</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (fileInputRef.current) {
-                          fileInputRef.current.accept = ".csv,.xlsx";
-                          fileInputRef.current.click();
-                        }
-                      }}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
-                    >
-                      <FileSpreadsheet className="h-4 w-4 text-green-500" />
-                      <span>📊 Enviar Planilha (CSV...)</span>
-                    </button>
-                  </div>
-                  <Popover.Arrow className="fill-white" />
-                </Popover.Content>
-              </Popover.Portal>
-            </Popover.Root>
-            {isUploading && <Loader2 className="h-4 w-4 animate-spin text-slate-400 mb-2 ml-1" />}
-            <textarea
-              ref={inputRef}
-              rows={1}
-              value={input}
-              onChange={e => {
-                const val = e.target.value;
-                setInput(val);
-                if (val === '/') {
-                  setActionSearch('');
-                  setMenuOpen(true);
-                }
-                e.target.style.height = 'auto';
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
-              placeholder={activeChip ? "Digite instruções adicionais..." : selectedImage ? "O que deseja fazer com esta imagem?..." : "Pergunte ao Mat... (ou digite /)"}
-              className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-800 placeholder:text-slate-400 px-3 py-2.5 resize-none min-h-[40px] max-h-[160px]"
-            />
-            <button
-              onClick={optimizePrompt}
-              disabled={!input.trim() || isOptimizing || isLoading}
-              className={cn(
-                "mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0",
-                isOptimizing 
-                  ? "bg-blue-50 text-blue-500 animate-pulse" 
-                  : "text-slate-400 hover:bg-blue-50 hover:text-blue-600"
-              )}
-              title="Otimizar Prompt / Palavras Assertivas"
-            >
-              {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-            </button>
-            <button
-              onClick={toggleListening}
-              className={cn(
-                "mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0",
-                isListening 
-                  ? "bg-red-50 text-red-500 animate-pulse ring-2 ring-red-200" 
-                  : "text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-              )}
-              title={isListening ? "Parar de ouvir" : "Ditar mensagem"}
-            >
-              <Mic className={cn("h-4 w-4", isListening && "fill-red-500")} />
-            </button>
-            <button
-              onClick={sendMessage}
-              disabled={(!input.trim() && !selectedImage && !activeChip) || isLoading}
-              className="mb-1 h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors disabled:opacity-20 disabled:cursor-not-allowed shrink-0"
-              aria-label="Enviar mensagem"
-            >
-              <Send className="h-4 w-4" />
-            </button>
-            </div>
-          </div>
-          <p className="text-center text-[10px] text-slate-400 mt-3 font-medium">
-            O Mat pode cometer erros. Verifique informações importantes.
-          </p>
-        </div>
-      </div>
+      <ChatInput
+        ref={chatInputRef}
+        onSendMessage={handleSendMessage}
+        disabled={isLoading}
+        fullPage={fullPage}
+        hideActions={isStudentMode}
+        onFileProcess={handleFileUpload}
+        isUploading={isUploading}
+        onOptimizePrompt={optimizePrompt}
+        isOptimizing={isOptimizing}
+      />
     </div>
   );
 }
