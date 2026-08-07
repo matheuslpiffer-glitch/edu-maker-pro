@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar, Sparkles, Brain, X, Wand2, CheckSquare, Accessibility, BarChart2, Users } from 'lucide-react';
+import { Send, FileUp, FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Plus, Mic, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Pencil, Trash2, Calendar, Sparkles, Brain, X, Wand2, CheckSquare, Accessibility, BarChart2, Users, Search } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import * as Popover from '@radix-ui/react-popover';
