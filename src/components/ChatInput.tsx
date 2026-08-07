@@ -266,7 +266,8 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput
   );
 
   return (
-    <div className={cn('bg-white border-t border-slate-100 px-6 py-4', className)}>
+    <div className={cn('bg-white border-t border-slate-100', fullPage ? 'px-4 sm:px-8 py-4' : 'px-6 py-4', className)}>
+      <div className={cn(fullPage && 'mx-auto w-full max-w-3xl')}>
       <div
         className="relative flex flex-col bg-slate-50 rounded-2xl border border-slate-200 focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-300 transition-all p-2"
         onDragOver={(e) => {
