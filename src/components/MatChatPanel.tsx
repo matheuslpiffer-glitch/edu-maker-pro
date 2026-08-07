@@ -318,6 +318,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       let displayContent = assistantSoFar
         .replace(/\{[\s\S]*?"database"[\s\S]*?\}/g, '') // Remove internal JSON blocks
         .replace(/\[VIDEO_PROMPT:.*?\]/g, '')
+        .replace(/\[IMAGE_DATA:.*?\]/g, '')
+        .replace(/\[ANEXOS_PRESENTES:.*?\]/g, '')
         .trim();
 
       setMessages(prev => {
