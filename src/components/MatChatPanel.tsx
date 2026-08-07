@@ -1015,8 +1015,18 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               }
             }}
           >
-            {selectedImage && (
-              <div className="flex px-3 pt-2">
+            {(selectedImage || activeChip) && (
+              <div className="flex flex-wrap items-center gap-2 px-3 pt-2">
+                {activeChip && (
+                  <div className="flex items-center gap-1.5 bg-slate-200/80 text-slate-800 text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-300">
+                    <activeChip.icon className={cn('h-3.5 w-3.5', activeChip.color)} />
+                    <span>{activeChip.label}</span>
+                    <button type="button" onClick={() => setActiveChip(null)} className="ml-1 hover:text-red-500">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {selectedImage && (
                 <div className="relative group">
                   <img 
                     src={selectedImage} 
@@ -1030,6 +1040,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                     <Plus className="h-3 w-3 rotate-45" />
                   </button>
                 </div>
+                )}
               </div>
             )}
             <div className="relative flex items-end gap-2 w-full">
