@@ -13,6 +13,8 @@ import { format, isToday, isYesterday, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ChatInput, { MAT_ACTIONS, type ChatInputPayload, type ChatInputHandle } from '@/components/ChatInput';
 import { sanitizeChatText } from '@/lib/chat-sanitize';
+import VideoLabPlayer from '@/components/VideoLabPlayer';
+import { planScenes, VIDEO_DURATIONS, DURATION_LABELS, type VideoDuration } from '@/lib/video-scenes';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
 
