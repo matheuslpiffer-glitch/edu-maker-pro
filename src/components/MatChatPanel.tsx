@@ -247,7 +247,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     const userMsg: Msg = { 
       role: 'user', 
       content: JSON.stringify({
-        action_final: finalActionId,
+        database: finalActionId,
         texto_limpo: typed,
         anexos_presentes: !!imageBase64
       }) + (imageBase64 ? `\n\n[IMAGE_DATA: ${imageBase64.substring(0, 50)}...]` : '')
