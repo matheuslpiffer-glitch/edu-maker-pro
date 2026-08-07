@@ -91,7 +91,6 @@ export const MAT_ACTIONS: ChatAction[] = [
   { id: 'gabarito', label: 'Corrigir/Gabaritar Prova', category: 'Pedagógico', icon: FileText, color: 'text-emerald-500', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
   { id: 'planilha', label: 'Diagnóstico de Planilha', category: 'Gestão', icon: FileSpreadsheet, color: 'text-green-600', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
   { id: 'gestao', label: 'Simulador de Gestão', category: 'Gestão', icon: FileText, color: 'text-purple-500', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
-  { id: 'gestao', label: 'Simulador de Gestão', category: 'Gestão', icon: FileText, color: 'text-purple-500', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
   { id: 'video', label: 'Criar Vídeo Educacional (10s)', category: 'Mídia', icon: FileText, color: 'text-rose-500', text: 'Planeje um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR), com narração e legenda em PT-BR. Me peça o tema e a imagem de referência opcional.' },
 ];
 
