@@ -56,6 +56,16 @@ export function MatAvatar({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg
   );
 }
 
+const MAT_ACTIONS = [
+  { id: 'resumir', label: 'Resumir Documento', category: 'Ações Rápidas', icon: FileText, color: 'text-blue-500', text: 'Resuma este documento focando nos pontos pedagógicos e objetivos de aprendizagem.' },
+  { id: 'melhorar', label: 'Melhore este Texto', category: 'Ações Rápidas', icon: Sparkles, color: 'text-amber-500', text: 'Melhore este texto pedagógico, tornando-o mais claro, formal e alinhado com a BNCC.' },
+  { id: 'gabarito', label: 'Corrigir/Gabaritar Prova', category: 'Pedagógico', icon: CheckSquare, color: 'text-emerald-500', text: 'Analise esta prova e forneça o gabarito comentado com nível de dificuldade e habilidades.' },
+  { id: 'pei', label: 'Gerar PEI / Adaptação', category: 'Pedagógico', icon: Accessibility, color: 'text-indigo-500', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
+  { id: 'planilha', label: 'Diagnóstico de Planilha', category: 'Gestão', icon: BarChart2, color: 'text-green-600', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
+  { id: 'gestao', label: 'Simulador de Gestão', category: 'Gestão', icon: Users, color: 'text-purple-500', text: 'Ative o modo simulação: encene um atendimento a pais, reunião pedagógica ou banca de projetos para meu treino. Atue como meu interlocutor.' },
+  { id: 'video', label: 'Criar Vídeo Educacional (10s)', category: 'Mídia', icon: Video, color: 'text-rose-500', text: 'Planeje um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR), com narração e legenda em PT-BR. Me peça o tema e a imagem de referência opcional.' },
+] as const;
+
 export default function MatChatPanel({ fullPage = false, onRegisterReset, className, sessionId, onSessionChange }: MatChatPanelProps) {
   const { isStudentMode } = useStudentMode();
   const greeting = isStudentMode ? STUDENT_GREETING : TEACHER_GREETING;
