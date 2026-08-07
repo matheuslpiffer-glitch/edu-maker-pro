@@ -144,7 +144,7 @@ export default function EduCanvasLayout() {
                                 <div className="flex-1 flex flex-col items-center justify-center text-white p-6 text-center bg-slate-900">
                                   <Loader2 className="w-12 h-12 mb-4 text-indigo-400 animate-spin" />
                                   <h4 className="text-sm font-bold mb-1">Processando Mídia Visual</h4>
-                                  <p className="text-[10px] text-slate-400">O pipeline de vídeo está gerando o arquivo MP4 (10s)...</p>
+                                  <p className="text-[10px] text-slate-400">Gerando cenas e áudio para vídeo de até 60s (01:00)...</p>
                                 </div>
                             ) : (
                               <video 
