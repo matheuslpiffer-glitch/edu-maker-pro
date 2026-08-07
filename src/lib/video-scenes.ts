@@ -4,10 +4,14 @@
 
 export const SEGMENT_SECONDS = 8;
 
-export const VIDEO_DURATIONS = [15, 30, 45, 60] as const;
+export const VIDEO_DURATIONS = [10, 15, 30, 45, 60] as const;
 export type VideoDuration = (typeof VIDEO_DURATIONS)[number];
 
+/** Duração máxima liberada para usuários comuns (não administradores). */
+export const FREE_MAX_VIDEO_SECONDS = 10;
+
 export const DURATION_LABELS: Record<VideoDuration, string> = {
+  10: '10s',
   15: '15s',
   30: '30s',
   45: '45s',

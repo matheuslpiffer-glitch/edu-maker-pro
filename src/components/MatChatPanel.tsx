@@ -14,7 +14,8 @@ import { ptBR } from 'date-fns/locale';
 import ChatInput, { MAT_ACTIONS, type ChatInputPayload, type ChatInputHandle } from '@/components/ChatInput';
 import { sanitizeChatText } from '@/lib/chat-sanitize';
 import VideoLabPlayer from '@/components/VideoLabPlayer';
-import { planScenes, VIDEO_DURATIONS, DURATION_LABELS, type VideoDuration } from '@/lib/video-scenes';
+import { planScenes, VIDEO_DURATIONS, DURATION_LABELS, FREE_MAX_VIDEO_SECONDS, type VideoDuration } from '@/lib/video-scenes';
+import { useRole } from '@/hooks/useRole';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -79,7 +80,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [userMemory, setUserMemory] = useState<{ id: string; memory_fact: string }[]>([]);
   const [speakingMsgIndex, setSpeakingMsgIndex] = useState<number | null>(null);
   const [videoStatus, setVideoStatus] = useState<Record<number, { loading: boolean; url?: string; segments?: string[]; done?: number; total?: number; duration?: number }>>({});
-  const [videoConfig, setVideoConfig] = useState<{ language: string; image: string | null; subtitles: boolean; duration: VideoDuration }>({ language: 'Português (PT-BR)', image: null, subtitles: true, duration: 30 });
+  const { role } = useRole();
+  const canUseLongVideos = role === 'admin' || role === 'super_admin';
+  const [videoConfig, setVideoConfig] = useState<{ language: string; image: string | null; subtitles: boolean; duration: VideoDuration }>({ language: 'Português (PT-BR)', image: null, subtitles: true, duration: FREE_MAX_VIDEO_SECONDS });
   const scrollRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const videoImageRef = useRef<HTMLInputElement>(null);
@@ -437,10 +440,13 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     imageBase64?: string | null,
     totalDuration: VideoDuration = 30,
   ) => {
-    const scenes = planScenes(prompt, totalDuration);
+    const effectiveDuration = (canUseLongVideos
+      ? totalDuration
+      : Math.min(totalDuration, FREE_MAX_VIDEO_SECONDS)) as VideoDuration;
+    const scenes = planScenes(prompt, effectiveDuration);
     setVideoStatus(prev => ({
       ...prev,
-      [index]: { loading: true, segments: [], done: 0, total: scenes.length, duration: totalDuration },
+      [index]: { loading: true, segments: [], done: 0, total: scenes.length, duration: effectiveDuration },
     }));
 
     const segments: string[] = [];
@@ -454,7 +460,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             prompt: scene.prompt,
             duration: scene.seconds,
             duration_seconds: scene.seconds,
-            total_duration: totalDuration,
+            total_duration: effectiveDuration,
             scene_index: scene.index + 1,
             scene_count: scenes.length,
             scene_block: scene.block.label,
@@ -474,7 +480,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             segments: [...segments],
             done: segments.length,
             total: scenes.length,
-            duration: totalDuration,
+            duration: effectiveDuration,
           },
         }));
       }
@@ -488,14 +494,14 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
           segments,
           done: segments.length,
           total: scenes.length,
-          duration: totalDuration,
+          duration: effectiveDuration,
         },
       }));
       if (segments.length === 0) {
         alert('Desculpe, tive um erro ao gerar seu vídeo. Tente novamente em instantes.');
       }
     }
-  }, []);
+  }, [canUseLongVideos]);
 
   // Dispara automaticamente a geração do MP4 quando a IA marca <video src="VIDEO_MEDIA" />
   useEffect(() => {
@@ -879,13 +885,14 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                               
                                               <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Duração</label>
-                                                <div className="grid grid-cols-4 gap-1">
+                                                <div className="grid grid-cols-5 gap-1">
                                                   {VIDEO_DURATIONS.map((d) => (
                                                     <button
                                                       key={d}
+                                                      disabled={!canUseLongVideos && d > FREE_MAX_VIDEO_SECONDS}
                                                       onClick={() => setVideoConfig(prev => ({ ...prev, duration: d }))}
                                                       className={cn(
-                                                        'py-1.5 text-[10px] font-bold rounded-lg border transition-colors',
+                                                        'py-1.5 text-[10px] font-bold rounded-lg border transition-colors disabled:opacity-40 disabled:cursor-not-allowed',
                                                         videoConfig.duration === d
                                                           ? 'bg-slate-900 text-white border-slate-900'
                                                           : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
@@ -896,7 +903,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                                   ))}
                                                 </div>
                                                 <p className="text-[10px] text-slate-400">
-                                                  {DURATION_LABELS[videoConfig.duration]} — roteiro dividido em cenas encadeadas.
+                                                  {canUseLongVideos
+                                                    ? `${DURATION_LABELS[videoConfig.duration]} — roteiro dividido em cenas encadeadas.`
+                                                    : `Limite de ${FREE_MAX_VIDEO_SECONDS}s por vídeo. Durações maiores são exclusivas da administração.`}
                                                 </p>
                                               </div>
 

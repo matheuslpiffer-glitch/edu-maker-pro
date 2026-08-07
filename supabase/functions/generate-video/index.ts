@@ -1,5 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
+
+/** Duração máxima (em segundos) liberada para usuários comuns. Admins não têm limite. */
+const FREE_MAX_VIDEO_SECONDS = 10;
+
+async function isAdminUser(userId: string): Promise<boolean> {
+  try {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .in("role", ["admin", "super_admin"])
+      .limit(1);
+    if (error) return false;
+    return (data?.length ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,7 +88,21 @@ serve(async (req) => {
 
     const sceneIndex = Number(payload.scene_index) || 1;
     const sceneCount = Number(payload.scene_count) || 1;
-    const totalDuration = Math.min(Number(payload.total_duration) || requested, 60);
+    let totalDuration = Math.min(Number(payload.total_duration) || requested, 60);
+
+    // Usuários comuns só podem gerar vídeos de até 10s; administradores mantêm até 60s.
+    if (totalDuration > FREE_MAX_VIDEO_SECONDS || sceneIndex * 8 > FREE_MAX_VIDEO_SECONDS + 6) {
+      const admin = await isAdminUser(userId);
+      if (!admin) {
+        if (sceneIndex * 8 > FREE_MAX_VIDEO_SECONDS + 6) {
+          return json(
+            { error: `Vídeos acima de ${FREE_MAX_VIDEO_SECONDS}s são exclusivos da administração.` },
+            403,
+          );
+        }
+        totalDuration = FREE_MAX_VIDEO_SECONDS;
+      }
+    }
     const sceneContext =
       sceneCount > 1
         ? ` | Esta é a cena ${sceneIndex} de ${sceneCount} de um vídeo educacional de ${totalDuration} segundos${payload.scene_block ? ` (etapa: ${payload.scene_block})` : ""}. Mantenha continuidade visual, mesma paleta e mesmo ritmo das demais cenas.`
