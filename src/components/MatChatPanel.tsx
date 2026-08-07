@@ -13,6 +13,8 @@ import { format, isToday, isYesterday, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import ChatInput, { MAT_ACTIONS, type ChatInputPayload, type ChatInputHandle } from '@/components/ChatInput';
 import { sanitizeChatText } from '@/lib/chat-sanitize';
+import VideoLabPlayer from '@/components/VideoLabPlayer';
+import { planScenes, VIDEO_DURATIONS, DURATION_LABELS, type VideoDuration } from '@/lib/video-scenes';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -76,8 +78,8 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const [showMemory, setShowMemory] = useState(false);
   const [userMemory, setUserMemory] = useState<{ id: string; memory_fact: string }[]>([]);
   const [speakingMsgIndex, setSpeakingMsgIndex] = useState<number | null>(null);
-  const [videoStatus, setVideoStatus] = useState<Record<number, { loading: boolean; url?: string }>>({});
-  const [videoConfig, setVideoConfig] = useState<{ language: string; image: string | null; subtitles: boolean }>({ language: 'Português (PT-BR)', image: null, subtitles: true });
+  const [videoStatus, setVideoStatus] = useState<Record<number, { loading: boolean; url?: string; segments?: string[]; done?: number; total?: number; duration?: number }>>({});
+  const [videoConfig, setVideoConfig] = useState<{ language: string; image: string | null; subtitles: boolean; duration: VideoDuration }>({ language: 'Português (PT-BR)', image: null, subtitles: true, duration: 30 });
   const scrollRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<ChatInputHandle>(null);
   const videoImageRef = useRef<HTMLInputElement>(null);
@@ -428,24 +430,70 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     chatInputRef.current?.focus();
   }, [isLoading, messages, isAutoPlayEnabled, speak, currentSessionId, onSessionChange]);
 
-  const generateVideo = useCallback(async (prompt: string, index: number, language: string = 'PT-BR', imageBase64?: string | null) => {
-    setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-video', {
-        body: { prompt, duration: 10, language, image: imageBase64 },
-      });
-      if (error) throw error;
-      if (!data?.url) throw new Error(data?.error || 'Falha ao gerar vídeo');
+  const generateVideo = useCallback(async (
+    prompt: string,
+    index: number,
+    language: string = 'PT-BR',
+    imageBase64?: string | null,
+    totalDuration: VideoDuration = 30,
+  ) => {
+    const scenes = planScenes(prompt, totalDuration);
+    setVideoStatus(prev => ({
+      ...prev,
+      [index]: { loading: true, segments: [], done: 0, total: scenes.length, duration: totalDuration },
+    }));
 
-      setVideoStatus(prev => ({ 
-        ...prev, 
-        [index]: { loading: false, url: data.url } 
-      }));
+    const segments: string[] = [];
+
+    try {
+      // As cenas são geradas em sequência (a API gera clipes curtos por chamada)
+      // e depois reproduzidas encadeadas para formar o vídeo completo.
+      for (const scene of scenes) {
+        const { data, error } = await supabase.functions.invoke('generate-video', {
+          body: {
+            prompt: scene.prompt,
+            duration: scene.seconds,
+            duration_seconds: scene.seconds,
+            total_duration: totalDuration,
+            scene_index: scene.index + 1,
+            scene_count: scenes.length,
+            scene_block: scene.block.label,
+            language,
+            image: scene.index === 0 ? imageBase64 : undefined,
+          },
+        });
+        if (error) throw error;
+        if (!data?.url) throw new Error(data?.error || 'Falha ao gerar vídeo');
+
+        segments.push(data.url);
+        setVideoStatus(prev => ({
+          ...prev,
+          [index]: {
+            loading: segments.length < scenes.length,
+            url: segments[0],
+            segments: [...segments],
+            done: segments.length,
+            total: scenes.length,
+            duration: totalDuration,
+          },
+        }));
+      }
     } catch (error) {
       console.error(error);
-      setVideoStatus(prev => ({ ...prev, [index]: { loading: false } }));
-      alert('Desculpe, tive um erro ao gerar seu vídeo. Tente novamente em instantes.');
+      setVideoStatus(prev => ({
+        ...prev,
+        [index]: {
+          loading: false,
+          url: segments[0],
+          segments,
+          done: segments.length,
+          total: scenes.length,
+          duration: totalDuration,
+        },
+      }));
+      if (segments.length === 0) {
+        alert('Desculpe, tive um erro ao gerar seu vídeo. Tente novamente em instantes.');
+      }
     }
   }, []);
 
@@ -457,7 +505,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       if (!m.content.includes('VIDEO_MEDIA')) return;
       if (videoStatus[i]) return;
       const prompt = sanitizeChatText(m.content).replace(/<video[^>]*\/?>/g, '').slice(0, 900).trim();
-      if (prompt) generateVideo(prompt, i, videoConfig.language, videoConfig.image);
+      if (prompt) generateVideo(prompt, i, videoConfig.language, videoConfig.image, videoConfig.duration);
     });
   }, [messages, isLoading, videoStatus, generateVideo, videoConfig]);
 
@@ -707,10 +755,28 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                               th: ({node, ...props}) => <th className="border border-slate-200 px-3 py-2 text-left font-bold text-slate-700" {...props} />,
                               td: ({node, ...props}) => <td className="border border-slate-200 px-3 py-2 text-slate-600" {...props} />,
                               video: ({node, ...props}) => {
-                                const generatedUrl = videoStatus[i]?.url;
+                                const status = videoStatus[i];
+                                const generatedUrl = status?.url;
                                 const rawSrc = typeof props.src === 'string' ? props.src : '';
                                 const isPlaceholder = !rawSrc || rawSrc === 'VIDEO_MEDIA';
                                 const src = isPlaceholder ? generatedUrl : rawSrc;
+                                const total = status?.duration ?? videoConfig.duration;
+                                if (isPlaceholder && status?.segments?.length) {
+                                  return (
+                                    <div className="my-4">
+                                      <VideoLabPlayer
+                                        segments={status.segments}
+                                        durationSeconds={total}
+                                        showSubtitles={videoConfig.subtitles}
+                                      />
+                                      {status.loading && (
+                                        <p className="text-[10px] text-slate-500 mt-1">
+                                          Gerando cenas e áudio para vídeo de {total}s... ({status.done}/{status.total})
+                                        </p>
+                                      )}
+                                    </div>
+                                  );
+                                }
                                 return (
                                   <div className="my-4 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-black aspect-video flex flex-col">
                                     {src ? (
@@ -724,8 +790,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                     ) : (
                                       <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-900">
                                         <Loader2 className="w-10 h-10 mb-3 text-indigo-400 animate-spin" />
-                                        <h4 className="text-xs font-bold text-white">Gerando animação do avatar e áudio...</h4>
-                                        <p className="text-[10px] text-slate-400 mt-1">O vídeo de 10s aparecerá aqui assim que ficar pronto.</p>
+                                        <h4 className="text-xs font-bold text-white">Gerando cenas e áudio para vídeo de {total}s...</h4>
+                                        <p className="text-[10px] text-slate-400 mt-1">
+                                          {status?.total ? `Cena ${(status.done ?? 0) + 1} de ${status.total}` : `O vídeo de ${total}s aparecerá aqui assim que ficar pronto.`}
+                                        </p>
                                       </div>
                                     )}
                                     <div className="bg-slate-900 p-3 flex items-center justify-between">
@@ -753,26 +821,35 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                         {videoPromptMatch && (
                           <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shadow-sm">
                             <div className="aspect-video bg-slate-900 flex flex-col items-center justify-center relative group">
-                              {videoStatus[i]?.loading ? (
-                                <div className="text-white text-center p-4 animate-pulse">
+                              {videoStatus[i]?.loading && !videoStatus[i]?.segments?.length ? (
+                                <div className="text-white text-center p-4 w-full max-w-xs">
                                   <Loader2 className="h-12 w-12 mx-auto mb-3 text-blue-400 animate-spin" />
-                                  <p className="text-xs font-bold text-slate-300">🎥 O Mat está gerando seu vídeo educacional de 10 segundos...</p>
-                                  <p className="text-[10px] text-slate-500 mt-2 italic">Isso pode levar de 30 a 60 segundos.</p>
+                                  <p className="text-xs font-bold text-slate-300">
+                                    🎥 Gerando cenas e áudio para vídeo de {videoStatus[i]?.duration ?? videoConfig.duration}s...
+                                  </p>
+                                  <div className="h-1.5 w-full rounded-full bg-slate-700 overflow-hidden mt-3">
+                                    <div
+                                      className="h-full bg-blue-500 transition-all"
+                                      style={{ width: `${((videoStatus[i]?.done ?? 0) / Math.max(videoStatus[i]?.total ?? 1, 1)) * 100}%` }}
+                                    />
+                                  </div>
+                                  <p className="text-[10px] text-slate-500 mt-2 italic">
+                                    Cena {(videoStatus[i]?.done ?? 0) + 1} de {videoStatus[i]?.total ?? 1} — pode levar alguns minutos.
+                                  </p>
                                 </div>
-                              ) : videoStatus[i]?.url ? (
+                              ) : videoStatus[i]?.segments?.length ? (
                                 <div className="relative w-full h-full">
-                                  <video 
-                                    src={videoStatus[i].url} 
-                                    controls 
-                                    autoPlay 
-                                    loop 
-                                    className="w-full h-full object-cover"
+                                  <VideoLabPlayer
+                                    segments={videoStatus[i].segments as string[]}
+                                    durationSeconds={videoStatus[i]?.duration ?? videoConfig.duration}
+                                    subtitleText={overlayText}
+                                    showSubtitles={videoConfig.subtitles}
+                                    className="border-0"
                                   />
-                                  {overlayText && videoConfig.subtitles && (
-                                    <div className="absolute bottom-14 left-0 right-0 flex justify-center px-4 pointer-events-none">
-                                      <div className="bg-black/70 px-4 py-2 rounded-lg border border-white/20 text-white text-sm font-bold shadow-xl text-center animate-in fade-in duration-500">
-                                        {overlayText}
-                                      </div>
+                                  {videoStatus[i]?.loading && (
+                                    <div className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1.5">
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                      {videoStatus[i]?.done}/{videoStatus[i]?.total} cenas
                                     </div>
                                   )}
                                 </div>
@@ -780,7 +857,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                 <>
                                   <div className="text-white text-center p-4">
                                     <Video className="h-12 w-12 mx-auto mb-2 opacity-30" />
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">VÍDEO EDUCACIONAL (10S)</p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                      VÍDEO EDUCACIONAL (ATÉ 60S)
+                                    </p>
                                     <p className="text-[10px] text-slate-500 mt-1 italic max-w-[240px] truncate mx-auto">
                                       {videoPromptMatch[1]}
                                     </p>
@@ -798,6 +877,29 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                             <div className="space-y-4">
                                               <h4 className="text-sm font-bold text-slate-900 border-bottom pb-2 border-slate-50">Configurações do Vídeo</h4>
                                               
+                                              <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Duração</label>
+                                                <div className="grid grid-cols-4 gap-1">
+                                                  {VIDEO_DURATIONS.map((d) => (
+                                                    <button
+                                                      key={d}
+                                                      onClick={() => setVideoConfig(prev => ({ ...prev, duration: d }))}
+                                                      className={cn(
+                                                        'py-1.5 text-[10px] font-bold rounded-lg border transition-colors',
+                                                        videoConfig.duration === d
+                                                          ? 'bg-slate-900 text-white border-slate-900'
+                                                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                                      )}
+                                                    >
+                                                      {d === 60 ? '60s' : DURATION_LABELS[d]}
+                                                    </button>
+                                                  ))}
+                                                </div>
+                                                <p className="text-[10px] text-slate-400">
+                                                  {DURATION_LABELS[videoConfig.duration]} — roteiro dividido em cenas encadeadas.
+                                                </p>
+                                              </div>
+
                                               <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Áudio</label>
                                                 <div className="w-full p-2 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-600 font-semibold">
@@ -845,11 +947,11 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
                                               <button 
                                                 onClick={() => {
-                                                  generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image);
+                                                  generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image, videoConfig.duration);
                                                 }}
                                                 className="w-full p-3 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors"
                                               >
-                                                CRIAR VÍDEO EDUCACIONAL (10S)
+                                                CRIAR VÍDEO EDUCACIONAL ({DURATION_LABELS[videoConfig.duration].toUpperCase()})
                                               </button>
                                             </div>
                                           </Popover.Content>
@@ -898,7 +1000,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                 <button 
                                   onClick={() => {
                                     if (videoStatus[i]?.url) {
-                                      generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image);
+                                      generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image, videoConfig.duration);
                                     } else {
                                       chatInputRef.current?.setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
                                       chatInputRef.current?.focus();
