@@ -446,7 +446,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     const scenes = planScenes(prompt, effectiveDuration);
     setVideoStatus(prev => ({
       ...prev,
-      [index]: { loading: true, segments: [], done: 0, total: scenes.length, duration: totalDuration },
+      [index]: { loading: true, segments: [], done: 0, total: scenes.length, duration: effectiveDuration },
     }));
 
     const segments: string[] = [];
