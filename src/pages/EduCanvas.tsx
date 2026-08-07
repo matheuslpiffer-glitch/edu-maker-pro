@@ -2,7 +2,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
-import { FileText, Sliders, Sparkles, Check, Printer, Copy, ChevronRight, FileDown, Video } from 'lucide-react';
+import { FileText, Sliders, Sparkles, Check, Printer, Copy, ChevronRight, FileDown, Video, Loader2 } from 'lucide-react';
 
 interface CanvasMessage {
   id: number;
