@@ -2,7 +2,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
-import { FileText, Sliders, Sparkles, Check, Printer, Copy, ChevronRight } from 'lucide-react';
+import { FileText, Sliders, Sparkles, Check, Printer, Copy, ChevronRight, FileDown } from 'lucide-react';
 
 interface CanvasMessage {
   id: number;
@@ -132,7 +132,31 @@ export default function EduCanvasLayout() {
                 }`}
               >
                 <div className="prose prose-sm max-w-none prose-slate">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      video: ({node, ...props}) => (
+                        <div className="my-4 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-black aspect-video flex flex-col">
+                          <video 
+                            controls 
+                            className="w-full h-full object-contain" 
+                            {...props} 
+                          />
+                          <div className="bg-slate-900 p-3 flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">EduCreator VideoLab</span>
+                            <a 
+                              href={props.src as string} 
+                              download="video-educacional.mp4"
+                              className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-500 transition-colors"
+                            >
+                              <FileDown className="w-3 h-3" />
+                              DOWNLOAD
+                            </a>
+                          </div>
+                        </div>
+                      )
+                    }}
+                  >
                     {msg.text}
                   </ReactMarkdown>
                 </div>
