@@ -230,7 +230,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
     const userMsg: Msg = { 
       role: 'user', 
-      content: imageBase64 ? `${text}\n\n[IMAGE_ATTACHED: ${imageBase64.substring(0, 50)}...]` : text 
+      content: imageBase64 ? `${text}\n\n[ANEXOS_PRESENTES: true] [IMAGE_DATA: ${imageBase64.substring(0, 50)}...]` : text 
     };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
