@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { sanitizeChatText } from '@/lib/chat-sanitize';
 import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
 import { FileText, Sliders, Sparkles, Check, Printer, Copy, ChevronRight, FileDown, Video, Loader2 } from 'lucide-react';
 
@@ -171,7 +172,7 @@ export default function EduCanvasLayout() {
                       }
                     }}
                   >
-                    {msg.text}
+                    {sanitizeChatText(msg.text)}
                   </ReactMarkdown>
                 </div>
               </div>
