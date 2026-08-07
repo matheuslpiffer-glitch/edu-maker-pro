@@ -256,7 +256,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         database: finalActionId,
         texto_limpo: typed,
         anexos_presentes: !!imageBase64
-      }) + (imageBase64 ? `\n\n[IMAGE_DATA: ${imageBase64.substring(0, 50)}...]` : '')
+      })
     };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
@@ -304,10 +304,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       const memoryMatch = assistantSoFar.match(/\[MEMORY_FACT:\s*(.*?)\]/);
       if (memoryMatch && memoryMatch[1]) {
         const fact = memoryMatch[1].trim();
-        // Remove the tag from what is displayed to the user
         assistantSoFar = assistantSoFar.replace(/\[MEMORY_FACT:.*?\]/g, '').trim();
-        
-        // Save to DB (Fire and forget or handle properly)
         const { data: { session: currentAuth } } = await supabase.auth.getSession();
         if (currentAuth?.user?.id) {
           await supabase.from('user_pedagogical_memory' as any).insert({
@@ -317,12 +314,18 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         }
       }
 
+      // Cleanup JSON/Internal data from display
+      let displayContent = assistantSoFar
+        .replace(/\{[\s\S]*?"database"[\s\S]*?\}/g, '') // Remove internal JSON blocks
+        .replace(/\[VIDEO_PROMPT:.*?\]/g, '')
+        .trim();
+
       setMessages(prev => {
         const last = prev[prev.length - 1];
         if (last?.role === 'assistant' && prev.length > newMessages.length) {
-          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
+          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: displayContent } : m));
         }
-        return [...prev.slice(0, newMessages.length), { role: 'assistant', content: assistantSoFar }];
+        return [...prev.slice(0, newMessages.length), { role: 'assistant', content: displayContent }];
       });
     };
 
@@ -669,7 +672,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         <div className={cn(fullPage ? 'mx-auto w-full max-w-3xl space-y-8' : 'space-y-8')}>
           {messages.map((msg, i) => {
             const videoPromptMatch = msg.content.match(/\[VIDEO_PROMPT:\s*(.*?)\]/);
-            const displayContent = msg.content.replace(/\[VIDEO_PROMPT:.*?\]/g, '').trim();
+            const displayContent = msg.content;
             
             // Extrair legenda e roteiro se for uma resposta de vídeo
             const overlayTextMatch = msg.content.match(/📝 \*\*Legenda \/ Texto da Tela:\*\* (.*?)(\n|$)/);
