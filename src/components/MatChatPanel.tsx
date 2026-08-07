@@ -878,6 +878,29 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                               <h4 className="text-sm font-bold text-slate-900 border-bottom pb-2 border-slate-50">Configurações do Vídeo</h4>
                                               
                                               <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Duração</label>
+                                                <div className="grid grid-cols-4 gap-1">
+                                                  {VIDEO_DURATIONS.map((d) => (
+                                                    <button
+                                                      key={d}
+                                                      onClick={() => setVideoConfig(prev => ({ ...prev, duration: d }))}
+                                                      className={cn(
+                                                        'py-1.5 text-[10px] font-bold rounded-lg border transition-colors',
+                                                        videoConfig.duration === d
+                                                          ? 'bg-slate-900 text-white border-slate-900'
+                                                          : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                                                      )}
+                                                    >
+                                                      {d === 60 ? '60s' : DURATION_LABELS[d]}
+                                                    </button>
+                                                  ))}
+                                                </div>
+                                                <p className="text-[10px] text-slate-400">
+                                                  {DURATION_LABELS[videoConfig.duration]} — roteiro dividido em cenas encadeadas.
+                                                </p>
+                                              </div>
+
+                                              <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Áudio</label>
                                                 <div className="w-full p-2 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-600 font-semibold">
                                                   🔊 Narração em Português (PT-BR)
@@ -924,11 +947,11 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
                                               <button 
                                                 onClick={() => {
-                                                  generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image);
+                                                  generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image, videoConfig.duration);
                                                 }}
                                                 className="w-full p-3 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors"
                                               >
-                                                CRIAR VÍDEO EDUCACIONAL (10S)
+                                                CRIAR VÍDEO EDUCACIONAL ({DURATION_LABELS[videoConfig.duration].toUpperCase()})
                                               </button>
                                             </div>
                                           </Popover.Content>
