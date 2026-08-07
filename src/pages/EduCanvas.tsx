@@ -149,7 +149,8 @@ export default function EduCanvasLayout() {
                               <video 
                                 controls 
                                 className="w-full h-full object-contain" 
-                                {...props} 
+                                src={props.src}
+                                key={props.src}
                               />
                             )}
                             <div className="bg-slate-900 p-3 flex items-center justify-between">
