@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
 import { FileText, Sliders, Sparkles, Check, Printer, Copy, ChevronRight } from 'lucide-react';
 
@@ -129,7 +131,11 @@ export default function EduCanvasLayout() {
                     : 'bg-white text-slate-800 border border-slate-200 shadow-sm rounded-bl-none'
                 }`}
               >
-                {msg.text}
+                <div className="prose prose-sm max-w-none prose-slate">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {msg.text}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           ))}
