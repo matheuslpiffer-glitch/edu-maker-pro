@@ -466,7 +466,7 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput
           {/* Prompt optimization */}
           {onOptimizePrompt && (
             <button
-              onClick={onOptimizePrompt}
+              onClick={() => onOptimizePrompt(input)}
               disabled={!input.trim() || isOptimizing || disabled}
               className={cn(
                 'mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0',
