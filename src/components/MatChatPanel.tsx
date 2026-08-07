@@ -462,7 +462,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
     setIsLoading(false);
     inputRef.current?.focus();
-  }, [input, isLoading, messages, isAutoPlayEnabled, speak]);
+  }, [input, isLoading, messages, isAutoPlayEnabled, speak, activeChip, selectedImage]);
 
   const generateVideo = useCallback(async (prompt: string, index: number, language: string = 'PT-BR', imageBase64?: string | null) => {
     setVideoStatus(prev => ({ ...prev, [index]: { loading: true } }));
