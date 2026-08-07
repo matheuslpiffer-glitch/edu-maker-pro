@@ -134,6 +134,7 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput
     isUploading = false,
     onOptimizePrompt,
     isOptimizing = false,
+    fullPage = false,
     className,
   },
   ref,
