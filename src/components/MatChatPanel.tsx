@@ -80,6 +80,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const recognitionRef = useRef<any>(null);
   const synthesisRef = useRef<SpeechSynthesisUtterance | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [actionSearch, setActionSearch] = useState('');
+  const [activeChip, setActiveChip] = useState<typeof MAT_ACTIONS[number] | null>(null);
 
 
   const loadMemory = useCallback(async () => {
