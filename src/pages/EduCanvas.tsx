@@ -82,6 +82,14 @@ export default function EduCanvasLayout() {
 
   const handleLevelChange = (newLevel: number) => {
     setCanvasDocument((prev) => ({ ...prev, difficultyLevel: newLevel }));
+    
+    // Trigger automatic re-evaluation of the document level
+    handleSendMessage({
+      text: `Revisão de Nível: ajuste todo o documento para o Nível ${newLevel}.`,
+      action: 'revisao_nivel',
+      files: [],
+      webSearch: false
+    });
   };
 
   return (
