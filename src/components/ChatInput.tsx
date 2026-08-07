@@ -72,9 +72,11 @@ export interface ChatInputProps {
   onFileProcess?: (file: File) => void;
   /** True while a document is being processed upstream. */
   isUploading?: boolean;
-  /** Click handler for the ✨ prompt-optimization button. */
-  onOptimizePrompt?: () => void;
+  /** Click handler for the ✨ prompt-optimization button. Receives the current text. */
+  onOptimizePrompt?: (text: string) => void;
   isOptimizing?: boolean;
+  /** Wider spacing/centering for the full-page chat layout. */
+  fullPage?: boolean;
   /** Extra className on the root wrapper. */
   className?: string;
 }
