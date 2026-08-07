@@ -460,7 +460,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             prompt: scene.prompt,
             duration: scene.seconds,
             duration_seconds: scene.seconds,
-            total_duration: totalDuration,
+            total_duration: effectiveDuration,
             scene_index: scene.index + 1,
             scene_count: scenes.length,
             scene_block: scene.block.label,
@@ -480,7 +480,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             segments: [...segments],
             done: segments.length,
             total: scenes.length,
-            duration: totalDuration,
+            duration: effectiveDuration,
           },
         }));
       }
@@ -494,7 +494,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
           segments,
           done: segments.length,
           total: scenes.length,
-          duration: totalDuration,
+          duration: effectiveDuration,
         },
       }));
       if (segments.length === 0) {
