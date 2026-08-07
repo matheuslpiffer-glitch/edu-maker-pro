@@ -733,9 +733,9 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                     loop 
                                     className="w-full h-full object-cover"
                                   />
-                                  {overlayText && (
-                                    <div className="absolute top-4 left-0 right-0 flex justify-center px-4 pointer-events-none">
-                                      <div className="bg-black/60 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20 text-white text-sm font-bold shadow-xl animate-in fade-in duration-500">
+                                  {overlayText && videoConfig.subtitles && (
+                                    <div className="absolute bottom-14 left-0 right-0 flex justify-center px-4 pointer-events-none">
+                                      <div className="bg-black/70 px-4 py-2 rounded-lg border border-white/20 text-white text-sm font-bold shadow-xl text-center animate-in fade-in duration-500">
                                         {overlayText}
                                       </div>
                                     </div>
@@ -764,17 +764,21 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                               <h4 className="text-sm font-bold text-slate-900 border-bottom pb-2 border-slate-50">Configurações do Vídeo</h4>
                                               
                                               <div className="space-y-2">
-                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Idioma</label>
-                                                <select 
-                                                  value={videoConfig.language}
-                                                  onChange={(e) => setVideoConfig(prev => ({ ...prev, language: e.target.value }))}
-                                                  className="w-full p-2 text-xs rounded-lg border border-slate-200 bg-slate-50"
-                                                >
-                                                  <option>Português (PT-BR)</option>
-                                                  <option>Inglês (EN-US)</option>
-                                                  <option>Espanhol (ES)</option>
-                                                </select>
+                                                <label className="text-[10px] font-bold text-slate-500 uppercase">Áudio</label>
+                                                <div className="w-full p-2 text-xs rounded-lg border border-slate-200 bg-slate-50 text-slate-600 font-semibold">
+                                                  🔊 Narração em Português (PT-BR)
+                                                </div>
                                               </div>
+
+                                              <label className="flex items-center justify-between gap-2 cursor-pointer">
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase">Exibir legendas</span>
+                                                <input
+                                                  type="checkbox"
+                                                  checked={videoConfig.subtitles}
+                                                  onChange={(e) => setVideoConfig(prev => ({ ...prev, subtitles: e.target.checked }))}
+                                                  className="h-4 w-4 accent-slate-900"
+                                                />
+                                              </label>
 
                                               <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Imagem de Referência (Opcional)</label>
@@ -806,7 +810,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
                                               <button 
                                                 onClick={() => {
-                                                  generateVideo(videoPromptMatch[1], i, videoConfig.language.toUpperCase(), videoConfig.image);
+                                                  generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image);
                                                 }}
                                                 className="w-full p-3 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors"
                                               >
@@ -832,6 +836,15 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                       <FileDown className="h-3.5 w-3.5" />
                                       BAIXAR MP4
                                     </a>
+                                    {overlayText && (
+                                      <button
+                                        onClick={() => setVideoConfig(prev => ({ ...prev, subtitles: !prev.subtitles }))}
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-colors"
+                                      >
+                                        <FileText className="h-3.5 w-3.5" />
+                                        {videoConfig.subtitles ? 'OCULTAR LEGENDA' : 'MOSTRAR LEGENDA'}
+                                      </button>
+                                    )}
                                     {narrationText && (
                                       <button 
                                         onClick={() => {
@@ -850,10 +863,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                 <button 
                                   onClick={() => {
                                     if (videoStatus[i]?.url) {
-                                      const lang = prompt("Escolha o idioma do vídeo (Português (PT-BR), Inglês (EN-US), Espanhol (ES)):", "Português (PT-BR)");
-                                      if (lang) {
-                                        generateVideo(videoPromptMatch[1], i, lang.toUpperCase());
-                                      }
+                                      generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image);
                                     } else {
                                       setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
                                       inputRef.current?.focus();
