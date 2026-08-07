@@ -2,7 +2,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ChatInput, { type ChatInputPayload } from '@/components/ChatInput';
-import { FileText, Sliders, Sparkles, Check, Printer, Copy, ChevronRight, FileDown, Video } from 'lucide-react';
+import { FileText, Sliders, Sparkles, Check, Printer, Copy, ChevronRight, FileDown, Video, Loader2 } from 'lucide-react';
 
 interface CanvasMessage {
   id: number;
@@ -140,11 +140,11 @@ export default function EduCanvasLayout() {
                         return (
                           <div className="my-4 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-black aspect-video flex flex-col relative">
                             {isPlaceholder ? (
-                              <div className="flex-1 flex flex-col items-center justify-center text-white p-6 text-center bg-slate-900">
-                                <Video className="w-12 h-12 mb-4 text-indigo-400 animate-pulse" />
-                                <h4 className="text-sm font-bold mb-1">Processando Mídia Visual</h4>
-                                <p className="text-[10px] text-slate-400">O pipeline de vídeo está gerando o arquivo MP4 (10s)...</p>
-                              </div>
+                                <div className="flex-1 flex flex-col items-center justify-center text-white p-6 text-center bg-slate-900">
+                                  <Loader2 className="w-12 h-12 mb-4 text-indigo-400 animate-spin" />
+                                  <h4 className="text-sm font-bold mb-1">Processando Mídia Visual</h4>
+                                  <p className="text-[10px] text-slate-400">O pipeline de vídeo está gerando o arquivo MP4 (10s)...</p>
+                                </div>
                             ) : (
                               <video 
                                 controls 
