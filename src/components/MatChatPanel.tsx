@@ -320,6 +320,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         .replace(/\[VIDEO_PROMPT:.*?\]/g, '')
         .replace(/\[IMAGE_DATA:.*?\]/g, '')
         .replace(/\[ANEXOS_PRESENTES:.*?\]/g, '')
+        .replace(/^\{[\s\S]*?\}$/gm, '') // Remove any potential leftover root JSON object
         .trim();
 
       setMessages(prev => {

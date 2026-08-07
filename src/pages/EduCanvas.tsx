@@ -150,6 +150,7 @@ export default function EduCanvasLayout() {
                                 controls 
                                 className="w-full h-full object-contain" 
                                 src={props.src}
+                                key={props.src}
                               />
                             )}
                             <div className="bg-slate-900 p-3 flex items-center justify-between">
