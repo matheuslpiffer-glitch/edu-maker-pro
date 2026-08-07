@@ -511,6 +511,7 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function ChatInput
       <p className="text-center text-[10px] text-slate-400 mt-3 font-medium">
         O Mat pode cometer erros. Verifique informações importantes.
       </p>
+      </div>
     </div>
   );
 });
