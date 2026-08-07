@@ -1000,7 +1000,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                 <button 
                                   onClick={() => {
                                     if (videoStatus[i]?.url) {
-                                      generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image);
+                                      generateVideo(videoPromptMatch[1], i, 'PT-BR', videoConfig.image, videoConfig.duration);
                                     } else {
                                       chatInputRef.current?.setInput(`Gere uma nova variação do vídeo sobre: ${displayContent.substring(0, 30)}...`);
                                       chatInputRef.current?.focus();
