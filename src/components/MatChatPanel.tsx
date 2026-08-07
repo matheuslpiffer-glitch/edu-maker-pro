@@ -922,7 +922,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                 {msg.role === 'assistant' && msg.content.length > 5 && (
                   <div className="flex flex-wrap gap-2 mt-1 ml-12 no-print">
                     <button 
-                      onClick={() => speak(msg.content, i)}
+                      onClick={() => speak(sanitizeChatText(msg.content), i)}
                       className={cn(
                         "flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all shadow-sm bg-white",
                         speakingMsgIndex === i 
@@ -944,7 +944,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                     </button>
 
                     <button 
-                      onClick={() => copyToClipboard(msg.content, i)}
+                      onClick={() => copyToClipboard(sanitizeChatText(msg.content), i)}
                       className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
                     >
                       {copiedIndex === i ? (
@@ -961,7 +961,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                     </button>
 
                     <button 
-                      onClick={() => downloadAsPdf(msg.content)}
+                      onClick={() => downloadAsPdf(sanitizeChatText(msg.content))}
                       className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-bold text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-sm bg-white"
                     >
                       <FileDown className="h-3.5 w-3.5 text-blue-500" />
