@@ -755,10 +755,28 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                               th: ({node, ...props}) => <th className="border border-slate-200 px-3 py-2 text-left font-bold text-slate-700" {...props} />,
                               td: ({node, ...props}) => <td className="border border-slate-200 px-3 py-2 text-slate-600" {...props} />,
                               video: ({node, ...props}) => {
-                                const generatedUrl = videoStatus[i]?.url;
+                                const status = videoStatus[i];
+                                const generatedUrl = status?.url;
                                 const rawSrc = typeof props.src === 'string' ? props.src : '';
                                 const isPlaceholder = !rawSrc || rawSrc === 'VIDEO_MEDIA';
                                 const src = isPlaceholder ? generatedUrl : rawSrc;
+                                const total = status?.duration ?? videoConfig.duration;
+                                if (isPlaceholder && status?.segments?.length) {
+                                  return (
+                                    <div className="my-4">
+                                      <VideoLabPlayer
+                                        segments={status.segments}
+                                        durationSeconds={total}
+                                        showSubtitles={videoConfig.subtitles}
+                                      />
+                                      {status.loading && (
+                                        <p className="text-[10px] text-slate-500 mt-1">
+                                          Gerando cenas e áudio para vídeo de {total}s... ({status.done}/{status.total})
+                                        </p>
+                                      )}
+                                    </div>
+                                  );
+                                }
                                 return (
                                   <div className="my-4 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-black aspect-video flex flex-col">
                                     {src ? (
@@ -772,8 +790,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                                     ) : (
                                       <div className="flex-1 flex flex-col items-center justify-center text-center p-6 bg-slate-900">
                                         <Loader2 className="w-10 h-10 mb-3 text-indigo-400 animate-spin" />
-                                        <h4 className="text-xs font-bold text-white">Gerando animação do avatar e áudio...</h4>
-                                        <p className="text-[10px] text-slate-400 mt-1">O vídeo de 10s aparecerá aqui assim que ficar pronto.</p>
+                                        <h4 className="text-xs font-bold text-white">Gerando cenas e áudio para vídeo de {total}s...</h4>
+                                        <p className="text-[10px] text-slate-400 mt-1">
+                                          {status?.total ? `Cena ${(status.done ?? 0) + 1} de ${status.total}` : `O vídeo de ${total}s aparecerá aqui assim que ficar pronto.`}
+                                        </p>
                                       </div>
                                     )}
                                     <div className="bg-slate-900 p-3 flex items-center justify-between">
