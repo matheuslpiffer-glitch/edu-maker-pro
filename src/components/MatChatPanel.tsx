@@ -213,6 +213,22 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     // Resolve action template text
     const action = MAT_ACTIONS.find((a) => a.id === payload.action);
     const typed = payload.text;
+    
+    // Auto-detect action if none selected
+    let finalActionId = payload.action;
+    if (!finalActionId && typed) {
+      const lowerText = typed.toLowerCase();
+      if (lowerText.includes('questão') || lowerText.includes('prova') || lowerText.includes('gabarito')) {
+        finalActionId = 'gabarito';
+      } else if (lowerText.includes('tdah') || lowerText.includes('laudo') || lowerText.includes('inclusão') || lowerText.includes('adaptação') || lowerText.includes('pei')) {
+        finalActionId = 'pei';
+      } else if (lowerText.includes('planilha') || lowerText.includes('csv') || lowerText.includes('xlsx') || lowerText.includes('nota') || lowerText.includes('frequência')) {
+        finalActionId = 'planilha';
+      } else if (typed.length > 200 && !typed.includes('?')) {
+        finalActionId = 'resumir';
+      }
+    }
+
     const text = [action?.text, typed].filter(Boolean).join('\n\n');
 
     // Convert image attachments to a base64 data URL for vision
@@ -230,7 +246,11 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
 
     const userMsg: Msg = { 
       role: 'user', 
-      content: imageBase64 ? `${text}\n\n[ANEXOS_PRESENTES: true] [IMAGE_DATA: ${imageBase64.substring(0, 50)}...]` : text 
+      content: JSON.stringify({
+        action_final: finalActionId,
+        texto_limpo: typed,
+        anexos_presentes: !!imageBase64
+      }) + (imageBase64 ? `\n\n[IMAGE_DATA: ${imageBase64.substring(0, 50)}...]` : '')
     };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
