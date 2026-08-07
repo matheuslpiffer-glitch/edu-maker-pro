@@ -684,8 +684,37 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                   <div className={cn('text-sm leading-relaxed px-1 py-1 flex-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100 max-w-max' : 'text-slate-700')}>
                     {msg.role === 'assistant' ? (
                       <div className="space-y-4">
-                        <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50">
-                          <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                        <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-table:border prose-table:border-slate-200 prose-th:bg-slate-50 prose-th:px-3 prose-th:py-2 prose-td:px-3 prose-td:py-2">
+                          <ReactMarkdown 
+                            rehypePlugins={[rehypeRaw]}
+                            components={{
+                              table: ({node, ...props}) => <div className="overflow-x-auto my-4"><table className="w-full text-sm border-collapse" {...props} /></div>,
+                              thead: ({node, ...props}) => <thead className="bg-slate-50" {...props} />,
+                              th: ({node, ...props}) => <th className="border border-slate-200 px-3 py-2 text-left font-bold text-slate-700" {...props} />,
+                              td: ({node, ...props}) => <td className="border border-slate-200 px-3 py-2 text-slate-600" {...props} />,
+                              video: ({node, ...props}) => (
+                                <div className="my-4 rounded-xl overflow-hidden border border-slate-200 shadow-lg bg-black aspect-video flex flex-col">
+                                  <video 
+                                    controls 
+                                    className="w-full h-full object-contain" 
+                                    poster={defaultAvatar}
+                                    {...props} 
+                                  />
+                                  <div className="bg-slate-900 p-3 flex items-center justify-between">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">EduCreator VideoLab</span>
+                                    <a 
+                                      href={props.src as string} 
+                                      download="video-educacional.mp4"
+                                      className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-500 transition-colors"
+                                    >
+                                      <FileDown className="w-3 h-3" />
+                                      DOWNLOAD
+                                    </a>
+                                  </div>
+                                </div>
+                              )
+                            }}
+                          >
                             {renderMathAsUnicode(displayContent)}
                           </ReactMarkdown>
                         </div>
