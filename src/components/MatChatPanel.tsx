@@ -1164,7 +1164,12 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
               rows={1}
               value={input}
               onChange={e => {
-                setInput(e.target.value);
+                const val = e.target.value;
+                setInput(val);
+                if (val === '/') {
+                  setActionSearch('');
+                  setMenuOpen(true);
+                }
                 e.target.style.height = 'auto';
                 e.target.style.height = `${Math.min(e.target.scrollHeight, 160)}px`;
               }}
@@ -1174,7 +1179,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                   sendMessage();
                 }
               }}
-              placeholder={selectedImage ? "O que deseja fazer com esta imagem?..." : "Pergunte ao Mat..."}
+              placeholder={activeChip ? "Digite instruções adicionais..." : selectedImage ? "O que deseja fazer com esta imagem?..." : "Pergunte ao Mat... (ou digite /)"}
               className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-800 placeholder:text-slate-400 px-3 py-2.5 resize-none min-h-[40px] max-h-[160px]"
             />
             <button
@@ -1204,7 +1209,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
             </button>
             <button
               onClick={sendMessage}
-              disabled={(!input.trim() && !selectedImage) || isLoading}
+              disabled={(!input.trim() && !selectedImage && !activeChip) || isLoading}
               className="mb-1 h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors disabled:opacity-20 disabled:cursor-not-allowed shrink-0"
               aria-label="Enviar mensagem"
             >
