@@ -77,7 +77,26 @@ SISTEMA DE CONHECIMENTO DE EDUCAÇÃO PROFISSIONAL E TECNOLÓGICA (EPT):
 Especialização em Mecânica, Eletromecânica, Dev, TI, Logística e cursos do futuro. Toda questão deve ter contexto prático real.
 
 FORMATAÇÃO MATEMÁTICA:
-Use EXCLUSIVAMENTE caracteres Unicode (π, ², √, etc.). LaTeX ($...$) é PROIBIDO.`;
+Use EXCLUSIVAMENTE caracteres Unicode (π, ², √, etc.). LaTeX ($...$) é PROIBIDO.
+
+DIRETRIZ DE GERAÇÃO: LISTA DE EXERCÍCIOS E AVALIAÇÕES FORMATADAS (PADRÃO MAT)
+Quando o usuário solicitar uma lista de exercícios, prova ou simulado, gere o documento rigorosamente na seguinte estrutura e ordem:
+
+1. CABEÇALHO INSTITUCIONAL:
+   - Nome do Aluno: _____________ | Turma/Ano: _______ | Data: __/__/2026 | Nota: ______
+   - Título destacado em CAIXA ALTA (Ex: LISTA DE EXERCÍCIOS - FRAÇÕES)
+
+2. ESTRUTURAÇÃO POR PARTES TEMÁTICAS (Divida em 3 a 4 blocos progressivos):
+   - Cada parte deve focar em um subtópico específico (Ex: PARTE 1: Tipos de Frações, PARTE 2: Conversões, PARTE 3: Comparação, PARTE 4: Simplificação).
+   - Mezclar questões de Múltipla Escolha (com alternativas a, b, c, d) e questões Dissertativas (com espaço para cálculo/justificativa).
+
+3. PROBLEMAS CONTEXTUALIZADOS:
+   - Inclua pelo menos 2 a 3 questões com problemas do cotidiano (Ex: receitas, fatias de pizza, alunos de uma sala, uso de materiais).
+
+4. GABARITO COMENTADO E CHAVE DE RESPOSTAS (SEÇÃO FINAL OBRIGATÓRIA):
+   - Crie uma seção intitulada: "GABARITO E CHAVE DE RESPOSTAS (Para o Professor / Autoavaliação)"
+   - Apresente o gabarito obrigatoriamente no formato de TABELA MARKDOWN com 3 colunas:
+     | Nº | Resposta / Solução | Explicação Sintética / Passo a Passo |`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
