@@ -16,8 +16,13 @@ import { sanitizeChatText } from '@/lib/chat-sanitize';
 import VideoLabPlayer from '@/components/VideoLabPlayer';
 import { planScenes, VIDEO_DURATIONS, DURATION_LABELS, FREE_MAX_VIDEO_SECONDS, type VideoDuration } from '@/lib/video-scenes';
 import { useRole } from '@/hooks/useRole';
+import { buildMatDocument } from '@/lib/mat-pdf-document';
+import { usableWidthPx, toHtml2PdfMargin, type PdfMargins } from '@/lib/pdf-margins';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
+
+/** Margens A4 do documento exportado pelo Mat (mm). */
+const MAT_PDF_MARGINS: PdfMargins = { top: 18, right: 18, bottom: 18, left: 18 };
 
 /** Converte qualquer LaTeX que escape do prompt em Unicode legível (padrão da plataforma). */
 export function renderMathAsUnicode(text: string): string {
@@ -633,38 +638,30 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const downloadAsPdf = async (content: string) => {
     try {
       const html2pdf = (await import('html2pdf.js')).default;
-      const element = document.createElement('div');
-      element.style.padding = '20mm';
-      element.style.fontFamily = 'Arial, sans-serif';
-      
-      // Basic formatting for the PDF content
-      const formattedContent = content
-        .replace(/\n/g, '<br/>')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/### (.*?)(\n|$)/g, '<h3>$1</h3>')
-        .replace(/## (.*?)(\n|$)/g, '<h2>$1</h2>')
-        .replace(/# (.*?)(\n|$)/g, '<h1>$1</h1>');
+      const element = buildMatDocument(content);
 
-      element.innerHTML = `
-        <div style="text-align:center;border-bottom:2px solid #0891c2;margin-bottom:20px;padding-bottom:10px;">
-          <h1 style="margin:0;color:#0F172A;">EduCreator Pro</h1>
-          <p style="margin:5px 0 0;font-size:12px;color:#64748b;">Material Gerado via Assistente Mat</p>
-        </div>
-        <div style="font-size:12pt;line-height:1.5;">${formattedContent}</div>
-        <div style="margin-top:30px;font-size:10px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:10px;">
-          Desenvolvido por Matheus Lima Piffer
-        </div>
-      `;
+      // Renderiza fora da tela com a largura útil exata da A4 (210mm - margens)
+      element.style.width = `${usableWidthPx(MAT_PDF_MARGINS)}px`;
+      element.style.background = '#ffffff';
+      element.style.position = 'fixed';
+      element.style.left = '-10000px';
+      element.style.top = '0';
+      document.body.appendChild(element);
 
       const opt = {
-        margin: 10,
+        margin: toHtml2PdfMargin(MAT_PDF_MARGINS),
         filename: 'mat-documento.pdf',
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+        html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
+        pagebreak: { mode: ['css', 'legacy'] as string[], avoid: ['.doc-question', '.doc-table', '.diagram'] },
       };
 
-      await html2pdf().set(opt).from(element).save();
+      try {
+        await html2pdf().set(opt).from(element).save();
+      } finally {
+        element.remove();
+      }
     } catch (err) {
       console.error('PDF Error:', err);
     }
