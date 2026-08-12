@@ -676,7 +676,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
           removeContainer: true
         },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-        pagebreak: { mode: ['css', 'legacy'] as string[], avoid: ['.doc-question', '.doc-table', '.diagram'] },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] as string[], avoid: ['.doc-question', '.doc-table', '.diagram', '.doc-part', '.doc-h2', '.doc-h3'] },
       };
 
       try {
