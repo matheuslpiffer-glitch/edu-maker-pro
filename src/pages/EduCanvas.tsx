@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useChat } from '@/hooks/useChat';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { sanitizeChatText } from '@/lib/chat-sanitize';
@@ -20,46 +21,14 @@ interface CanvasSection {
 }
 
 export default function EduCanvasLayout() {
-  const [messages, setMessages] = useState<CanvasMessage[]>([
-    {
-      id: 1,
-      sender: 'ai',
-      text: 'Olá! Como posso ajudar você hoje? Selecione uma ação no botão (+) ou digite o que precisa.',
-    },
-  ]);
-
-  const [canvasDocument, setCanvasDocument] = useState<{
-    title: string;
-    subtitle: string;
-    difficultyLevel: number;
-    sections: CanvasSection[];
-  }>({
-    title: 'PEI - Plano de Ensino Individualizado',
-    subtitle: 'Adaptação Curricular - 6º Ano (Matemática)',
-    difficultyLevel: 2,
-    sections: [
-      {
-        id: 'sec-1',
-        title: '1. Perfil e Diagnóstico',
-        content:
-          'O estudante apresenta excelente raciocínio lógico-espacial, necessitando de suporte visual para fixação de algoritmos fracionários e adaptação no tempo de realização das avaliações.',
-      },
-      {
-        id: 'sec-2',
-        title: '2. Objetivos de Aprendizagem (BNCC)',
-        content:
-          '(EF06MA07) Compreender, comparar e ordenar frações associadas às ideias de partes de inteiros e resultado de divisão.',
-      },
-      {
-        id: 'sec-3',
-        title: '3. Estratégias e Acessibilidade',
-        content:
-          '• Uso de material dourado e blocos fracionários virtuais.\n• Fragmentação das atividades em blocos curtos com pausas reflexivas.\n• Avaliação continuada com apoio de esquemas visuais.',
-      },
-    ],
-  });
-
-  const [isCanvasOpen, setIsCanvasOpen] = useState(true);
+  const { 
+    canvasMessages: messages, 
+    setCanvasMessages: setMessages,
+    canvasDocument,
+    setCanvasDocument,
+    isCanvasOpen,
+    setIsCanvasOpen
+  } = useChat();
 
   const handleSendMessage = (payload: ChatInputPayload) => {
     const userMsg: CanvasMessage = {
