@@ -259,10 +259,9 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
       [data-mat-document] ul.doc-list { list-style: disc outside; }
       [data-mat-document] ol.doc-list { list-style: decimal outside; }
       [data-mat-document] .doc-list li { margin-bottom: 4px; text-align: left; }
-      [data-mat-document] .doc-rule {
-        border: 0;
-        border-top: 1px solid #e2e8f0;
-        margin: 16px 0;
+      [data-mat-document] .doc-spacer {
+        height: 12px;
+        margin: 0;
       }
       [data-mat-document] .mono {
         font-family: 'Courier New', monospace;
