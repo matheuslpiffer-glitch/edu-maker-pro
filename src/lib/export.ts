@@ -170,15 +170,20 @@ export async function exportToPDF(
   const questions = b as Question[];
   const html = buildSanitizedQuestionHtml(header, questions, subjects || [], !!includeGabarito);
   const node = document.createElement('div');
-  node.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;padding:24px;';
+  // O nó capturado deve ficar estático: se for fixed/absolute, o clone do
+  // html2canvas colapsa para altura 0 e o PDF sai em branco.
+  node.style.cssText = 'width:794px;background:#fff;padding:24px;';
   node.innerHTML = html;
-  document.body.appendChild(node);
+  const holder = document.createElement('div');
+  holder.style.cssText = 'position:fixed;left:-9999px;top:0;background:#fff;';
+  holder.appendChild(node);
+  document.body.appendChild(holder);
   try {
     await generatePdfFromElement(node, filename || `${header.title || 'avaliacao'}.pdf`, {
       margins: [15, 15, 15, 15],
     });
   } finally {
-    node.remove();
+    holder.remove();
   }
 }
 
