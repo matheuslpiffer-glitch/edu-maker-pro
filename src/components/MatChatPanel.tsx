@@ -638,16 +638,27 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const downloadAsPdf = async (content: string) => {
     try {
       const html2pdf = (await import('html2pdf.js')).default;
-      const element = buildMatDocument(content);
+      const element = buildMatDocument(content, {
+        title: isStudentMode ? 'EduCreator Pro' : 'EduCreator Pro',
+        subtitle: isStudentMode ? 'Roteiro de Estudos / Exercícios' : 'Material Pedagógico Gerado pelo Assistente Mat',
+      });
 
-      // Renderiza fora da tela com a largura útil exata da A4 (210mm - margens).
-      // IMPORTANTE: o elemento capturado precisa ficar em fluxo normal (static);
-      // se ele mesmo for fixed/absolute, o clone do html2canvas colapsa (altura 0)
-      // e o PDF sai em branco. Por isso usamos um wrapper posicionado.
-      element.style.width = `${usableWidthPx(MAT_PDF_MARGINS)}px`;
+      // Configurações para captura precisa do layout
+      element.style.width = '794px';
+      element.style.padding = '0';
+      element.style.margin = '0';
+      element.style.position = 'static';
       element.style.background = '#ffffff';
+      element.style.boxSizing = 'border-box';
+      element.style.display = 'block';
+
       const holder = document.createElement('div');
-      holder.style.cssText = 'position:fixed;left:-10000px;top:0;background:#ffffff;';
+      holder.style.position = 'fixed';
+      holder.style.left = '-9999px';
+      holder.style.top = '0';
+      holder.style.width = '794px';
+      holder.style.background = '#ffffff';
+      holder.style.zIndex = '-1000';
       holder.appendChild(element);
       document.body.appendChild(holder);
 
@@ -655,7 +666,15 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         margin: toHtml2PdfMargin(MAT_PDF_MARGINS),
         filename: 'mat-documento.pdf',
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
+        html2canvas: { 
+          scale: 2, 
+          backgroundColor: '#ffffff', 
+          useCORS: true,
+          windowWidth: 794,
+          width: 794,
+          height: element.offsetHeight || element.scrollHeight,
+          removeContainer: true
+        },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
         pagebreak: { mode: ['css', 'legacy'] as string[], avoid: ['.doc-question', '.doc-table', '.diagram'] },
       };
