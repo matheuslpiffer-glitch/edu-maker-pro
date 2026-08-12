@@ -196,6 +196,9 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
   el.setAttribute('data-mat-document', 'true');
   el.innerHTML = `
     <style>
+      [data-mat-document], [data-mat-document] * {
+        box-sizing: border-box !important;
+      }
       [data-mat-document] {
         font-family: Arial, Helvetica, sans-serif;
         font-size: 11pt;
