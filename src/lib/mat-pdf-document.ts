@@ -140,10 +140,16 @@ export function markdownToDocumentHtml(markdown: string): string {
     closeList();
     const para: string[] = [line.trim()];
     i++;
+    // Alternativas (a), b)...) sempre ocupam uma linha própria
+    if (/^\s*\*{0,2}[a-eA-E][).]\s/.test(line)) {
+      out.push(`<p class="doc-option">${inline(line.trim())}</p>`);
+      continue;
+    }
     while (
       i < lines.length &&
       lines[i].trim() &&
       !/^\s*(#{1,4}\s|[-*•]\s|\d+[.)]\s|```|\|)/.test(lines[i]) &&
+      !/^\s*\*{0,2}[a-eA-E][).]\s/.test(lines[i]) &&
       !/^\s*(---+|\*\*\*+|___+)\s*$/.test(lines[i])
     ) {
       para.push(lines[i].trim());
@@ -248,7 +254,9 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
         text-align: left;
         break-inside: avoid;
       }
-      [data-mat-document] .doc-list { margin: 0 0 10px 18px; padding: 0; }
+      [data-mat-document] .doc-list { margin: 0 0 10px 0; padding-left: 20px; }
+      [data-mat-document] ul.doc-list { list-style: disc outside; }
+      [data-mat-document] ol.doc-list { list-style: decimal outside; }
       [data-mat-document] .doc-list li { margin-bottom: 4px; text-align: left; }
       [data-mat-document] .doc-rule {
         border: 0;
