@@ -68,7 +68,7 @@ export default function LandingProfessor() {
 
     if (isTeacher) {
       setStudentMode(false);
-      navigate('/dashboard-professor', { replace: true });
+      navigate('/', { replace: true });
       return;
     }
 
