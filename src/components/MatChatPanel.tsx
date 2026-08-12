@@ -111,9 +111,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
     }
   }, []);
 
-  // Ensure messages are initialized if null
+  // Messages are handled by useChat context and initialized there.
+  // We keep this check just as a safety bridge for the greeting if messages is empty.
   useEffect(() => {
-    if (!messages) {
+    if (messages && messages.length === 0) {
       setMessages([{ role: 'assistant', content: greeting }]);
     }
   }, [messages, setMessages, greeting]);
