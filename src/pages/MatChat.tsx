@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useChat } from '@/hooks/useChat';
 import { RotateCcw, Headphones, Menu, X, Pencil, Trash2, Calendar, MessageSquare, Plus, Brain } from 'lucide-react';
 import MatChatPanel, { MatAvatar } from '@/components/MatChatPanel';
