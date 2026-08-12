@@ -16,8 +16,13 @@ import { sanitizeChatText } from '@/lib/chat-sanitize';
 import VideoLabPlayer from '@/components/VideoLabPlayer';
 import { planScenes, VIDEO_DURATIONS, DURATION_LABELS, FREE_MAX_VIDEO_SECONDS, type VideoDuration } from '@/lib/video-scenes';
 import { useRole } from '@/hooks/useRole';
+import { buildMatDocument } from '@/lib/mat-pdf-document';
+import { usableWidthPx, toHtml2PdfMargin, type PdfMargins } from '@/lib/pdf-margins';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
+
+/** Margens A4 do documento exportado pelo Mat (mm). */
+const MAT_PDF_MARGINS: PdfMargins = { top: 18, right: 18, bottom: 18, left: 18 };
 
 /** Converte qualquer LaTeX que escape do prompt em Unicode legível (padrão da plataforma). */
 export function renderMathAsUnicode(text: string): string {
