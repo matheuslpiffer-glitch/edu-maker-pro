@@ -160,9 +160,9 @@ export function markdownToDocumentHtml(markdown: string): string {
     const joined = para.join(' ');
     // Enunciados numerados e cabeçalhos de parte ganham destaque de bloco
     if (/^(PARTE|BLOCO|SEÇÃO|GABARITO)\b/i.test(joined)) {
-      out.push(`<h3 class="doc-part">${inline(joined)}</h3>`);
+      out.push(`<h3 class="doc-part" style="page-break-before: auto;">${inline(joined)}</h3>`);
     } else if (/^\*{0,2}\d+[.)]\s/.test(joined)) {
-      out.push(`<p class="doc-question">${inline(joined)}</p>`);
+      out.push(`<p class="doc-question" style="page-break-inside: avoid;">${inline(joined)}</p>`);
     } else if (/^[a-eA-E][)\.]\s/.test(joined)) {
       out.push(`<p class="doc-option">${inline(joined)}</p>`);
     } else if (/^(LISTA|ATIVIDADE|AVALIAÇÃO|PROVA|SIMULADO)\b[^.]{0,80}$/i.test(joined)) {
@@ -251,6 +251,7 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
         font-weight: 700;
         text-align: left;
         break-inside: avoid;
+        page-break-inside: avoid;
       }
       [data-mat-document] .doc-option {
         margin: 0 0 3px 14px;
