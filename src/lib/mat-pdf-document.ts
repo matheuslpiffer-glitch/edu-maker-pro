@@ -96,10 +96,11 @@ export function markdownToDocumentHtml(markdown: string): string {
       continue;
     }
 
-    // Linha horizontal
+    // Linha horizontal (Markdown ---) - Removida para evitar "cara de comando"
     if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) {
       closeList();
-      out.push('<hr class="doc-rule" />');
+      // Apenas um espaçador vazio em vez de uma linha visível
+      out.push('<div class="doc-spacer"></div>');
       i++;
       continue;
     }
@@ -159,9 +160,9 @@ export function markdownToDocumentHtml(markdown: string): string {
     const joined = para.join(' ');
     // Enunciados numerados e cabeçalhos de parte ganham destaque de bloco
     if (/^(PARTE|BLOCO|SEÇÃO|GABARITO)\b/i.test(joined)) {
-      out.push(`<h3 class="doc-part">${inline(joined)}</h3>`);
+      out.push(`<h3 class="doc-part" style="page-break-before: auto;">${inline(joined)}</h3>`);
     } else if (/^\*{0,2}\d+[.)]\s/.test(joined)) {
-      out.push(`<p class="doc-question">${inline(joined)}</p>`);
+      out.push(`<p class="doc-question" style="page-break-inside: avoid;">${inline(joined)}</p>`);
     } else if (/^[a-eA-E][)\.]\s/.test(joined)) {
       out.push(`<p class="doc-option">${inline(joined)}</p>`);
     } else if (/^(LISTA|ATIVIDADE|AVALIAÇÃO|PROVA|SIMULADO)\b[^.]{0,80}$/i.test(joined)) {
@@ -195,15 +196,20 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
   el.setAttribute('data-mat-document', 'true');
   el.innerHTML = `
     <style>
+      [data-mat-document], [data-mat-document] * {
+        box-sizing: border-box !important;
+      }
       [data-mat-document] {
         font-family: Arial, Helvetica, sans-serif;
         font-size: 11pt;
-        line-height: 1.5;
+        line-height: 1.4;
         color: #111827;
         background: #ffffff;
         text-align: justify;
         word-break: normal;
         overflow-wrap: break-word;
+        orphans: 3;
+        widows: 3;
       }
       [data-mat-document] .doc-header {
         text-align: center;
@@ -248,6 +254,7 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
         font-weight: 700;
         text-align: left;
         break-inside: avoid;
+        page-break-inside: avoid;
       }
       [data-mat-document] .doc-option {
         margin: 0 0 3px 14px;
@@ -258,10 +265,9 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
       [data-mat-document] ul.doc-list { list-style: disc outside; }
       [data-mat-document] ol.doc-list { list-style: decimal outside; }
       [data-mat-document] .doc-list li { margin-bottom: 4px; text-align: left; }
-      [data-mat-document] .doc-rule {
-        border: 0;
-        border-top: 1px solid #e2e8f0;
-        margin: 16px 0;
+      [data-mat-document] .doc-spacer {
+        height: 12px;
+        margin: 0;
       }
       [data-mat-document] .mono {
         font-family: 'Courier New', monospace;
