@@ -172,10 +172,10 @@ export async function exportToPDF(
   const node = document.createElement('div');
   // O nó capturado deve ficar estático: se for fixed/absolute, o clone do
   // html2canvas colapsa para altura 0 e o PDF sai em branco.
-  node.style.cssText = 'width:794px;background:#fff;padding:24px;';
+  node.style.cssText = 'width:794px;background:#fff;padding:24px;box-sizing:border-box;display:block;position:static;';
   node.innerHTML = html;
   const holder = document.createElement('div');
-  holder.style.cssText = 'position:fixed;left:-9999px;top:0;background:#fff;';
+  holder.style.cssText = 'position:fixed;left:-9999px;top:0;background:#fff;width:794px;z-index:-1000;';
   holder.appendChild(node);
   document.body.appendChild(holder);
   try {
