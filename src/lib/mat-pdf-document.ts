@@ -96,10 +96,11 @@ export function markdownToDocumentHtml(markdown: string): string {
       continue;
     }
 
-    // Linha horizontal
+    // Linha horizontal (Markdown ---) - Removida para evitar "cara de comando"
     if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) {
       closeList();
-      out.push('<hr class="doc-rule" />');
+      // Apenas um espaçador vazio em vez de uma linha visível
+      out.push('<div class="doc-spacer"></div>');
       i++;
       continue;
     }
