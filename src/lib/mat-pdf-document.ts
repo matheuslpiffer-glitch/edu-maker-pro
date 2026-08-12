@@ -199,12 +199,14 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
       [data-mat-document] {
         font-family: Arial, Helvetica, sans-serif;
         font-size: 11pt;
-        line-height: 1.5;
+        line-height: 1.4;
         color: #111827;
         background: #ffffff;
         text-align: justify;
         word-break: normal;
         overflow-wrap: break-word;
+        orphans: 3;
+        widows: 3;
       }
       [data-mat-document] .doc-header {
         text-align: center;
