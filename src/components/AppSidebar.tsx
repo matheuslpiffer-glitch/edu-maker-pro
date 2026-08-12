@@ -11,7 +11,7 @@ import { useCredits } from '@/hooks/useCredits';
 import { Badge } from '@/components/ui/badge';
 
 const teacherLinks = [
-  { to: '/dashboard-professor', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
+  { to: '/', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
   { to: '/mat-chat', icon: MessageSquare, label: '💬 Pedi para o Mat', section: 'Principal' },
   { to: '/mat-notebook', icon: BookMarked, label: '📓 Caderno Inteligente', section: 'Principal' },
   { to: '/hub-360', icon: Sparkles, label: 'Hub Planejamento 360º', section: 'Principal', adminOnly: true },
@@ -126,7 +126,7 @@ export default function AppSidebar({ open, onClose }: Props) {
         {!collapsed && (
           <div className="text-left">
             <h1 className="text-lg font-black tracking-tight text-white leading-none">
-              {isStudentMode ? 'Student Edition' : 'EduCreator'}
+              {isStudentMode ? 'Student Edition' : 'EduCreator Pro'}
             </h1>
             <p className="text-[7px] font-bold text-slate-500 uppercase tracking-[0.15em] mt-0.5">
               {isStudentMode ? 'Modo Aluno' : 'PRO SYSTEMS • BY MATHEUS LIMA PIFFER'}
