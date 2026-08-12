@@ -640,13 +640,16 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       const html2pdf = (await import('html2pdf.js')).default;
       const element = buildMatDocument(content);
 
-      // Renderiza fora da tela com a largura útil exata da A4 (210mm - margens)
+      // Renderiza fora da tela com a largura útil exata da A4 (210mm - margens).
+      // IMPORTANTE: o elemento capturado precisa ficar em fluxo normal (static);
+      // se ele mesmo for fixed/absolute, o clone do html2canvas colapsa (altura 0)
+      // e o PDF sai em branco. Por isso usamos um wrapper posicionado.
       element.style.width = `${usableWidthPx(MAT_PDF_MARGINS)}px`;
       element.style.background = '#ffffff';
-      element.style.position = 'fixed';
-      element.style.left = '-10000px';
-      element.style.top = '0';
-      document.body.appendChild(element);
+      const holder = document.createElement('div');
+      holder.style.cssText = 'position:fixed;left:-10000px;top:0;background:#ffffff;';
+      holder.appendChild(element);
+      document.body.appendChild(holder);
 
       const opt = {
         margin: toHtml2PdfMargin(MAT_PDF_MARGINS),
@@ -660,7 +663,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       try {
         await html2pdf().set(opt).from(element).save();
       } finally {
-        element.remove();
+        holder.remove();
       }
     } catch (err) {
       console.error('PDF Error:', err);
