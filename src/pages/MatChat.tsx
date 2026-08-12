@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
+import { useChat } from '@/hooks/useChat';
 import { RotateCcw, Headphones, Menu, X, Pencil, Trash2, Calendar, MessageSquare, Plus, Brain } from 'lucide-react';
 import MatChatPanel, { MatAvatar } from '@/components/MatChatPanel';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,11 +14,11 @@ interface ChatSession {
 }
 
 export default function MatChat() {
+  const { currentSessionId, setCurrentSessionId, setMessages } = useChat();
   const resetRef = useRef<(() => void) | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
 
