@@ -16,6 +16,7 @@ import { sanitizeChatText } from '@/lib/chat-sanitize';
 import VideoLabPlayer from '@/components/VideoLabPlayer';
 import { planScenes, VIDEO_DURATIONS, DURATION_LABELS, FREE_MAX_VIDEO_SECONDS, type VideoDuration } from '@/lib/video-scenes';
 import { useRole } from '@/hooks/useRole';
+import { useChat } from '@/hooks/useChat';
 import { buildMatDocument } from '@/lib/mat-pdf-document';
 import { usableWidthPx, toHtml2PdfMargin, type PdfMargins } from '@/lib/pdf-margins';
 
@@ -75,8 +76,7 @@ MatAvatar.displayName = 'MatAvatar';
 export default function MatChatPanel({ fullPage = false, onRegisterReset, className, sessionId, onSessionChange }: MatChatPanelProps) {
   const { isStudentMode } = useStudentMode();
   const greeting = isStudentMode ? STUDENT_GREETING : TEACHER_GREETING;
-  const [messages, setMessages] = useState<Msg[]>([{ role: 'assistant', content: greeting }]);
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
+  const { messages, setMessages, currentSessionId, setCurrentSessionId } = useChat();
   const [isLoading, setIsLoading] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -110,6 +110,13 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       setShowMemory(true);
     }
   }, []);
+
+  // Ensure messages are initialized if null
+  useEffect(() => {
+    if (!messages) {
+      setMessages([{ role: 'assistant', content: greeting }]);
+    }
+  }, [messages, setMessages, greeting]);
 
   // Sync with prop if it changes
   useEffect(() => {

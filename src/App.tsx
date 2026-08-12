@@ -10,6 +10,7 @@ import { StudentModeProvider } from "@/hooks/useStudentMode";
 import MatChatbot from "@/components/MatChatbot";
 import WwwRedirect from "@/components/WwwRedirect";
 import { BackgroundGenerationProvider } from "@/hooks/useBackgroundGeneration";
+import { ChatProvider } from "@/hooks/useChat";
 import PinAutoRedirect from "@/components/PinAutoRedirect";
 import AppLayout from "@/components/AppLayout";
 import RoleSelection from "@/pages/RoleSelection";
@@ -231,7 +232,8 @@ const App = () => (
         <AuthProvider>
           <StudentModeProvider>
             <BackgroundGenerationProvider>
-              <BrowserRouter>
+              <ChatProvider>
+                <BrowserRouter>
                 <WwwRedirect />
                 <PinAutoRedirect>
                   <Suspense fallback={<LazyFallback />}>
@@ -252,7 +254,8 @@ const App = () => (
                     </Routes>
                   </Suspense>
                 </PinAutoRedirect>
-              </BrowserRouter>
+                </BrowserRouter>
+              </ChatProvider>
             </BackgroundGenerationProvider>
           </StudentModeProvider>
         </AuthProvider>
