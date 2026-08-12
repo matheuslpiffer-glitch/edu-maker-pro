@@ -37,7 +37,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // MatChat state
   const [messages, setMessages] = useState<Msg[]>(() => {
     const saved = sessionStorage.getItem('mat-chat-messages');
-    return saved ? JSON.parse(saved) : null;
+    return saved ? JSON.parse(saved) : [{ role: 'assistant', content: 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**.' }];
   });
   
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => {
