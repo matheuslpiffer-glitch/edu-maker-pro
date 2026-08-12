@@ -16,12 +16,23 @@ interface ChatSession {
 
 export default function MatChat() {
   const { currentSessionId, setCurrentSessionId, setMessages } = useChat();
+  const [searchParams, setSearchParams] = useSearchParams();
   const resetRef = useRef<(() => void) | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+
+  // Sync session ID with URL
+  useEffect(() => {
+    const idFromUrl = searchParams.get('id');
+    if (idFromUrl && idFromUrl !== currentSessionId) {
+      setCurrentSessionId(idFromUrl);
+    } else if (!idFromUrl && currentSessionId) {
+      setSearchParams({ id: currentSessionId }, { replace: true });
+    }
+  }, [searchParams, currentSessionId, setCurrentSessionId, setSearchParams]);
 
   const registerReset = useCallback((reset: () => void) => {
     resetRef.current = reset;
@@ -79,6 +90,7 @@ export default function MatChat() {
 
   const startNewConversation = () => {
     setCurrentSessionId(null);
+    setSearchParams({}, { replace: true });
     setResetKey(k => k + 1);
   };
 

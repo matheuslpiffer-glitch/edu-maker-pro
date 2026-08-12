@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useChat } from '@/hooks/useChat';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -29,6 +30,25 @@ export default function EduCanvasLayout() {
     isCanvasOpen,
     setIsCanvasOpen
   } = useChat();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Sync canvas state with URL
+  useEffect(() => {
+    const canvasParam = searchParams.get('canvas');
+    if (canvasParam === 'open' && !isCanvasOpen) {
+      setIsCanvasOpen(true);
+    } else if (canvasParam === 'closed' && isCanvasOpen) {
+      setIsCanvasOpen(false);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    setSearchParams(prev => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set('canvas', isCanvasOpen ? 'open' : 'closed');
+      return newParams;
+    }, { replace: true });
+  }, [isCanvasOpen, setSearchParams]);
 
   const handleSendMessage = (payload: ChatInputPayload) => {
     const userMsg: CanvasMessage = {
