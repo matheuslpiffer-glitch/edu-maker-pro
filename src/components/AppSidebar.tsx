@@ -11,7 +11,7 @@ import { useCredits } from '@/hooks/useCredits';
 import { Badge } from '@/components/ui/badge';
 
 const teacherLinks = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
+  { to: '/dashboard-professor', icon: LayoutDashboard, label: 'Dashboard', section: 'Principal' },
   { to: '/mat-chat', icon: MessageSquare, label: '💬 Pedi para o Mat', section: 'Principal' },
   { to: '/mat-notebook', icon: BookMarked, label: '📓 Caderno Inteligente', section: 'Principal' },
   { to: '/hub-360', icon: Sparkles, label: 'Hub Planejamento 360º', section: 'Principal', adminOnly: true },
