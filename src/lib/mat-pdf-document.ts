@@ -225,7 +225,7 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
       [data-mat-document] {
         font-family: Arial, Helvetica, sans-serif;
         font-size: 11pt;
-        line-height: 1.4;
+        line-height: 1.5;
         color: #111827;
         background: #ffffff;
         text-align: justify;
@@ -317,7 +317,8 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
         width: 100%;
         border-collapse: collapse;
         margin: 10px 0 14px;
-        font-size: 10pt;
+        font-size: 11pt;
+        line-height: 1.5;
         break-inside: avoid;
       }
       [data-mat-document] .doc-table th,
@@ -330,7 +331,7 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
       [data-mat-document] .doc-table th {
         background: #f1f5f9;
         text-transform: uppercase;
-        font-size: 9pt;
+        font-size: 10pt;
       }
       [data-mat-document] .doc-footer {
         margin-top: 22px;
