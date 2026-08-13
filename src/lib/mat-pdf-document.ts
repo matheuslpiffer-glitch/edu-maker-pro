@@ -40,9 +40,32 @@ function splitRow(line: string): string[] {
     .map((c) => c.trim());
 }
 
+/**
+ * Remove elementos que pertencem apenas à interface do chat
+ * (payloads técnicos, checklists de ações rápidas, sugestões de próximo passo).
+ */
+function stripInterfaceArtifacts(input: string): string {
+  return input
+    // Qualquer bloco cercado que contenha apenas JSON técnico
+    .replace(/```[a-zA-Z]*\s*\{[\s\S]*?\}\s*```/g, (block) =>
+      /"(?:database|action_final|texto_limpo|conteudo_json|tipo_documento|nivel_complexidade|componente_curricular|secoes|titulo)"/.test(
+        block,
+      )
+        ? ''
+        : block,
+    )
+    // Bloco "Ações Rápidas em 1 Clique" e sua lista de checkboxes
+    .replace(/^\s*\*{0,2}Ações Rápidas[^\n]*\*{0,2}\s*$/gim, '')
+    .replace(/^\s*[-*•]\s*\[[ xX]?\][^\n]*$/gm, '')
+    // Sugestão de próximo passo (conversa, não documento)
+    .replace(/^\s*\*{0,2}Próximo passo sugerido[^\n]*$/gim, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /** Markdown -> HTML enxuto e tipograficamente limpo. */
 export function markdownToDocumentHtml(markdown: string): string {
-  const text = sanitizeChatText(markdown || '').replace(/\r\n/g, '\n');
+  const text = stripInterfaceArtifacts(sanitizeChatText(markdown || '')).replace(/\r\n/g, '\n');
   const lines = text.split('\n');
   const out: string[] = [];
 
