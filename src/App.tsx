@@ -160,8 +160,8 @@ function AppRoutes() {
           <Route path="/mat-chat" element={<MatChat />} />
           <Route path="/mat-notebook" element={<MatNotebook />} />
           <Route path="/edu-canvas" element={<EduCanvas />} />
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard-professor" element={<Navigate to="/" replace />} />
+          <Route path="/" element={<LandingProfessor />} />
+          <Route path="/dashboard-professor" element={<Index />} />
           <Route path="/sobre" element={<SobreProjeto />} />
           <Route path="/questoes" element={<QuestionBank />} />
           <Route path="/questoes/nova" element={<CreateQuestion />} />
