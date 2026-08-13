@@ -46,7 +46,16 @@ export function sanitizeChatText(raw: string): string {
 
   // Remove blocos JSON internos remanescentes e tags de debug
   return text
-    .replace(/```json\s*\{[\s\S]*?"(?:database|action_final)"[\s\S]*?\}\s*```/g, '')
+    // Blocos cercados (```json ... ``` ou ``` { ... } ```) com payload interno
+    .replace(
+      /```[a-zA-Z]*\s*\{[\s\S]*?"(?:database|action_final|texto_limpo|anexos_presentes|conteudo_json|tipo_documento|nivel_complexidade|componente_curricular|secoes)"[\s\S]*?\}\s*```/g,
+      '',
+    )
+    // Payload JSON solto (sem cercas) ao final da resposta
+    .replace(
+      /\n\s*\{\s*"(?:database|action_final|texto_limpo|conteudo_json|tipo_documento|nivel_complexidade|componente_curricular|titulo)"[\s\S]*\}\s*$/,
+      '',
+    )
     .replace(/\[VIDEO_PROMPT:[\s\S]*?\]/g, '')
     .replace(/\[IMAGE_DATA:[\s\S]*?\]/g, '')
     .replace(/\[ANEXOS_PRESENTES:[\s\S]*?\]/g, '')
