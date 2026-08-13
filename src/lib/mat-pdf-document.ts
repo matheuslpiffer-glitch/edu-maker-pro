@@ -17,6 +17,18 @@ function escapeHtml(s: string): string {
     .replace(/>/g, '&gt;');
 }
 
+/**
+ * Converte frações em texto (3/4, 20/25, 3 1/2) em frações verticais
+ * (numerador sobre denominador), como na notação matemática impressa.
+ */
+function verticalFractions(html: string): string {
+  return html.replace(
+    /(\d+)\s*\/\s*(\d+)/g,
+    (_m, num: string, den: string) =>
+      `<span class="frac"><span class="frac-n">${num}</span><span class="frac-d">${den}</span></span>`,
+  );
+}
+
 /** Formatação inline: negrito, itálico e código. */
 function inline(raw: string): string {
   let s = escapeHtml(raw);
@@ -24,7 +36,9 @@ function inline(raw: string): string {
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
   s = s.replace(/~~([^~]+)~~/g, '<s>$1</s>');
-  return s;
+  // Não converter datas (__/__/2026) nem linhas de preenchimento
+  if (/_{2,}/.test(s)) return s;
+  return verticalFractions(s);
 }
 
 function isTableRow(line: string): boolean {
