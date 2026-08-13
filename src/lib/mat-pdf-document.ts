@@ -310,6 +310,23 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
         font-family: 'Courier New', monospace;
         font-size: 10pt;
       }
+      [data-mat-document] .frac {
+        display: inline-block;
+        vertical-align: -0.45em;
+        text-align: center;
+        line-height: 1.05;
+        margin: 0 2px;
+        font-size: 10pt;
+      }
+      [data-mat-document] .frac .frac-n {
+        display: block;
+        padding: 0 3px 1px;
+        border-bottom: 1px solid currentColor;
+      }
+      [data-mat-document] .frac .frac-d {
+        display: block;
+        padding: 1px 3px 0;
+      }
       [data-mat-document] .diagram {
         margin: 10px auto 14px;
         padding: 10px 14px;
