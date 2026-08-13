@@ -23,7 +23,7 @@ import { usableWidthPx, toHtml2PdfMargin, type PdfMargins } from '@/lib/pdf-marg
 export type Msg = { role: 'user' | 'assistant'; content: string };
 
 /** Margens A4 do documento exportado pelo Mat (mm). */
-const MAT_PDF_MARGINS: PdfMargins = { top: 18, right: 18, bottom: 18, left: 18 };
+const MAT_PDF_MARGINS: PdfMargins = { top: 15, right: 15, bottom: 15, left: 15 };
 
 /** Converte qualquer LaTeX que escape do prompt em Unicode legível (padrão da plataforma). */
 export function renderMathAsUnicode(text: string): string {
@@ -651,8 +651,10 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         subtitle: isStudentMode ? 'Roteiro de Estudos / Exercícios' : 'Material Pedagógico Gerado pelo Assistente Mat',
       });
 
-      // Configurações para captura precisa do layout
-      element.style.width = '794px';
+      // Captura na largura útil real da A4 (sem margens) -> 1:1 com o PDF
+      const captureWidth = usableWidthPx(MAT_PDF_MARGINS);
+      element.style.width = `${captureWidth}px`;
+      element.style.maxWidth = `${captureWidth}px`;
       element.style.padding = '0';
       element.style.margin = '0';
       element.style.position = 'static';
@@ -664,7 +666,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
       holder.style.position = 'fixed';
       holder.style.left = '-9999px';
       holder.style.top = '0';
-      holder.style.width = '794px';
+      holder.style.width = `${captureWidth}px`;
       holder.style.background = '#ffffff';
       holder.style.zIndex = '-1000';
       holder.appendChild(element);
@@ -678,13 +680,20 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
           scale: 2, 
           backgroundColor: '#ffffff', 
           useCORS: true,
-          windowWidth: 794,
-          width: 794,
+          windowWidth: captureWidth,
+          width: captureWidth,
           height: element.offsetHeight || element.scrollHeight,
           removeContainer: true
         },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] as string[], avoid: ['.doc-question', '.doc-table', '.diagram', '.doc-part', '.doc-h2', '.doc-h3'] },
+        pagebreak: {
+          mode: ['avoid-all', 'css', 'legacy'] as string[],
+          avoid: [
+            '.doc-question', '.doc-table', '.diagram', '.doc-part',
+            '.doc-h2', '.doc-h3', '.doc-h4', '.doc-option', '.doc-p',
+            'li', 'tr', 'figure',
+          ],
+        },
       };
 
       try {
