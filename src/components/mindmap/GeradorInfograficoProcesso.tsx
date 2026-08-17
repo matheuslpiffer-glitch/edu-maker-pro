@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { showAiErrorToast } from '@/lib/ai-utils';
 import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
 import { Card, CardContent } from '@/components/ui/card';
