@@ -171,7 +171,7 @@ export default function Pricing() {
               </div>
             </div>
             <ul className="space-y-3 mb-8 flex-1">
-              {['10 créditos por mês', 'Acesso às ferramentas básicas', 'Banco de questões', 'Suporte por e-mail'].map((f) => (
+              {['6 créditos por mês', 'Acesso às ferramentas básicas', 'Banco de questões', 'Suporte por e-mail'].map((f) => (
                 <li key={f} className="flex items-start gap-2.5 text-sm text-slate-300">
                   <Check size={16} className="mt-0.5 shrink-0 text-emerald-400" />
                   <span>{f}</span>
@@ -195,10 +195,10 @@ export default function Pricing() {
             <p className="text-xs text-slate-400 mt-1 min-h-[32px]">Para quem usa IA todos os dias.</p>
             <div className="mt-5 mb-6">
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-white">R$ {interval === 'month' ? '19,90' : '238,80'}</span>
+                <span className="text-4xl font-black text-white">R$ {interval === 'month' ? '29,90' : '358,80'}</span>
                 <span className="text-sm text-slate-400 font-medium">/{interval === 'month' ? 'mês' : 'ano'}</span>
               </div>
-              {interval === 'month' && <p className="text-xs text-slate-500 mt-1">ou R$ 238,80/ano</p>}
+              {interval === 'month' && <p className="text-xs text-slate-500 mt-1">ou R$ 358,80/ano</p>}
               {interval === 'year' && <p className="text-xs text-emerald-400 mt-1">Economize ~2 meses</p>}
             </div>
             <ul className="space-y-3 mb-8 flex-1">
