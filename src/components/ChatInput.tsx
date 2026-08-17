@@ -19,6 +19,7 @@ import {
   Loader2,
   Wand2,
   Globe,
+  Presentation,
 } from 'lucide-react';
 import * as Popover from '@radix-ui/react-popover';
 import { cn } from '@/lib/utils';
@@ -92,6 +93,7 @@ export const MAT_ACTIONS: ChatAction[] = [
   { id: 'video', label: 'Criar Vídeo Educacional (10s)', category: 'Mídia', icon: FileText, color: 'text-rose-500', text: 'Planeje um vídeo educacional cinematográfico de 10 segundos em Português (PT-BR), com narração e legenda em PT-BR. Me peça o tema e a imagem de referência opcional.' },
   { id: 'planilha', label: 'Diagnóstico de Planilha', category: 'Gestão', icon: FileSpreadsheet, color: 'text-green-600', text: 'Analise esta planilha de notas/frequência e gere um relatório institucional com: identificação de alunos em risco, habilidades da BNCC com defasagem e sugestão de plano de recomposição de aprendizagem.' },
   { id: 'pei', label: 'Gerar PEI / Adaptação', category: 'Pedagógico', icon: FileText, color: 'text-indigo-500', text: 'Elabore e adapte este conteúdo para o Plano de Desenvolvimento Individualizado (PEI) em 3 níveis de suporte pedagógico (Alto, Médio e Autonomia) focando em acessibilidade.' },
+  { id: 'infografico', label: 'Criar Folder Ilustrativo', category: 'Mídia', icon: Presentation, color: 'text-cyan-500', text: 'Crie um infográfico/folder ilustrativo passo a passo sobre este tema, com títulos em CAIXA ALTA, ícones pedagógicos e dicas práticas.' },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -425,7 +427,6 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>((props, ref) => {
               const val = e.target.value;
               setInput(val);
               if (val === '/') {
-                setActionSearch('');
                 setMenuOpen(true);
               }
               autoGrow(e.target);
@@ -436,81 +437,84 @@ const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>((props, ref) => {
                 handleSend();
               }
             }}
-            placeholder={
-              activeChip
-                ? 'Digite instruções adicionais...'
-                : attachments.length > 0
-                  ? 'O que deseja fazer com esta imagem?...'
-                  : placeholder
-            }
-            className="flex-1 bg-transparent border-0 outline-none text-sm text-slate-800 placeholder:text-slate-400 px-3 py-2.5 resize-none min-h-[40px] max-h-[160px]"
+            placeholder={placeholder}
+            disabled={disabled}
+            className="flex-1 max-h-[160px] min-h-[40px] bg-transparent border-none focus:ring-0 text-slate-900 text-sm placeholder:text-slate-400 resize-none py-2.5 scrollbar-none"
           />
 
-          {/* Web search toggle */}
-          <button
-            type="button"
-            onClick={() => setWebSearch((v) => !v)}
-            disabled={disabled}
-            className={cn(
-              'mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0 border',
-              webSearch
-                ? 'bg-blue-50 text-blue-600 border-blue-200 ring-1 ring-blue-100'
-                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600 border-transparent',
-            )}
-            title={webSearch ? 'Busca na web ativada' : 'Ativar busca na web'}
-          >
-            <Globe className="h-4 w-4" />
-          </button>
-
-          {/* Prompt optimization */}
-          {onOptimizePrompt && (
-            <button
-              onClick={() => onOptimizePrompt(input)}
-              disabled={!input.trim() || isOptimizing || disabled}
-              className={cn(
-                'mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0',
-                isOptimizing
-                  ? 'bg-blue-50 text-blue-500 animate-pulse'
-                  : 'text-slate-400 hover:bg-blue-50 hover:text-blue-600',
+          <div className="flex items-center gap-1.5 mb-1 shrink-0">
+             {onOptimizePrompt && (
+                <button
+                  type="button"
+                  onClick={() => onOptimizePrompt(input)}
+                  disabled={disabled || isOptimizing || !input.trim()}
+                  className={cn(
+                    "h-8 w-8 flex items-center justify-center rounded-lg transition-all border border-slate-200",
+                    isOptimizing 
+                      ? "bg-slate-100 text-slate-400" 
+                      : "bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+                  )}
+                  title="Otimizar prompt pedagógico ✨"
+                >
+                  {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4.5 w-4.5" />}
+                </button>
               )}
-              title="Otimizar Prompt / Palavras Assertivas"
+
+            <button
+              type="button"
+              onClick={() => setWebSearch(!webSearch)}
+              className={cn(
+                'h-8 w-8 flex items-center justify-center rounded-lg transition-all border shrink-0',
+                webSearch
+                  ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                  : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100',
+              )}
+              title="Pesquisa na Web"
             >
-              {isOptimizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+              <Globe className="h-4.5 w-4.5" />
             </button>
-          )}
 
-          {/* Mic */}
-          <button
-            onClick={toggleListening}
-            disabled={disabled}
-            className={cn(
-              'mb-1 h-8 w-8 rounded-lg flex items-center justify-center transition-all shrink-0',
-              isListening
-                ? 'bg-red-50 text-red-500 animate-pulse ring-2 ring-red-200'
-                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600',
-            )}
-            title={isListening ? 'Parar de ouvir' : 'Ditar mensagem'}
-          >
-            <Mic className={cn('h-4 w-4', isListening && 'fill-red-500')} />
-          </button>
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={cn(
+                'h-8 w-8 flex items-center justify-center rounded-lg transition-all border shrink-0',
+                isListening
+                  ? 'bg-red-500 border-red-500 text-white animate-pulse'
+                  : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100',
+              )}
+              title="Falar com Mat"
+            >
+              <Mic className="h-4.5 w-4.5" />
+            </button>
 
-          {/* Send */}
-          <button
-            onClick={handleSend}
-            disabled={!canSend}
-            className="mb-1 h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors disabled:opacity-20 disabled:cursor-not-allowed shrink-0"
-            aria-label="Enviar mensagem"
-          >
-            <Send className="h-4 w-4" />
-          </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={!canSend}
+              className={cn(
+                'h-8 w-8 flex items-center justify-center rounded-lg transition-all shrink-0',
+                canSend
+                  ? 'bg-slate-900 text-white shadow-md hover:bg-slate-800'
+                  : 'bg-slate-100 text-slate-300 border border-slate-200 cursor-not-allowed',
+              )}
+            >
+              <Send className="h-4.5 w-4.5" />
+            </button>
+          </div>
         </div>
       </div>
-      <p className="text-center text-[10px] text-slate-400 mt-3 font-medium">
-        O Mat pode cometer erros. Verifique informações importantes.
-      </p>
+      
+      {!fullPage && (
+        <p className="mt-2 text-[10px] text-slate-400 text-center font-medium uppercase tracking-widest">
+          Piffer EduTech — Inteligência Evolutiva
+        </p>
+      )}
       </div>
     </div>
   );
 });
+
+ChatInput.displayName = 'ChatInput';
 
 export default ChatInput;
