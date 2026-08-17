@@ -748,10 +748,13 @@ export default function AltaPerformance() {
               <Label className="text-sm font-semibold">Formato da Questão</Label>
               <ToggleGroup type="single" value={formato} onValueChange={v => { if (v) setFormato(v); }} className="w-full border border-border/50 rounded-lg p-1 bg-muted/30">
                 <ToggleGroupItem value="objetiva" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                  Objetiva (Múltipla Escolha)
+                  Objetiva
                 </ToggleGroupItem>
                 <ToggleGroupItem value="discursiva" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                  Discursiva (Aberta)
+                  Discursiva
+                </ToggleGroupItem>
+                <ToggleGroupItem value="mista" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  Mista
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
