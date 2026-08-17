@@ -242,7 +242,7 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
   const downloadAsPdf = async (content: string) => {
     const doc = buildMatDocument(content);
     const element = document.createElement('div');
-    const finalHtml: string = doc;
+    const finalHtml: any = doc;
     element.innerHTML = finalHtml;
     
     const opt = {
