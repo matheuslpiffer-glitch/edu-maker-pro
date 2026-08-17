@@ -2209,7 +2209,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                 <div className="flex flex-col gap-3 sticky bottom-0 bg-white/95 backdrop-blur-sm pb-4 pt-2 -mx-4 px-4 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pb-0 sm:pt-0 sm:mx-0 sm:px-0 z-20">
                   {isFastTrackVestibulinho ? (
                     <Button
-                      onClick={() => generateQuestions(false)}
+                      onClick={() => generateQuestions('objetiva')}
                       disabled={generating || !activeEspecialidade}
                       size="lg"
                       className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-emerald-500/30"
