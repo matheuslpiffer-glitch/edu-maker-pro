@@ -1,25 +1,20 @@
 import { useState, useRef, useEffect, useCallback, forwardRef } from 'react';
-import { FileDown, Loader2, Image as ImageIcon, FileText, FileSpreadsheet, Presentation, Volume2, Square, Copy, Check, Headphones, Video, Play, RefreshCw, Trash2, Brain, X } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
-import * as Popover from '@radix-ui/react-popover';
+import { FileDown, Loader2, Volume2, Square, Copy, Check, FileSpreadsheet, Presentation } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { latexToUnicode } from '@/lib/latex-to-unicode';
 import defaultAvatar from '@/assets/mat-avatar-3d.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
 import { useStudentMode } from '@/hooks/useStudentMode';
 import { supabase } from '@/integrations/supabase/client';
-import { format, isToday, isYesterday, subDays, startOfDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { format } from 'date-fns';
 import ChatInput, { MAT_ACTIONS, type ChatInputPayload, type ChatInputHandle } from '@/components/ChatInput';
 import { sanitizeChatText } from '@/lib/chat-sanitize';
-import VideoLabPlayer from '@/components/VideoLabPlayer';
 import { ChatMessageRenderer } from '@/components/ChatMessageRenderer';
-import { planScenes, VIDEO_DURATIONS, DURATION_LABELS, FREE_MAX_VIDEO_SECONDS, type VideoDuration } from '@/lib/video-scenes';
+import { planScenes, type VideoDuration } from '@/lib/video-scenes';
 import { useRole } from '@/hooks/useRole';
 import { useChat } from '@/hooks/useChat';
 import { buildMatDocument } from '@/lib/mat-pdf-document';
-import { usableWidthPx, toHtml2PdfMargin, type PdfMargins } from '@/lib/pdf-margins';
+import { type PdfMargins } from '@/lib/pdf-margins';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -32,8 +27,6 @@ export function renderMathAsUnicode(text: string): string {
   // Remove cifrões órfãos deixados por LaTeX malformado, preservando "R$ 50,00"
   return converted.replace(/(^|[^R])\$(?!\s?\d)/g, '$1');
 }
-
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`;
 
 export const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Você já conhece este educador. Com base nas conversas anteriores, ele prefere respostas diretas, foca em turmas de Anos Finais e valoriza metodologias ativas. Adapte todas as respostas para antecipar essas necessidades com pensamentos favoráveis à sua rotina. favor 📚\n\n_Desenvolvido por Matheus Lima Piffer._';
 
@@ -49,8 +42,8 @@ interface MatChatPanelProps {
   onSessionChange?: (id: string | null) => void;
 }
 
-const MatAvatar = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
-  const { avatar } = useMatAvatar();
+export const MatAvatar = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
+  const { customAvatar } = useMatAvatar();
   const sizes = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -59,7 +52,7 @@ const MatAvatar = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
 
   return (
     <div className={cn("rounded-full overflow-hidden border-2 border-white shadow-sm shrink-0", sizes[size])}>
-      <img src={avatar || defaultAvatar} alt="Mat Avatar" className="w-full h-full object-cover" />
+      <img src={customAvatar || defaultAvatar} alt="Mat Avatar" className="w-full h-full object-cover" />
     </div>
   );
 };
@@ -71,22 +64,18 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
   sessionId: propSessionId,
   onSessionChange
 }, ref) => {
-  const { isStudent } = useStudentMode();
-  const { userRole } = useRole();
-  const isAdmin = userRole === 'admin';
+  const { isStudentMode } = useStudentMode();
+  const { isStudent } = useRole();
   const chatInputRef = useRef<ChatInputHandle>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { 
     messages, 
-    isLoading, 
-    sendMessage, 
-    clearMessages, 
-    loadSession, 
-    sessionId,
-    currentSessionTitle,
-    setMessages
+    setMessages,
+    currentSessionId,
+    setCurrentSessionId
   } = useChat();
 
+  const [isLoading, setIsLoading] = useState(false);
   const [speakingMsgIndex, setSpeakingMsgIndex] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [videoStatus, setVideoStatus] = useState<Record<number, { 
@@ -111,22 +100,10 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
   });
 
   useEffect(() => {
-    if (propSessionId) {
-      loadSession(propSessionId);
-    }
-  }, [propSessionId, loadSession]);
-
-  useEffect(() => {
-    if (sessionId && onSessionChange) {
-      onSessionChange(sessionId);
-    }
-  }, [sessionId, onSessionChange]);
-
-  useEffect(() => {
     if (onRegisterReset) {
-      onRegisterReset(clearMessages);
+      onRegisterReset(() => setMessages([{ role: 'assistant', content: TEACHER_GREETING }]));
     }
-  }, [onRegisterReset, clearMessages]);
+  }, [onRegisterReset, setMessages]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -148,8 +125,7 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
         const { data, error } = await supabase.functions.invoke('generate-video', {
           body: { 
             prompt: scenes[i].prompt,
-            context: scenes[i].context,
-            duration: scenes[i].duration,
+            duration: scenes[i].seconds,
             language,
             image: i === 0 ? image : null
           }
@@ -218,7 +194,29 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
   }, []);
 
   const handleSendMessage = async (payload: ChatInputPayload) => {
-    await sendMessage(payload.text, payload.action);
+    if (!payload.text.trim() && !payload.action) return;
+    
+    const userMsg: Msg = { role: 'user', content: payload.text || (MAT_ACTIONS.find(a => a.id === payload.action)?.label || '') };
+    setMessages(prev => [...prev, userMsg]);
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('mat-chat', {
+        body: { 
+          messages: [...messages, userMsg],
+          action: payload.action
+        }
+      });
+
+      if (error) throw error;
+      
+      const assistantMsg: Msg = { role: 'assistant', content: typeof data === 'string' ? data : data.content };
+      setMessages(prev => [...prev, assistantMsg]);
+    } catch (err) {
+      console.error("Chat error:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const copyToClipboard = (text: string, index: number) => {
@@ -388,3 +386,4 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
 });
 
 MatChatPanel.displayName = 'MatChatPanel';
+export default MatChatPanel;
