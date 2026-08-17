@@ -806,8 +806,20 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
                   {msg.role === 'assistant' && <MatAvatar size="sm" />}
                   <div className={cn('text-sm leading-relaxed px-1 py-1 flex-1', msg.role === 'user' ? 'bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100 max-w-max' : 'text-slate-700')}>
                     {msg.role === 'assistant' ? (
-                      <div className="space-y-4">
-                        <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-table:border prose-table:border-slate-200 prose-th:bg-slate-50 prose-th:px-3 prose-th:py-2 prose-td:px-3 prose-td:py-2">
+                      <ChatMessageRenderer 
+                        content={msg.content}
+                        isAssistant={true}
+                        videoStatus={{
+                          ...videoStatus[i],
+                          subtitleText: overlayText,
+                          showSubtitles: videoConfig.subtitles
+                        }}
+                      />
+                    ) : (
+                      <div className="whitespace-pre-wrap">{sanitizeChatText(msg.content)}</div>
+                    )}
+                  </div>
+                </div>
                           <ReactMarkdown 
                             rehypePlugins={[rehypeRaw]}
                             components={{

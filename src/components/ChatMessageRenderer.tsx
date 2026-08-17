@@ -4,25 +4,41 @@ import rehypeRaw from 'rehype-raw';
 import { sanitizeChatText } from '@/lib/chat-sanitize';
 import GeradorInfograficoProcesso from '@/components/mindmap/GeradorInfograficoProcesso';
 import VideoLabPlayer from '@/components/VideoLabPlayer';
+import { latexToUnicode } from '@/lib/latex-to-unicode';
 
 interface ChatMessageRendererProps {
   content: string;
   isAssistant: boolean;
-  videoStatus?: { loading: boolean; url?: string; segments?: string[]; duration?: number };
+  videoStatus?: { 
+    loading?: boolean; 
+    url?: string; 
+    segments?: string[]; 
+    duration?: number;
+    subtitleText?: string;
+    showSubtitles?: boolean;
+  };
+}
+
+/** Converte qualquer LaTeX que escape do prompt em Unicode legível (padrão da plataforma). */
+function renderMathAsUnicode(text: string): string {
+  const converted = latexToUnicode(text);
+  // Remove cifrões órfãos deixados por LaTeX malformado, preservando "R$ 50,00"
+  return converted.replace(/(^|[^R])\$(?!\s?\d)/g, '$1');
 }
 
 export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ content, isAssistant, videoStatus }) => {
-  if (!isAssistant) return <div className="whitespace-pre-wrap">{content}</div>;
+  if (!isAssistant) return <div className="whitespace-pre-wrap">{sanitizeChatText(content)}</div>;
 
   const sanitized = sanitizeChatText(content);
   
   // Detect custom tags
   const infographicMatch = sanitized.match(/<infografico\s+subject="([^"]+)"\s*\/>/);
+  const videoTagMatch = sanitized.includes('<video');
 
   // Remove tags for markdown rendering
   const textOnly = sanitized
-    .replace(/<video\s+src="[^"]+"\s*\/>/g, '')
-    .replace(/<infografico\s+subject="[^"]+"\s*\/>/g, '')
+    .replace(/<video[^>]*\/?>/g, '')
+    .replace(/<infografico\s+subject="([^"]+)"\s*\/>/g, '')
     .trim();
 
   return (
@@ -37,7 +53,7 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ conten
             td: ({node, ...props}) => <td className="border border-slate-200 px-3 py-2 text-slate-600" {...props} />,
           }}
         >
-          {textOnly}
+          {renderMathAsUnicode(textOnly)}
         </ReactMarkdown>
       </div>
 
@@ -47,15 +63,28 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ conten
         </div>
       )}
 
-      {videoStatus?.segments && videoStatus.segments.length > 0 && (
+      {(videoTagMatch || (videoStatus?.segments && videoStatus.segments.length > 0)) && (
         <div className="mt-4">
-          <VideoLabPlayer 
-            segments={videoStatus.segments} 
-            durationSeconds={videoStatus.duration || 10} 
-          />
-          {videoStatus.loading && (
+           {videoStatus?.segments && videoStatus.segments.length > 0 ? (
+              <VideoLabPlayer 
+                segments={videoStatus.segments} 
+                durationSeconds={videoStatus.duration || 10}
+                subtitleText={videoStatus.subtitleText}
+                showSubtitles={videoStatus.showSubtitles}
+              />
+           ) : videoStatus?.url ? (
+              <div className="my-4 rounded-xl overflow-hidden border border-slate-200 shadow-sm aspect-video bg-black">
+                <video src={videoStatus.url} controls className="w-full h-full" />
+              </div>
+           ) : (
+              <div className="h-48 w-full bg-slate-100 animate-pulse rounded-lg my-4 flex items-center justify-center text-xs text-slate-400">
+                Preparando vídeo...
+              </div>
+           )}
+          
+          {videoStatus?.loading && (
             <p className="text-[10px] text-slate-500 mt-1">
-              Gerando cenas e áudio... ({videoStatus.segments.length}/...)
+              Gerando cenas e áudio... ({videoStatus.segments?.length || 0}/...)
             </p>
           )}
         </div>
