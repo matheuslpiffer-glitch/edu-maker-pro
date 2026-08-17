@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useSubscription } from './useSubscription';
 
-const FREE_LIMIT = 10;
+const FREE_LIMIT = 6;
 
 export function useCredits() {
   const { user } = useAuth();
