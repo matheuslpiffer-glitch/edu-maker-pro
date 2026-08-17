@@ -821,10 +821,15 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const handleSave = async () => {
     if (!user || questions.length === 0) return;
     setSaving(true);
-    const answerKey = questions.map((q, i) => ({
-      question: i + 1, answer: q.options?.find(o => o.isCorrect)?.letter || '?',
-      skillCode: q.skillCode || '', descriptor: q.descriptor || '',
-    }));
+    const answerKey = questions.map((q, i) => {
+      const isActuallyDiscursiva = !q.options || q.options.length === 0;
+      return {
+        question: i + 1,
+        answer: isActuallyDiscursiva ? 'DISCURSIVA' : q.options.find(o => o.isCorrect)?.letter || '?',
+        skillCode: q.skillCode || '',
+        descriptor: q.descriptor || '',
+      };
+    });
     const payload = {
       user_id: user.id, exam_type: examType,
       title: title || `Simulado ${EXAM_TYPES.find(e => e.value === examType)?.label}`,
