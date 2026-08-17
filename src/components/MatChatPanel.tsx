@@ -241,9 +241,9 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
 
   const downloadAsPdf = async (content: string) => {
     const doc = buildMatDocument(content);
-    const elementStr = doc;
     const element = document.createElement('div');
-    element.innerHTML = elementStr;
+    element.innerHTML = doc;
+    document.body.appendChild(element);
     document.body.appendChild(element);
     
     const opt = {
