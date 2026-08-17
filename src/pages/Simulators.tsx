@@ -1569,7 +1569,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     </div>
 
                     <Button
-                      onClick={() => { generateQuestions(false); if (senaiVestibulinho) startSenaiTimer(); }}
+                      onClick={() => { generateQuestions('objetiva'); if (senaiVestibulinho) startSenaiTimer(); }}
                       disabled={generating}
                       size="lg"
                       className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
