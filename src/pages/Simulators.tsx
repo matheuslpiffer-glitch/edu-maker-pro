@@ -2219,7 +2219,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     </Button>
                   ) : isAula ? (
                     <Button
-                      onClick={() => generateQuestions(false)}
+                      onClick={() => generateQuestions('objetiva')}
                       disabled={generating || (selectedSubjects.length === 0 && !specificTopic)}
                       size="lg"
                       className="w-full rounded-[20px] text-white shadow-lg transition-all bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-cyan-500/20"
