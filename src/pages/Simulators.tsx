@@ -432,6 +432,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [savedId, setSavedId] = useAutoSaveDraft<string | null>(draftKey('savedId'), null);
   const [showGabarito, setShowGabarito] = useAutoSaveDraft<boolean>(draftKey('showGabarito'), true);
   const [isDiscursiva, setIsDiscursiva] = useAutoSaveDraft<boolean>(draftKey('isDiscursiva'), false);
+  const [provaFormat, setProvaFormat] = useAutoSaveDraft<'objetiva' | 'discursiva' | 'mista'>(draftKey('provaFormat'), 'objetiva');
   const [customMaterial, setCustomMaterial] = useAutoSaveDraft<string>(draftKey('customMaterial'), '');
   const [bloomLevel, setBloomLevel] = useAutoSaveDraft<number>(draftKey('bloomLevel'), 2);
   const [columns, setColumns] = useAutoSaveDraft<1 | 2>(draftKey('columns'), 1);
@@ -601,7 +602,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const isObmepFase2 = isObmep && selectedFormat.endsWith('_f2');
   const obmepCount = isObmepFase2 ? 6 : 20;
 
-  const generateQuestions = async (discursiva = false) => {
+  const generateQuestions = async (format: 'objetiva' | 'discursiva' | 'mista' = 'objetiva') => {
 
     const effectiveGrade = isObmep
       ? (OBMEP_GRADE_MAP[selectedFormat] || '')
@@ -619,8 +620,10 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       return;
     }
 
-    const effectiveDiscursiva = isObmepFase2 ? true : discursiva;
+    const effectiveDiscursiva = isObmepFase2 ? true : (format === 'discursiva');
+    const effectiveFormat = isObmepFase2 ? 'discursiva' : format;
     setIsDiscursiva(effectiveDiscursiva);
+    setProvaFormat(effectiveFormat);
     setGenerating(true);
     setQuestions([]);
     setGenerationMessage('🔍 Consultando diretrizes BNCC...');
@@ -723,7 +726,8 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             serie: showSerieStep ? activeSerie : undefined,
             includeImages: includeImages && requestedQuestionCount <= 5,
             technicalDiscipline: technicalDiscipline || undefined,
-            provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
+            provaFormat: effectiveFormat, // 'objetiva', 'discursiva' ou 'mista'
+            modelSpecificFormat: activeFormat !== 'completa' ? activeFormat : undefined,
             isSenaiMode: isSenaiMode || undefined,
             senaiEixo: isSenaiMode ? senaiEixoLabel : undefined,
             senaiSpMatrix: isSenaiMode ? senaiSpMatrix : undefined,
@@ -817,10 +821,15 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const handleSave = async () => {
     if (!user || questions.length === 0) return;
     setSaving(true);
-    const answerKey = questions.map((q, i) => ({
-      question: i + 1, answer: q.options?.find(o => o.isCorrect)?.letter || '?',
-      skillCode: q.skillCode || '', descriptor: q.descriptor || '',
-    }));
+    const answerKey = questions.map((q, i) => {
+      const isActuallyDiscursiva = !q.options || q.options.length === 0;
+      return {
+        question: i + 1,
+        answer: isActuallyDiscursiva ? 'DISCURSIVA' : q.options.find(o => o.isCorrect)?.letter || '?',
+        skillCode: q.skillCode || '',
+        descriptor: q.descriptor || '',
+      };
+    });
     const payload = {
       user_id: user.id, exam_type: examType,
       title: title || `Simulado ${EXAM_TYPES.find(e => e.value === examType)?.label}`,
@@ -1565,7 +1574,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     </div>
 
                     <Button
-                      onClick={() => { generateQuestions(false); if (senaiVestibulinho) startSenaiTimer(); }}
+                      onClick={() => { generateQuestions('objetiva'); if (senaiVestibulinho) startSenaiTimer(); }}
                       disabled={generating}
                       size="lg"
                       className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
@@ -1672,7 +1681,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       </div>
                       <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm pb-4 pt-2 -mx-4 px-4 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pb-0 sm:pt-0 sm:mx-0 sm:px-0 z-20">
                       <Button
-                        onClick={() => generateQuestions(false)}
+                        onClick={() => generateQuestions('objetiva')}
                         disabled={generating || (isTecnicosPorArea && tecnicoSubjects.length === 0)}
                         size="lg"
                         className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-emerald-500/30"
@@ -2205,7 +2214,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                 <div className="flex flex-col gap-3 sticky bottom-0 bg-white/95 backdrop-blur-sm pb-4 pt-2 -mx-4 px-4 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pb-0 sm:pt-0 sm:mx-0 sm:px-0 z-20">
                   {isFastTrackVestibulinho ? (
                     <Button
-                      onClick={() => generateQuestions(false)}
+                      onClick={() => generateQuestions('objetiva')}
                       disabled={generating || !activeEspecialidade}
                       size="lg"
                       className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-emerald-500/30"
@@ -2215,7 +2224,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     </Button>
                   ) : isAula ? (
                     <Button
-                      onClick={() => generateQuestions(false)}
+                      onClick={() => generateQuestions('objetiva')}
                       disabled={generating || (selectedSubjects.length === 0 && !specificTopic)}
                       size="lg"
                       className="w-full rounded-[20px] text-white shadow-lg transition-all bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 shadow-cyan-500/20"
@@ -2228,14 +2237,18 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     {!isConcurso && !isObmep && selectedSubjects.length === 0 && (
                       <p className="text-xs text-amber-600 font-semibold text-center animate-pulse">⚠️ Selecione ao menos uma disciplina acima para habilitar a geração.</p>
                     )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <Button onClick={() => generateQuestions(false)} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" className="w-full rounded-[20px] bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/20 transition-all">
-                        {generating && !isDiscursiva ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                        {generating && !isDiscursiva ? 'Gerando...' : `GERAR OBJETIVA — ${totalQuestions}q`}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <Button onClick={() => generateQuestions('objetiva')} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" className="w-full rounded-[20px] bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/20 transition-all">
+                        {generating && provaFormat === 'objetiva' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                        {generating && provaFormat === 'objetiva' ? 'Gerando...' : `OBJETIVA`}
                       </Button>
-                      <Button onClick={() => generateQuestions(true)} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" variant="outline" className="w-full rounded-[20px] border-slate-200 hover:bg-slate-50 transition-all">
-                        {generating && isDiscursiva ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PenTool className="h-4 w-4 mr-2" />}
-                        {generating && isDiscursiva ? 'Gerando...' : `GERAR DISCURSIVA — ${totalQuestions}q`}
+                      <Button onClick={() => generateQuestions('discursiva')} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" variant="outline" className="w-full rounded-[20px] border-slate-200 hover:bg-slate-50 transition-all">
+                        {generating && provaFormat === 'discursiva' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PenTool className="h-4 w-4 mr-2" />}
+                        {generating && provaFormat === 'discursiva' ? 'Gerando...' : `DISCURSIVA`}
+                      </Button>
+                      <Button onClick={() => generateQuestions('mista')} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" variant="secondary" className="w-full rounded-[20px] transition-all">
+                        {generating && provaFormat === 'mista' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
+                        {generating && provaFormat === 'mista' ? 'Gerando...' : `MISTA`}
                       </Button>
                     </div>
                     </>

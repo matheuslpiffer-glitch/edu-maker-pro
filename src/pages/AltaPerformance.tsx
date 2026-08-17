@@ -458,6 +458,7 @@ export default function AltaPerformance() {
       activeDna: rede,
       activeSpecialty: `alta_performance_${rede}`,
       isDiscursiva,
+      provaFormat: formato, // 'objetiva', 'discursiva' ou 'mista'
       difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente, ${niveis.avancado}% Avançado (interdisciplinar, raciocínio lógico profundo, nível acadêmico de excelência)`,
       examModel: redeInfo?.label || rede,
       matrizReferencia: matrizRef,
@@ -515,7 +516,8 @@ export default function AltaPerformance() {
 
   const copyToClipboard = () => {
     const text = questions.map((q, i) => {
-      if (isDiscursiva) {
+      const isActuallyDiscursiva = !q.options || q.options.length === 0;
+      if (isActuallyDiscursiva) {
         return `Questão ${i + 1}\n${stripHtml(q.content)}\n\n(Espaço para resposta)`;
       }
       const opts = q.options?.map(o => `${o.letter}) ${o.text}`).join('\n') || '';
@@ -547,9 +549,11 @@ export default function AltaPerformance() {
       if (!user) { toast({ title: 'Faça login para salvar', variant: 'destructive' }); return; }
       const questionsOnly = questions.map(q => ({
         content: q.content,
-        options: isDiscursiva ? [] : q.options,
+        options: q.options || [],
         skillCode: q.skillCode,
         descriptor: q.descriptor,
+        answerLines: q.answerLines,
+        correctionMirror: q.correctionMirror
       }));
       const isMulti = disciplina === 'Todos';
       const { data: inserted, error: insertErr } = await supabase.from('question_banks').insert({
@@ -748,10 +752,13 @@ export default function AltaPerformance() {
               <Label className="text-sm font-semibold">Formato da Questão</Label>
               <ToggleGroup type="single" value={formato} onValueChange={v => { if (v) setFormato(v); }} className="w-full border border-border/50 rounded-lg p-1 bg-muted/30">
                 <ToggleGroupItem value="objetiva" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                  Objetiva (Múltipla Escolha)
+                  Objetiva
                 </ToggleGroupItem>
                 <ToggleGroupItem value="discursiva" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-                  Discursiva (Aberta)
+                  Discursiva
+                </ToggleGroupItem>
+                <ToggleGroupItem value="mista" className="flex-1 rounded-md text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+                  Mista
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>

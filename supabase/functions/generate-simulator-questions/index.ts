@@ -1055,7 +1055,10 @@ Responda em JSON:
       ? `\nMODO TUTOR SOCRÁTICO (ALUNO): Para CADA questão, adicione um campo "tutorExplanation" no JSON com uma explicação pedagógica de 2-3 frases. NÃO dê apenas a resposta correta — atue como um Tutor Socrático.\n`
       : "";
 
-    const questionFormatInstruction = isDiscursiva
+    const isMixed = provaFormat === 'mista';
+    const questionFormatInstruction = isMixed
+      ? `MODO MISTO: Gere um simulado com uma mescla de questões OBJETIVAS (múltipla escolha A-E) e questões DISCURSIVAS (abertas). Distribua aproximadamente 50/50 entre os dois tipos. Para as objetivas, inclua alternativas A-E. Para as discursivas, não inclua alternativas e forneça o espelho de correção.`
+      : isDiscursiva
       ? `As questões devem ser ABERTAS/DISCURSIVAS (2ª Fase). NÃO inclua alternativas (A-E). Cada questão deve ter espaço para o aluno desenvolver a resolução por escrito. Inclua um "Espelho de Correção" com resolução passo a passo e critérios de pontuação para cada questão.`
       : `Cada questão deve ter EXATAMENTE 5 alternativas (A a E), com apenas 1 correta. Use distratores plausíveis.`;
 
@@ -1074,45 +1077,68 @@ ${modelInstruction ? `MODELO: ${modelInstruction}\n` : ""}${philSocInstruction}$
 ${questionFormatInstruction}
 Responda APENAS com JSON válido, sem markdown.`;
 
-    const userPrompt = isDiscursiva
-      ? `Gere ${effectiveCount} questão(ões) DISCURSIVA(S) de dificuldade ${diffLabel} para a(s) disciplina(s) "${subjectString}" no ${grade}.
+    let userPrompt = "";
+    if (isMixed) {
+      userPrompt = `Gere ${effectiveCount} questão(ões) MISTAS (mescla de objetivas e discursivas) de dificuldade ${diffLabel} para a(s) disciplina(s) "${subjectString}" no ${grade}.
+      
+      IMPORTANTE:
+      - As questões objetivas DEVEM ter o campo "options" preenchido com as letras A-E.
+      - As questões discursivas DEVEM ter o campo "options" VAZIO e o campo "answerLines" e "correctionMirror" preenchidos.
 
-Formato de avaliação: ${examLabel}
+      Responda em JSON seguindo este esquema para o array "questions":
+      [
+        {
+          "content": "HTML da questão objetiva",
+          "options": [{"letter": "A", "text": "...", "isCorrect": false}, ...],
+          "skillCode": "...",
+          "descriptor": "..."
+        },
+        {
+          "content": "HTML da questão discursiva",
+          "options": [],
+          "skillCode": "...",
+          "descriptor": "...",
+          "answerLines": 10,
+          "correctionMirror": "..."
+        }
+      ]`;
+    } else if (isDiscursiva) {
+      userPrompt = `Gere ${effectiveCount} questão(ões) DISCURSIVA(S) de dificuldade ${diffLabel} para a(s) disciplina(s) "${subjectString}" no ${grade}.
 
-Responda em JSON:
-{
-  "questions": [
-    {
-      "content": "<p>Enunciado contextualizado em HTML</p>",
-      "options": [],
-      "skillCode": "Código da habilidade BNCC/Gestor de Ensino relacionada",
-      "descriptor": "Descritor de competência associado",
-      "answerLines": 10,
-      "correctionMirror": "Resolução passo a passo com critérios de pontuação"
+      Responda em JSON:
+      {
+        "questions": [
+          {
+            "content": "<p>Enunciado contextualizado em HTML</p>",
+            "options": [],
+            "skillCode": "...",
+            "descriptor": "...",
+            "answerLines": 10,
+            "correctionMirror": "..."
+          }
+        ]
+      }`;
+    } else {
+      userPrompt = `Gere ${effectiveCount} questão(ões) de múltipla escolha de dificuldade ${diffLabel} para a(s) disciplina(s) "${subjectString}" no ${grade}.
+
+      Responda em JSON:
+      {
+        "questions": [
+          {
+            "content": "<p>Enunciado contextualizado em HTML</p>",
+            "options": [
+              {"letter": "A", "text": "Alternativa A", "isCorrect": false},
+              {"letter": "B", "text": "Alternativa B", "isCorrect": false},
+              {"letter": "C", "text": "Alternativa C (correta)", "isCorrect": true},
+              {"letter": "D", "text": "Alternativa D", "isCorrect": false},
+              {"letter": "E", "text": "Alternativa E", "isCorrect": false}
+            ],
+            "skillCode": "...",
+            "descriptor": "..."
+          }
+        ]
+      }`;
     }
-  ]
-}`
-      : `Gere ${effectiveCount} questão(ões) de múltipla escolha de dificuldade ${diffLabel} para a(s) disciplina(s) "${subjectString}" no ${grade}.
-
-Formato de avaliação: ${examLabel}
-
-Responda em JSON:
-{
-  "questions": [
-    {
-      "content": "<p>Enunciado contextualizado em HTML</p>",
-      "options": [
-        {"letter": "A", "text": "Alternativa A", "isCorrect": false},
-        {"letter": "B", "text": "Alternativa B", "isCorrect": false},
-        {"letter": "C", "text": "Alternativa C (correta)", "isCorrect": true},
-        {"letter": "D", "text": "Alternativa D", "isCorrect": false},
-        {"letter": "E", "text": "Alternativa E", "isCorrect": false}
-      ],
-      "skillCode": "Código da habilidade BNCC/Gestor de Ensino relacionada",
-      "descriptor": "Descritor de competência associado"
-    }
-  ]
-}`;
 
     const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
       { role: "system", content: systemPrompt },
