@@ -2232,14 +2232,18 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                     {!isConcurso && !isObmep && selectedSubjects.length === 0 && (
                       <p className="text-xs text-amber-600 font-semibold text-center animate-pulse">⚠️ Selecione ao menos uma disciplina acima para habilitar a geração.</p>
                     )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <Button onClick={() => generateQuestions(false)} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" className="w-full rounded-[20px] bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/20 transition-all">
-                        {generating && !isDiscursiva ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                        {generating && !isDiscursiva ? 'Gerando...' : `GERAR OBJETIVA — ${totalQuestions}q`}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <Button onClick={() => generateQuestions('objetiva')} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" className="w-full rounded-[20px] bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/20 transition-all">
+                        {generating && provaFormat === 'objetiva' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                        {generating && provaFormat === 'objetiva' ? 'Gerando...' : `OBJETIVA`}
                       </Button>
-                      <Button onClick={() => generateQuestions(true)} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" variant="outline" className="w-full rounded-[20px] border-slate-200 hover:bg-slate-50 transition-all">
-                        {generating && isDiscursiva ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PenTool className="h-4 w-4 mr-2" />}
-                        {generating && isDiscursiva ? 'Gerando...' : `GERAR DISCURSIVA — ${totalQuestions}q`}
+                      <Button onClick={() => generateQuestions('discursiva')} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" variant="outline" className="w-full rounded-[20px] border-slate-200 hover:bg-slate-50 transition-all">
+                        {generating && provaFormat === 'discursiva' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PenTool className="h-4 w-4 mr-2" />}
+                        {generating && provaFormat === 'discursiva' ? 'Gerando...' : `DISCURSIVA`}
+                      </Button>
+                      <Button onClick={() => generateQuestions('mista')} disabled={generating || totalQuestions === 0 || (!isConcurso && !isObmep && selectedSubjects.length === 0)} size="lg" variant="secondary" className="w-full rounded-[20px] transition-all">
+                        {generating && provaFormat === 'mista' ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
+                        {generating && provaFormat === 'mista' ? 'Gerando...' : `MISTA`}
                       </Button>
                     </div>
                     </>
