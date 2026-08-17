@@ -1055,7 +1055,10 @@ Responda em JSON:
       ? `\nMODO TUTOR SOCRÁTICO (ALUNO): Para CADA questão, adicione um campo "tutorExplanation" no JSON com uma explicação pedagógica de 2-3 frases. NÃO dê apenas a resposta correta — atue como um Tutor Socrático.\n`
       : "";
 
-    const questionFormatInstruction = isDiscursiva
+    const isMixed = provaFormat === 'mista';
+    const questionFormatInstruction = isMixed
+      ? `MODO MISTO: Gere um simulado com uma mescla de questões OBJETIVAS (múltipla escolha A-E) e questões DISCURSIVAS (abertas). Distribua aproximadamente 50/50 entre os dois tipos. Para as objetivas, inclua alternativas A-E. Para as discursivas, não inclua alternativas e forneça o espelho de correção.`
+      : isDiscursiva
       ? `As questões devem ser ABERTAS/DISCURSIVAS (2ª Fase). NÃO inclua alternativas (A-E). Cada questão deve ter espaço para o aluno desenvolver a resolução por escrito. Inclua um "Espelho de Correção" com resolução passo a passo e critérios de pontuação para cada questão.`
       : `Cada questão deve ter EXATAMENTE 5 alternativas (A a E), com apenas 1 correta. Use distratores plausíveis.`;
 
