@@ -458,6 +458,7 @@ export default function AltaPerformance() {
       activeDna: rede,
       activeSpecialty: `alta_performance_${rede}`,
       isDiscursiva,
+      provaFormat: formato, // 'objetiva', 'discursiva' ou 'mista'
       difficulty: `Distribuição: ${niveis.abaixo}% Abaixo do Básico, ${niveis.basico}% Básico, ${niveis.proficiente}% Proficiente, ${niveis.avancado}% Avançado (interdisciplinar, raciocínio lógico profundo, nível acadêmico de excelência)`,
       examModel: redeInfo?.label || rede,
       matrizReferencia: matrizRef,
