@@ -602,7 +602,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const isObmepFase2 = isObmep && selectedFormat.endsWith('_f2');
   const obmepCount = isObmepFase2 ? 6 : 20;
 
-  const generateQuestions = async (discursiva = false) => {
+  const generateQuestions = async (format: 'objetiva' | 'discursiva' | 'mista' = 'objetiva') => {
 
     const effectiveGrade = isObmep
       ? (OBMEP_GRADE_MAP[selectedFormat] || '')
