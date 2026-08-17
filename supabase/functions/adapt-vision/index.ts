@@ -22,9 +22,9 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Arquivo e tipo são obrigatórios." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    const allowed = ["application/pdf", "image/png", "image/jpeg", "image/jpg", "image/webp"];
-    if (!allowed.includes(fileMime)) {
-      return new Response(JSON.stringify({ error: "Envie PDF ou imagem (PNG/JPG)." }), {
+    const allowed = ["application/pdf", "image/png", "image/jpeg", "image/jpg", "image/webp", "text/plain"];
+    if (!allowed.includes(String(fileMime).toLowerCase())) {
+      return new Response(JSON.stringify({ error: `Formato não suportado (${fileMime}). Envie PDF, imagem (PNG/JPG/WEBP) ou TXT. Arquivos Word/Excel devem ser salvos como PDF antes do envio.` }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const creditCheck = await checkAndDecrementCredits(userId);
