@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { showAiErrorToast } from '@/lib/ai-utils';
 import { useAutoSaveDraft } from '@/hooks/useAutoSaveDraft';
 import { Card, CardContent } from '@/components/ui/card';
@@ -44,13 +44,19 @@ const IconRenderer = ({ name, className }: { name: string; className?: string })
   return <IconComponent className={className} />;
 };
 
-export default function GeradorInfograficoProcesso() {
+export default function GeradorInfograficoProcesso({ defaultSubject = '', autoGenerate = false }: { defaultSubject?: string; autoGenerate?: boolean }) {
   const { toast } = useToast();
-  const [subject, setSubject] = useAutoSaveDraft('infographic-subject', '');
+  const [subject, setSubject] = useAutoSaveDraft('infographic-subject', defaultSubject);
   const [loading, setLoading] = useState(false);
   const [steps, setSteps] = useAutoSaveDraft<Step[]>('infographic-steps', []);
   const [footerTips, setFooterTips] = useAutoSaveDraft<string[]>('infographic-footer-tips', []);
   const printRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (autoGenerate && subject && steps.length === 0) {
+      generateInfographic();
+    }
+  }, [autoGenerate]);
 
   const generateInfographic = async () => {
     if (!subject.trim()) {
