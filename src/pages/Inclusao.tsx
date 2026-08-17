@@ -1317,7 +1317,7 @@ export default function Inclusao() {
                 {AEE_PROFILES.map(profile => {
                   const Icon = profile.icon;
                   const isSelected = selectedProfiles.includes(profile.value);
-                  const colors = colorMap[profile.color];
+                  const colors = colorMap[profile.color] ?? colorMap.indigo;
                   return (
                     <button
                       key={profile.value}
