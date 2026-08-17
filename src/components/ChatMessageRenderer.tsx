@@ -12,7 +12,7 @@ interface ChatMessageRendererProps {
 }
 
 export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ content, isAssistant, videoStatus }) => {
-  if (!isAssistant) return <p className="whitespace-pre-wrap">{content}</p>;
+  if (!isAssistant) return <div className="whitespace-pre-wrap">{content}</div>;
 
   const sanitized = sanitizeChatText(content);
   
@@ -27,8 +27,16 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ conten
 
   return (
     <div className="space-y-4">
-      <div className="prose prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-100">
-        <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+      <div className="prose prose-sm prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-table:border prose-table:border-slate-200 prose-th:bg-slate-50 prose-th:px-3 prose-th:py-2 prose-td:px-3 prose-td:py-2">
+        <ReactMarkdown 
+          rehypePlugins={[rehypeRaw]}
+          components={{
+            table: ({node, ...props}) => <div className="overflow-x-auto my-4"><table className="w-full text-sm border-collapse" {...props} /></div>,
+            thead: ({node, ...props}) => <thead className="bg-slate-50" {...props} />,
+            th: ({node, ...props}) => <th className="border border-slate-200 px-3 py-2 text-left font-bold text-slate-700" {...props} />,
+            td: ({node, ...props}) => <td className="border border-slate-200 px-3 py-2 text-slate-600" {...props} />,
+          }}
+        >
           {textOnly}
         </ReactMarkdown>
       </div>
@@ -45,6 +53,11 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ conten
             segments={videoStatus.segments} 
             durationSeconds={videoStatus.duration || 10} 
           />
+          {videoStatus.loading && (
+            <p className="text-[10px] text-slate-500 mt-1">
+              Gerando cenas e áudio... ({videoStatus.segments.length}/...)
+            </p>
+          )}
         </div>
       )}
     </div>
