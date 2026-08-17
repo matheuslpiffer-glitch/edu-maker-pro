@@ -255,7 +255,7 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
 
     try {
       // @ts-ignore
-      await html2pdf().set(opt).from(element).save();
+      await html2pdf().set(opt).from(element.innerHTML).save();
     } catch (err) {
       console.error("PDF generation error:", err);
     } finally {
