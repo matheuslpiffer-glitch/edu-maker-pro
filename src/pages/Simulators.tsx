@@ -726,7 +726,8 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
             serie: showSerieStep ? activeSerie : undefined,
             includeImages: includeImages && requestedQuestionCount <= 5,
             technicalDiscipline: technicalDiscipline || undefined,
-            provaFormat: activeFormat !== 'completa' ? activeFormat : undefined,
+            provaFormat: effectiveFormat, // 'objetiva', 'discursiva' ou 'mista'
+            modelSpecificFormat: activeFormat !== 'completa' ? activeFormat : undefined,
             isSenaiMode: isSenaiMode || undefined,
             senaiEixo: isSenaiMode ? senaiEixoLabel : undefined,
             senaiSpMatrix: isSenaiMode ? senaiSpMatrix : undefined,
