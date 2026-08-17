@@ -549,9 +549,11 @@ export default function AltaPerformance() {
       if (!user) { toast({ title: 'Faça login para salvar', variant: 'destructive' }); return; }
       const questionsOnly = questions.map(q => ({
         content: q.content,
-        options: isDiscursiva ? [] : q.options,
+        options: q.options || [],
         skillCode: q.skillCode,
         descriptor: q.descriptor,
+        answerLines: q.answerLines,
+        correctionMirror: q.correctionMirror
       }));
       const isMulti = disciplina === 'Todos';
       const { data: inserted, error: insertErr } = await supabase.from('question_banks').insert({
