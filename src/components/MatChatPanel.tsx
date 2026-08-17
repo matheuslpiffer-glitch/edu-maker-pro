@@ -242,8 +242,7 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
   const downloadAsPdf = async (content: string) => {
     const doc = buildMatDocument(content);
     const element = document.createElement('div');
-    const finalHtml: any = doc;
-    element.innerHTML = finalHtml;
+    element.innerHTML = doc as any;
     
     const opt = {
       margin: MAT_PDF_MARGINS.top,
