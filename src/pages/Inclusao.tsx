@@ -844,7 +844,11 @@ export default function Inclusao() {
 
             fileBase64: base64,
 
-            fileMime: adaptFile.type,
+            fileMime: adaptFile.type || (fileName.endsWith('.pdf') ? 'application/pdf'
+              : fileName.endsWith('.png') ? 'image/png'
+              : fileName.endsWith('.webp') ? 'image/webp'
+              : fileName.match(/\.jpe?g$/) ? 'image/jpeg'
+              : 'text/plain'),
 
             aeeProfileLabels,
 
