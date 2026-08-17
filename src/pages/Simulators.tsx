@@ -432,6 +432,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [savedId, setSavedId] = useAutoSaveDraft<string | null>(draftKey('savedId'), null);
   const [showGabarito, setShowGabarito] = useAutoSaveDraft<boolean>(draftKey('showGabarito'), true);
   const [isDiscursiva, setIsDiscursiva] = useAutoSaveDraft<boolean>(draftKey('isDiscursiva'), false);
+  const [provaFormat, setProvaFormat] = useAutoSaveDraft<'objetiva' | 'discursiva' | 'mista'>(draftKey('provaFormat'), 'objetiva');
   const [customMaterial, setCustomMaterial] = useAutoSaveDraft<string>(draftKey('customMaterial'), '');
   const [bloomLevel, setBloomLevel] = useAutoSaveDraft<number>(draftKey('bloomLevel'), 2);
   const [columns, setColumns] = useAutoSaveDraft<1 | 2>(draftKey('columns'), 1);
