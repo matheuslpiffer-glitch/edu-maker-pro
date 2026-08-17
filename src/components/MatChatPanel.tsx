@@ -596,6 +596,26 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
   const handleFileUpload = useCallback(async (file: File) => {
     if (!file) return;
 
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const EXT_MIME: Record<string, string> = {
+      pdf: 'application/pdf',
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      webp: 'image/webp',
+      txt: 'text/plain',
+      md: 'text/plain',
+      csv: 'text/plain',
+    };
+    const resolvedMime = EXT_MIME[ext] || (file.type || '').toLowerCase();
+    if (!Object.values(EXT_MIME).includes(resolvedMime)) {
+      setMessages(prev => [...prev, { role: 'user', content: `📎 Arquivo enviado: ${file.name}` }, {
+        role: 'assistant',
+        content: 'Esse formato de arquivo não é suportado para leitura. Envie **PDF**, **imagem (PNG/JPG/WEBP)** ou **TXT**. Se for Word/Excel, salve como PDF e envie novamente.',
+      }]);
+      return;
+    }
+
     setIsUploading(true);
     const userMsg: Msg = { role: 'user', content: `📎 Arquivo enviado: ${file.name}` };
     setMessages(prev => [...prev, userMsg]);
@@ -620,7 +640,7 @@ export default function MatChatPanel({ fullPage = false, onRegisterReset, classN
         },
         body: JSON.stringify({
           fileBase64: base64,
-          fileMime: file.type,
+          fileMime: resolvedMime,
           aeeProfileLabels: "adaptação geral",
           aeeTopic: "Arquivo enviado pelo chat",
           aeeMode: "adaptar_antigas"
