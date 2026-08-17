@@ -240,10 +240,8 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
   };
 
   const downloadAsPdf = async (content: string) => {
-    const doc = buildMatDocument(content);
-    const element = document.createElement('div');
-    element.innerHTML = doc as string;
-    document.body.appendChild(element);
+    const docElement = buildMatDocument(content);
+    document.body.appendChild(docElement);
     
     const opt = {
       margin: MAT_PDF_MARGINS.top,
@@ -255,11 +253,11 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
 
     try {
       // @ts-ignore
-      await html2pdf().set(opt).from(element.innerHTML).save();
+      await html2pdf().set(opt).from(docElement).save();
     } catch (err) {
       console.error("PDF generation error:", err);
     } finally {
-      document.body.removeChild(element);
+      document.body.removeChild(docElement);
     }
   };
 
