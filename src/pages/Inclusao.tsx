@@ -1025,6 +1025,15 @@ export default function Inclusao() {
     emerald: { bg: 'bg-emerald-50', border: 'border-emerald-500', text: 'text-emerald-600', shadow: 'shadow-emerald-500/20' },
     orange: { bg: 'bg-orange-50', border: 'border-orange-500', text: 'text-orange-600', shadow: 'shadow-orange-500/20' },
     indigo: { bg: 'bg-indigo-50', border: 'border-indigo-500', text: 'text-indigo-600', shadow: 'shadow-indigo-500/20' },
+    pink: { bg: 'bg-pink-50', border: 'border-pink-500', text: 'text-pink-600', shadow: 'shadow-pink-500/20' },
+    cyan: { bg: 'bg-cyan-50', border: 'border-cyan-500', text: 'text-cyan-600', shadow: 'shadow-cyan-500/20' },
+    teal: { bg: 'bg-teal-50', border: 'border-teal-500', text: 'text-teal-600', shadow: 'shadow-teal-500/20' },
+    yellow: { bg: 'bg-yellow-50', border: 'border-yellow-500', text: 'text-yellow-600', shadow: 'shadow-yellow-500/20' },
+    lime: { bg: 'bg-lime-50', border: 'border-lime-500', text: 'text-lime-600', shadow: 'shadow-lime-500/20' },
+    slate: { bg: 'bg-slate-100', border: 'border-slate-500', text: 'text-slate-600', shadow: 'shadow-slate-500/20' },
+    fuchsia: { bg: 'bg-fuchsia-50', border: 'border-fuchsia-500', text: 'text-fuchsia-600', shadow: 'shadow-fuchsia-500/20' },
+    red: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-600', shadow: 'shadow-red-500/20' },
+    blue: { bg: 'bg-blue-50', border: 'border-blue-500', text: 'text-blue-600', shadow: 'shadow-blue-500/20' },
   };
 
   /* ── My Activities View ── */
