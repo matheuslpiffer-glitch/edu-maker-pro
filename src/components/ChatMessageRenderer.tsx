@@ -8,15 +8,15 @@ import VideoLabPlayer from '@/components/VideoLabPlayer';
 interface ChatMessageRendererProps {
   content: string;
   isAssistant: boolean;
+  videoStatus?: { loading: boolean; url?: string; segments?: string[]; duration?: number };
 }
 
-export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ content, isAssistant }) => {
+export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ content, isAssistant, videoStatus }) => {
   if (!isAssistant) return <p className="whitespace-pre-wrap">{content}</p>;
 
   const sanitized = sanitizeChatText(content);
   
   // Detect custom tags
-  const videoMatch = sanitized.match(/<video\s+src="([^"]+)"\s*\/>/);
   const infographicMatch = sanitized.match(/<infografico\s+subject="([^"]+)"\s*\/>/);
 
   // Remove tags for markdown rendering
@@ -27,12 +27,11 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ conten
 
   return (
     <div className="space-y-4">
-      <ReactMarkdown 
-        rehypePlugins={[rehypeRaw]}
-        className="prose prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-100"
-      >
-        {textOnly}
-      </ReactMarkdown>
+      <div className="prose prose-slate max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-slate-100">
+        <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+          {textOnly}
+        </ReactMarkdown>
+      </div>
 
       {infographicMatch && (
         <div className="mt-4 border-t border-slate-100 pt-4">
@@ -40,9 +39,12 @@ export const ChatMessageRenderer: React.FC<ChatMessageRendererProps> = ({ conten
         </div>
       )}
 
-      {videoMatch && (
+      {videoStatus?.segments && videoStatus.segments.length > 0 && (
         <div className="mt-4">
-          <VideoLabPlayer videoUrl={videoMatch[1]} />
+          <VideoLabPlayer 
+            segments={videoStatus.segments} 
+            durationSeconds={videoStatus.duration || 10} 
+          />
         </div>
       )}
     </div>
