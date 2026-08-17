@@ -516,7 +516,8 @@ export default function AltaPerformance() {
 
   const copyToClipboard = () => {
     const text = questions.map((q, i) => {
-      if (isDiscursiva) {
+      const isActuallyDiscursiva = !q.options || q.options.length === 0;
+      if (isActuallyDiscursiva) {
         return `Questão ${i + 1}\n${stripHtml(q.content)}\n\n(Espaço para resposta)`;
       }
       const opts = q.options?.map(o => `${o.letter}) ${o.text}`).join('\n') || '';
