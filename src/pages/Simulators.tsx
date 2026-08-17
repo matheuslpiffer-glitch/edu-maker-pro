@@ -620,8 +620,10 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
       return;
     }
 
-    const effectiveDiscursiva = isObmepFase2 ? true : discursiva;
+    const effectiveDiscursiva = isObmepFase2 ? true : (format === 'discursiva');
+    const effectiveFormat = isObmepFase2 ? 'discursiva' : format;
     setIsDiscursiva(effectiveDiscursiva);
+    setProvaFormat(effectiveFormat);
     setGenerating(true);
     setQuestions([]);
     setGenerationMessage('🔍 Consultando diretrizes BNCC...');
