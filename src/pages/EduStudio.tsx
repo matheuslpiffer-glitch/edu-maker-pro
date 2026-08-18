@@ -404,7 +404,7 @@ export default function EduStudio() {
       {/* Footer */}
       <div className="text-center py-6 border-t border-slate-800/50">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-          Plataforma Multimídia Autoral | Desenvolvido por <span className="text-foreground/70">Matheus Lima Piffer</span>
+          Plataforma Multimídia Autoral | Desenvolvido por <span className="text-foreground/70">Matheus Lima Piffer</span> | Suporte: suporte@educreatorpro.com
         </p>
       </div>
     </div>
