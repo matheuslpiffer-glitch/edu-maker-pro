@@ -21,89 +21,90 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { 
-      action, 
-      accessCode, 
-      submissionId, 
-      essayText, 
-      studentName, 
-      studentClass, 
-      question 
-    } = await req.json();
+    const { action, accessCode, submissionId, essayText, studentName, studentClass, question } =
+      await req.json();
 
-    if (!accessCode) {
-      return json({ error: "Código de acesso é obrigatório." }, 400);
+    if (!accessCode) return json({ error: "Código de acesso é obrigatório." }, 400);
+    const code = String(accessCode).trim();
+
+    // Every action re-verifies the code against the row it targets.
+    // No action ever trusts a bare submissionId without the matching code.
+    const { data: submission, error: fetchError } = await supabase
+      .from("essay_submissions")
+      .select("*")
+      .eq("access_code", code)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError) throw fetchError;
+    if (!submission) return json({ error: "Proposta não encontrada." }, 404);
+
+    // For actions targeting a specific row (submit/save/ask), make sure the
+    // caller isn't passing a different submissionId than the one their code resolves to.
+    if (submissionId && submissionId !== submission.id) {
+      return json({ error: "Código de acesso não corresponde a esta submissão." }, 403);
     }
 
     if (action === "fetch") {
-      // Busca a redação APENAS se o access_code bater
-      const { data: submission, error: fetchError } = await supabase
-        .from("essay_submissions")
-        .select(`
-          id,
-          access_code,
-          student_name,
-          student_class,
-          essay_text,
-          status,
-          grade_final,
-          feedback_text,
-          correction_json,
-          created_at,
-          proposal_content
-        `)
-        .eq("access_code", accessCode)
-        .single();
-
-      if (fetchError || !submission) {
-        return json({ error: "Redação não encontrada ou código inválido." }, 404);
+      let history: any[] = [];
+      if (submission.student_name) {
+        const { data: hist } = await supabase
+          .from("essay_submissions")
+          .select("*")
+          .eq("teacher_user_id", submission.teacher_user_id)
+          .eq("student_name", submission.student_name)
+          .eq("status", "corrected")
+          .order("created_at", { ascending: false })
+          .limit(5);
+        history = hist || [];
       }
+      return json({ submission, history });
+    }
 
-      // Oculta teacher_notes e outros campos privados se houver
-      return json(submission);
+    if (action === "save_draft") {
+      const { error } = await supabase.from("essay_submissions").update({
+        essay_text: essayText ?? submission.essay_text,
+        student_name: (studentName ?? submission.student_name)?.trim(),
+        student_class: (studentClass ?? submission.student_class)?.trim(),
+      }).eq("id", submission.id);
+      if (error) throw error;
+      return json({ ok: true });
     }
 
     if (action === "submit") {
-      if (!submissionId) return json({ error: "ID da submissão é obrigatório para envio." }, 400);
-      if (!essayText) return json({ error: "O texto da redação não pode estar vazio." }, 400);
-
-      // Valida o access_code antes de permitir o update
-      const { data: check, error: checkError } = await supabase
-        .from("essay_submissions")
-        .select("id, status")
-        .eq("id", submissionId)
-        .eq("access_code", accessCode)
-        .single();
-
-      if (checkError || !check) {
-        return json({ error: "Não autorizado a atualizar esta redação." }, 403);
+      if (!essayText || essayText.trim().length < 50) {
+        return json({ error: "Escreva pelo menos 50 caracteres." }, 400);
       }
-
-      if (check.status === "corrected") {
-        return json({ error: "Esta redação já foi corrigida e não pode ser alterada." }, 400);
+      if (!studentName || !studentName.trim()) {
+        return json({ error: "Nome é obrigatório." }, 400);
       }
-
-      const { data, error } = await supabase
-        .from("essay_submissions")
-        .update({
-          essay_text: essayText,
-          student_name: studentName,
-          student_class: studentClass,
-          status: "pending",
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", submissionId)
-        .select()
-        .single();
-
+      const { error } = await supabase.from("essay_submissions").update({
+        essay_text: essayText.trim(),
+        student_name: studentName.trim(),
+        student_class: (studentClass || "").trim(),
+        status: "submitted",
+      }).eq("id", submission.id);
       if (error) throw error;
-      return json(data);
+      return json({ ok: true });
+    }
+
+    if (action === "ask_question") {
+      if (!question || !question.trim()) return json({ error: "Escreva sua dúvida." }, 400);
+      const existingNotes = submission.teacher_notes || "";
+      const appended = existingNotes
+        ? `${existingNotes}\n[DÚVIDA ALUNO] ${question.trim()}`
+        : `[DÚVIDA ALUNO] ${question.trim()}`;
+      const { error } = await supabase.from("essay_submissions").update({
+        teacher_notes: appended,
+      }).eq("id", submission.id);
+      if (error) throw error;
+      return json({ ok: true });
     }
 
     return json({ error: "Ação inválida." }, 400);
-
-  } catch (error) {
-    console.error(error);
-    return json({ error: error.message }, 500);
+  } catch (e) {
+    console.error("public-essay error:", e);
+    return json({ error: e instanceof Error ? e.message : "Erro desconhecido" }, 500);
   }
 });
