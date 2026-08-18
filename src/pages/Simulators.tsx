@@ -1117,6 +1117,38 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       setActiveFormat={setActiveFormat}
                       setSelectedSubjects={setSelectedSubjects}
                     />
+                  ) : isConcurso ? (
+                    <SimulatorConcursoPanel
+                      examModel={examModel}
+                      setExamModel={setExamModel}
+                      modelConfig={modelConfig}
+                      selectedFormat={selectedFormat}
+                      setSelectedFormat={setSelectedFormat}
+                      selectedSubjects={selectedSubjects}
+                      setSelectedSubjects={setSelectedSubjects}
+                      SUBJECT_AREAS={SUBJECT_AREAS}
+                      institutionName={institutionName}
+                      setInstitutionName={setInstitutionName}
+                      title={title}
+                      setTitle={setTitle}
+                      specificTopic={specificTopic}
+                      setSpecificTopic={setSpecificTopic}
+                      customMaterial={customMaterial}
+                      setCustomMaterial={setCustomMaterial}
+                      includeImages={includeImages}
+                      setIncludeImages={setIncludeImages}
+                      bloomLevel={bloomLevel}
+                      setBloomLevel={setBloomLevel}
+                      easyCount={easyCount}
+                      setEasyCount={setEasyCount}
+                      mediumCount={mediumCount}
+                      setMediumCount={setMediumCount}
+                      hardCount={hardCount}
+                      setHardCount={setHardCount}
+                      totalQuestions={totalQuestions}
+                      generating={generating}
+                      generateQuestions={generateQuestions}
+                    />
                   ) : (activeMotor === 'simulado') ? (
                     <SimulatorPadraoPanel
                       examModel={examModel}
@@ -1158,6 +1190,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       isAula={isAula}
                       generateQuestions={generateQuestions}
                     />
+
                   ) : isInclusao ? (
                     /* ══════ AEE: Neo-Brutal Laudo Cards ══════ */
                     <div className="grid grid-cols-2 gap-4">
