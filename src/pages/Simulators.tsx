@@ -7,6 +7,7 @@ import { useSimulatorHistory } from '@/hooks/useSimulatorHistory';
 import { useSimulatorExport } from '@/hooks/useSimulatorExport';
 import SimulatorHistoryPanel from '@/components/SimulatorHistoryPanel';
 import SimulatorInclusaoPanel from '@/components/SimulatorInclusaoPanel';
+import SimulatorTecnicosPanel from '@/components/SimulatorTecnicosPanel';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
@@ -87,21 +88,21 @@ const VESTIBULARES_DNA: DNACategory[] = [
 ];
 
 // Técnicos institution cards
-const TECNICOS_INSTITUTIONS = [
+export const TECNICOS_INSTITUTIONS = [
   { id: 'ifs', label: 'Instituto Federal (IFs)', desc: 'Exame de Seleção Nacional', icon: Building2, gradient: 'from-emerald-600 to-green-700' },
   { id: 'etec', label: 'Instituto Técnico / Rede Tech', desc: 'Vestibulinho Técnico Profissional', icon: Cpu, gradient: 'from-teal-500 to-emerald-600' },
   { id: 'cotuca', label: 'Técnicos Universitários', desc: 'Seleção Técnica Universitária', icon: Target, gradient: 'from-green-500 to-teal-600' },
   { id: 'senai', label: 'Instituto Técnico Avançado', desc: 'Simulado Técnico Padrão Industrial', icon: Wrench, gradient: 'from-[#0a1f3d] to-[#1a3a6b]' },
 ];
 
-const TECNICOS_AREA_SUBJECTS = [
+export const TECNICOS_AREA_SUBJECTS = [
   { id: 'mat', label: 'Matemática', icon: '📐' },
   { id: 'port', label: 'Português', icon: '📝' },
   { id: 'natureza', label: 'Ciências da Natureza', icon: '🧪' },
   { id: 'humanas', label: 'Humanas / Atualidades', icon: '🌎' },
 ];
 
-const SENAI_EIXOS = [
+export const SENAI_EIXOS = [
   { id: 'mecanica', label: 'Mecânica Industrial', icon: '⚙️' },
   { id: 'eletrica', label: 'Elétrica / Eletrotécnica', icon: '⚡' },
   { id: 'automacao', label: 'Automação / Mecatrônica', icon: '🤖' },
@@ -1277,274 +1278,28 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   )}
                 </div>
 
-                {/* ══════ TÉCNICOS: PASSO 2 — Modelo de Simulado ══════ */}
-                {isTecnicosMode && tecnicoInstitution && !isSenaiMode && (
-                  <>
-                    <div className="border-t border-emerald-100" />
-                    <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
-                      <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">2</div>
-                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Modelo de Simulado</h3>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {/* Opção A: Vestibulinho Completo */}
-                        <button
-                          onClick={() => setTecnicoMode('completo')}
-                          className={`relative p-5 rounded-[20px] border-2 text-left transition-all duration-200 flex flex-col gap-3 min-h-[120px] ${
-                            tecnicoMode === 'completo'
-                              ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-500 shadow-lg shadow-emerald-500/15'
-                              : 'bg-white border-slate-200 hover:border-emerald-300 hover:shadow-md'
-                          }`}
-                        >
-                          {tecnicoMode === 'completo' && <CheckCircle2 className="absolute top-3 right-3 h-5 w-5 text-emerald-600" />}
-                          <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${tecnicoMode === 'completo' ? 'bg-emerald-600' : 'bg-emerald-100'}`}>
-                            <Zap className={`h-5 w-5 ${tecnicoMode === 'completo' ? 'text-white' : 'text-emerald-600'}`} />
-                          </div>
-                          <div>
-                            <span className={`text-sm font-black block ${tecnicoMode === 'completo' ? 'text-emerald-800' : 'text-slate-700'}`}>Vestibulinho Completo</span>
-                            <span className={`text-[11px] block mt-0.5 ${tecnicoMode === 'completo' ? 'text-emerald-600' : 'text-slate-400'}`}>50 questões mistas — Padrão Oficial</span>
-                          </div>
-                        </button>
-                        {/* Opção B: Simulado por Área */}
-                        <button
-                          onClick={() => setTecnicoMode('por_area')}
-                          className={`relative p-5 rounded-[20px] border-2 text-left transition-all duration-200 flex flex-col gap-3 min-h-[120px] ${
-                            tecnicoMode === 'por_area'
-                              ? 'bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-500 shadow-lg shadow-teal-500/15'
-                              : 'bg-white border-slate-200 hover:border-teal-300 hover:shadow-md'
-                          }`}
-                        >
-                          {tecnicoMode === 'por_area' && <CheckCircle2 className="absolute top-3 right-3 h-5 w-5 text-teal-600" />}
-                          <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${tecnicoMode === 'por_area' ? 'bg-teal-600' : 'bg-teal-100'}`}>
-                            <ListChecks className={`h-5 w-5 ${tecnicoMode === 'por_area' ? 'text-white' : 'text-teal-600'}`} />
-                          </div>
-                          <div>
-                            <span className={`text-sm font-black block ${tecnicoMode === 'por_area' ? 'text-teal-800' : 'text-slate-700'}`}>Simulado por Área</span>
-                            <span className={`text-[11px] block mt-0.5 ${tecnicoMode === 'por_area' ? 'text-teal-600' : 'text-slate-400'}`}>Escolha disciplinas e quantidade</span>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* ══════ TÉCNICO: PASSO 2 — Eixo Técnico + Tema ══════ */}
-                {isSenaiMode && (
-                  <>
-                    <div className="border-t border-[#0a1f3d]/20" />
-                    {/* Hero Técnico */}
-                    <div className="bg-[#0a1f3d] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent pointer-events-none" />
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="h-12 w-12 rounded-2xl bg-white/10 flex items-center justify-center shadow-lg">
-                            <Wrench className="h-6 w-6 text-white" />
-                          </div>
-                          <Badge className="bg-white/10 text-white/90 border-white/20 text-[10px] uppercase tracking-widest font-bold">
-                            ⚙️ Padrão Industrial
-                          </Badge>
-                        </div>
-                        <h2 className="text-2xl sm:text-3xl font-black leading-tight">
-                          Simulado Técnico<br />Industrial Avançado
-                        </h2>
-                        <p className="text-sm text-slate-300 mt-3 max-w-md leading-relaxed">
-                          Questões técnicas com verificação automática de normas de segurança (NR-12, NR-35). Matriz Regional SP. Inclui Relatório de Manutenção e OS.
-                        </p>
-                        {senaiTimerSeconds > 0 && (
-                          <div className="mt-3 flex items-center gap-2 bg-white/10 rounded-xl px-4 py-2 w-fit">
-                            <Clock className="h-4 w-4 text-yellow-300" />
-                            <span className="text-yellow-200 font-mono font-bold text-sm">
-                              {Math.floor(senaiTimerSeconds / 60)}:{String(senaiTimerSeconds % 60).padStart(2, '0')}
-                            </span>
-                            <span className="text-slate-400 text-xs">restantes</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
-                      <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-full bg-[#0a1f3d] text-white flex items-center justify-center text-xs font-bold shadow-sm">2</div>
-                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Selecione o Eixo Técnico</h3>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {SENAI_EIXOS.map(eixo => {
-                          const isActive = senaiEixo === eixo.id;
-                          return (
-                            <button
-                              key={eixo.id}
-                              onClick={() => setSenaiEixo(eixo.id)}
-                              className={`px-4 py-3 rounded-2xl text-sm font-bold border-2 transition-all duration-200 flex items-center gap-2 ${
-                                isActive
-                                  ? 'bg-[#0a1f3d] text-white border-[#0a1f3d] shadow-md shadow-blue-900/20'
-                                  : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:shadow-sm'
-                              }`}
-                            >
-                              <span>{eixo.icon}</span>
-                              <span className="text-xs">{eixo.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
-                      <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-full bg-[#0a1f3d] text-white flex items-center justify-center text-xs font-bold shadow-sm">3</div>
-                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Tema Específico (Opcional)</h3>
-                      </div>
-                      <Input
-                        value={senaiTopic}
-                        onChange={e => setSenaiTopic(e.target.value)}
-                        placeholder="Ex: Engrenagens cilíndricas, Relação de transmissão, Circuitos em série..."
-                        className="bg-slate-50 border-slate-200 rounded-[20px] focus:ring-4 focus:ring-blue-500/20"
-                      />
-                    </div>
-
-                    {/* Vestibulinho toggle */}
-                    <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                      <input
-                        type="checkbox"
-                        checked={senaiVestibulinho}
-                        onChange={e => setSenaiVestibulinho(e.target.checked)}
-                        className="h-5 w-5 rounded accent-[#0a1f3d]"
-                      />
-                      <div>
-                        <p className="text-sm font-bold text-slate-700">Modo Vestibulinho Técnico Industrial (60 questões)</p>
-                        <p className="text-xs text-slate-500">20 Português + 20 Matemática + 20 Ciências aplicadas ao contexto técnico • Cronômetro de 120 min</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-500">Nome da Instituição</Label>
-                        <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Instituto Técnico — Unidade" className="bg-slate-50 border-slate-200 rounded-[20px]" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-semibold text-slate-500">Título do Simulado</Label>
-                        <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Avaliação de Desempenho Técnico — Matriz SP" className="bg-slate-50 border-slate-200 rounded-[20px]" />
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={() => { generateQuestions('objetiva'); if (senaiVestibulinho) startSenaiTimer(); }}
-                      disabled={generating}
-                      size="lg"
-                      className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
-                    >
-                      {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Wrench className="h-5 w-5 mr-2" />}
-                      {generating ? 'GERANDO SIMULADO TÉCNICO...' : senaiVestibulinho ? '⚙️ GERAR VESTIBULINHO TÉCNICO (60Q)' : '⚙️ GERAR SIMULADO PADRÃO INDUSTRIAL'}
-                    </Button>
-                  </>
-                )}
-
-                {isTecnicosPorArea && (
-                  <>
-                    <div className="border-t border-teal-100" />
-                    <div className="space-y-5 animate-in fade-in slide-in-from-top-3 duration-300">
-                      <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">3</div>
-                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Selecione as Áreas</h3>
-                      </div>
-                      <div className="flex flex-wrap gap-3">
-                        {TECNICOS_AREA_SUBJECTS.map(subj => {
-                          const isActive = tecnicoSubjects.includes(subj.label);
-                          return (
-                            <button
-                              key={subj.id}
-                              onClick={() => setTecnicoSubjects(prev =>
-                                prev.includes(subj.label) ? prev.filter(s => s !== subj.label) : [...prev, subj.label]
-                              )}
-                              className={`px-5 py-2.5 rounded-2xl text-sm font-bold border-2 transition-all duration-200 flex items-center gap-2 ${
-                                isActive
-                                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-500/20'
-                                  : 'bg-white border-slate-200 text-slate-600 hover:border-emerald-300 hover:shadow-sm'
-                              }`}
-                            >
-                              <span>{subj.icon}</span>
-                              <span>{subj.label}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <div className="space-y-3 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs font-bold text-slate-700">📊 Quantidade de Questões</Label>
-                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 text-sm font-black">{tecnicoQuestionCount} questões</Badge>
-                        </div>
-                        <Slider
-                          value={[tecnicoQuestionCount]}
-                          onValueChange={([v]) => setTecnicoQuestionCount(v)}
-                          min={5}
-                          max={50}
-                          step={5}
-                          className="w-full"
-                        />
-                        <div className="flex justify-between text-[10px] text-slate-400">
-                          <span>5</span>
-                          <span>25</span>
-                          <span>50</span>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* ══════ TÉCNICOS: Fast-Track Info Card ══════ */}
-                {isFastTrackVestibulinho && (
-                  <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-200 animate-in fade-in slide-in-from-top-3 duration-300">
-                    <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-emerald-600 flex items-center justify-center shrink-0">
-                        <Zap className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-emerald-800">⚡ Estrutura Inteligente Ativada</h4>
-                        <p className="text-xs text-emerald-600 mt-1">50 questões abrangentes distribuídas entre as matérias principais da banca oficial.</p>
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 text-[10px]">📝 Português</Badge>
-                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 text-[10px]">📐 Matemática</Badge>
-                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 text-[10px]">🧪 Ciências</Badge>
-                          <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 text-[10px]">🌎 Humanas</Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* ══════ TÉCNICOS: Cabeçalho + Botão Final ══════ */}
                 {isTecnicosAny && (
-                  <>
-                    <div className="border-t border-emerald-100" />
-                    <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300">
-                      <div className="flex items-center gap-3">
-                        <div className="h-7 w-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
-                          {isTecnicosPorArea ? 4 : 3}
-                        </div>
-                        <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Cabeçalho do Simulado</h3>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-500">Nome da Instituição</Label>
-                          <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder={TECNICOS_INSTITUTIONS.find(i => i.id === tecnicoInstitution)?.label || 'Instituição...'} className="bg-slate-50 border-slate-200 rounded-[20px] focus:ring-4 focus:ring-emerald-500/20" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs font-semibold text-slate-500">Título do Documento</Label>
-                          <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Simulado Vestibulinho 2026" className="bg-slate-50 border-slate-200 rounded-[20px] focus:ring-4 focus:ring-emerald-500/20" />
-                        </div>
-                      </div>
-                      <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm pb-4 pt-2 -mx-4 px-4 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pb-0 sm:pt-0 sm:mx-0 sm:px-0 z-20">
-                      <Button
-                        onClick={() => generateQuestions('objetiva')}
-                        disabled={generating || (isTecnicosPorArea && tecnicoSubjects.length === 0)}
-                        size="lg"
-                        className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-emerald-500/30"
-                      >
-                        {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Zap className="h-5 w-5 mr-2" />}
-                        {generating ? 'GERANDO VESTIBULINHO...' : isFastTrackVestibulinho ? 'GERAR VESTIBULINHO COMPLETO' : 'GERAR SIMULADO PERSONALIZADO'}
-                      </Button>
-                      </div>
-                    </div>
-                  </>
+                  <SimulatorTecnicosPanel
+                    tecnicoInstitution={tecnicoInstitution}
+                    setTecnicoInstitution={setTecnicoInstitution}
+                    tecnicoMode={tecnicoMode}
+                    setTecnicoMode={setTecnicoMode}
+                    isSenaiMode={isSenaiMode}
+                    senaiEixo={senaiEixo}
+                    setSenaiEixo={setSenaiEixo}
+                    senaiTopic={senaiTopic}
+                    setSenaiTopic={setSenaiTopic}
+                    senaiVestibulinho={senaiVestibulinho}
+                    setSenaiVestibulinho={setSenaiVestibulinho}
+                    senaiTimerSeconds={senaiTimerSeconds}
+                    institutionName={institutionName}
+                    setInstitutionName={setInstitutionName}
+                    title={title}
+                    setTitle={setTitle}
+                    generating={generating}
+                    onGenerate={() => generateQuestions('objetiva')}
+                    startSenaiTimer={startSenaiTimer}
+                  />
                 )}
 
                 {/* ══════ AEE: Hero Banner + Modo de Trabalho ══════ */}
