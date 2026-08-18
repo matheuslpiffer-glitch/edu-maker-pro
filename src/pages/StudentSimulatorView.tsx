@@ -281,7 +281,7 @@ export default function StudentSimulatorView() {
               </>
             )}
 
-            <p className="text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
+            <p className="text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer | Suporte: suporte@educreatorpro.com</p>
           </CardContent>
         </Card>
       </div>
