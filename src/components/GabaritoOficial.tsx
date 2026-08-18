@@ -11,6 +11,7 @@ interface SimQuestion {
   options: QuestionOption[];
   skillCode?: string;
   descriptor?: string;
+  explanation?: string;
 }
 
 interface Props {
@@ -96,6 +97,11 @@ const GabaritoOficial = forwardRef<HTMLDivElement, Props>(
                     {q.skillCode && q.descriptor && ' — '}
                     {q.descriptor && <span>{q.descriptor}</span>}
                     {!q.skillCode && !q.descriptor && '—'}
+                    {q.explanation && (
+                      <div className="mt-1 italic text-[10pt] text-gray-800 border-l-2 border-gray-200 pl-2">
+                        <strong>Resolução:</strong> {q.explanation}
+                      </div>
+                    )}
                   </td>
                 </tr>
               );

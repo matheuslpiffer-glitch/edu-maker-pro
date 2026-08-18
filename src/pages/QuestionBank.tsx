@@ -42,6 +42,7 @@ interface Subject { id: string; name: string; color: string; }
 interface Question {
   id: string; subject_id: string; type: string; content: string; difficulty: string; topic: string; created_at: string;
   options: any[];
+  explanation?: string;
 }
 
 export default function QuestionBank() {
@@ -363,6 +364,12 @@ export default function QuestionBank() {
                           </div>
                           <p className="text-sm text-foreground line-clamp-2">{stripHtml(q.content)}</p>
                           {q.topic && <p className="text-xs text-muted-foreground mt-1">Tópico: {q.topic}</p>}
+                          {q.explanation && (
+                            <div className="mt-2 p-2 bg-muted/50 rounded-lg border border-border/50">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Resolução Comentada:</p>
+                              <p className="text-xs text-muted-foreground line-clamp-2 italic">{stripHtml(q.explanation)}</p>
+                            </div>
+                          )}
                         </div>
                         <div className="flex gap-1 shrink-0">
                           <Link to={`/questoes/${q.id}/editar`}>
