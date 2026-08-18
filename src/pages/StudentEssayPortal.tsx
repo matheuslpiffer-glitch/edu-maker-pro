@@ -184,7 +184,15 @@ function TeacherQuestionBox({ submissionId, accessCode }: { submissionId: string
 
   const handleSend = async () => {
     if (!question.trim()) return;
-    await supabase.from('essay_submissions').update({ teacher_notes: `[DÚVIDA ALUNO] ${question}` } as any).eq('id', submissionId);
+    const { data, error } = await supabase.functions.invoke('public-essay', {
+      body: { action: 'ask_question', accessCode: accessCode, submissionId, question: question.trim() }
+    });
+    
+    if (error || (data && data.error)) {
+      toast({ title: 'Erro ao enviar dúvida', description: data?.error || 'Tente novamente.', variant: 'destructive' });
+      return;
+    }
+
     localStorage.setItem(lsKey, question);
     setSent(true);
     toast({ title: 'Dúvida enviada!', description: 'Seu professor receberá sua mensagem.' });
@@ -237,17 +245,15 @@ export default function StudentEssayPortal() {
   useEffect(() => {
     if (!code) return;
     (async () => {
-      const { data } = await supabase
-        .from('essay_submissions')
-        .select('*')
-        .eq('access_code', code)
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .single();
-      if (!data) { setNotFound(true); setLoading(false); return; }
-      const sub = data as unknown as Submission;
+      const { data, error: fetchError } = await supabase.functions.invoke('public-essay', {
+        body: { action: 'fetch', accessCode: code },
+      });
+
+      if (fetchError || !data || data.error) { setNotFound(true); setLoading(false); return; }
+
+      const sub = data.submission as Submission;
       setSubmission(sub);
-      const pc = (data as any).proposal_content;
+      const pc = (sub as any).proposal_content;
       if (pc?.textos_motivadores) setProposalContent(pc);
 
       // Restore draft
@@ -270,20 +276,7 @@ export default function StudentEssayPortal() {
       if (rwDraft) setRewriteText(rwDraft);
 
       lastSyncedText.current = sub.essay_text || '';
-
-      // Load history (same student name + teacher)
-      if (sub.student_name) {
-        const { data: hist } = await supabase
-          .from('essay_submissions')
-          .select('*')
-          .eq('teacher_user_id', sub.id ? (data as any).teacher_user_id : '')
-          .eq('student_name', sub.student_name)
-          .eq('status', 'corrected')
-          .order('created_at', { ascending: false })
-          .limit(5);
-        if (hist) setHistory(hist as unknown as Submission[]);
-      }
-
+      setHistory((data.history || []) as Submission[]);
       setLoading(false);
     })();
   }, [code]);
@@ -308,11 +301,18 @@ export default function StudentEssayPortal() {
   useEffect(() => {
     if (!submission || submission.status === 'corrected') return;
     dbSyncTimer.current = setInterval(async () => {
-      if (essayText !== lastSyncedText.current && essayText.length > 0 && submission) {
-        await supabase.from('essay_submissions').update({
-          essay_text: essayText, student_name: studentName.trim(), student_class: studentClass.trim(),
-        } as any).eq('id', submission.id);
-        lastSyncedText.current = essayText;
+      if (essayText !== lastSyncedText.current && essayText.length > 0 && submission && code) {
+        const { error } = await supabase.functions.invoke('public-essay', {
+          body: { 
+            action: 'save_draft', 
+            accessCode: code, 
+            submissionId: submission.id,
+            essayText, 
+            studentName: studentName.trim(), 
+            studentClass: studentClass.trim() 
+          }
+        });
+        if (!error) lastSyncedText.current = essayText;
       }
     }, 10000);
     return () => { if (dbSyncTimer.current) clearInterval(dbSyncTimer.current); };
@@ -338,9 +338,23 @@ export default function StudentEssayPortal() {
       return;
     }
     setCorrecting(true);
-    await supabase.from('essay_submissions').update({
-      essay_text: txt, student_name: studentName.trim(), student_class: studentClass.trim(), status: 'submitted',
-    } as any).eq('id', submission.id);
+    
+    const { data, error } = await supabase.functions.invoke('public-essay', {
+      body: { 
+        action: 'submit', 
+        accessCode: code, 
+        submissionId: submission.id,
+        essayText: txt, 
+        studentName: studentName.trim(), 
+        studentClass: (studentClass || "").trim() 
+      }
+    });
+
+    if (error || (data && data.error)) {
+      toast({ title: 'Erro ao enviar', description: data?.error || 'Tente novamente.', variant: 'destructive' });
+      setCorrecting(false);
+      return;
+    }
 
     setSubmission(prev => prev ? { ...prev, status: 'submitted', essay_text: txt } : null);
     setEssayText(txt);
