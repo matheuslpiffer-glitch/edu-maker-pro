@@ -3,6 +3,7 @@ import { useInclusaoSimuladorState } from '@/hooks/useInclusaoSimuladorState';
 import { useVestibularSimuladorState } from '@/hooks/useVestibularSimuladorState';
 import { useTecnicosSimuladorState } from '@/hooks/useTecnicosSimuladorState';
 import { useSimulatorGenerationState } from '@/hooks/useSimulatorGenerationState';
+import { useSimulatorHistory } from '@/hooks/useSimulatorHistory';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
