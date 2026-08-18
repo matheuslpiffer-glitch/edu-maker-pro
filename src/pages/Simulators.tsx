@@ -532,17 +532,6 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     handleSave: async () => { await handleSave(); },
     printContainerRef,
   });
-    setQuestions,
-    title,
-    savedId,
-    selectedSubjects,
-    pdfMargins,
-    columns,
-    setColumns,
-    setIsExporting,
-    handleSave: async () => { await handleSave(); },
-    printContainerRef,
-  });
 
   
 
