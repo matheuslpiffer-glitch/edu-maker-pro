@@ -204,6 +204,3 @@ const SimulatorVestibularesPanel = ({
 
 export default SimulatorVestibularesPanel;
 
-// Internal Input component to avoid additional imports if not needed, 
-// but Simulators uses Input from @/components/ui/input
-import { Input } from '@/components/ui/input';
