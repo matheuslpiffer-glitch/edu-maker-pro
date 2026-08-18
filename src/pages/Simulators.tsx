@@ -95,7 +95,7 @@ export const TECNICOS_INSTITUTIONS = [
   { id: 'senai', label: 'Instituto Técnico Avançado', desc: 'Simulado Técnico Padrão Industrial', icon: Wrench, gradient: 'from-[#0a1f3d] to-[#1a3a6b]' },
 ];
 
-const TECNICOS_AREA_SUBJECTS = [
+export const TECNICOS_AREA_SUBJECTS = [
   { id: 'mat', label: 'Matemática', icon: '📐' },
   { id: 'port', label: 'Português', icon: '📝' },
   { id: 'natureza', label: 'Ciências da Natureza', icon: '🧪' },
