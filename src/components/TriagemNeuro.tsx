@@ -404,7 +404,7 @@ INTERVENÇÕES PEDAGÓGICAS RECOMENDADAS
 
       if (Number(inattentionAvg) >= 1.5 && Number(hyperactivityAvg) >= 1.5) {
         profile = 'TDAH — Apresentação Combinada';
-        summary = `O(a) aluno(a) ${studentName}, ${studentAge || 'idade não informada'}, cursando ${cycleLabel}, apresentou média de ${inattentionAvg} nos itens de Desatenção e ${hyperactivityAvg} nos itens de Hiperatividade/Impulsividade do protocolo SNAP-IV (Swanson, Nolan e Pelham, 1983). Ambas as médias ultrapassam o ponto de corte de 1.5, sugerindo apresentação combinada compatível com o perfil clínico de TDAH. Recomenda-se encaminhamento prioritário para avaliação neuropsicológica.`;
+        summary = `O(a) aluno(a) ${studentName}, ${studentAge || 'idade não informada'}, cursando ${cycleLabel}, apresentou média de ${inattentionAvg} nos itens de Desatenção e ${hyperactivityAvg} nos itens de Hiperatividade/Impulsividade do protocolo SNAP-IV (Swanson, Nolan e Pelham, 1983). Ambas as médias ultrapassam o ponto de corte de 1.5, sugerindo apresentação combinada compatível com o perfil clínico de TDAH. Recomenda-se encaminhamento prioritário para avaliação neuropsicológica via MAT.`;
       } else if (Number(inattentionAvg) >= 1.5) {
         profile = 'TDAH — Predominantemente Desatento';
         summary = `O(a) aluno(a) ${studentName}, ${studentAge || 'idade não informada'}, cursando ${cycleLabel}, apresentou média de ${inattentionAvg} nos itens de Desatenção do protocolo SNAP-IV, acima do ponto de corte (1.5). Os indicadores são compatíveis com déficits na atenção sustentada e seletiva, sugerindo apresentação predominantemente desatenta. Recomenda-se avaliação neuropsicológica especializada.`;
