@@ -6,6 +6,7 @@ interface SimQuestion {
   skillCode?: string;
   descriptor?: string;
   correctionMirror?: string;
+  explanation?: string;
 }
 
 interface Props {
@@ -53,11 +54,19 @@ const EspelhoCorrecao = forwardRef<HTMLDivElement, Props>(
               )}
             </p>
             {q.correctionMirror ? (
-              <div className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded border border-gray-200">
+              <div className="text-sm whitespace-pre-wrap bg-gray-50 p-4 rounded border border-gray-200 mb-3">
+                <div className="font-bold text-[9pt] uppercase text-gray-500 mb-1">Critérios de Avaliação / Espelho:</div>
                 {q.correctionMirror}
               </div>
-            ) : (
-              <p className="text-sm text-gray-400 italic">Espelho de correção não disponível.</p>
+            ) : null}
+            {q.explanation ? (
+              <div className="text-sm whitespace-pre-wrap bg-blue-50/30 p-4 rounded border border-blue-100">
+                <div className="font-bold text-[9pt] uppercase text-blue-600 mb-1">Resolução Comentada / Justificativa:</div>
+                {q.explanation}
+              </div>
+            ) : null}
+            {!q.correctionMirror && !q.explanation && (
+              <p className="text-sm text-gray-400 italic">Resolução/Espelho não disponível.</p>
             )}
           </div>
         ))}
