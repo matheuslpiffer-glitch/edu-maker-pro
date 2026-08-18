@@ -306,9 +306,11 @@ async function parseAIResponse(response: Response, label: string) {
 const NO_IMG_RULE = `
 REGRA ABSOLUTA: NÃO inclua NENHUMA tag <img>, link de imagem ou URL de imagem. Todo o conteúdo deve ser 100% textual. NUNCA use blocos de código markdown (\`\`\`html). Retorne somente HTML cru nos campos de conteúdo.
 
+A resolução comentada (campo "explanation") deve ser gerada para CADA questão, contendo o passo a passo da solução e a justificativa das alternativas.
+
 FORMATAÇÃO MATEMÁTICA — REGRA INVIOLÁVEL (somente Unicode):
 A interface NÃO renderiza LaTeX. É TERMINANTEMENTE PROIBIDO usar LaTeX ou o cifrão "$" como delimitador de fórmula. Qualquer comando LaTeX (frac, sqrt, text, cdot, pi, alpha, sum, int) ou delimitador de barra invertida com parêntese/colchete aparece como texto cru e quebra a questão.
-Toda notação matemática — no enunciado, nas alternativas E no gabarito — deve usar EXCLUSIVAMENTE texto puro Unicode:
+Toda notação matemática — no enunciado, nas alternativas, no gabarito E NA RESOLUÇÃO — deve usar EXCLUSIVAMENTE texto puro Unicode:
 π ² ³ √ ± × ÷ ° % ≠ ≤ ≥ ≈ ∞ ½ ⅓ ¼ ¾ α β γ δ θ Δ Σ Ω ∈ ⊂ ∪ ∩ ∅ ℝ ℕ ℤ.
 - Frações: barra comum (1/3, 2/7) ou ½ ⅓ ¼ ¾.
 - Expoentes: ⁰¹²³⁴⁵⁶⁷⁸⁹ (escreva x², não x^2).
