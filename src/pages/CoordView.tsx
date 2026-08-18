@@ -277,12 +277,14 @@ export default function CoordView() {
     const byStudentEssay: Record<string, EssaySub[]> = {};
     filtered.filter(e => e.teacher_validated && e.total_score).forEach(e => {
       const key = `${e.student_name}__${e.student_class}`;
-      if (!byStudent[key]) byStudent[key] = [];
-      byStudent[key].push(e);
+      if (!byStudentEssay[key]) byStudentEssay[key] = [];
+      byStudentEssay[key].push(e);
     });
 
     const result: MeritStudent[] = [];
-    Object.entries(byStudent).forEach(([, subs]) => {
+
+    // Essay merit
+    Object.entries(byStudentEssay).forEach(([, subs]) => {
       if (subs.length < 2) return;
       const sorted = [...subs].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
       const first = sorted[0];
@@ -298,13 +300,55 @@ export default function CoordView() {
           notaV1: v1,
           notaV2: v2,
           improvement: ((v2 - v1) / v1) * 100,
-          skill: bestComp?.name || 'Evolução Geral',
+          skill: bestComp?.name || 'Redação Elite',
           banca: last.banca,
         });
       }
     });
+
+    // 2. Check Simulation merit (Improvement between attempts or > 90%)
+    const byStudentSim: Record<string, StudentResult[]> = {};
+    simResults.forEach(r => {
+      const key = `${r.student_name}__${r.student_class}`;
+      if (!byStudentSim[key]) byStudentSim[key] = [];
+      byStudentSim[key].push(r);
+    });
+
+    Object.entries(byStudentSim).forEach(([, res]) => {
+      if (res.length < 2) {
+        // High performance only (one attempt but > 90%)
+        const top = res[0];
+        if (top && top.percentage >= 90) {
+          result.push({
+            name: top.student_name,
+            turma: top.student_class,
+            notaV1: 0,
+            notaV2: top.percentage,
+            improvement: 100,
+            skill: 'Excelência em Simulado',
+            banca: 'Simulado Elite',
+          });
+        }
+        return;
+      }
+      const sorted = [...res].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      const first = sorted[0];
+      const last = sorted[sorted.length - 1];
+      if (last.percentage > first.percentage + 15) {
+        result.push({
+          name: last.student_name,
+          turma: last.student_class,
+          notaV1: first.percentage,
+          notaV2: last.percentage,
+          improvement: last.percentage - first.percentage,
+          skill: 'Evolução em Simulado',
+          banca: 'Simulado Elite',
+        });
+      }
+    });
+
     return result.sort((a, b) => b.improvement - a.improvement);
-  }, [filtered]);
+  }, [filtered, simResults]);
 
   const simSummary = useMemo(() => {
     if (!simResults.length) return null;
