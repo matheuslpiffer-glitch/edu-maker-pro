@@ -1227,7 +1227,7 @@ export default function Inclusao() {
               <RefreshCw className="h-6 w-6 text-white" />
             </div>
             <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30 text-[10px] uppercase tracking-widest font-bold">
-              Adaptar Avaliação
+              MAT
             </Badge>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black leading-tight">
