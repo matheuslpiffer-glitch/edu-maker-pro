@@ -5,6 +5,7 @@ import { useTecnicosSimuladorState } from '@/hooks/useTecnicosSimuladorState';
 import { useSimulatorGenerationState } from '@/hooks/useSimulatorGenerationState';
 import { useSimulatorHistory } from '@/hooks/useSimulatorHistory';
 import { useSimulatorExport } from '@/hooks/useSimulatorExport';
+import SimulatorHistoryPanel from '@/components/SimulatorHistoryPanel';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
@@ -521,17 +522,6 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     handleKahoot,
   } = useSimulatorExport({
     questions,
-    setQuestions,
-    title,
-    savedId,
-    selectedSubjects,
-    pdfMargins,
-    columns,
-    setColumns,
-    setIsExporting,
-    handleSave: async () => { await handleSave(); },
-    printContainerRef,
-  });
     setQuestions,
     title,
     savedId,
@@ -2273,36 +2263,13 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
 
         {/* HISTORY TAB */}
         <TabsContent value="history">
-          <Card>
-            <CardHeader><CardTitle className="text-lg">Simulados Salvos</CardTitle></CardHeader>
-            <CardContent>
-              {loadingHistory ? (
-                <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-              ) : history.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">Nenhum simulado salvo ainda.</p>
-              ) : (
-                <div className="space-y-2">
-                  {history.map(sim => (
-                    <div key={sim.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{sim.title}</p>
-                        <div className="flex gap-2 mt-1 flex-wrap">
-                          <Badge variant="outline" className="text-xs">{EXAM_TYPES.find(e => e.value === sim.exam_type)?.label}</Badge>
-                          <span className="text-xs text-muted-foreground">{sim.subject_area} · {sim.grade}</span>
-                          <span className="text-xs text-muted-foreground">{(sim.questions || []).length} questões</span>
-                          <span className="text-xs font-mono text-muted-foreground">ID: {sim.id.slice(0, 8).toUpperCase()}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleLoadSimulator(sim)}><Eye size={16} /></Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(sim.id)} className="text-destructive"><Trash2 size={16} /></Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <SimulatorHistoryPanel 
+            history={history}
+            loadingHistory={loadingHistory}
+            handleLoadSimulator={handleLoadSimulator}
+            handleDelete={handleDelete}
+            examTypes={EXAM_TYPES}
+          />
         </TabsContent>
       </Tabs>
       </div>{/* end unified workspace card */}
