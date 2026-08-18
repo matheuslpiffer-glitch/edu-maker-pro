@@ -158,7 +158,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
               </h1>
             </div>
             <p className="text-slate-500 dark:text-slate-400 font-medium italic">
-              "A plataforma inteligente para o educador moderno"
+              "A plataforma inteligente para o educador moderno" — MAT
             </p>
           </div>
 
