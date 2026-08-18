@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useInclusaoSimuladorState } from '@/hooks/useInclusaoSimuladorState';
 import { useVestibularSimuladorState } from '@/hooks/useVestibularSimuladorState';
 import { useTecnicosSimuladorState } from '@/hooks/useTecnicosSimuladorState';
+import { useSimulatorGenerationState } from '@/hooks/useSimulatorGenerationState';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
@@ -410,7 +411,6 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const draftKey = (k: string) => `${draftNs}:${k}`;
 
   const [examType, setExamType] = useAutoSaveDraft<string>(draftKey('examType'), 'saresp');
-  const [activeMotor, setActiveMotor] = useState(mode ? 'simulado' : 'simulado');
   const [examModel, setExamModel] = useAutoSaveDraft<string>(
     draftKey('examModel'),
     mode === 'vestibulares' ? 'vest_publicos'
@@ -420,7 +420,6 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [selectedFormat, setSelectedFormat] = useAutoSaveDraft<string>(draftKey('selectedFormat'), '');
   const [selectedSubjects, setSelectedSubjects] = useAutoSaveDraft<string[]>(draftKey('selectedSubjects'), []);
   const [grade, setGrade] = useAutoSaveDraft<string>(draftKey('grade'), '');
-  const [isExporting, setIsExporting] = useState(false);
   const [title, setTitle] = useAutoSaveDraft<string>(draftKey('title'), '');
   const [institutionName, setInstitutionName] = useAutoSaveDraft<string>(draftKey('institutionName'), '');
   const [specificTopic, setSpecificTopic] = useAutoSaveDraft<string>(draftKey('specificTopic'), '');
@@ -430,8 +429,6 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [hardCount, setHardCount] = useAutoSaveDraft<number>(draftKey('hardCount'), 3);
 
   const [questions, setQuestions] = useAutoSaveDraft<SimQuestion[]>(draftKey('questions'), []);
-  const [generating, setGenerating] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useAutoSaveDraft<string | null>(draftKey('savedId'), null);
   const [showGabarito, setShowGabarito] = useAutoSaveDraft<boolean>(draftKey('showGabarito'), true);
   const [isDiscursiva, setIsDiscursiva] = useAutoSaveDraft<boolean>(draftKey('isDiscursiva'), false);
@@ -441,12 +438,6 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [columns, setColumns] = useAutoSaveDraft<1 | 2>(draftKey('columns'), 1);
   const [pdfMargins, setPdfMargins] = useAutoSaveDraft<PdfMargins>(draftKey('pdfMargins'), DEFAULT_PDF_MARGINS);
   const [activeSerie, setActiveSerie] = useAutoSaveDraft<string>(draftKey('activeSerie'), 'ano_9');
-  const [generationJobId, setGenerationJobId] = useState<string | null>(null);
-  const [generationProgress, setGenerationProgress] = useState(0);
-  const [generationStep, setGenerationStep] = useState(0);
-  const [generationTotalSteps, setGenerationTotalSteps] = useState(0);
-  const [generationMessage, setGenerationMessage] = useState('');
-
   // AEE states
   const {
     aeeMode,
@@ -460,10 +451,21 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     aeeContent,
     setAeeContent,
   } = useInclusaoSimuladorState();
-  const [includeImages, setIncludeImages] = useState(false);
-  const [technicalDiscipline, setTechnicalDiscipline] = useState('');
-  const [activeEspecialidade, setActiveEspecialidade] = useState('');
-  const [activeFormat, setActiveFormat] = useState('completa');
+  const {
+    activeMotor, setActiveMotor,
+    isExporting, setIsExporting,
+    generating, setGenerating,
+    saving, setSaving,
+    generationJobId, setGenerationJobId,
+    generationProgress, setGenerationProgress,
+    generationStep, setGenerationStep,
+    generationTotalSteps, setGenerationTotalSteps,
+    generationMessage, setGenerationMessage,
+    includeImages, setIncludeImages,
+    technicalDiscipline, setTechnicalDiscipline,
+    activeEspecialidade, setActiveEspecialidade,
+    activeFormat, setActiveFormat
+  } = useSimulatorGenerationState(mode);
 
   // Vestibulares-specific states
   const {
