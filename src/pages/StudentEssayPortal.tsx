@@ -185,7 +185,7 @@ function TeacherQuestionBox({ submissionId, accessCode }: { submissionId: string
   const handleSend = async () => {
     if (!question.trim()) return;
     const { data, error } = await supabase.functions.invoke('public-essay', {
-      body: { action: 'ask_question', accessCode: accessCode, submissionId, question: question.trim() }
+      body: { action: 'ask_question', accessCode, submissionId, question: question.trim() }
     });
     
     if (error || (data && data.error)) {
