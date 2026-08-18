@@ -932,7 +932,7 @@ export default function Inclusao() {
         grade: 'AEE',
         purpose: 'regular',
         question_type: questionType,
-        institution_name: 'EduCreator Pro — Inclusão',
+        institution_name: 'MAT',
         questions: result.map((q: any, i: number) => ({
           ...q,
           generatedImageUrl: generatedImages[i] || q.imageUrl || null,
@@ -962,7 +962,7 @@ export default function Inclusao() {
       }
       return text;
     });
-    const fullText = `📚 Atividade Adaptada — ${subject}\n🎯 Público-Alvo: ${profileLabels}\n📝 Tema: ${topic}\n\n${lines.join('\n\n')}\n\n✅ EduCreator Pro — Tecnologia Assistiva Autoral por Matheus Lima Piffer`;
+    const fullText = `📚 Atividade Adaptada — ${subject}\n🎯 Público-Alvo: ${profileLabels}\n📝 Tema: ${topic}\n\n${lines.join('\n\n')}\n\n✅ MAT — Tecnologia Assistiva Autoral por Matheus Lima Piffer`;
     navigator.clipboard.writeText(fullText);
     toast({ title: '📋 Questões copiadas!' });
   };
@@ -974,7 +974,7 @@ export default function Inclusao() {
       const header = document.createElement('div');
       header.id = 'aee-pdf-header';
       header.style.cssText = 'text-align:center;padding:10px 0 16px;border-bottom:2px solid #0891b2;margin-bottom:16px;font-family:Inter,Arial,sans-serif;';
-      header.innerHTML = `<strong style="font-size:16px;color:#0F172A;">EduCreator Pro</strong><br/><span style="font-size:11px;color:#64748b;">Tecnologia Assistiva Autoral por Matheus Lima Piffer</span>`;
+      header.innerHTML = `<strong style="font-size:16px;color:#0F172A;">MAT</strong><br/><span style="font-size:11px;color:#64748b;">Tecnologia Assistiva Autoral por Matheus Lima Piffer</span>`;
       el.prepend(header);
 
       const noPrintEls = el.querySelectorAll('.no-print');
@@ -1013,7 +1013,7 @@ export default function Inclusao() {
       }
       return text;
     });
-    const msg = `🏫 *EduCreator Pro - Atividade Adaptada*\n\n👤 Professor: Matheus Lima Piffer\n\n📚 Disciplina: ${subject}\n\n🎯 Público-Alvo: ${profileLabels}\n\n${activityLines.join('\n\n')}\n\n✅ Tecnologia Assistiva Autoral por Matheus Lima Piffer`;
+    const msg = `🏫 *MAT - Atividade Adaptada*\n\n👤 Professor: Matheus Lima Piffer\n\n📚 Disciplina: ${subject}\n\n🎯 Público-Alvo: ${profileLabels}\n\n${activityLines.join('\n\n')}\n\n✅ Tecnologia Assistiva Autoral por Matheus Lima Piffer`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -1110,7 +1110,7 @@ export default function Inclusao() {
               <Brain className="h-6 w-6 text-white" />
             </div>
             <h3 className="text-lg sm:text-xl font-black text-foreground leading-tight">
-              Bem-vindo ao Centro de Apoio Especializado Piffer EduTech 🧠
+              Bem-vindo ao Centro de Apoio Especializado MAT 🧠
             </h3>
           </div>
 
@@ -1193,7 +1193,7 @@ export default function Inclusao() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground">
-          Tecnologia Assistiva Autoral por Matheus Lima Piffer · Sistema de Inclusão Blindado · EduCreator Pro
+          Tecnologia Assistiva Autoral por Matheus Lima Piffer · Sistema de Inclusão Blindado · MAT
         </p>
       </div>
     );
@@ -1679,7 +1679,7 @@ export default function Inclusao() {
       )}
 
       <p className="text-center text-xs text-muted-foreground">
-        Tecnologia Assistiva Autoral por Matheus Lima Piffer · Sistema de Inclusão Blindado · EduCreator Pro
+        Tecnologia Assistiva Autoral por Matheus Lima Piffer · Sistema de Inclusão Blindado · MAT
       </p>
     </div>
   );
