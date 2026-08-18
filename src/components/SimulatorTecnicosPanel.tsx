@@ -51,6 +51,57 @@ const SimulatorTecnicosPanel = ({
 }: SimulatorTecnicosPanelProps) => {
   return (
     <>
+      {/* Opções de Modelo para Técnicos (não-SENAI) */}
+      {!isSenaiMode && tecnicoInstitution && (
+        <>
+          <div className="border-t border-emerald-100 mb-6" />
+          <div className="space-y-4 animate-in fade-in slide-in-from-top-3 duration-300 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="h-7 w-7 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">2</div>
+              <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">Modelo de Simulado</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Opção A: Vestibulinho Completo */}
+              <button
+                onClick={() => setTecnicoMode('completo')}
+                className={`relative p-5 rounded-[20px] border-2 text-left transition-all duration-200 flex flex-col gap-3 min-h-[120px] ${
+                  tecnicoMode === 'completo'
+                    ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-500 shadow-lg shadow-emerald-500/15'
+                    : 'bg-white border-slate-200 hover:border-emerald-300 hover:shadow-md'
+                }`}
+              >
+                {tecnicoMode === 'completo' && <CheckCircle2 className="absolute top-3 right-3 h-5 w-5 text-emerald-600" />}
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${tecnicoMode === 'completo' ? 'bg-emerald-600' : 'bg-emerald-100'}`}>
+                  <Zap className={`h-5 w-5 ${tecnicoMode === 'completo' ? 'text-white' : 'text-emerald-600'}`} />
+                </div>
+                <div>
+                  <span className={`text-sm font-black block ${tecnicoMode === 'completo' ? 'text-emerald-800' : 'text-slate-700'}`}>Vestibulinho Completo</span>
+                  <span className={`text-[11px] block mt-0.5 ${tecnicoMode === 'completo' ? 'text-emerald-600' : 'text-slate-400'}`}>50 questões mistas — Padrão Oficial</span>
+                </div>
+              </button>
+              {/* Opção B: Simulado por Área */}
+              <button
+                onClick={() => setTecnicoMode('por_area')}
+                className={`relative p-5 rounded-[20px] border-2 text-left transition-all duration-200 flex flex-col gap-3 min-h-[120px] ${
+                  tecnicoMode === 'por_area'
+                    ? 'bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-500 shadow-lg shadow-teal-500/15'
+                    : 'bg-white border-slate-200 hover:border-teal-300 hover:shadow-md'
+                }`}
+              >
+                {tecnicoMode === 'por_area' && <CheckCircle2 className="absolute top-3 right-3 h-5 w-5 text-teal-600" />}
+                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${tecnicoMode === 'por_area' ? 'bg-teal-600' : 'bg-teal-100'}`}>
+                  <ListChecks className={`h-5 w-5 ${tecnicoMode === 'por_area' ? 'text-white' : 'text-teal-600'}`} />
+                </div>
+                <div>
+                  <span className={`text-sm font-black block ${tecnicoMode === 'por_area' ? 'text-teal-800' : 'text-slate-700'}`}>Simulado por Área</span>
+                  <span className={`text-[11px] block mt-0.5 ${tecnicoMode === 'por_area' ? 'text-teal-600' : 'text-slate-400'}`}>Escolha disciplinas e quantidade</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Hero Técnico */}
       {isSenaiMode && (
         <div className="bg-[#0a1f3d] rounded-[3.5rem] p-8 sm:p-10 text-white relative overflow-hidden mb-6">
