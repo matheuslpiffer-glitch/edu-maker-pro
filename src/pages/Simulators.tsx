@@ -501,15 +501,14 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     setInstitutionName
   );
 
-  const [history, setHistory] = useState<SavedSimulator[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
+  const { history, loadingHistory, loadHistory } = useSimulatorHistory();
   const [activeTab, setActiveTab] = useState('create');
   const [magicLoading, setMagicLoading] = useState<string | null>(null);
   const [podcastScript, setPodcastScript] = useState<string | null>(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showLaunchScreen, setShowLaunchScreen] = useState(false);
 
-  useEffect(() => { loadHistory(); }, []);
+  
 
   // Reset format when exam model changes
   const modelConfig = MODEL_CONFIGS[examModel];
@@ -545,12 +544,6 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     }
   }, [selectedFormat]);
 
-  const loadHistory = async () => {
-    setLoadingHistory(true);
-    const { data } = await supabase.from('simulators').select('*').order('created_at', { ascending: false });
-    setHistory((data as unknown as SavedSimulator[]) || []);
-    setLoadingHistory(false);
-  };
 
   const toggleSubject = (name: string) => {
     setSelectedSubjects(prev => prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]);
