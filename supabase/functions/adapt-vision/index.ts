@@ -27,6 +27,11 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: `Formato não suportado (${fileMime}). Envie PDF, imagem (PNG/JPG/WEBP) ou TXT. Arquivos Word/Excel devem ser salvos como PDF antes do envio.` }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    const approxBytes = (fileBase64.length * 3) / 4;
+    if (approxBytes > 8 * 1024 * 1024) {
+      return new Response(JSON.stringify({ error: "Arquivo muito grande (máx. 8MB). Reduza a resolução ou envie em partes." }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const creditCheck = await checkAndDecrementCredits(userId);
     if (!creditCheck.allowed) {
       return new Response(JSON.stringify({ error: creditCheck.error }), {
