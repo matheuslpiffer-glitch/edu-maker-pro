@@ -88,7 +88,7 @@ const VESTIBULARES_DNA: DNACategory[] = [
 ];
 
 // Técnicos institution cards
-const TECNICOS_INSTITUTIONS = [
+export const TECNICOS_INSTITUTIONS = [
   { id: 'ifs', label: 'Instituto Federal (IFs)', desc: 'Exame de Seleção Nacional', icon: Building2, gradient: 'from-emerald-600 to-green-700' },
   { id: 'etec', label: 'Instituto Técnico / Rede Tech', desc: 'Vestibulinho Técnico Profissional', icon: Cpu, gradient: 'from-teal-500 to-emerald-600' },
   { id: 'cotuca', label: 'Técnicos Universitários', desc: 'Seleção Técnica Universitária', icon: Target, gradient: 'from-green-500 to-teal-600' },
