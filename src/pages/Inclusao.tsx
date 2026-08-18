@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 import { showAiErrorToast } from '@/lib/ai-utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -149,18 +150,6 @@ function hasMeaningfulLocalDraft(storageKey: string): boolean {
   }
 }
 
-function cleanHtml(raw: string): string {
-  return raw
-    .replace(/```html\s*/gi, '')
-    .replace(/```\s*/g, '')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&')
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-    .trim();
-}
 
 function sanitizeText(text: string): string {
   if (!text) return '';
@@ -1581,7 +1570,7 @@ export default function Inclusao() {
                 <div
                   className="prose prose-sm sm:prose-base max-w-none break-words leading-relaxed"
                   style={{ fontSize: '1.1rem', lineHeight: '1.85', fontFamily: 'Inter, system-ui, sans-serif' }}
-                  dangerouslySetInnerHTML={{ __html: cleanHtml(q.content || '') }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content || '') }}
                 />
                 {q.options && q.options.length > 0 && (
                   <div className="space-y-3 mt-4">
