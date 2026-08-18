@@ -504,10 +504,34 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
 
   const { history, loadingHistory, loadHistory } = useSimulatorHistory();
   const [activeTab, setActiveTab] = useState('create');
-  const [magicLoading, setMagicLoading] = useState<string | null>(null);
-  const [podcastScript, setPodcastScript] = useState<string | null>(null);
-  const [showQRModal, setShowQRModal] = useState(false);
   const [showLaunchScreen, setShowLaunchScreen] = useState(false);
+
+  const {
+    magicLoading,
+    podcastScript,
+    setPodcastScript,
+    showQRModal,
+    setShowQRModal,
+    handlePDF,
+    handleCopyStudentLink,
+    handleSaveAndShare,
+    handleWhatsApp,
+    handlePodcast,
+    handleIllustrate,
+    handleKahoot,
+  } = useSimulatorExport({
+    questions,
+    setQuestions,
+    title,
+    savedId,
+    selectedSubjects,
+    pdfMargins,
+    columns,
+    setColumns,
+    setIsExporting,
+    handleSave: async () => { await handleSave(); },
+    printContainerRef,
+  });
 
   
 
