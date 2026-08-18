@@ -7,6 +7,7 @@ import { useSimulatorHistory } from '@/hooks/useSimulatorHistory';
 import { useSimulatorExport } from '@/hooks/useSimulatorExport';
 import SimulatorHistoryPanel from '@/components/SimulatorHistoryPanel';
 import SimulatorInclusaoPanel from '@/components/SimulatorInclusaoPanel';
+import SimulatorTecnicosPanel from '@/components/SimulatorTecnicosPanel';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
