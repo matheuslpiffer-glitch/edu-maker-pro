@@ -1,0 +1,1 @@
+SELECT 1; -- Placeholder para disparar deploy via ferramenta de migração (a ferramenta de deploy é supabase--deploy_edge_functions)
