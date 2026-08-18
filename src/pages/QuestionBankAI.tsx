@@ -11,8 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Sparkles, Save, Printer, Eye, Trash2, BookOpen, Download, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { generatePdfFromElement } from '@/lib/pdf-utils';
 import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import { sanitizeHtml } from '@/lib/sanitize-html';
 
@@ -182,41 +181,20 @@ export default function QuestionBankAI() {
     toast({ title: 'Gerando PDF...' });
 
     try {
-      const sections = container.querySelectorAll<HTMLElement>('[data-pdf-section]');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const MARGIN_H = 20;
-      const MARGIN_W = 15;
-      const CONTENT_W = 210 - MARGIN_W * 2;
-      let firstPage = true;
-
-      for (const section of Array.from(sections)) {
-        const canvas = await html2canvas(section, {
-          scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794,
-        });
-        const imgW = CONTENT_W;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        const imgData = canvas.toDataURL('image/png');
-
-        if (!firstPage) pdf.addPage();
-        firstPage = false;
-
-        const pageH = 297 - MARGIN_H * 2;
-        if (imgH <= pageH) {
-          pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H, imgW, imgH);
-        } else {
-          let y = 0;
-          let isFirst = true;
-          while (y < imgH) {
-            if (!isFirst) pdf.addPage();
-            isFirst = false;
-            pdf.addImage(imgData, 'PNG', MARGIN_W, MARGIN_H - y, imgW, imgH);
-            y += pageH;
-          }
+      // O generatePdfFromElement usa html2pdf.js que lida nativamente com quebras de página
+      // via CSS page-break properties. Como o container já tem seções com data-pdf-section
+      // e as questões usam pageBreakInside: 'avoid', a quebra deve ser automática e correta.
+      await generatePdfFromElement(
+        container,
+        `atividade-${topic || 'lista'}`,
+        {
+          orientation: 'portrait',
+          margins: [10, 10, 10, 10] // Margens padrão para evitar cortes
         }
-      }
-      pdf.save(`atividade-${topic || 'lista'}.pdf`);
+      );
       toast({ title: 'PDF gerado!' });
     } catch (e: any) {
+      console.error('Erro ao gerar PDF:', e);
       toast({ title: 'Erro ao gerar PDF', variant: 'destructive' });
     } finally {
       setIsExporting(false);
