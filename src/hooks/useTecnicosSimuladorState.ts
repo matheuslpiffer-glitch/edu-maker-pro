@@ -1,7 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { SimQuestion } from '@/types/simulator';
 
-export function useTecnicosSimuladorState(isTecnicosMode: boolean, questions: SimQuestion[], setQuestions: (q: SimQuestion[]) => void, title: string, setTitle: (t: string) => void, institutionName: string, setInstitutionName: (i: string) => void) {
+interface SimOption { letter: string; text: string; isCorrect: boolean; }
+interface SimQuestion { content: string; options: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; explanation?: string; }
+
+export function useTecnicosSimuladorState(
+  isTecnicosMode: boolean, 
+  questions: SimQuestion[], 
+  setQuestions: (q: SimQuestion[]) => void, 
+  title: string, 
+  setTitle: (t: string) => void, 
+  institutionName: string, 
+  setInstitutionName: (i: string) => void
+) {
   const [tecnicoInstitution, setTecnicoInstitution] = useState('');
   const [tecnicoMode, setTecnicoMode] = useState<'' | 'completo' | 'por_area'>('');
   const [tecnicoSubjects, setTecnicoSubjects] = useState<string[]>(['Matemática', 'Português', 'Ciências da Natureza', 'Humanas / Atualidades']);
