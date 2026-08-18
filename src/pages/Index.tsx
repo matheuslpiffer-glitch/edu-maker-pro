@@ -180,6 +180,7 @@ export default function Index() {
             Desenvolvido por <span className="text-slate-600">Matheus Lima Piffer</span>
           </p>
           <p className="text-[9px] text-slate-300">© 2026 Piffer EduTech — Inovação & Estratégia Pedagógica</p>
+          <p className="text-[9px] text-indigo-400/60 font-medium">Suporte: suporte@educreatorpro.com</p>
         </div>
       </div>
     </div>
