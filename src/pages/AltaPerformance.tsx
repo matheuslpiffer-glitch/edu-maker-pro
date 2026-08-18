@@ -423,7 +423,7 @@ export default function AltaPerformance() {
       correctionMirror: q.correctionMirror
         ? sanitizeMathData(DOMPurify.sanitize(q.correctionMirror))
         : undefined,
-      options: q.options?.map(o => ({ ...o, text: sanitizeMathData(o.text) })),
+      options: q.options?.map(o => ({ ...o, text: sanitizeMathData(DOMPurify.sanitize(o.text)) })),
     }));
   }, [questions]);
 

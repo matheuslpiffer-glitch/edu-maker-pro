@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
@@ -121,7 +122,7 @@ const MathText: React.FC<MathTextProps> = ({ text, content, className = '' }) =>
         ) : (
           <span
             key={idx}
-            dangerouslySetInnerHTML={{ __html: s.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(s.content) }}
           />
         )
       )}
