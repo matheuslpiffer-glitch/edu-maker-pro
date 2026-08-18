@@ -116,7 +116,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
             <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl">
               <Sparkles className="h-8 w-8 text-white" />
             </div>
-            <span className="text-white font-bold text-2xl tracking-tight">Piffer EduTech</span>
+            <span className="text-white font-bold text-2xl tracking-tight">MAT</span>
           </div>
           
           <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
@@ -154,7 +154,7 @@ export default function Auth({ preferredPortal }: AuthProps) {
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
               <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Piffer EduTech
+                MAT
               </h1>
             </div>
             <p className="text-slate-500 dark:text-slate-400 font-medium italic">
