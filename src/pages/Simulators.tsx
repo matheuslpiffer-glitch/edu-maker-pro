@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useInclusaoSimuladorState } from '@/hooks/useInclusaoSimuladorState';
 import { useVestibularSimuladorState } from '@/hooks/useVestibularSimuladorState';
+import { useTecnicosSimuladorState } from '@/hooks/useTecnicosSimuladorState';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
