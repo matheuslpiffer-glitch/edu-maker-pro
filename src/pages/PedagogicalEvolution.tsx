@@ -13,8 +13,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ReferenceLine, Area, AreaChart, Legend,
 } from 'recharts';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { generatePdfFromElement } from '@/lib/pdf-utils';
 
 interface Simulator {
   id: string;
