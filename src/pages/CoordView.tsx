@@ -10,9 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Progress } from '@/components/ui/progress';
 import { Loader2, Trophy, BarChart3, Users, AlertTriangle, Award, FileDown, TrendingUp, Star, Gem, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
 import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
+import { generatePdfFromElement } from '@/lib/pdf-utils';
 
 // ── Types ──
 interface EssaySub {
@@ -66,15 +65,14 @@ function MeritCertificate({ student, onClose }: { student: MeritStudent; onClose
     if (!certRef.current) return;
     setGenerating(true);
     try {
-      const canvas = await html2canvas(certRef.current, { scale: 2, useCORS: true, logging: false });
-      const pdf = new jsPDF('l', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
-      const pdfW = 297;
-      const pdfH = 210;
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
-      pdf.save(`Certificado_Merito_${student.name.replace(/\s+/g, '_')}.pdf`);
+      await generatePdfFromElement(
+        certRef.current,
+        `Certificado_Merito_${student.name.replace(/\s+/g, '_')}`,
+        { orientation: 'landscape' }
+      );
       toast.success('Certificado gerado com sucesso!');
-    } catch {
+    } catch (err) {
+      console.error('[handleDownload] Error generating certificate:', err);
       toast.error('Erro ao gerar PDF');
     } finally {
       setGenerating(false);
@@ -367,13 +365,11 @@ export default function CoordView() {
     if (!reportRef.current) return;
     setExporting(true);
     try {
-      const canvas = await html2canvas(reportRef.current, { scale: 2, useCORS: true, logging: false });
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
-      const imgW = 190;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 10, 10, imgW, imgH);
-      pdf.save('Relatorio_Coordenacao_Abril2026.pdf');
+      await generatePdfFromElement(
+        reportRef.current,
+        'Relatorio_Coordenacao_Abril2026',
+        { orientation: 'portrait' }
+      );
       toast.success('✅ Relatório exportado com sucesso!');
     } catch (err) {
       console.error('[handleExportReport] error:', err);
