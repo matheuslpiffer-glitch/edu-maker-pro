@@ -21,7 +21,7 @@ const teacherLinks = [
   { to: '/resultados-alunos', icon: BarChart3, label: 'Resultados e Desempenho', section: '📊 Avaliação' },
   { to: '/coordenacao', icon: Trophy, label: '🏆 Painel Coordenação', section: '📊 Avaliação', adminOnly: true },
   { to: '/escuta-ativa', icon: Heart, label: 'Escuta Ativa (CNV)', section: '🤝 Gestão Humanizada', adminOnly: true },
-  { to: '/inclusao', icon: Accessibility, label: 'Inclusão (AEE)', section: '🤝 Gestão Humanizada' },
+  { to: '/inclusao', icon: Accessibility, label: 'MAT', section: '🤝 Gestão Humanizada' },
   { to: '/bussola-vocacional', icon: Compass, label: 'Bússola Vocacional', section: '🤝 Gestão Humanizada', adminOnly: true },
   { to: '/biblioteca-hub', icon: Library, label: '📁 Biblioteca', section: '📁 Biblioteca' },
   { to: '/guia', icon: HelpCircle, label: 'Guia do Sistema', section: '📖 Documentação' },

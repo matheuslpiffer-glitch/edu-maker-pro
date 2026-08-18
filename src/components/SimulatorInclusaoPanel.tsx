@@ -47,7 +47,7 @@ const SimulatorInclusaoPanel = ({
               <Accessibility className="h-6 w-6 text-white" />
             </div>
             <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 text-[10px] uppercase tracking-widest font-bold">
-              Inclusão AEE
+              MAT
             </Badge>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black leading-tight">
