@@ -19,15 +19,11 @@ export default function PinAutoRedirect({ children }: { children: React.ReactNod
       setChecking(true);
       const upper = pin.toUpperCase();
 
-      const { data: sim } = await (supabase.from('simulators').select('id') as any)
-        .eq('access_code', upper)
-        .maybeSingle();
-      if (sim?.id) { navigate(`/simulado/${sim.id}`, { replace: true }); return; }
+      const { data } = await supabase.rpc('resolve_access_code', { code: upper });
+      const match = Array.isArray(data) ? data[0] : data;
 
-      const { data: bank } = await (supabase.from('question_banks').select('id') as any)
-        .eq('access_code', upper)
-        .maybeSingle();
-      if (bank?.id) { navigate(`/atividade/${bank.id}`, { replace: true }); return; }
+      if (match?.kind === 'simulador') { navigate(`/simulado/${match.id}`, { replace: true }); return; }
+      if (match?.kind === 'atividade') { navigate(`/atividade/${match.id}`, { replace: true }); return; }
 
       setChecking(false);
     };

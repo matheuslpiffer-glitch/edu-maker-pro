@@ -123,19 +123,14 @@ export default function StudentSimulatorView() {
 
     const loadSimulator = async () => {
       try {
-        const { data, error: fetchError } = await supabase
-          .from('simulators')
-          .select('id, title, institution_name, exam_type, grade, subject_area, user_id, questions')
-          .eq('id', id)
-          .maybeSingle();
+        const { data, error: fetchError } = await supabase.functions.invoke('public-simulator', {
+          body: { action: 'fetch', simulatorId: id },
+        });
 
         if (fetchError) throw fetchError;
-        if (!data) throw new Error('Simulado não encontrado.');
+        if (!data || data.error) throw new Error(data?.error || 'Simulado não encontrado.');
 
-        setSimulator({
-          ...data,
-          questions: Array.isArray(data.questions) ? (data.questions as unknown as SimulatorQuestion[]) : [],
-        } as PublicSimulatorData);
+        setSimulator(data as PublicSimulatorData);
       } catch (err: any) {
         setError(err.message || 'Não foi possível carregar o simulado.');
       } finally {
@@ -167,38 +162,27 @@ export default function StudentSimulatorView() {
     stopTimer();
 
     try {
-      const gradableQuestions = questions.filter(
-        (question) => Array.isArray(question.options) && question.options.length > 0,
-      );
-
-      const totalQuestions = gradableQuestions.length || questions.length;
-      const correctCount = gradableQuestions.reduce((score, question, index) => {
-        const selected = answers[index];
-        const correctOption = question.options?.find((option) => option.isCorrect)?.letter;
-        return score + (selected === correctOption ? 1 : 0);
-      }, 0);
-
-      const percentage = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-
-      const { error: insertError } = await supabase.from('student_results').insert({
-        user_id: simulator.user_id,
-        simulator_id: simulator.id,
-        student_name: isTeacherPreview ? `[Teste de Professor] ${studentName.trim()}` : studentName.trim().slice(0, 200),
-        student_class: isTeacherPreview ? `[TESTE] ${studentClass.trim()}` : studentClass.trim().slice(0, 100),
-        correct_count: correctCount,
-        total_questions: totalQuestions,
-        percentage,
-        proficiency_level: getProficiencyKey(percentage),
+      const { data, error: submitError } = await supabase.functions.invoke('public-simulator', {
+        body: {
+          action: 'submit',
+          simulatorId: simulator.id,
+          studentName: studentName.trim(),
+          studentClass: studentClass.trim(),
+          answers,
+          elapsedSeconds,
+          isTeacherPreview,
+        },
       });
 
-      if (insertError) throw insertError;
+      if (submitError) throw submitError;
+      if (!data || data.error) throw new Error(data?.error || 'Erro ao enviar respostas.');
 
-      setResultData({ correct: correctCount, total: totalQuestions, percentage, timeSeconds: elapsedSeconds });
+      setResultData({ correct: data.correct, total: data.total, percentage: data.percentage, timeSeconds: data.timeSeconds });
       setShowResultModal(true);
       setSubmitted(true);
       if (storageKey) localStorage.removeItem(storageKey);
     } catch (err: any) {
-      setError(err.message || 'Não foi possível enviar suas respostas.');
+      toast({ title: 'Erro ao enviar', description: err.message || 'Tente novamente.', variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
