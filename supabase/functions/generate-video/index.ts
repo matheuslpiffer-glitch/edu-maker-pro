@@ -109,7 +109,7 @@ serve(async (req) => {
         : "";
 
     const videoPayload: any = {
-      model: "google/veo-3.1-lite",
+      model: "google/veo-3.1-lite", // plano B: Veo via GCP direto
       prompt: `${prompt}${sceneContext} | Narração falada em PORTUGUÊS DO BRASIL (pt-BR), voz clara e didática de professor. O áudio deve ser exclusivamente em português brasileiro, sem inglês. | no text, no letters, no English typography, clean background`,
       seconds,
       size: "1280x720",
