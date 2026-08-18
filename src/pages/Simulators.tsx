@@ -503,7 +503,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   );
 
   const { history, loadingHistory, loadHistory } = useSimulatorHistory();
-  const [activeTab, setActiveTab] = useState('create');
+  const [activeTab, setActiveTab] = useState("create");
   const [showLaunchScreen, setShowLaunchScreen] = useState(false);
 
   const {
@@ -521,6 +521,17 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
     handleKahoot,
   } = useSimulatorExport({
     questions,
+    setQuestions,
+    title,
+    savedId,
+    selectedSubjects,
+    pdfMargins,
+    columns,
+    setColumns,
+    setIsExporting,
+    handleSave: async () => { await handleSave(); },
+    printContainerRef,
+  });
     setQuestions,
     title,
     savedId,
