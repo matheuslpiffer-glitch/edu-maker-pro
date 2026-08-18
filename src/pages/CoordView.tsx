@@ -107,7 +107,7 @@ function MeritCertificate({ student, onClose }: { student: MeritStudent; onClose
             <div className="w-48 h-0.5 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
             <p className="text-base text-gray-700 max-w-lg">
               Certificamos que o(a) aluno(a) <strong className="text-amber-900">{student.name}</strong>, da turma <strong>{student.turma}</strong>,
-              demonstrou excelência pedagógica e resiliência acadêmica ao atingir o nível de <strong className="text-amber-700">EVOLUÇÃO ELITE</strong> no ciclo de redação de Abril/2026.
+              demonstrou excelência pedagógica e resiliência acadêmica ao atingir o nível de <strong className="text-amber-700">EVOLUÇÃO ELITE</strong> no ciclo avaliativo de Abril/2026.
             </p>
             <div className="grid grid-cols-3 gap-6 mt-2 text-sm">
               <div className="text-center">
@@ -271,9 +271,10 @@ export default function CoordView() {
     return Object.entries(map).map(([banca, v]) => ({ banca, media: Math.round(v.total / v.count) }));
   }, [filtered]);
 
-  // Merit students: those with V2 > V1 + 15%
+  // Merit students: those with improvement in essays or high simulation results
   const meritStudents: MeritStudent[] = useMemo(() => {
-    const byStudent: Record<string, EssaySub[]> = {};
+    // 1. Check Essay improvement (V2 > V1 + 15%)
+    const byStudentEssay: Record<string, EssaySub[]> = {};
     filtered.filter(e => e.teacher_validated && e.total_score).forEach(e => {
       const key = `${e.student_name}__${e.student_class}`;
       if (!byStudent[key]) byStudent[key] = [];
