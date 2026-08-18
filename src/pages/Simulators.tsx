@@ -9,6 +9,7 @@ import SimulatorHistoryPanel from '@/components/SimulatorHistoryPanel';
 import SimulatorInclusaoPanel from '@/components/SimulatorInclusaoPanel';
 import SimulatorTecnicosPanel from '@/components/SimulatorTecnicosPanel';
 import SimulatorVestibularesPanel from '@/components/SimulatorVestibularesPanel';
+import SimulatorObmepPanel from '@/components/SimulatorObmepPanel';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
@@ -1294,7 +1295,16 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   />
                 )}
 
-                {!isInclusao && !isTecnicosMode && modelConfig && (() => {
+                {isObmep && (
+                  <SimulatorObmepPanel
+                    selectedFormat={selectedFormat}
+                    setSelectedFormat={setSelectedFormat}
+                    generating={generating}
+                    onGenerate={generateQuestions}
+                  />
+                )}
+
+                {!isInclusao && !isTecnicosMode && !isObmep && modelConfig && (() => {
                   const stepBanca = 2;
                   return (
                   <>
@@ -1303,7 +1313,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       <div className="flex items-center gap-3">
                         <div className="h-7 w-7 rounded-full bg-fuchsia-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">{stepBanca}</div>
                         <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
-                          {isObmep ? 'Selecione o Nível Olímpico' : `Estrutura Específica da ${modelConfig.label}`}
+                          Estrutura Específica da {modelConfig.label}
                         </h3>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
