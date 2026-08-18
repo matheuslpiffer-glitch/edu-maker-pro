@@ -28,6 +28,17 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    // Check file size (extract from data URL if needed or handle as raw base64 if that's what it is)
+    // The imageUrl here is typically a data URL
+    if (imageUrl.startsWith('data:')) {
+      const base64Content = imageUrl.split(',')[1];
+      const approxBytes = (base64Content.length * 3) / 4;
+      if (approxBytes > 8 * 1024 * 1024) {
+        return new Response(JSON.stringify({ error: "Arquivo muito grande (máx. 8MB). Reduza a resolução ou envie em partes." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
 
     const creditCheck = await checkAndDecrementCredits(userId);
     if (!creditCheck.allowed) {

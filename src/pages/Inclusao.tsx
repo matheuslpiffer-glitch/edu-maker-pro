@@ -1392,7 +1392,20 @@ export default function Inclusao() {
 
                     className="hidden"
 
-                    onChange={(e) => setAdaptFile(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file && file.size > 5 * 1024 * 1024) {
+                        toast({
+                          title: "Arquivo muito grande",
+                          description: "O tamanho máximo permitido é 5MB. Reduza o arquivo ou use um PDF menor.",
+                          variant: "destructive",
+                        });
+                        e.target.value = '';
+                        setAdaptFile(null);
+                        return;
+                      }
+                      setAdaptFile(file);
+                    }}
 
                   />
 
