@@ -281,7 +281,7 @@ export default function StudentSimulatorView() {
               </>
             )}
 
-            <p className="text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
+            <p className="text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer | Suporte: suporte@educreatorpro.com</p>
           </CardContent>
         </Card>
       </div>
@@ -339,7 +339,7 @@ export default function StudentSimulatorView() {
               Iniciar Atividade
             </Button>
 
-            <p className="text-center text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
+            <p className="text-center text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer | Suporte: suporte@educreatorpro.com</p>
           </CardContent>
         </Card>
       </div>
@@ -430,7 +430,7 @@ export default function StudentSimulatorView() {
           {submitting ? 'Enviando...' : 'Enviar Respostas'}
         </Button>
 
-        <p className="pb-4 text-center text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
+        <p className="pb-4 text-center text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer | Suporte: suporte@educreatorpro.com</p>
       </div>
     </div>
   );

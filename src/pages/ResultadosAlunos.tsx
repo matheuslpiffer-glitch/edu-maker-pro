@@ -614,7 +614,7 @@ export default function ResultadosAlunos() {
         </TabsContent>
       </Tabs>
 
-      <p className="text-center text-[10px] text-muted-foreground pt-8">Relatório de Desempenho — Desenvolvido por Matheus Lima Piffer</p>
+      <p className="text-center text-[10px] text-muted-foreground pt-8">Relatório de Desempenho — Desenvolvido por Matheus Lima Piffer | Suporte: suporte@educreatorpro.com</p>
     </div>
     </>
   );
