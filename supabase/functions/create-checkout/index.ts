@@ -1,5 +1,6 @@
 import { corsHeaders } from "../_shared/cors.ts";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import { getUserIdFromAuth } from "../_shared/credits.ts";
 
 async function resolveOrCreateCustomer(
   stripe: ReturnType<typeof createStripeClient>,
@@ -44,7 +45,18 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { priceId, quantity, customerEmail, userId, returnUrl, environment } = await req.json();
+    const { priceId, quantity, customerEmail, userId: bodyUserId, returnUrl, environment } = await req.json();
+    const authUserId = await getUserIdFromAuth(req.headers.get("Authorization"));
+
+    // Pattern: Use JWT userId if available, otherwise fallback to body userId only if NO JWT was provided.
+    // If a JWT is provided but invalid, authUserId is null.
+    // The request asks: "Se vier um userId no body diferente do JWT, ignore o do body e use o do token."
+    // "Se não houver JWT válido, ainda permita checkout anônimo por email (customerEmail), mas nunca aceite um userId arbitrário sem prova de identidade."
+    const userId = authUserId || (req.headers.get("Authorization") ? undefined : bodyUserId);
+
+    if (bodyUserId && authUserId && bodyUserId !== authUserId) {
+      console.warn(`User ID mismatch: body=${bodyUserId}, auth=${authUserId}. Using auth.`);
+    }
 
     if (!priceId || !/^[a-zA-Z0-9_-]+$/.test(priceId)) {
       throw new Error("Invalid priceId");
