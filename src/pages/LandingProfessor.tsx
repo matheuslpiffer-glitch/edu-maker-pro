@@ -100,7 +100,7 @@ export default function LandingProfessor() {
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2">
             <GraduationCap className="h-7 w-7 text-primary" />
-            <span className="font-bold text-xl">EduCreator Pro</span>
+            <span className="font-bold text-xl">MAT</span>
             <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Professor</span>
           </div>
           <Button onClick={() => setShowAuth(true)}>Entrar <ArrowRight className="ml-1 h-4 w-4" /></Button>
@@ -119,7 +119,7 @@ export default function LandingProfessor() {
         {/* DOR */}
         <section className="text-center max-w-3xl mx-auto space-y-3">
           <h2 className="text-2xl md:text-3xl font-bold">Cansado de passar horas montando provas, corrigindo redações e adaptando atividades?</h2>
-          <p className="text-muted-foreground">O EduCreator resolve isso com inteligência artificial em minutos — para você focar no que importa: ensinar.</p>
+          <p className="text-muted-foreground">O MAT resolve isso com inteligência artificial em minutos — para você focar no que importa: ensinar.</p>
         </section>
 
         {/* COMO FUNCIONA */}
@@ -234,7 +234,7 @@ export default function LandingProfessor() {
       </main>
 
       <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-        EduCreator Pro | Gestão Pedagógica: Matheus Lima Piffer
+        MAT | Gestão Pedagógica: Matheus Lima Piffer
       </footer>
     </div>
   );
