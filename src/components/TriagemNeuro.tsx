@@ -466,7 +466,7 @@ INTERVENÇÕES PEDAGÓGICAS RECOMENDADAS
 
     const fullReport = `RELATÓRIO DE TRIAGEM NEUROPSICOPEDAGÓGICA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-PIFFER EDUTECH — ANÁLISE BASEADA EM PROTOCOLOS DE NEUROCIÊNCIA CLÍNICA
+MAT — ANÁLISE BASEADA EM PROTOCOLOS DE NEUROCIÊNCIA CLÍNICA
 
 DADOS DO ALUNO
 Nome: ${studentName}
@@ -504,7 +504,7 @@ Este relatório visa apoiar a prática pedagógica e o encaminhamento
 clínico, garantindo o direito à aprendizagem plena. Esta é uma
 TRIAGEM DE APOIO baseada em protocolos internacionais reconhecidos
 (DSM-5-TR, CID-11, SNAP-IV, M-CHAT-R/F) processados via tecnologia
-Piffer EduTech. NÃO SUBSTITUI O LAUDO MÉDICO OFICIAL.
+Piffer EduTech e MAT. NÃO SUBSTITUI O LAUDO MÉDICO OFICIAL.
 
 Referências:
 • APA (2022). DSM-5-TR: Manual Diagnóstico e Estatístico de Transtornos Mentais.
@@ -512,7 +512,7 @@ Referências:
 • Swanson, J. M. et al. (1983). The SNAP rating scale. Univ. of California, Irvine.
 • Robins, D. L. et al. (2009). Modified Checklist for Autism in Toddlers, Revised.
 
-© 2026 PIFFER EDUTECH — Tecnologia Assistiva Autoral por Matheus Lima Piffer`;
+© 2026 MAT — Tecnologia Assistiva Autoral por Matheus Lima Piffer`;
 
     setReportText(fullReport);
     setDetectedProfile(profile);
@@ -859,13 +859,13 @@ Referências:
       <div id="triagem-report" className="bg-card rounded-[2rem] border p-8 space-y-4" style={{ fontFamily: 'Inter, Arial, sans-serif', position: 'relative' }}>
         {/* Watermark */}
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-30deg)', fontSize: '4rem', fontWeight: 900, color: 'rgba(15, 23, 42, 0.04)', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 0 }}>
-          PIFFER EDUTECH
+          MAT
         </div>
 
         <div className="relative z-10">
           {/* Header */}
           <div className="text-center border-b-2 border-rose-200 pb-4 mb-6">
-            <h2 className="text-xl font-black text-foreground tracking-wide">PIFFER EDUTECH</h2>
+            <h2 className="text-xl font-black text-foreground tracking-wide">MAT</h2>
             <p className="text-xs text-muted-foreground">Análise baseada em Protocolos de Neurociência Clínica</p>
             <p className="text-[10px] text-muted-foreground mt-1">Triagem Neuropsicopedagógica · DSM-5-TR · CID-11</p>
           </div>
@@ -938,7 +938,7 @@ Referências:
       <p className="text-center text-xs text-muted-foreground leading-relaxed max-w-lg mx-auto">
         ⚠️ Este relatório visa apoiar a prática pedagógica e o encaminhamento clínico.
         Triagem de Apoio — Não substitui o laudo médico oficial.
-        <br />PIFFER EDUTECH © 2026
+        <br />MAT © 2026
       </p>
     </div>
   );
