@@ -1117,39 +1117,46 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                       setSelectedSubjects={setSelectedSubjects}
                     />
                   ) : (activeMotor === 'simulado') ? (
-                    /* Categorized DNA Cards for Simulado */
-                    <div className="space-y-5">
-                      {activeDnaCategories.map(cat => (
-                        <div key={cat.id}>
-                          <p className={`text-[11px] font-black uppercase tracking-[0.15em] mb-2.5 ${cat.color}`}>{cat.title}</p>
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                            {cat.models.map(model => {
-                              const ModelIcon = model.icon;
-                              const isSelected = examModel === model.value;
-                              return (
-                                <button
-                                  key={model.value}
-                                  onClick={() => setExamModel(model.value)}
-                                  className={`relative min-h-[80px] p-4 rounded-2xl border-2 text-left transition-all duration-200 flex flex-col gap-2 ${
-                                    isSelected
-                                      ? 'bg-indigo-50 border-indigo-600 shadow-md shadow-indigo-500/10'
-                                      : 'bg-slate-50 border-transparent hover:border-slate-200 hover:shadow-sm'
-                                  }`}
-                                >
-                                  {isSelected && (
-                                    <CheckCircle2 className="absolute top-2.5 right-2.5 h-5 w-5 text-indigo-600" />
-                                  )}
-                                  <ModelIcon className={`h-5 w-5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`} />
-                                  <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-indigo-700' : 'text-slate-600'}`}>
-                                    {model.label}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <SimulatorPadraoPanel
+                      examModel={examModel}
+                      setExamModel={setExamModel}
+                      activeDnaCategories={activeDnaCategories}
+                      modelConfig={modelConfig}
+                      selectedFormat={selectedFormat}
+                      setSelectedFormat={setSelectedFormat}
+                      selectedSubjects={selectedSubjects}
+                      setSelectedSubjects={setSelectedSubjects}
+                      showSerieStep={showSerieStep}
+                      activeSerie={activeSerie}
+                      setActiveSerie={setActiveSerie}
+                      setGrade={setGrade}
+                      SERIE_GRADE_MAP={SERIE_GRADE_MAP}
+                      SERIES_CATEGORIAS={SERIES_CATEGORIAS}
+                      SUBJECT_AREAS={SUBJECT_AREAS}
+                      institutionName={institutionName}
+                      setInstitutionName={setInstitutionName}
+                      title={title}
+                      setTitle={setTitle}
+                      specificTopic={specificTopic}
+                      setSpecificTopic={setSpecificTopic}
+                      customMaterial={customMaterial}
+                      setCustomMaterial={setCustomMaterial}
+                      includeImages={includeImages}
+                      setIncludeImages={setIncludeImages}
+                      bloomLevel={bloomLevel}
+                      setBloomLevel={setBloomLevel}
+                      easyCount={easyCount}
+                      setEasyCount={setEasyCount}
+                      mediumCount={mediumCount}
+                      setMediumCount={setMediumCount}
+                      hardCount={hardCount}
+                      setHardCount={setHardCount}
+                      totalQuestions={totalQuestions}
+                      generating={generating}
+                      provaFormat={provaFormat}
+                      isAula={isAula}
+                      generateQuestions={generateQuestions}
+                    />
                   ) : isInclusao ? (
                     /* ══════ AEE: Neo-Brutal Laudo Cards ══════ */
                     <div className="grid grid-cols-2 gap-4">
