@@ -325,7 +325,7 @@ export default function BibliotecaAvaliacoes() {
       ) : folders.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center space-y-4">
-            <p className="text-muted-foreground">Etsimääsi simulaatiota ei löytynyt. Kokeile eri hakusanaa.</p>
+            <p className="text-muted-foreground">Nenhuma avaliação encontrada com estes filtros.</p>
             <Button 
               variant="outline" 
               onClick={() => {
@@ -333,7 +333,7 @@ export default function BibliotecaAvaliacoes() {
                 setSelected(new Set());
               }}
             >
-              Tyhjennä suodattimet
+              Limpar Filtros
             </Button>
           </CardContent>
         </Card>
@@ -414,10 +414,10 @@ export default function BibliotecaAvaliacoes() {
                 className="flex items-center gap-1"
               >
                 <ChevronLeft className="h-4 w-4" />
-                Edellinen
+                Anterior
               </Button>
               <div className="text-sm font-medium">
-                Sivu {page + 1} / {totalPages}
+                Página {page + 1} / {totalPages}
               </div>
               <Button
                 variant="outline"
@@ -426,7 +426,7 @@ export default function BibliotecaAvaliacoes() {
                 disabled={page >= totalPages - 1}
                 className="flex items-center gap-1"
               >
-                Seuraava
+                Próxima
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

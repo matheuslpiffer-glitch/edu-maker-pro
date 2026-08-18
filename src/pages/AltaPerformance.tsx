@@ -1181,16 +1181,16 @@ export default function AltaPerformance() {
 
             {/* Mat Assistant */}
             <div className="mt-6 flex items-start gap-4 rounded-2xl border border-border/50 bg-muted/30 p-4">
-              <img src={matAvatar} alt="Mat - Assistente EduCreator" className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/30 shadow-md flex-shrink-0" />
+              <img src={matAvatar} alt="Mat - Assistente MAT" className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/30 shadow-md flex-shrink-0" />
               <div className="relative bg-card rounded-xl p-3 shadow-sm border border-border/40">
                 <div className="absolute -left-2 top-4 w-3 h-3 bg-card border-l border-b border-border/40 rotate-45" />
-                <p className="text-sm font-bold text-foreground">Mat — Seu Assistente EduCreator</p>
+                <p className="text-sm font-bold text-foreground">Mat — Seu Assistente MAT</p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {disciplina === 'Todos'
                     ? `Para este Simulado Semanal das turmas de ${serie || 'sua série'}, você prefere focar nas competências socioemocionais da BNCC ou quer um reforço nos conteúdos básicos de Português e Matemática? 📅`
                     : 'Oi! Vi que você está preparando uma avaliação. Quer que eu sugira os temas mais cobrados nesta série?'}
                 </p>
-                <p className="text-[10px] text-muted-foreground/60 mt-2 italic">EduCreator Pro | Tecnologia de Elite por Matheus Lima Piffer</p>
+                <p className="text-[10px] text-muted-foreground/60 mt-2 italic">MAT | Tecnologia de Elite por Matheus Lima Piffer</p>
               </div>
             </div>
           </div>

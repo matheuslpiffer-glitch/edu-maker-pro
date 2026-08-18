@@ -21,7 +21,7 @@ const teacherLinks = [
   { to: '/resultados-alunos', icon: BarChart3, label: 'Resultados e Desempenho', section: '📊 Avaliação' },
   { to: '/coordenacao', icon: Trophy, label: '🏆 Painel Coordenação', section: '📊 Avaliação', adminOnly: true },
   { to: '/escuta-ativa', icon: Heart, label: 'Escuta Ativa (CNV)', section: '🤝 Gestão Humanizada', adminOnly: true },
-  { to: '/inclusao', icon: Accessibility, label: 'Inclusão (AEE)', section: '🤝 Gestão Humanizada' },
+  { to: '/inclusao', icon: Accessibility, label: 'MAT', section: '🤝 Gestão Humanizada' },
   { to: '/bussola-vocacional', icon: Compass, label: 'Bússola Vocacional', section: '🤝 Gestão Humanizada', adminOnly: true },
   { to: '/biblioteca-hub', icon: Library, label: '📁 Biblioteca', section: '📁 Biblioteca' },
   { to: '/guia', icon: HelpCircle, label: 'Guia do Sistema', section: '📖 Documentação' },
@@ -126,10 +126,10 @@ export default function AppSidebar({ open, onClose }: Props) {
         {!collapsed && (
           <div className="text-left">
             <h1 className="text-lg font-black tracking-tight text-white leading-none">
-              {isStudentMode ? 'Student Edition' : 'EduCreator Pro'}
+              {isStudentMode ? 'Student Edition' : 'MAT'}
             </h1>
             <p className="text-[7px] font-bold text-slate-500 uppercase tracking-[0.15em] mt-0.5">
-              {isStudentMode ? 'Modo Aluno' : 'PRO SYSTEMS • BY MATHEUS LIMA PIFFER'}
+              {isStudentMode ? 'Modo Aluno' : 'PRO SYSTEMS • BY MAT'}
             </p>
             {!isStudentMode && isSuperAdmin && (
               <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[9px] px-1.5 py-0 w-fit mt-1">Super Admin</Badge>

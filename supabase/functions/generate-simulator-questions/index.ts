@@ -477,7 +477,7 @@ Responda em JSON:
       "content": "<HTML completo da questão com espaçamento, emojis, formatação acessível${isTextOnly ? ' e descrições verbais ricas substituindo qualquer visual' : ' E uma tag <img> do Pollinations'}>",
       "options": [{"letter": "A", "text": "...", "isCorrect": false}, ...],
       ${isTextOnly ? '' : '"imageUrl": "https://image.pollinations.ai/prompt/{descrição-em-inglês}?width=800&height=450&nologo=true",'}
-      "skillCode": "AEE-${(activeDna || '').replace('aee_', '').toUpperCase()}",
+      "skillCode": "MAT-${(activeDna || '').replace('aee_', '').toUpperCase()}",
       "descriptor": "${aeeTopic}"
     }
   ]
@@ -540,7 +540,7 @@ Responda em JSON:
         { role: "user", content: userPromptAEE },
       ], 0.7);
 
-      return await parseAIResponse(response, "conteúdo AEE");
+      return await parseAIResponse(response, "conteúdo MAT");
     }
 
     // ══════ JOGOS / GAME FACTORY MODE ══════
