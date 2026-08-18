@@ -1637,7 +1637,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                   );
                 })()}
 
-                {!isInclusao && <>
+                {!isInclusao && !isVestibularesMode && <>
                 <div className="border-t border-slate-100 pt-4" />
                 <div className="flex flex-col gap-3 sticky bottom-0 bg-white/95 backdrop-blur-sm pb-4 pt-2 -mx-4 px-4 sm:static sm:bg-transparent sm:backdrop-blur-none sm:pb-0 sm:pt-0 sm:mx-0 sm:px-0 z-20">
                   {isFastTrackVestibulinho ? (
