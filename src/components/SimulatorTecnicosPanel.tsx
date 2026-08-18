@@ -193,31 +193,33 @@ const SimulatorTecnicosPanel = ({
       )}
 
       {isSenaiMode && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in duration-200">
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold text-slate-500">Nome da Instituição</Label>
-            <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Instituto Técnico — Unidade" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-slate-500">Nome da Instituição</Label>
+              <Input value={institutionName} onChange={e => setInstitutionName(e.target.value)} placeholder="Instituição Técnico — Unidade" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold text-slate-500">Título do Simulado</Label>
+              <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Avaliação de Desempenho Técnico" className="bg-slate-50 border-slate-200 rounded-[20px]" />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs font-semibold text-slate-500">Título do Simulado</Label>
-            <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Avaliação de Desempenho Técnico — Matriz SP" className="bg-slate-50 border-slate-200 rounded-[20px]" />
-          </div>
-        </div>
-      )}
 
-      {isSenaiMode && (
-        <Button
-          onClick={() => { onGenerate(); if (senaiVestibulinho) startSenaiTimer(); }}
-          disabled={generating}
-          size="lg"
-          className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
-        >
-          {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Wrench className="h-5 w-5 mr-2" />}
-          {generating ? 'GERANDO SIMULADO TÉCNICO...' : senaiVestibulinho ? '⚙️ GERAR VESTIBULINHO TÉCNICO (60Q)' : '⚙️ GERAR SIMULADO PADRÃO INDUSTRIAL'}
-        </Button>
+          <Button
+            onClick={() => { onGenerate(); if (senaiVestibulinho) startSenaiTimer(); }}
+            disabled={generating}
+            size="lg"
+            className="w-full h-14 rounded-2xl text-white text-base font-black tracking-wide shadow-xl transition-all bg-gradient-to-r from-[#0a1f3d] to-[#1a3a6b] hover:from-[#0d2a52] hover:to-[#1f4580] shadow-blue-900/30"
+          >
+            {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <Wrench className="h-5 w-5 mr-2" />}
+            {generating ? 'GERANDO SIMULADO TÉCNICO...' : senaiVestibulinho ? '⚙️ GERAR VESTIBULINHO TÉCNICO (60Q)' : '⚙️ GERAR SIMULADO PADRÃO INDUSTRIAL'}
+          </Button>
+        </>
       )}
     </>
   );
 };
+
+export default SimulatorTecnicosPanel;
 
 export default SimulatorTecnicosPanel;
