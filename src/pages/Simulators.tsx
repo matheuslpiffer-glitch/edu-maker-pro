@@ -101,7 +101,7 @@ const TECNICOS_AREA_SUBJECTS = [
   { id: 'humanas', label: 'Humanas / Atualidades', icon: '🌎' },
 ];
 
-const SENAI_EIXOS = [
+export const SENAI_EIXOS = [
   { id: 'mecanica', label: 'Mecânica Industrial', icon: '⚙️' },
   { id: 'eletrica', label: 'Elétrica / Eletrotécnica', icon: '⚡' },
   { id: 'automacao', label: 'Automação / Mecatrônica', icon: '🤖' },
