@@ -1091,6 +1091,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      resolve_access_code: {
+        Args: { code: string }
+        Returns: {
+          id: string
+          kind: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "super_admin" | "user" | "student"
