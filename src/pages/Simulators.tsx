@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useInclusaoSimuladorState } from '@/hooks/useInclusaoSimuladorState';
+import { useVestibularSimuladorState } from '@/hooks/useVestibularSimuladorState';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
@@ -445,21 +447,34 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
   const [generationMessage, setGenerationMessage] = useState('');
 
   // AEE states
-  const [aeeMode, setAeeMode] = useState<'gerar_novas' | 'adaptar_antigas' | 'texto_resumo'>('gerar_novas');
-  const [aeeQuestionCount, setAeeQuestionCount] = useState(5);
-  const [aeeQuestionType, setAeeQuestionType] = useState('multipla_visual');
-  const [aeeTopic, setAeeTopic] = useState('');
-  const [aeeContent, setAeeContent] = useState('');
+  const {
+    aeeMode,
+    setAeeMode,
+    aeeQuestionCount,
+    setAeeQuestionCount,
+    aeeQuestionType,
+    setAeeQuestionType,
+    aeeTopic,
+    setAeeTopic,
+    aeeContent,
+    setAeeContent,
+  } = useInclusaoSimuladorState();
   const [includeImages, setIncludeImages] = useState(false);
   const [technicalDiscipline, setTechnicalDiscipline] = useState('');
   const [activeEspecialidade, setActiveEspecialidade] = useState('');
   const [activeFormat, setActiveFormat] = useState('completa');
 
   // Vestibulares-specific states
-  const [vestTab, setVestTab] = useState<'publicas' | 'particulares'>('publicas');
-  const [vestInstitution, setVestInstitution] = useState('');
-  const [vestFormatType, setVestFormatType] = useState<'geral' | 'disciplina'>('geral');
-  const [vestDiscipline, setVestDiscipline] = useState('');
+  const {
+    vestTab,
+    setVestTab,
+    vestInstitution,
+    setVestInstitution,
+    vestFormatType,
+    setVestFormatType,
+    vestDiscipline,
+    setVestDiscipline,
+  } = useVestibularSimuladorState();
 
   // Técnicos-specific states
   const [tecnicoInstitution, setTecnicoInstitution] = useState('');
