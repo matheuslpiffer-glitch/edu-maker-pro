@@ -1091,7 +1091,8 @@ Responda APENAS com JSON válido, sem markdown.`;
           "content": "HTML da questão objetiva",
           "options": [{"letter": "A", "text": "...", "isCorrect": false}, ...],
           "skillCode": "...",
-          "descriptor": "..."
+          "descriptor": "...",
+          "explanation": "Resolução comentada da questão objetiva"
         },
         {
           "content": "HTML da questão discursiva",
@@ -1099,7 +1100,8 @@ Responda APENAS com JSON válido, sem markdown.`;
           "skillCode": "...",
           "descriptor": "...",
           "answerLines": 10,
-          "correctionMirror": "..."
+          "correctionMirror": "...",
+          "explanation": "Resolução comentada da questão discursiva"
         }
       ]`;
     } else if (isDiscursiva) {
@@ -1114,7 +1116,8 @@ Responda APENAS com JSON válido, sem markdown.`;
             "skillCode": "...",
             "descriptor": "...",
             "answerLines": 10,
-            "correctionMirror": "..."
+            "correctionMirror": "...",
+            "explanation": "Resolução comentada com passo a passo e critérios de avaliação"
           }
         ]
       }`;
@@ -1134,7 +1137,8 @@ Responda APENAS com JSON válido, sem markdown.`;
               {"letter": "E", "text": "Alternativa E", "isCorrect": false}
             ],
             "skillCode": "...",
-            "descriptor": "..."
+            "descriptor": "...",
+            "explanation": "Justificativa da alternativa correta e explicação de por que as outras estão incorretas"
           }
         ]
       }`;
