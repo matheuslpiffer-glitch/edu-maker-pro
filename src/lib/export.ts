@@ -17,8 +17,6 @@ interface Question {
   options: QuestionOption[];
   answer: string;
   explanation?: string;
-  resolution?: string;
-  commentedResolution?: string;
   correctionMirror?: string;
   topic?: string;
   difficulty?: string;
@@ -59,7 +57,7 @@ export function sanitizeForDocx(text: string): string {
 const clean = sanitizeForDocx;
 
 function getCommentedResolution(q: Question): string {
-  return clean(q.explanation || q.resolution || q.commentedResolution || q.correctionMirror || '');
+  return clean(q.explanation || '');
 }
 
 /**

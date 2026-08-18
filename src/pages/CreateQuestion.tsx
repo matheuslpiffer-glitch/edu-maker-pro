@@ -102,7 +102,7 @@ export default function CreateQuestion() {
           setContent(q.content);
           setOptions(q.options as unknown as QuestionOption[] || []);
           setAnswer(q.answer);
-          setExplanation((q as any).explanation || '');
+          setExplanation(q.explanation || '');
         }
       }
       setLoading(false);
