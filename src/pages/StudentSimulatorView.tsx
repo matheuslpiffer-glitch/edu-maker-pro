@@ -339,7 +339,7 @@ export default function StudentSimulatorView() {
               Iniciar Atividade
             </Button>
 
-            <p className="text-center text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer</p>
+            <p className="text-center text-[10px] text-muted-foreground">EduCreator Pro | Desenvolvido por Matheus Lima Piffer | Suporte: suporte@educreatorpro.com</p>
           </CardContent>
         </Card>
       </div>
