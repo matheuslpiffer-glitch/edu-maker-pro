@@ -174,18 +174,11 @@ export default function PedagogicalEvolution() {
     toast({ title: 'Gerando PDF de Evolução...' });
 
     try {
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 794,
-      });
-
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-      const MARGIN = 15;
-      const imgW = 210 - MARGIN * 2;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      const imgData = canvas.toDataURL('image/png');
-
-      pdf.addImage(imgData, 'PNG', MARGIN, MARGIN, imgW, Math.min(imgH, 297 - MARGIN * 2));
-      pdf.save('evolucao-pedagogica.pdf');
+      await generatePdfFromElement(
+        reportRef.current,
+        'evolucao-pedagogica',
+        { orientation: 'portrait' }
+      );
       toast({ title: 'PDF gerado!' });
     } catch (error) {
       console.error('PDF export error:', error);
