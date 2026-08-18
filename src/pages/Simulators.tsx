@@ -44,7 +44,7 @@ import { getFunctionErrorDetails, isAiCreditsError, isAiRateLimitError, showAiEr
 import { buildBatchPlan, createSimulatorGenerationJob, updateSimulatorGenerationJob } from '@/lib/simulator-generation';
 
 interface SimOption { letter: string; text: string; isCorrect: boolean; }
-interface SimQuestion { content: string; options: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; }
+interface SimQuestion { content: string; options: SimOption[]; skillCode?: string; descriptor?: string; answerLines?: number; correctionMirror?: string; explanation?: string; }
 interface SavedSimulator { id: string; title: string; exam_type: string; subject_area: string; grade: string; questions: SimQuestion[]; created_at: string; }
 
 const EXAM_TYPES = [
@@ -763,6 +763,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
         conteudo: q.content,
         tipo: effectiveDiscursiva ? 'Dissertativa' : 'Múltipla Escolha',
         options: q.options,
+        explanation: q.explanation,
         dataCriacao: new Date().toISOString(),
       })));
       toast({ title: `${allQuestions.length} questões geradas com sucesso!` });
