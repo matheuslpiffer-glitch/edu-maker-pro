@@ -339,19 +339,18 @@ export default function StudentEssayPortal() {
     }
     setCorrecting(true);
     
-    const { data, error } = await supabase.functions.invoke('public-essay', {
-      body: { 
-        action: 'submit', 
-        accessCode: code, 
+    const { data: submitData, error: submitError } = await supabase.functions.invoke('public-essay', {
+      body: {
+        action: 'submit',
+        accessCode: code,
         submissionId: submission.id,
-        essayText: txt, 
-        studentName: studentName.trim(), 
-        studentClass: (studentClass || "").trim() 
-      }
+        essayText: txt,
+        studentName: studentName.trim(),
+        studentClass: studentClass.trim(),
+      },
     });
-
-    if (error || (data && data.error)) {
-      toast({ title: 'Erro ao enviar', description: data?.error || 'Tente novamente.', variant: 'destructive' });
+    if (submitError || !submitData || submitData.error) {
+      toast({ title: 'Erro ao enviar', description: submitData?.error || 'Tente novamente.', variant: 'destructive' });
       setCorrecting(false);
       return;
     }
