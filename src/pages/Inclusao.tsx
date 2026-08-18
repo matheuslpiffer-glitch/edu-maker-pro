@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { sanitizeHtml } from '@/lib/sanitize-html';
 import { showAiErrorToast } from '@/lib/ai-utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
