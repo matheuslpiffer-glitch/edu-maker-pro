@@ -226,7 +226,7 @@ export function buildMatDocument(markdown: string, opts: MatDocumentOptions = {}
   const {
     title = 'EduCreator Pro',
     subtitle = 'Material Pedagógico Gerado pelo Assistente Mat',
-    footer = 'Desenvolvido por Matheus Lima Piffer',
+    footer = 'Desenvolvido por Matheus Lima Piffer | Suporte: suporte@educreatorpro.com',
   } = opts;
 
   const el = document.createElement('div');
