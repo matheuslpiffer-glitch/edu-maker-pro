@@ -225,7 +225,7 @@ const MOTOR_CATEGORIES = [
   },
   {
     id: 'inclusao',
-    label: 'Estúdio de Inclusão AEE',
+    label: 'MAT',
     description: 'Gere questões adaptadas, traduza provas e crie roteiros visuais para educação inclusiva.',
     icon: Accessibility,
     flow: 'inclusao' as const,
