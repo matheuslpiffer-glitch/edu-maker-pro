@@ -221,5 +221,3 @@ const SimulatorTecnicosPanel = ({
 };
 
 export default SimulatorTecnicosPanel;
-
-export default SimulatorTecnicosPanel;
