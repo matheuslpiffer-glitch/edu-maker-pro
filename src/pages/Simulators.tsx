@@ -10,6 +10,7 @@ import SimulatorInclusaoPanel from '@/components/SimulatorInclusaoPanel';
 import SimulatorTecnicosPanel from '@/components/SimulatorTecnicosPanel';
 import SimulatorVestibularesPanel from '@/components/SimulatorVestibularesPanel';
 import SimulatorObmepPanel from '@/components/SimulatorObmepPanel';
+import SimulatorPadraoPanel from '@/components/SimulatorPadraoPanel';
 import { SERIES_CATEGORIAS, SERIE_GRADE_MAP } from '@/lib/series-data';
 import { supabase } from '@/integrations/supabase/client';
 import GeneratingOverlay from '@/components/GeneratingOverlay';
