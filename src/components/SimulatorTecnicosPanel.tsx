@@ -9,8 +9,8 @@ import { SENAI_EIXOS } from '@/pages/Simulators';
 interface SimulatorTecnicosPanelProps {
   tecnicoInstitution: string;
   setTecnicoInstitution: (id: string) => void;
-  tecnicoMode: string;
-  setTecnicoMode: (mode: string) => void;
+  tecnicoMode: '' | 'completo' | 'por_area';
+  setTecnicoMode: (mode: '' | 'completo' | 'por_area') => void;
   isSenaiMode: boolean;
   senaiEixo: string;
   setSenaiEixo: (eixo: string) => void;
