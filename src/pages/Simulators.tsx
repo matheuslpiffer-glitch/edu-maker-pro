@@ -1496,7 +1496,7 @@ export default function Simulators({ mode }: SimulatorsProps = {}) {
                 })()}
 
                 {/* ══════ PASSO FINAL: Configurações Finais ══════ */}
-                {!isInclusao && !isTecnicosMode && (() => {
+                {!isInclusao && !isTecnicosMode && !isVestibularesMode && (() => {
                   let finalStep = 2;
                   if (modelConfig) finalStep++;
                   if (showSerieStep) finalStep++;
