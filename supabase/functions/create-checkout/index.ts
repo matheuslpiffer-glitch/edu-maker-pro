@@ -85,10 +85,30 @@ Deno.serve(async (req) => {
       productDescription = product.name;
     }
 
+    // PIX (Brazilian instant payment) alongside card. Recurring checkouts use
+    // a PIX mandate bound to the price's amount/interval; one-off checkouts
+    // expire the PIX code after 1 hour. Card flow is unchanged.
+    const pixPaymentMethodOptions = isRecurring
+      ? {
+          pix: {
+            mandate_options: {
+              amount: stripePrice.unit_amount,
+              payment_schedule: "recurring",
+              interval: stripePrice.recurring?.interval ?? "month",
+              reference: userId ?? customerId ?? "assinatura",
+            },
+          },
+        }
+      : {
+          pix: { expires_after_seconds: 3600 },
+        };
+
     const session = await stripe.checkout.sessions.create({
       line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
       mode: isRecurring ? "subscription" : "payment",
       ui_mode: "embedded_page",
+      payment_method_types: ["card", "pix"],
+      payment_method_options: pixPaymentMethodOptions,
       return_url: returnUrl,
       ...(customerId && { customer: customerId }),
       ...(!isRecurring && { payment_intent_data: { description: productDescription } }),
