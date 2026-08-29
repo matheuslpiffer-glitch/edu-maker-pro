@@ -85,10 +85,37 @@ Deno.serve(async (req) => {
       productDescription = product.name;
     }
 
-    const session = await stripe.checkout.sessions.create({
+    // PIX (Brazilian instant payment) alongside card. Recurring checkouts use
+    // a PIX mandate bound to the price's amount/schedule; one-off checkouts
+    // expire the PIX code after 1 hour. Card flow is unchanged.
+    //
+    // Stripe's PIX mandate_options accepts: amount, amount_type,
+    // payment_schedule (monthly|yearly|weekly|quarterly|halfyearly) and
+    // reference — there is no `interval` field, and payment_schedule is NOT
+    // "recurring". We map the price's recurring interval to the matching enum.
+    const pixSchedule: Record<string, string> = {
+      month: "monthly",
+      year: "yearly",
+      week: "weekly",
+      day: "monthly",
+    };
+    const pixPaymentMethodOptions = isRecurring
+      ? {
+          pix: {
+            mandate_options: {
+              amount: stripePrice.unit_amount,
+              payment_schedule: pixSchedule[stripePrice.recurring?.interval ?? "month"] ?? "monthly",
+            },
+          },
+        }
+      : {
+          pix: { expires_after_seconds: 3600 },
+        };
+
+    const baseSession = {
       line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
-      mode: isRecurring ? "subscription" : "payment",
-      ui_mode: "embedded_page",
+      mode: (isRecurring ? "subscription" : "payment") as "subscription" | "payment",
+      ui_mode: "embedded_page" as const,
       return_url: returnUrl,
       ...(customerId && { customer: customerId }),
       ...(!isRecurring && { payment_intent_data: { description: productDescription } }),
@@ -96,7 +123,29 @@ Deno.serve(async (req) => {
         metadata: { userId },
         ...(isRecurring && { subscription_data: { metadata: { userId } } }),
       }),
-    });
+    };
+
+    // Try with PIX (card + pix). If PIX isn't activated on the Stripe account,
+    // fall back to card-only so the existing card flow never breaks. The
+    // fallback only triggers on PIX-availability errors, not on real failures.
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        ...baseSession,
+        payment_method_types: ["card", "pix"],
+        payment_method_options: pixPaymentMethodOptions,
+      });
+    } catch (pixErr) {
+      const msg = (pixErr as Error).message || "";
+      const isPixUnavailable = /pix/i.test(msg)
+        && /invalid|not.*(activ|enabl)|payment method type|not.*supported/i.test(msg);
+      if (!isPixUnavailable) throw pixErr;
+      console.warn("PIX unavailable on this Stripe account, retrying card-only:", msg);
+      session = await stripe.checkout.sessions.create({
+        ...baseSession,
+        payment_method_types: ["card"],
+      });
+    }
 
     return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       status: 200,
