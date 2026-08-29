@@ -112,12 +112,10 @@ Deno.serve(async (req) => {
           pix: { expires_after_seconds: 3600 },
         };
 
-    const session = await stripe.checkout.sessions.create({
+    const baseSession = {
       line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
-      mode: isRecurring ? "subscription" : "payment",
-      ui_mode: "embedded_page",
-      payment_method_types: ["card", "pix"],
-      payment_method_options: pixPaymentMethodOptions,
+      mode: isRecurring ? "subscription" : "payment" as const,
+      ui_mode: "embedded_page" as const,
       return_url: returnUrl,
       ...(customerId && { customer: customerId }),
       ...(!isRecurring && { payment_intent_data: { description: productDescription } }),
@@ -125,7 +123,29 @@ Deno.serve(async (req) => {
         metadata: { userId },
         ...(isRecurring && { subscription_data: { metadata: { userId } } }),
       }),
-    });
+    };
+
+    // Try with PIX (card + pix). If PIX isn't activated on the Stripe account,
+    // fall back to card-only so the existing card flow never breaks. The
+    // fallback only triggers on PIX-availability errors, not on real failures.
+    let session;
+    try {
+      session = await stripe.checkout.sessions.create({
+        ...baseSession,
+        payment_method_types: ["card", "pix"],
+        payment_method_options: pixPaymentMethodOptions,
+      });
+    } catch (pixErr) {
+      const msg = (pixErr as Error).message || "";
+      const isPixUnavailable = /pix/i.test(msg)
+        && /invalid|not.*(activ|enabl)|payment method type|not.*supported/i.test(msg);
+      if (!isPixUnavailable) throw pixErr;
+      console.warn("PIX unavailable on this Stripe account, retrying card-only:", msg);
+      session = await stripe.checkout.sessions.create({
+        ...baseSession,
+        payment_method_types: ["card"],
+      });
+    }
 
     return new Response(JSON.stringify({ clientSecret: session.client_secret }), {
       status: 200,
