@@ -86,15 +86,26 @@ Deno.serve(async (req) => {
     }
 
     // PIX (Brazilian instant payment) alongside card. Recurring checkouts use
-    // a PIX mandate bound to the price's amount/interval; one-off checkouts
+    // a PIX mandate bound to the price's amount/schedule; one-off checkouts
     // expire the PIX code after 1 hour. Card flow is unchanged.
+    //
+    // Stripe's PIX mandate_options accepts: amount, amount_type,
+    // payment_schedule (monthly|yearly|weekly|quarterly|halfyearly) and
+    // reference — there is no `interval` field, and payment_schedule is NOT
+    // "recurring". We map the price's recurring interval to the matching enum.
+    const pixSchedule: Record<string, string> = {
+      month: "monthly",
+      year: "yearly",
+      week: "weekly",
+      day: "monthly",
+    };
     const pixPaymentMethodOptions = isRecurring
       ? {
           pix: {
             mandate_options: {
               amount: stripePrice.unit_amount,
-              payment_schedule: "recurring",
-              interval: stripePrice.recurring?.interval ?? "month",
+              amount_type: "fixed",
+              payment_schedule: pixSchedule[stripePrice.recurring?.interval ?? "month"] ?? "monthly",
               reference: userId ?? customerId ?? "assinatura",
             },
           },
