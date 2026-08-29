@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
 
     const baseSession = {
       line_items: [{ price: stripePrice.id, quantity: quantity || 1 }],
-      mode: isRecurring ? "subscription" : "payment" as const,
+      mode: (isRecurring ? "subscription" : "payment") as "subscription" | "payment",
       ui_mode: "embedded_page" as const,
       return_url: returnUrl,
       ...(customerId && { customer: customerId }),
