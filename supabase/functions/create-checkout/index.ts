@@ -104,7 +104,6 @@ Deno.serve(async (req) => {
           pix: {
             mandate_options: {
               amount: stripePrice.unit_amount,
-              amount_type: "fixed",
               payment_schedule: pixSchedule[stripePrice.recurring?.interval ?? "month"] ?? "monthly",
               reference: userId ?? customerId ?? "assinatura",
             },
