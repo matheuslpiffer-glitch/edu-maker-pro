@@ -197,7 +197,7 @@ export default function LandingProfessor() {
                   </div>
                   <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">Popular</span>
                 </div>
-                <div className="text-3xl font-bold">R$ 14,90<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
+                <div className="text-3xl font-bold">R$ 29,90<span className="text-sm font-normal text-muted-foreground">/mês</span></div>
                 <ul className="space-y-2 text-sm">
                   {proPerks.map(p => (
                     <li key={p} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />{p}</li>
