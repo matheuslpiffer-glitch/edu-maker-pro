@@ -67,6 +67,8 @@ export default function AdvancedSettings() {
         <Badge className="bg-amber-500 text-white hover:bg-amber-600">Super Admin</Badge>
       </div>
 
+      <CreateUserAccessCard onCreated={fetchUsers} />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
