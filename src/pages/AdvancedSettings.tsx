@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRole } from '@/hooks/useRole';
 import { Shield, AlertTriangle, Users, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
+import CreateUserAccessCard from '@/components/admin/CreateUserAccessCard';
 
 interface UserInfo {
   id: string;
@@ -21,30 +22,30 @@ export default function AdvancedSettings() {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  useEffect(() => {
+  const fetchUsers = useCallback(async () => {
     if (!isSuperAdmin) return;
     setLoadingUsers(true);
 
-    const fetchUsers = async () => {
-      const [profilesRes, rolesRes] = await Promise.all([
-        supabase.from('profiles').select('id, email, display_name, avatar_url, created_at'),
-        supabase.from('user_roles').select('user_id, role'),
-      ]);
+    const [profilesRes, rolesRes] = await Promise.all([
+      supabase.from('profiles').select('id, email, display_name, avatar_url, created_at'),
+      supabase.from('user_roles').select('user_id, role'),
+    ]);
 
-      const rolesMap = new Map<string, string>();
-      (rolesRes.data || []).forEach((r: any) => rolesMap.set(r.user_id, r.role));
+    const rolesMap = new Map<string, string>();
+    (rolesRes.data || []).forEach((r: any) => rolesMap.set(r.user_id, r.role));
 
-      const merged = (profilesRes.data || []).map((p: any) => ({
-        ...p,
-        role: rolesMap.get(p.id) || 'user',
-      }));
+    const merged = (profilesRes.data || []).map((p: any) => ({
+      ...p,
+      role: rolesMap.get(p.id) || 'user',
+    }));
 
-      setUsers(merged);
-      setLoadingUsers(false);
-    };
-
-    fetchUsers();
+    setUsers(merged);
+    setLoadingUsers(false);
   }, [isSuperAdmin]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   if (loading) return null;
 
@@ -65,6 +66,8 @@ export default function AdvancedSettings() {
         <h1 className="text-2xl font-bold">Painel Super ADM</h1>
         <Badge className="bg-amber-500 text-white hover:bg-amber-600">Super Admin</Badge>
       </div>
+
+      <CreateUserAccessCard onCreated={fetchUsers} />
 
       <Card>
         <CardHeader>
