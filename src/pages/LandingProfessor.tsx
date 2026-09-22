@@ -213,7 +213,7 @@ export default function LandingProfessor() {
                   <p className="text-sm text-muted-foreground">Melhor custo-benefício</p>
                 </div>
                 <div className="text-3xl font-bold">R$ 358,80<span className="text-sm font-normal text-muted-foreground">/ano</span></div>
-                <p className="text-xs text-muted-foreground">Equivale a R$ 29,90/mês — economize com pagamento anual.</p>
+                <p className="text-xs text-muted-foreground">Equivale a R$ 29,90/mês — pague uma vez por ano e evite cobranças mensais.</p>
                 <ul className="space-y-2 text-sm">
                   {proPerks.map(p => (
                     <li key={p} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />{p}</li>
