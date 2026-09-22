@@ -22,30 +22,30 @@ export default function AdvancedSettings() {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
 
-  useEffect(() => {
+  const fetchUsers = useCallback(async () => {
     if (!isSuperAdmin) return;
     setLoadingUsers(true);
 
-    const fetchUsers = async () => {
-      const [profilesRes, rolesRes] = await Promise.all([
-        supabase.from('profiles').select('id, email, display_name, avatar_url, created_at'),
-        supabase.from('user_roles').select('user_id, role'),
-      ]);
+    const [profilesRes, rolesRes] = await Promise.all([
+      supabase.from('profiles').select('id, email, display_name, avatar_url, created_at'),
+      supabase.from('user_roles').select('user_id, role'),
+    ]);
 
-      const rolesMap = new Map<string, string>();
-      (rolesRes.data || []).forEach((r: any) => rolesMap.set(r.user_id, r.role));
+    const rolesMap = new Map<string, string>();
+    (rolesRes.data || []).forEach((r: any) => rolesMap.set(r.user_id, r.role));
 
-      const merged = (profilesRes.data || []).map((p: any) => ({
-        ...p,
-        role: rolesMap.get(p.id) || 'user',
-      }));
+    const merged = (profilesRes.data || []).map((p: any) => ({
+      ...p,
+      role: rolesMap.get(p.id) || 'user',
+    }));
 
-      setUsers(merged);
-      setLoadingUsers(false);
-    };
-
-    fetchUsers();
+    setUsers(merged);
+    setLoadingUsers(false);
   }, [isSuperAdmin]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   if (loading) return null;
 
