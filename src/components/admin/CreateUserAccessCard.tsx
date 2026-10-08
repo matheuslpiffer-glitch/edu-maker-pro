@@ -6,7 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+
+async function extractErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const payload = await error.context.json();
+      if (typeof payload?.error === 'string' && payload.error) return payload.error;
+      if (typeof payload?.message === 'string' && payload.message) return payload.message;
+    } catch {
+      // fall through to generic message
+    }
+  }
+  return 'Não foi possível criar o acesso.';
+}
 
 function randomPassword() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
@@ -51,9 +65,13 @@ export default function CreateUserAccessCard({ onCreated }: Props) {
         },
       });
 
+      if (error) {
+        toast.error(await extractErrorMessage(error));
+        return;
+      }
       const message = (data as any)?.error;
-      if (error || message) {
-        toast.error(message || 'Não foi possível criar o acesso.');
+      if (message) {
+        toast.error(message);
         return;
       }
 
