@@ -65,9 +65,13 @@ export default function CreateUserAccessCard({ onCreated }: Props) {
         },
       });
 
+      if (error) {
+        toast.error(await extractErrorMessage(error));
+        return;
+      }
       const message = (data as any)?.error;
-      if (error || message) {
-        toast.error(message || 'Não foi possível criar o acesso.');
+      if (message) {
+        toast.error(message);
         return;
       }
 
