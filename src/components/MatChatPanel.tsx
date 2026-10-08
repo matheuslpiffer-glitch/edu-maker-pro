@@ -425,6 +425,7 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
       <ChatInput
         ref={chatInputRef}
         onSendMessage={handleSendMessage}
+        onFileProcess={handleFileProcess}
         disabled={isLoading}
         onOptimizePrompt={optimizePrompt}
         fullPage={fullPage}
