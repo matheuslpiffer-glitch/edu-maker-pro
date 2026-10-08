@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, forwardRef } from 'react';
 import { FileDown, Loader2, Volume2, Square, Copy, Check, FileSpreadsheet, Presentation } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { latexToUnicode } from '@/lib/latex-to-unicode';
 import defaultAvatar from '@/assets/mat-avatar-3d.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
