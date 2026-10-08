@@ -252,20 +252,64 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
       } else if (imageFile) {
         image = await readAsDataUrl(imageFile);
       }
-      const { data, error } = await supabase.functions.invoke('mat-chat', {
-        body: { 
-          messages: [...messages, apiMsg],
-          action: payload.action,
-          image,
-        }
+      const { data: { session } } = await supabase.auth.getSession();
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mat-chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ messages: [...messages, apiMsg], action: payload.action, image }),
       });
 
-      if (error) throw error;
-      
-      const assistantMsg: Msg = { role: 'assistant', content: typeof data === 'string' ? data : data.content };
-      setMessages(prev => [...prev, assistantMsg]);
+      if (!resp.ok || !resp.body) {
+        let msg = 'Não foi possível obter resposta do Mat.';
+        try { const j = await resp.json(); if (j?.error) msg = j.error; } catch { /* ignore */ }
+        throw new Error(msg);
+      }
+
+      // Lê a resposta em fluxo (SSE) e vai exibindo o texto
+      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let full = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+        for (const line of lines) {
+          const t = line.trim();
+          if (!t.startsWith('data:')) continue;
+          const d = t.slice(5).trim();
+          if (d === '[DONE]') continue;
+          try {
+            const delta = JSON.parse(d)?.choices?.[0]?.delta?.content;
+            if (typeof delta === 'string' && delta) {
+              full += delta;
+              const snapshot = full;
+              setMessages(prev => {
+                const copy = [...prev];
+                copy[copy.length - 1] = { role: 'assistant', content: snapshot };
+                return copy;
+              });
+            }
+          } catch { /* linha parcial */ }
+        }
+      }
+      if (!full) {
+        setMessages(prev => {
+          const copy = [...prev];
+          copy[copy.length - 1] = { role: 'assistant', content: 'Não consegui gerar uma resposta. Tente novamente.' };
+          return copy;
+        });
+      }
     } catch (err) {
       console.error("Chat error:", err);
+      toast.error(err instanceof Error ? err.message : 'Erro ao falar com o Mat.');
     } finally {
       setIsLoading(false);
     }
