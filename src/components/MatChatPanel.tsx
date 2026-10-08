@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, forwardRef } from 'react';
 import { FileDown, Loader2, Volume2, Square, Copy, Check, FileSpreadsheet, Presentation } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { latexToUnicode } from '@/lib/latex-to-unicode';
 import defaultAvatar from '@/assets/mat-avatar-3d.png';
 import { useMatAvatar } from '@/hooks/useMatAvatar';
@@ -17,6 +18,14 @@ import { buildMatDocument } from '@/lib/mat-pdf-document';
 import { type PdfMargins } from '@/lib/pdf-margins';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
+
+const readAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
 
 /** Margens A4 do documento exportado pelo Mat (mm). */
 const MAT_PDF_MARGINS: PdfMargins = { top: 15, right: 15, bottom: 15, left: 15 };
@@ -76,6 +85,7 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
   } = useChat();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingDoc, setPendingDoc] = useState<{ name: string; text?: string; dataUrl?: string } | null>(null);
   const [speakingMsgIndex, setSpeakingMsgIndex] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [videoStatus, setVideoStatus] = useState<Record<number, { 
@@ -193,18 +203,60 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
     }
   }, []);
 
+  const handleFileProcess = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Envie até 5 MB.');
+      return;
+    }
+    const name = file.name.toLowerCase();
+    try {
+      if (name.endsWith('.pdf')) {
+        setPendingDoc({ name: file.name, dataUrl: await readAsDataUrl(file) });
+      } else if (name.endsWith('.docx')) {
+        const mod: any = await import('mammoth/mammoth.browser');
+        const mammoth = mod.default ?? mod;
+        const { value } = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+        if (!value?.trim()) throw new Error('vazio');
+        setPendingDoc({ name: file.name, text: value });
+      } else if (name.endsWith('.txt') || name.endsWith('.csv')) {
+        setPendingDoc({ name: file.name, text: await file.text() });
+      } else {
+        toast.error('Formato não suportado. Use PDF, DOCX, TXT ou CSV (salve planilhas Excel como CSV).');
+        return;
+      }
+      toast.success(`"${file.name}" anexado. Agora escreva o que deseja criar com base nele.`);
+    } catch {
+      toast.error('Não foi possível ler este arquivo. Tente outro formato.');
+    }
+  };
+
   const handleSendMessage = async (payload: ChatInputPayload) => {
-    if (!payload.text.trim() && !payload.action) return;
-    
-    const userMsg: Msg = { role: 'user', content: payload.text || (MAT_ACTIONS.find(a => a.id === payload.action)?.label || '') };
+    const doc = pendingDoc;
+    const imageFile = payload.files?.find((f) => f.type.startsWith('image/'));
+    if (!payload.text.trim() && !payload.action && !doc && !imageFile) return;
+
+    const baseText = payload.text || (MAT_ACTIONS.find(a => a.id === payload.action)?.label || '') || 'Analise o material anexado.';
+    const userMsg: Msg = { role: 'user', content: doc ? `📎 ${doc.name}\n\n${baseText}` : imageFile ? `🖼️ ${imageFile.name}\n\n${baseText}` : baseText };
     setMessages(prev => [...prev, userMsg]);
+    setPendingDoc(null);
     setIsLoading(true);
 
     try {
+      let image: string | undefined;
+      let apiMsg: Msg = userMsg;
+      if (doc?.text) {
+        apiMsg = { role: 'user', content: `${baseText}\n\nUse como base o conteúdo do documento "${doc.name}":\n"""\n${doc.text.slice(0, 40000)}\n"""` };
+      } else if (doc?.dataUrl) {
+        image = doc.dataUrl;
+        apiMsg = { role: 'user', content: `${baseText}\n\n(Use como base o documento PDF anexado: ${doc.name})` };
+      } else if (imageFile) {
+        image = await readAsDataUrl(imageFile);
+      }
       const { data, error } = await supabase.functions.invoke('mat-chat', {
         body: { 
-          messages: [...messages, userMsg],
-          action: payload.action
+          messages: [...messages, apiMsg],
+          action: payload.action,
+          image,
         }
       });
 
@@ -374,6 +426,7 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
       <ChatInput
         ref={chatInputRef}
         onSendMessage={handleSendMessage}
+        onFileProcess={handleFileProcess}
         disabled={isLoading}
         onOptimizePrompt={optimizePrompt}
         fullPage={fullPage}
