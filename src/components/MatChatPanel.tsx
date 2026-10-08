@@ -272,7 +272,7 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
       >
         <div className={cn(fullPage ? 'mx-auto w-full max-w-3xl space-y-8' : 'space-y-8')}>
           {messages.map((msg, i) => {
-            const overlayTextMatch = msg.content.match(/📝 \*\*Legenda \/ Texto da Tela:\*\* (.*?)(\n|$)/);
+            const overlayTextMatch = String(msg?.content ?? '').match(/📝 \*\*Legenda \/ Texto da Tela:\*\* (.*?)(\n|$)/);
             const overlayText = overlayTextMatch ? overlayTextMatch[1] : '';
 
             return (
