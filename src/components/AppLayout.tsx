@@ -19,7 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const handleExitPreview = () => {
     setStudentMode(false);
-    navigate('/dashboard-professor');
+    navigate('/');
   };
 
   return (
