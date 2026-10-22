@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792668961189,
+      "tag": "0000_mat_memory_and_documents",
+      "breakpoints": true
+    }
+  ]
+}

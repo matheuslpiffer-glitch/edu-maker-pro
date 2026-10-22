@@ -7,6 +7,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday, subDays, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Download, WifiOff } from 'lucide-react';
+import { toast } from 'sonner';
+import MatMemoryDialog from '@/components/MatMemoryDialog';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { cacheSessions, readCachedSessions, removeCachedSession } from '@/lib/mat-offline';
 
 interface ChatSession {
   id: string;
@@ -23,6 +28,9 @@ export default function MatChat() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [memoryOpen, setMemoryOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
+  const { canInstall, isInstalled, install } = usePWAInstall();
 
   // Sync session ID with URL
   useEffect(() => {
@@ -39,6 +47,7 @@ export default function MatChat() {
   }, []);
 
   const loadSessions = async () => {
+    if (!navigator.onLine) { setSessions(readCachedSessions()); return; }
     const { data, error } = await supabase
       .from('chat_sessions')
       .select('id, title, created_at')
@@ -46,14 +55,36 @@ export default function MatChat() {
     
     if (error) {
       console.error('Error loading sessions:', error);
+      setSessions(readCachedSessions());
       return;
     }
     setSessions(data || []);
+    cacheSessions(data || []);
   };
 
   useEffect(() => {
     loadSessions();
+    const update = () => { setIsOnline(navigator.onLine); loadSessions(); };
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); };
   }, []);
+
+  // App próprio do Mat: troca o manifesto enquanto esta tela está aberta
+  useEffect(() => {
+    const link = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    const original = link?.getAttribute('href') ?? '/manifest.json';
+    link?.setAttribute('href', '/mat-manifest.json');
+    return () => { link?.setAttribute('href', original); };
+  }, []);
+
+  const handleInstall = async () => {
+    if (canInstall) { await install(); return; }
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    toast.info(isIOS
+      ? 'No iPhone: toque em Compartilhar e depois em "Adicionar à Tela de Início".'
+      : 'Abra o menu do navegador (⋮) e escolha "Instalar app" ou "Adicionar à tela inicial".');
+  };
 
   const deleteSession = async (id: string) => {
     const { error } = await supabase
@@ -66,6 +97,7 @@ export default function MatChat() {
       return;
     }
     
+    removeCachedSession(id);
     if (id === currentSessionId) {
       setCurrentSessionId(null);
       setResetKey(k => k + 1);
@@ -136,14 +168,7 @@ export default function MatChat() {
           </button>
 
           <button
-            onClick={() => {
-              const chatPanel = document.querySelector('[data-chat-panel]');
-              if (chatPanel) {
-                // We'll need to expose loadMemory through a custom event or shared state
-                const event = new CustomEvent('openMemory');
-                chatPanel.dispatchEvent(event);
-              }
-            }}
+            onClick={() => setMemoryOpen(true)}
             className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-blue-50 border border-blue-100 rounded-lg text-sm font-bold text-blue-700 hover:bg-blue-100 transition-all shadow-sm mb-6"
           >
             <Brain className="h-4 w-4" />
@@ -229,6 +254,16 @@ export default function MatChat() {
                 </p>
               </div>
             </div>
+            <div className="flex items-center gap-1">
+            {!isInstalled && (
+              <button
+                onClick={handleInstall}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors text-xs font-semibold"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Instalar o Mat
+              </button>
+            )}
             <button
               onClick={startNewConversation}
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors text-xs font-semibold"
@@ -236,6 +271,7 @@ export default function MatChat() {
               <RotateCcw className="h-3.5 w-3.5" />
               Nova conversa
             </button>
+            </div>
           </div>
           
           {/* Context Selectors & AutoPlay Toggle */}
@@ -288,6 +324,12 @@ export default function MatChat() {
               </div>
             </button>
           </div>
+          {!isOnline && (
+            <div className="flex items-center gap-2 px-4 sm:px-8 py-2 bg-amber-50 text-amber-800 text-xs font-medium border-t border-amber-100">
+              <WifiOff className="h-3.5 w-3.5" />
+              Sem internet: você pode ler as conversas salvas. Para criar algo novo, conecte-se.
+            </div>
+          )}
         </header>
 
         <MatChatPanel 
@@ -301,6 +343,7 @@ export default function MatChat() {
           }}
         />
       </div>
+      <MatMemoryDialog open={memoryOpen} onOpenChange={setMemoryOpen} />
     </div>
   );
 }

@@ -478,6 +478,30 @@ export type Database = {
         }
         Relationships: []
       }
+      mat_documents: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       materials_drafts: {
         Row: {
           content: Json
@@ -1041,6 +1065,30 @@ export type Database = {
           stripe_customer_id?: string
           stripe_subscription_id?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_pedagogical_memory: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          memory_fact: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          memory_fact: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          memory_fact?: string
           user_id?: string
         }
         Relationships: []
