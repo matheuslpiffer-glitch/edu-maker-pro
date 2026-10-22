@@ -38,7 +38,7 @@ export default function SignAttendance() {
 
     // Realtime subscription
     const channel = supabase
-      .channel(`sign-${id}`)
+      .channel(`sign-${id}-${crypto.randomUUID()}`)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
