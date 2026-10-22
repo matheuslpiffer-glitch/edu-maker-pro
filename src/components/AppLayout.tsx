@@ -56,10 +56,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <SaveStatusIndicator />
         </div>
         <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto min-h-[60vh]">{children}</main>
-        <footer className="text-center py-3 border-t no-print space-y-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Piffer EduTech</p>
+        <footer className="text-center py-3 border-t no-print space-y-1">
+          <img src={brandLogo.url} alt="Piffer EduTech" width={803} height={213} loading="lazy" className="h-6 w-auto mx-auto opacity-80" />
           <p className="text-[9px] text-muted-foreground/60">© 2026 EduCreator Pro — Inovação & Estratégia Pedagógica por Matheus Lima Piffer</p>
         </footer>
+        <img src={brandLogo.url} alt="" aria-hidden="true" className="hidden print:block fixed bottom-1 right-2 h-[4mm] w-auto" />
       </div>
     </div>
   );
