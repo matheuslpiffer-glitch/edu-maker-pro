@@ -37,7 +37,7 @@ export default function AttendancePanel({ meetingId, topic, onBack }: Props) {
     loadOrCreate();
     // Realtime subscription
     const channel = supabase
-      .channel(`attendance-${meetingId}`)
+      .channel(`attendance-${meetingId}-${crypto.randomUUID()}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',

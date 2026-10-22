@@ -33,7 +33,7 @@ export function useCredits() {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel('profile-credits-' + user.id)
+      .channel(`profile-credits-${user.id}-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` }, (payload: any) => {
         if (payload.new) {
           setCredits(payload.new.credits ?? 0);
