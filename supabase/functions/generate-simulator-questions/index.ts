@@ -1,3 +1,4 @@
+import { enforceAeeRules } from "./aee-validate.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
@@ -352,7 +353,7 @@ serve(async (req) => {
         aee_dm: `Combine múltiplas adaptações: linguagem simples, passos numerados, emojis como apoio visual, frases curtas (máximo 1 linha), alternativas reduzidas (3 opções) e descrição verbal completa de qualquer contexto visual.`,
         aee_tod: `Use linguagem POSITIVA e motivacional. Evite ordens diretas; prefira convites ("Vamos descobrir juntos?"). Ofereça escolhas ao aluno quando possível. Quebre tarefas grandes em micro-etapas com recompensa visual (⭐) a cada conclusão. Tom acolhedor e sem julgamento.`,
         aee_auditiva: `Priorize instruções VISUAIS e ESCRITAS claras. Use frases curtas na ordem direta. Destaque palavras-chave em <strong>negrito</strong>. Evite trocadilhos ou jogos de palavras sonoros. Cada instrução deve ser auto-explicativa sem depender de explicação oral.`,
-        aee_dislexia: `Use fonte ACESSÍVEL (estilo sans-serif, equivalente a OpenDyslexic/Arial) com ESPAÇAMENTO AMPLIADO entre linhas (line-height ~1.8) e entre palavras (word-spacing aumentado). Frases CURTAS (máximo 12 palavras) e divididas em BLOCOS PEQUENOS de 1 a 2 linhas, com bastante espaço em branco entre eles. DESTAQUE visualmente sílabas tônicas e palavras-chave em <strong>negrito</strong> (ex.: "<strong>fo-tos-sín-te-se</strong>"). EVITE textos longos corridos, justificação e itálico. Prefira alinhamento à ESQUERDA. Cada enunciado deve ser autoexplicativo e segmentado visualmente.`,
+        aee_dislexia: `Use fonte ACESSÍVEL (estilo sans-serif, equivalente a OpenDyslexic/Arial) com ESPAÇAMENTO AMPLIADO entre linhas (line-height ~1.8) e entre palavras (word-spacing aumentado). Frases CURTAS (máximo 12 palavras) e divididas em BLOCOS PEQUENOS de 1 a 2 linhas, com bastante espaço em branco entre eles. DESTAQUE apenas as palavras-chave em <strong>negrito</strong> (ex.: "<strong>fotossíntese</strong>"), SEM separar palavras em sílabas e SEM hifenizar — a palavra deve aparecer inteira. EVITE textos longos corridos, justificação e itálico. Prefira alinhamento à ESQUERDA. Cada enunciado deve ser autoexplicativo e segmentado visualmente.`,
         aee_baixa_visao: `Use FONTE AMPLIADA (equivalente a 18–24pt) e ALTO CONTRASTE (texto escuro em fundo claro ou vice-versa). Forneça DESCRIÇÕES TEXTUAIS DETALHADAS (audiodescrição) de qualquer imagem, gráfico ou elemento visual citado. NUNCA dependa apenas de cor para transmitir informação (ex.: "o item em vermelho" → "o item destacado em vermelho e marcado com ★"). Instruções VERBAIS CLARAS, diretas e objetivas. Espaçamento ampliado entre linhas e blocos. Alinhamento à ESQUERDA, sem itálico e sem efeitos visuais sutis.`,
         aee_surdez: `Priorize RECURSOS VISUAIS e IMAGENS: sugira pictogramas/emojis ao lado das palavras-chave (ex.: "água 💧", "planta 🌱"). Use linguagem DIRETA e OBJETIVA na estrutura SUJEITO–VERBO–OBJETO (ex.: "A planta absorve a água."). EVITE qualquer dependência de áudio, música, rima ou sonoridade. Use vocabulário CONCRETO e cotidiano, sem metáforas, expressões idiomáticas ou duplo sentido. DESTAQUE verbos de comando em <strong>negrito</strong> (ex.: "<strong>MARQUE</strong>", "<strong>ESCREVA</strong>"). Cada instrução deve ser compreensível apenas pela leitura visual, com apoio de ícones nas palavras-chave.`,
         aee_altas_habilidades: `ENRIQUEÇA as questões com APROFUNDAMENTO conceitual e DESAFIOS EXTRAS de raciocínio (itens "Desafio +" ao final de cada questão). Eleve a COMPLEXIDADE mantendo o rigor científico/conceitual: use níveis altos da taxonomia de Bloom (analisar, avaliar, criar). Inclua CONEXÕES INTERDISCIPLINARES explícitas (ex.: relacionar o tema com matemática, história, arte ou tecnologia). Proponha INVESTIGAÇÕES abertas ao final ("Pesquise...", "Elabore uma hipótese...", "Justifique com pelo menos dois argumentos."). Evite simplificações; ofereça alternativas plausíveis e sofisticadas, exigindo análise fina.`,
@@ -367,7 +368,7 @@ serve(async (req) => {
         aee_tea: 'TEA (Transtorno do Espectro Autista)',
         aee_tdah: 'TDAH (Transtorno de Déficit de Atenção e Hiperatividade)',
         aee_intelectual: 'Deficiência Intelectual (DI)',
-        aee_visual: 'Deficiência Visual / Dislexia',
+        aee_visual: 'Deficiência Visual',
         aee_dm: 'Deficiência Múltipla (DM)',
         aee_tod: 'TOD (Transtorno Opositivo Desafiador)',
         aee_auditiva: 'Deficiência Auditiva',
@@ -401,9 +402,7 @@ serve(async (req) => {
   1. DESCRIÇÕES VERBAIS RICAS: Em vez de mostrar uma forma geométrica, descreva-a com analogia concreta (ex: "um triângulo é como um pedaço de pizza" ou "um círculo é como uma roda de bicicleta 🚲").
   2. CONTEXTUALIZAÇÃO SIMPLES: Sempre relacione o problema com algo do dia a dia do aluno.
   3. PALAVRAS-CHAVE EM NEGRITO: Use <strong> nos termos centrais para ajudar na focalização.\n`
-        : `\nREGRA DE IMAGENS: Para CADA questão, inclua no campo "imageUrl" uma URL no formato: https://image.pollinations.ai/prompt/{descrição-curta-em-inglês-do-conceito}?width=800&height=450&nologo=true
-A descrição deve ser clara, educativa e relacionada ao tema da questão.
-Além disso, dentro do campo "content" (HTML), inclua a tag: <img src="URL_POLLINATIONS" class="w-full h-auto rounded-3xl" />\n`;
+        : `\nREGRA DE IMAGENS: NÃO inclua tags <img> nem URLs de imagem. Para CADA questão, preencha o campo "imagePrompt" com uma descrição curta em português de uma ilustração educativa simples que apoie a compreensão (ex.: "pizza dividida em 4 fatias iguais, 1 fatia destacada"). O professor gera a imagem a partir dessa descrição.\n`;
 
        const gradeLabel: Record<string, string> = {
          fundamental_1: 'Ensino Fundamental I (1º ao 5º ano)',
@@ -476,7 +475,8 @@ Responda em JSON:
     {
       "content": "<HTML completo da questão com espaçamento, emojis, formatação acessível${isTextOnly ? ' e descrições verbais ricas substituindo qualquer visual' : ' E uma tag <img> do Pollinations'}>",
       "options": [{"letter": "A", "text": "...", "isCorrect": false}, ...],
-      ${isTextOnly ? '' : '"imageUrl": "https://image.pollinations.ai/prompt/{descrição-em-inglês}?width=800&height=450&nologo=true",'}
+      ${isTextOnly ? '' : '"imagePrompt": "descrição em português da ilustração de apoio",'}
+      "adaptationNote": "Nota ao professor (2-3 frases): quais adaptações foram aplicadas nesta questão e por que ajudam este perfil",
       "skillCode": "MAT-${(activeDna || '').replace('aee_', '').toUpperCase()}",
       "descriptor": "${aeeTopic}"
     }
@@ -505,6 +505,7 @@ Responda em JSON:
     {
       "content": "<HTML completo adaptado>",
       "options": [{"letter": "A", "text": "...", "isCorrect": false}, ...],
+      "adaptationNote": "Nota ao professor (2-3 frases): o que foi adaptado em relação ao original e por quê",
       "skillCode": "AEE-ADAPT",
       "descriptor": "${aeeTopic}"
     }
@@ -528,6 +529,7 @@ Responda em JSON:
     {
       "content": "<HTML completo do roteiro visual>",
       "options": [],
+      "adaptationNote": "Nota ao professor (2-3 frases): estratégias de acessibilidade usadas no roteiro",
       "skillCode": "AEE-ROTEIRO",
       "descriptor": "${aeeTopic}"
     }
@@ -540,7 +542,11 @@ Responda em JSON:
         { role: "user", content: userPromptAEE },
       ], 0.7);
 
-      return await parseAIResponse(response, "conteúdo MAT");
+      const aeeRes = await parseAIResponse(response, "conteúdo MAT");
+      if (!aeeRes.ok) return aeeRes;
+      const aeeJson = await aeeRes.json();
+      if (Array.isArray(aeeJson?.questions)) aeeJson.questions = enforceAeeRules(aeeJson.questions, profileKeys);
+      return new Response(JSON.stringify(aeeJson), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // ══════ JOGOS / GAME FACTORY MODE ══════
