@@ -14,3 +14,6 @@ Antes de executar qualquer tarefa, leia os arquivos em `skills/` e siga as regra
 
 ## AEE adaptation
 - AEE output from generate-simulator-questions passes through aee-validate.ts (option limits per profile, one correct answer, no external image URLs); images come from imagePrompt via generate-illustration. Why: prompts alone do not guarantee profile rules.
+
+## PDF export
+- Every html2pdf call imports @/lib/html2pdf-safe (never html2pdf.js directly); it forces width containment and page-break avoid rules. Why: raw output clipped right margin and split lines across pages.
