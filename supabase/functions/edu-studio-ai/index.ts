@@ -192,7 +192,7 @@ Formato:
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
         body: JSON.stringify({
-          model: "gemini-2.5-flash",
+          model: "gemini-3-flash-preview",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.7,
         }),

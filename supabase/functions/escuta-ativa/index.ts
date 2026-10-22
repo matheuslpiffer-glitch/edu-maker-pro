@@ -64,7 +64,7 @@ Série/contexto: ${grade || "Não especificada"}.`;
         method: "POST",
         headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "gemini-2.5-flash",
+          model: "gemini-3-flash-preview",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: context },

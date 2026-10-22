@@ -91,7 +91,7 @@ VALIDAÇÃO FINAL: confirme que NENHUM "$", "\\(", "\\[", "\\frac" ou tag de for
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt + latexRule },
           { role: "user", content: userPrompt },

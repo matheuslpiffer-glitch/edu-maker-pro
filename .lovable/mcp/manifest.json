@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "sdk_version": "0.20.0",
+  "sdk_version": "3.2.0",
   "path": "/functions/v1/mcp",
   "auth": {
     "type": "oauth",
@@ -26,7 +26,7 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
           "type": "object",
           "properties": {
             "limit": {
@@ -36,7 +36,8 @@
               "minimum": 1,
               "maximum": 50
             }
-          }
+          },
+          "additionalProperties": false
         },
         "outputSchema": null
       },
@@ -50,7 +51,7 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
           "type": "object",
           "properties": {
             "limit": {
@@ -60,7 +61,8 @@
               "minimum": 1,
               "maximum": 50
             }
-          }
+          },
+          "additionalProperties": false
         },
         "outputSchema": null
       },
@@ -74,7 +76,7 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
           "type": "object",
           "properties": {
             "limit": {
@@ -84,7 +86,8 @@
               "minimum": 1,
               "maximum": 100
             }
-          }
+          },
+          "additionalProperties": false
         },
         "outputSchema": null
       }

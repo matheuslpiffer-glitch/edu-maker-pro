@@ -64,7 +64,7 @@ serve(async (req) => {
 
     // ========== PHASE 1: Faithful Transcription ==========
     const phase1Response = await callGemini({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         messages: [
           {
             role: "system",
@@ -123,7 +123,7 @@ Responda APENAS com JSON válido (sem markdown):
 
     // ========== PHASE 2: Pedagogical Correction ==========
     const phase2Response = await callGemini({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         messages: [
           {
             role: "system",
