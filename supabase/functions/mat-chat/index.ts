@@ -101,11 +101,54 @@ Gere o documento rigorosamente na seguinte estrutura e ordem:
    - Apresente o gabarito obrigatoriamente no formato de TABELA MARKDOWN com 3 colunas:
      | Nº | Resposta / Solução | Explicação Sintética / Passo a Passo |`;
 
+async function learnFromTurn(o: {
+  supabase: any; userId: string; apiKey: string; userText: string; prevAnswer: string;
+  existing: string[]; saveDocument: { name: string; text?: string; isPdf?: boolean } | null; pdfDataUrl?: string;
+}) {
+  const wantsDoc = !!o.saveDocument;
+  if (!o.userText.trim() && !wantsDoc) return;
+  const instructions = `Você analisa a mensagem de um professor para um assistente pedagógico e extrai APENAS fatos duradouros e úteis no futuro.
+Categorias:
+- "estilo": séries, disciplinas, metodologia, formato e tom preferidos.
+- "turma": informações sobre turmas e alunos (dificuldades, resultados, perfil). Nunca guarde nomes de alunos; use "[Aluno A]".
+- "correcao": quando o professor corrige ou ajusta a resposta anterior do assistente, registre a regra a seguir na próxima vez.
+Não repita fatos já conhecidos: ${JSON.stringify(o.existing.slice(0, 40))}
+Se não houver nada novo, devolva lista vazia. Cada fato com no máximo 160 caracteres, em português.
+${wantsDoc ? 'Também gere "document_text": um resumo fiel e detalhado do documento anexado (até 6000 caracteres), preservando conteúdos, conceitos e exemplos para uso futuro.' : ''}
+Responda só JSON: {"facts":[{"category":"estilo|turma|correcao","fact":"..."}]${wantsDoc ? ',"document_text":"..."' : ''}}`;
+  const content: any[] = [{ type: 'text', text: `RESPOSTA ANTERIOR DO ASSISTENTE:\n${o.prevAnswer.slice(0, 2000)}\n\nMENSAGEM DO PROFESSOR:\n${o.userText.slice(0, 8000)}` }];
+  if (o.pdfDataUrl) content.push({ type: 'image_url', image_url: { url: o.pdfDataUrl } });
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${o.apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'gemini-3.1-flash-lite-preview',
+      messages: [{ role: 'system', content: instructions }, { role: 'user', content }],
+      response_format: { type: 'json_object' },
+    }),
+  });
+  if (!r.ok) { console.error('learn ai', r.status, await r.text()); return; }
+  const j = await r.json();
+  let parsed: any = {};
+  try { parsed = JSON.parse(String(j?.choices?.[0]?.message?.content ?? '{}').replace(/```json|```/g, '')); } catch { return; }
+  const allowed = new Set(['estilo', 'turma', 'correcao']);
+  const known = new Set(o.existing.map(s => s.toLowerCase().trim()));
+  const facts = (Array.isArray(parsed.facts) ? parsed.facts : [])
+    .filter((f: any) => f && allowed.has(f.category) && typeof f.fact === 'string' && f.fact.trim() && !known.has(f.fact.toLowerCase().trim()))
+    .slice(0, 5)
+    .map((f: any) => ({ user_id: o.userId, category: f.category, memory_fact: f.fact.trim().slice(0, 300) }));
+  if (facts.length) await o.supabase.from('user_pedagogical_memory').insert(facts);
+  if (o.saveDocument) {
+    const text = o.saveDocument.text?.trim() || (typeof parsed.document_text === 'string' ? parsed.document_text : '');
+    if (text) await o.supabase.from('mat_documents').insert({ user_id: o.userId, name: o.saveDocument.name.slice(0, 200), content: text.slice(0, 60000) });
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, image } = await req.json();
+    const { messages, image, documentIds, saveDocument } = await req.json();
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
@@ -137,20 +180,36 @@ serve(async (req) => {
       }
     }
 
-    // Fetch user pedagogical memory
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    // Memória do professor (estilo, turmas, correções)
     const { data: memoryData } = await supabase
       .from('user_pedagogical_memory')
-      .select('memory_fact')
+      .select('category, memory_fact')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    
-    const pedagogicalContext = memoryData && memoryData.length > 0
-      ? `\n\nCONTEXTO DO EDUCADOR (MEMÓRIA): \n${memoryData.map(m => `- ${m.memory_fact}`).join('\n')}\nUtilize este contexto para personalizar suas respostas.`
-      : "";
+      .order('created_at', { ascending: false })
+      .limit(60);
+    const labels: Record<string, string> = { estilo: 'JEITO DE ENSINAR', turma: 'TURMAS', correcao: 'CORREÇÕES QUE O PROFESSOR JÁ FEZ (NÃO REPITA ESSES ERROS)' };
+    let pedagogicalContext = "";
+    if (memoryData && memoryData.length) {
+      const groups: Record<string, string[]> = {};
+      for (const m of memoryData) (groups[m.category] ??= []).push(`- ${m.memory_fact}`);
+      pedagogicalContext = "\n\nCONTEXTO DO EDUCADOR (MEMÓRIA APRENDIDA):\n" +
+        Object.entries(groups).map(([k, v]) => `${labels[k] ?? k.toUpperCase()}:\n${v.join('\n')}`).join('\n') +
+        "\nUse este contexto para personalizar as respostas sem citá-lo explicitamente.";
+    }
+
+    // Documentos guardados escolhidos pelo professor
+    const ids = Array.isArray(documentIds) ? documentIds.filter((x: unknown) => typeof x === 'string').slice(0, 5) : [];
+    if (ids.length) {
+      const { data: docs } = await supabase.from('mat_documents').select('name, content').eq('user_id', userId).in('id', ids);
+      if (docs?.length) {
+        pedagogicalContext += "\n\nDOCUMENTOS DE BASE DO PROFESSOR:\n" + docs.map(d => `### ${d.name}\n"""\n${String(d.content).slice(0, 30000)}\n"""`).join('\n');
+      }
+    }
 
     const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
@@ -188,6 +247,20 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Aprendizado em segundo plano (não atrasa a resposta)
+    const lastUser = [...messages].reverse().find((m: any) => m?.role === 'user');
+    const prevAssistant = [...messages].reverse().find((m: any) => m?.role === 'assistant');
+    const learnTask = learnFromTurn({
+      supabase, userId, apiKey: GEMINI_API_KEY,
+      userText: typeof lastUser?.content === 'string' ? lastUser.content : '',
+      prevAnswer: typeof prevAssistant?.content === 'string' ? prevAssistant.content : '',
+      existing: (memoryData ?? []).map(m => m.memory_fact),
+      saveDocument: saveDocument && typeof saveDocument.name === 'string' ? saveDocument : null,
+      pdfDataUrl: saveDocument?.isPdf ? image : undefined,
+    }).catch(e => console.error('learn error', e));
+    // @ts-ignore EdgeRuntime existe no ambiente
+    if (typeof EdgeRuntime !== 'undefined') EdgeRuntime.waitUntil(learnTask);
 
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
