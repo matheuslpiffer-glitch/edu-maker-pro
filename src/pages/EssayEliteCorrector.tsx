@@ -12,7 +12,7 @@ import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle,
 import { useToast } from '@/hooks/use-toast';
 import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
 import DocumentScanner from '@/components/DocumentScanner';
 import {
@@ -450,7 +450,7 @@ export async function generateElitePDF(
     y += gapLines.length * 4 + 4;
 
     // Activities table
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y,
       head: [['#', 'Atividade', 'Descrição', 'Duração']],
       body: plan.activities.map((a, i) => [`${i + 1}`, a.title, a.description, a.duration]),
