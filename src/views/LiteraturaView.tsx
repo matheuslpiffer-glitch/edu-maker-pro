@@ -147,7 +147,7 @@ export default function LiteraturaView() {
     if (!container) return;
     toast({ title: 'Gerando PDF...' });
     try {
-      const html2pdf = (await import('html2pdf.js')).default;
+      const html2pdf = (await import('@/lib/html2pdf-safe')).default;
       await html2pdf().set({
         margin: [20, 20, 20, 20] as [number, number, number, number],
         filename: `${title || 'dossie-literario'}.pdf`,

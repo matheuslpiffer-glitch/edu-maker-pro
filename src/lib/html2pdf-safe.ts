@@ -46,27 +46,23 @@ export function withSafePagebreak(opts: any = {}): any {
   return { ...opts, pagebreak: { ...pb, mode: mode.filter((m: string) => m !== 'avoid-all').concat([]), avoid } };
 }
 
-export default function html2pdf(): any {
-  const worker = html2pdfLib();
-  let cleanup: (() => void) | null = null;
-  const origSet = worker.set.bind(worker);
-  const origFrom = worker.from.bind(worker);
-  worker.set = (opts: any) => { origSet(withSafePagebreak(opts)); return worker; };
-  worker.from = (src: any, type?: string) => {
-    if (src instanceof HTMLElement) cleanup = applyPdfSafety(src);
-    origFrom(src, type);
-    return worker;
+let patched = false;
+function patchWorker() {
+  if (patched) return;
+  const W: any = (html2pdfLib as any).Worker;
+  if (!W?.prototype) return;
+  patched = true;
+  const origSet = W.prototype.set;
+  const origFrom = W.prototype.from;
+  W.prototype.set = function (opts: any) { return origSet.call(this, withSafePagebreak(opts)); };
+  W.prototype.from = function (src: any, type?: string) {
+    if (src instanceof HTMLElement) applyPdfSafety(src);
+    return origFrom.call(this, src, type);
   };
-  // Garante pagebreak seguro mesmo sem .set()
-  origSet(withSafePagebreak({}));
-  for (const k of ['save', 'outputPdf', 'output', 'toPdf']) {
-    const orig = worker[k]?.bind(worker);
-    if (!orig) continue;
-    worker[k] = (...args: any[]) => {
-      const p = orig(...args);
-      Promise.resolve(p).finally(() => { cleanup?.(); cleanup = null; });
-      return p;
-    };
-  }
-  return worker;
+}
+
+/** Mesmo uso do html2pdf.js: html2pdf().set(opts).from(el).save() */
+export default function html2pdf(): any {
+  patchWorker();
+  return (html2pdfLib as any)().set({});
 }

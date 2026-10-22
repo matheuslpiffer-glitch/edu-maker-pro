@@ -969,7 +969,7 @@ export default function Inclusao() {
       const noPrintEls = el.querySelectorAll('.no-print');
       noPrintEls.forEach(e => (e as HTMLElement).style.display = 'none');
 
-      const html2pdf = (await import('html2pdf.js')).default;
+      const html2pdf = (await import('@/lib/html2pdf-safe')).default;
       const opts: any = {
         margin: [15, 15, 15, 15],
         filename: `AEE_${topic || 'atividade'}.pdf`,

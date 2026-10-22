@@ -422,7 +422,7 @@ function TeacherPanel() {
   const printAuditPdf = async (sub: Submission) => {
     setPrintingPdf(true);
     try {
-      const { default: html2pdf } = await import('html2pdf.js');
+      const { default: html2pdf } = await import('@/lib/html2pdf-safe');
       const container = document.createElement('div');
       container.style.width = '794px';
       container.style.padding = '30px';

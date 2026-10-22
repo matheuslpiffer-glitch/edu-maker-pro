@@ -611,7 +611,7 @@ export default function AltaPerformance() {
   };
 
   const exportPDF = async () => {
-    const html2pdf = (await import('html2pdf.js')).default;
+    const html2pdf = (await import('@/lib/html2pdf-safe')).default;
     const container = document.createElement('div');
     container.style.cssText = 'font-family:Inter,Arial,sans-serif;padding:0;max-width:800px;margin:auto;word-wrap:break-word;overflow-wrap:break-word;';
 
