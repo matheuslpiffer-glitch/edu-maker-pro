@@ -43,7 +43,7 @@ export function withSafePagebreak(opts: any = {}): any {
   const pb = opts.pagebreak || {};
   const mode = Array.isArray(pb.mode) ? pb.mode : pb.mode ? [pb.mode] : ['css', 'legacy'];
   const avoid = Array.from(new Set([...(Array.isArray(pb.avoid) ? pb.avoid : pb.avoid ? [pb.avoid] : []), ...PDF_AVOID_SELECTORS]));
-  return { ...opts, pagebreak: { ...pb, mode: mode.filter((m: string) => m !== 'avoid-all').concat([]), avoid } };
+  return { ...opts, pagebreak: { ...pb, mode, avoid } };
 }
 
 let patched = false;
