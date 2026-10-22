@@ -253,6 +253,16 @@ export default function MatChat() {
                 </p>
               </div>
             </div>
+            <div className="flex items-center gap-1">
+            {!isInstalled && (
+              <button
+                onClick={handleInstall}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors text-xs font-semibold"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Instalar o Mat
+              </button>
+            )}
             <button
               onClick={startNewConversation}
               className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors text-xs font-semibold"
@@ -312,6 +322,12 @@ export default function MatChat() {
               </div>
             </button>
           </div>
+          {!isOnline && (
+            <div className="flex items-center gap-2 px-4 sm:px-8 py-2 bg-amber-50 text-amber-800 text-xs font-medium border-t border-amber-100">
+              <WifiOff className="h-3.5 w-3.5" />
+              Sem internet: você pode ler as conversas salvas. Para criar algo novo, conecte-se.
+            </div>
+          )}
         </header>
 
         <MatChatPanel 
@@ -325,6 +341,7 @@ export default function MatChat() {
           }}
         />
       </div>
+      <MatMemoryDialog open={memoryOpen} onOpenChange={setMemoryOpen} />
     </div>
   );
 }
