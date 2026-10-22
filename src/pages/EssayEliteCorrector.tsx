@@ -162,7 +162,7 @@ function ScoreBar({ item }: { item: ScoreItem }) {
   );
 }
 
-async function generateElitePDF(
+export async function generateElitePDF(
   result: EliteResult,
   plan: InterventionPlan | null,
   studentName: string,
@@ -441,7 +441,7 @@ async function generateElitePDF(
     // Gap
     doc.setFontSize(9);
     doc.setTextColor(180, 40, 40);
-    doc.text(`Maior Lacuna: ${plan.biggest_gap}`, ML, y);
+    doc.text(doc.splitTextToSize(`Maior Lacuna: ${plan.biggest_gap}`, CW)[0], ML, y);
     y += 5;
     doc.setFontSize(8.5);
     doc.setTextColor(60, 60, 60);
