@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => ({
       injectRegister: null,
       devOptions: { enabled: false },
       filename: "sw.js",
-      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png", "mat-manifest.json"],
+      includeAssets: ["favicon.png", "apple-touch-icon.png", "pwa-maskable-512x512.png", "pwa-192x192.png", "pwa-512x512.png", "mat-manifest.json"],
       manifest: false,
       workbox: {
         globPatterns: ["**/*.{js,css,ico,png,svg,woff2}"],
