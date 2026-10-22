@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { sanitizeHtml } from '@/lib/sanitize-html';
+import { sanitizeHtml, sanitizeHtmlWithSvg } from '@/lib/sanitize-html';
 import { showAiErrorToast } from '@/lib/ai-utils';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -1452,6 +1452,7 @@ export default function Inclusao() {
                           <SelectItem value="multipla_visual">Múltipla Escolha Visual</SelectItem>
                           <SelectItem value="verdadeiro_falso">Verdadeiro ou Falso</SelectItem>
                           <SelectItem value="perguntas_diretas">Perguntas Diretas</SelectItem>
+                          <SelectItem value="desenhos">Adaptação por Desenhos (pintar, circular, marcar X)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1583,8 +1584,11 @@ export default function Inclusao() {
                 <div
                   className="prose prose-sm sm:prose-base max-w-none break-words leading-relaxed"
                   style={{ fontSize: '1.1rem', lineHeight: '1.85', fontFamily: 'Inter, system-ui, sans-serif' }}
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.content || '') }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtmlWithSvg(q.content || '') }}
                 />
+                {q.answer && (!q.options || q.options.length === 0) && (
+                  <p className="text-sm text-muted-foreground print:hidden"><strong>Gabarito:</strong> {q.answer}</p>
+                )}
                 {q.options && q.options.length > 0 && (
                   <div className="space-y-3 mt-4">
                     {q.options.map((opt: any, j: number) => (
