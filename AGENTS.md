@@ -7,3 +7,7 @@ Antes de executar qualquer tarefa, leia os arquivos em `skills/` e siga as regra
 
 ## Elite correction
 - Keep structured-response handling local to the Elite function, validate complete results and retry malformed or token-limited output once without another credit debit. Why: partial AI output must not become a fabricated transcription or score.
+
+## Mat learning & install
+- mat-chat extracts durable teacher facts (estilo/turma/correcao) and saves uploaded documents in a background step after streaming; the client persists turns to chat_sessions/chat_messages and mirrors them in localStorage for offline reading. Why: learning must never slow or break the streamed answer.
+- The service worker registers only through src/lib/register-sw.ts (guarded, NetworkFirst navigations); /mat-chat swaps to its own manifest so the Mat installs as a separate app. Why: preview safety and a standalone Mat app.
