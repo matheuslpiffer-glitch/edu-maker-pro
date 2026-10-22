@@ -14,3 +14,9 @@ export function sanitizeHtml(input: string | null | undefined): string {
     .trim();
   return DOMPurify.sanitize(cleaned, { USE_PROFILES: { html: true } });
 }
+/** Same as sanitizeHtml but keeps inline SVG drawings (used by AEE "Adaptação por Desenhos"). */
+export function sanitizeHtmlWithSvg(input: string | null | undefined): string {
+  if (!input) return '';
+  const cleaned = String(input).replace(/```html\s*/gi, '').replace(/```\s*/g, '').trim();
+  return DOMPurify.sanitize(cleaned, { USE_PROFILES: { html: true, svg: true } });
+}

@@ -421,7 +421,20 @@ serve(async (req) => {
         verdadeiro_falso: 'Verdadeiro ou Falso (afirmações claras com V ou F)',
         ligar_colunas: 'Ligar Colunas (Coluna A com conceitos e Coluna B com definições/imagens, usando linhas para conexão)',
         perguntas_diretas: 'Perguntas Diretas (pergunta simples com espaço para resposta curta)',
+        desenhos: 'Adaptação por Desenhos (o aluno responde pintando, circulando ou marcando X em desenhos simples)',
       };
+      const isDesenhos = aeeQuestionType === 'desenhos';
+      const desenhosInstruction = isDesenhos ? `
+MODO ADAPTAÇÃO POR DESENHOS (prioridade máxima sobre as demais regras visuais):
+- Cada questão é UMA ação concreta, com no máximo 2 frases curtas: "Pinte 1 pedaço.", "Faça um círculo no número certo.", "Marque um X na pizza que tem 1 pedaço pintado."
+- Verbos de comando permitidos: PINTE, FAÇA UM CÍRCULO, MARQUE UM X, LIGUE, CONTE. Destaque números e palavras-chave em <strong>.
+- Progressão do mais simples ao mais difícil: inteiro → metade → contar partes → identificar parte pintada → escolher entre desenhos.
+- Use objetos do cotidiano: pizza, chocolate em barra, maçã, bolinhas, quadradinhos.
+- DESENHE dentro do "content" com SVG inline simples (sem <img>, sem URLs, sem scripts): <svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">...</svg>, usando apenas circle, rect, path, line, polygon, text. Contorno preto (stroke="#000" stroke-width="3"), partes vazias fill="#fff", partes já pintadas fill="#f59e0b". Pizza = círculo dividido com linhas/paths em fatias iguais; chocolate = retângulos lado a lado.
+- Para "marque um X" ou "faça um círculo", desenhe as opções lado a lado, cada uma com "( )" ou o número abaixo, dentro de um <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">.
+- Deixe espaço amplo; nada de texto longo.
+- "options": [] (a resposta é feita no desenho). Preencha "answer" com o gabarito curto (ex.: "Pintar 1 dos 2 pedaços (metade)").
+` : '';
 
        let systemPromptAEE = `Atue como um especialista em Desenho Universal para a Aprendizagem (DUA). Gere as questões para a disciplina de ${subject || 'Geral'} focada em alunos do ${gradeLabel[serie] || serie || 'Ensino Básico'}.
  
@@ -437,6 +450,7 @@ DIRETRIZES OBRIGATÓRIAS DO PERFIL:
 ${diretriz}
 ${imageInstruction}
  ${complexityInstruction}
+${desenhosInstruction}
  
  REGRA DE OURO INEGOCIÁVEL: Independente do nível de complexidade, a adaptação AEE deve ocorrer EXCLUSIVAMENTE na acessibilidade do formato: use frases curtas, ordem direta, elimine duplas negações, evite pegadinhas, estruture visualmente o texto com clareza e sugira o uso de imagens de apoio visual. O formato deve ser acessível, mas a expectativa de aprendizagem deve respeitar a série e a complexidade solicitadas.
  
@@ -475,7 +489,8 @@ Responda em JSON:
     {
       "content": "<HTML completo da questão com espaçamento, emojis, formatação acessível${isTextOnly ? ' e descrições verbais ricas substituindo qualquer visual' : ' E uma tag <img> do Pollinations'}>",
       "options": [{"letter": "A", "text": "...", "isCorrect": false}, ...],
-      ${isTextOnly ? '' : '"imagePrompt": "descrição em português da ilustração de apoio",'}
+      ${isTextOnly || isDesenhos ? '' : '"imagePrompt": "descrição em português da ilustração de apoio",'}
+      ${isDesenhos ? '"answer": "gabarito curto",' : ''}
       "adaptationNote": "Nota ao professor (2-3 frases): quais adaptações foram aplicadas nesta questão e por que ajudam este perfil",
       "skillCode": "MAT-${(activeDna || '').replace('aee_', '').toUpperCase()}",
       "descriptor": "${aeeTopic}"
