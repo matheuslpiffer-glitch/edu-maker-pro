@@ -39,8 +39,8 @@ export default function Index() {
       icon: ScanLine,
       label: 'Redação Elite',
       desc: 'Escaneie, corrija e gere relatórios de redação com inteligência artificial de elite.',
-      gradient: 'from-violet-600 via-purple-600 to-indigo-700',
-      shadow: 'shadow-purple-500/30',
+      gradient: 'from-[hsl(222,61%,18%)] via-[hsl(210,80%,30%)] to-[hsl(191,90%,38%)]',
+      shadow: 'shadow-cyan-600/30',
       span: 'sm:col-span-2',
       iconSize: 44,
       hero: true,
@@ -61,8 +61,8 @@ export default function Index() {
       icon: ClipboardList,
       label: 'Simuladores Elite',
       desc: 'Simulados completos para todos os anos e disciplinas, com folha de respostas e gabarito.',
-      gradient: 'from-emerald-500 to-teal-600',
-      shadow: 'shadow-emerald-500/20',
+      gradient: 'from-[hsl(191,90%,38%)] to-[hsl(210,90%,45%)]',
+      shadow: 'shadow-sky-500/20',
       span: '',
       iconSize: 28,
       hero: false,
@@ -83,8 +83,8 @@ export default function Index() {
       icon: Library,
       label: 'Minha Biblioteca',
       desc: 'Tudo o que você criou em um só lugar: provas, questões, redações e materiais.',
-      gradient: 'from-blue-600 to-indigo-600',
-      shadow: 'shadow-blue-500/20',
+      gradient: 'from-[hsl(222,61%,22%)] to-[hsl(222,61%,38%)]',
+      shadow: 'shadow-blue-900/20',
       span: '',
       iconSize: 28,
       hero: false,
@@ -92,16 +92,16 @@ export default function Index() {
   ];
 
   const statCards = [
-    { id: 'questions', label: 'Questões', value: stats?.questions || 0, icon: BookOpen, gradient: 'from-indigo-500 to-blue-600' },
-    { id: 'assessments', label: 'Provas', value: stats?.assessments || 0, icon: FileText, gradient: 'from-violet-500 to-purple-600' },
-    { id: 'subjects', label: 'Disciplinas', value: stats?.subjects || 0, icon: Layers, gradient: 'from-cyan-500 to-blue-600' },
+    { id: 'questions', label: 'Questões', value: stats?.questions || 0, icon: BookOpen, gradient: 'from-[hsl(191,90%,38%)] to-[hsl(210,90%,45%)]' },
+    { id: 'assessments', label: 'Provas', value: stats?.assessments || 0, icon: FileText, gradient: 'from-[hsl(32,88%,53%)] to-[hsl(24,90%,48%)]' },
+    { id: 'subjects', label: 'Disciplinas', value: stats?.subjects || 0, icon: Layers, gradient: 'from-[hsl(222,61%,25%)] to-[hsl(210,80%,35%)]' },
   ];
 
   return (
     <div className="relative max-w-6xl mx-auto min-h-screen -m-4 md:-m-6 lg:-m-8 p-6 md:p-8 lg:p-10 overflow-hidden">
       {/* Background Orbs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-[120px]" />
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[120px]" />
         <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full bg-cyan-500/8 blur-[120px]" />
       </div>
 
@@ -110,9 +110,9 @@ export default function Index() {
       <div className="relative z-10">
         {/* Hero Banner */}
         <div className="bg-[#0F172A] rounded-[3rem] p-8 sm:p-10 mb-8 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/15 to-cyan-600/10 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-600/15 to-[hsl(32,88%,53%)]/10 pointer-events-none" />
           <div className="relative z-10">
-            <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px] uppercase tracking-widest font-bold mb-4">
+            <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 text-[10px] uppercase tracking-widest font-bold mb-4">
               Piffer EduTech — EduCreator Pro 2026
             </Badge>
             <h1 className="text-2xl sm:text-3xl font-black text-white leading-tight">
@@ -180,7 +180,7 @@ export default function Index() {
             Desenvolvido por <span className="text-slate-600">Matheus Lima Piffer</span>
           </p>
           <p className="text-[9px] text-slate-300">© 2026 Piffer EduTech — Inovação & Estratégia Pedagógica</p>
-          <p className="text-[9px] text-indigo-400/60 font-medium">Suporte: suporte@educreatorpro.com</p>
+          <p className="text-[9px] text-cyan-600/60 font-medium">Suporte: suporte@educreatorpro.com</p>
         </div>
       </div>
     </div>
