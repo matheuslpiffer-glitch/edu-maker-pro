@@ -17,3 +17,4 @@ Antes de executar qualquer tarefa, leia os arquivos em `skills/` e siga as regra
 
 ## PDF export
 - Every html2pdf call imports @/lib/html2pdf-safe (never html2pdf.js directly); it forces width containment and page-break avoid rules. Why: raw output clipped right margin and split lines across pages.
+- Every PDF gets the company logo in the footer via a global jsPDF addPage event in src/lib/pdf-brand-footer.ts (registered in main.tsx). Why: one place covers all current and future exports.
