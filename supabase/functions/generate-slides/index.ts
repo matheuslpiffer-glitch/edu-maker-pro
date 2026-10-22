@@ -86,7 +86,7 @@ Sequência: 1) Capa, 2) Objetivo, 3) Contextualização, 4-${count - 3}) Desenvo
           method: "POST",
           headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "gemini-2.5-flash",
+            model: "gemini-3-flash-preview",
             messages: [
               { role: "system", content: systemPrompt },
               { role: "user", content: userPrompt },
@@ -181,7 +181,7 @@ Os bullet points devem ser concisos e claros. As speaker_notes devem ser orienta
         method: "POST",
         headers: { Authorization: `Bearer ${GEMINI_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "gemini-2.5-flash",
+          model: "gemini-3-flash-preview",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },

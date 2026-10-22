@@ -289,7 +289,7 @@ serve(async (req) => {
     if (generatePlan && correctionData) {
       console.log("Phase 3: Generating intervention plan for level:", level);
       const { response: phase3, parsed: p3Parsed } = await requestStructuredJson(callGemini, {
-          model: "gemini-2.5-flash",
+          model: "gemini-3-flash-preview",
           messages: [
             { role: "system", content: buildInterventionPrompt(level, subLevel) },
             {
@@ -333,7 +333,7 @@ serve(async (req) => {
     // ========== PHASE 1: Transcription with vision (use flash for speed) ==========
     console.log("Phase 1: Starting paleographic transcription for level:", level);
     const { response: phase1, parsed: p1Parsed } = await requestStructuredJson(callGemini, {
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         messages: [
           { role: "system", content: buildTranscriptionPrompt() },
           {
@@ -370,7 +370,7 @@ serve(async (req) => {
     // ========== PHASE 2: Level-adaptive correction (use flash for speed) ==========
     console.log("Phase 2: Starting correction with level:", level, "subLevel:", subLevel);
     const { response: phase2, parsed: p2Parsed } = await requestStructuredJson(callGemini, {
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         messages: [
           { role: "system", content: buildCorrectionPrompt(level, subLevel) },
           {

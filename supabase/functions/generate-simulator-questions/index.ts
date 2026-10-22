@@ -262,8 +262,8 @@ async function fetchAIWithRetry(
       if (isAbort && attempt < maxAttempts - 1) {
         console.warn(`Timeout on attempt ${attempt + 1}, retrying with faster model...`);
         // On timeout, switch to a faster/lighter model
-        if (attempt === 0) currentModel = "gemini-2.5-flash";
-        if (attempt === 1) currentModel = "gemini-2.5-flash-lite";
+        if (attempt === 0) currentModel = "gemini-3-flash-preview";
+        if (attempt === 1) currentModel = "gemini-3.1-flash-lite-preview";
       } else if (attempt >= maxAttempts - 1) {
         throw new Error("Estamos processando sua inteligência pedagógica... isso pode levar um momento. Por favor, tente novamente ou reduza o número de questões.");
       }
@@ -535,7 +535,7 @@ Responda em JSON:
 }`;
       }
 
-      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-3-flash-preview", [
         { role: "system", content: systemPromptAEE },
         { role: "user", content: userPromptAEE },
       ], 0.7);
@@ -649,7 +649,7 @@ Responda em JSON:
         const systemPromptCruzadinha = `Atue como um criador de jogos pedagógicos. Com base no tema fornecido, crie dados para uma palavra cruzada. REGRA CRÍTICA: Retorne APENAS um objeto JSON válido, sem formatação markdown, contendo um array chamado "words". Cada item do array deve ter duas chaves: "answer" (a palavra da resposta, em MAIÚSCULAS, sem espaços e sem acentos) e "clue" (a dica pedagógica clara e objetiva para o aluno adivinhar a palavra). Gere entre 6 e 10 palavras no máximo.`;
         const userPromptCruzadinha = `Tema: "${specificTopic || 'tema geral'}"\nSérie: ${serie || 'Ensino Fundamental'}${customMaterial ? `\nContexto: ${customMaterial.slice(0, 2000)}` : ''}`;
         
-        const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
+        const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-3-flash-preview", [
           { role: "system", content: systemPromptCruzadinha },
           { role: "user", content: userPromptCruzadinha },
         ], 0.7);
@@ -665,7 +665,7 @@ Responda em JSON:
           return new Response(JSON.stringify({ error: "Erro ao processar dados da cruzadinha." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
       } else {
-        const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
+        const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-3-flash-preview", [
           { role: "system", content: systemPromptJogos },
           { role: "user", content: userPromptJogos },
         ], 0.8);
@@ -721,7 +721,7 @@ Responda em JSON (SEM markdown, SEM blocos de código):
   ]
 }`;
 
-      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-3-flash-preview", [
         { role: "system", content: systemPromptLit },
         { role: "user", content: userPromptLit },
       ], 0.7, 3, 120000);
@@ -750,7 +750,7 @@ Nível: médio. Questões contextualizadas com situações-problema.
 JSON:
 {"questions":[{"content":"enunciado","options":[{"letter":"A","text":"...","isCorrect":false}],"skillCode":"código","tutorExplanation":"explicação"}]}`;
 
-      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash-lite", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-3.1-flash-lite-preview", [
         { role: "system", content: systemPromptStudent },
         { role: "user", content: userPromptStudent },
       ], 0.7);
@@ -1006,7 +1006,7 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-3-flash-preview", [
         { role: "system", content: systemPromptRedacao },
         { role: "user", content: userPromptRedacao },
       ], 0.8);
@@ -1040,7 +1040,7 @@ Responda em JSON:
   ]
 }`;
 
-      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
+      const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-3-flash-preview", [
         { role: "system", content: systemPromptAula },
         { role: "user", content: userPromptAula },
       ], 0.7);
@@ -1146,7 +1146,7 @@ Responda APENAS com JSON válido, sem markdown.`;
       }`;
     }
 
-    const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-2.5-flash", [
+    const response = await fetchAIWithRetry(GEMINI_API_KEY, "gemini-3-flash-preview", [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
     ], 0.7);
