@@ -11,3 +11,6 @@ Antes de executar qualquer tarefa, leia os arquivos em `skills/` e siga as regra
 ## Mat learning & install
 - mat-chat extracts durable teacher facts (estilo/turma/correcao) and saves uploaded documents in a background step after streaming; the client persists turns to chat_sessions/chat_messages and mirrors them in localStorage for offline reading. Why: learning must never slow or break the streamed answer.
 - The service worker registers only through src/lib/register-sw.ts (guarded, NetworkFirst navigations); /mat-chat swaps to its own manifest so the Mat installs as a separate app. Why: preview safety and a standalone Mat app.
+
+## AEE adaptation
+- AEE output from generate-simulator-questions passes through aee-validate.ts (option limits per profile, one correct answer, no external image URLs); images come from imagePrompt via generate-illustration. Why: prompts alone do not guarantee profile rules.
