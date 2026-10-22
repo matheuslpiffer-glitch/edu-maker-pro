@@ -16,6 +16,7 @@ import { useRole } from '@/hooks/useRole';
 import { useChat } from '@/hooks/useChat';
 import { buildMatDocument } from '@/lib/mat-pdf-document';
 import { type PdfMargins } from '@/lib/pdf-margins';
+import { cacheMessages, readCachedMessages } from '@/lib/mat-offline';
 
 export type Msg = { role: 'user' | 'assistant'; content: string };
 
@@ -37,7 +38,7 @@ export function renderMathAsUnicode(text: string): string {
   return converted.replace(/(^|[^R])\$(?!\s?\d)/g, '$1');
 }
 
-export const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Você já conhece este educador. Com base nas conversas anteriores, ele prefere respostas diretas, foca em turmas de Anos Finais e valoriza metodologias ativas. Adapte todas as respostas para antecipar essas necessidades com pensamentos favoráveis à sua rotina. favor 📚\n\n_Desenvolvido por Matheus Lima Piffer._\n\n_Suporte: suporte@educreatorpro.com_';
+export const TEACHER_GREETING = 'Olá, professor(a)! 👋 Sou o **Mat**, seu consultor pedagógico **EduCreator Pro**. Aprendo com o uso: seu jeito de ensinar, suas turmas, os documentos que você envia e as correções que você me faz. Pergunte, peça uma criação ou envie um material! 📚\n\n_Desenvolvido por Matheus Lima Piffer._\n\n_Suporte: suporte@educreatorpro.com_';
 
 export const STUDENT_GREETING = 'Oi! 👋 Sou o **Mat**, seu tutor digital no **EduCreator Pro**. Se tiver dúvida em alguma questão que errou, **clique nela** e eu te explico o conceito por trás da resposta correta! Também posso sugerir materiais de estudo e te ajudar a revisar conteúdos. 📚\n\n_Desenvolvido por Matheus Lima Piffer._\n\n_Suporte: suporte@educreatorpro.com_';
 
@@ -85,7 +86,8 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
   } = useChat();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [pendingDoc, setPendingDoc] = useState<{ name: string; text?: string; dataUrl?: string } | null>(null);
+  const [pendingDoc, setPendingDoc] = useState<{ name: string; text?: string; dataUrl?: string; savedId?: string } | null>(null);
+  const skipLoadRef = useRef<string | null>(null);
   const [speakingMsgIndex, setSpeakingMsgIndex] = useState<number | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [videoStatus, setVideoStatus] = useState<Record<number, { 
@@ -114,6 +116,42 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
       onRegisterReset(() => setMessages([{ role: 'assistant', content: TEACHER_GREETING }]));
     }
   }, [onRegisterReset, setMessages]);
+
+  // Carrega a conversa escolhida (do servidor, ou da cópia local sem internet)
+  useEffect(() => {
+    const sid = currentSessionId;
+    if (!sid) return;
+    if (skipLoadRef.current === sid) { skipLoadRef.current = null; return; }
+    let cancelled = false;
+    (async () => {
+      const cached = readCachedMessages(sid);
+      if (cached?.length) setMessages(cached);
+      if (!navigator.onLine) return;
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('role, content')
+        .eq('session_id', sid)
+        .order('created_at', { ascending: true });
+      if (cancelled || error || !data) return;
+      const msgs: Msg[] = [{ role: 'assistant', content: TEACHER_GREETING }, ...data.map(m => ({ role: m.role as Msg['role'], content: m.content ?? '' }))];
+      setMessages(msgs);
+      cacheMessages(sid, msgs);
+    })();
+    return () => { cancelled = true; };
+  }, [currentSessionId, setMessages]);
+
+  // Documento guardado escolhido na tela "Memória do Mat"
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const d = (e as CustomEvent<{ id: string; name: string }>).detail;
+      if (!d?.id) return;
+      setPendingDoc({ name: d.name, savedId: d.id });
+      toast.success(`"${d.name}" será usado como base. Escreva o que deseja criar.`);
+      chatInputRef.current?.focus();
+    };
+    window.addEventListener('mat-use-document', handler);
+    return () => window.removeEventListener('mat-use-document', handler);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -230,7 +268,35 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
     }
   };
 
+  const persistTurn = async (userMsg: Msg, answer: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      let sid = currentSessionId;
+      if (!sid) {
+        const title = sanitizeChatText(userMsg.content).replace(/^📎 .*\n\n|^🖼️ .*\n\n/, '').slice(0, 60) || 'Nova conversa';
+        const { data, error } = await supabase.from('chat_sessions').insert({ user_id: user.id, title }).select('id').single();
+        if (error || !data) return;
+        sid = data.id;
+        skipLoadRef.current = sid;
+        setCurrentSessionId(sid);
+        onSessionChange?.(sid);
+      } else {
+        await supabase.from('chat_sessions').update({ updated_at: new Date().toISOString() }).eq('id', sid);
+      }
+      await supabase.from('chat_messages').insert([
+        { session_id: sid, role: 'user', content: userMsg.content },
+        { session_id: sid, role: 'assistant', content: answer },
+      ]);
+      setMessages(prev => { cacheMessages(sid!, prev); return prev; });
+    } catch (e) { console.error('persist error', e); }
+  };
+
   const handleSendMessage = async (payload: ChatInputPayload) => {
+    if (!navigator.onLine) {
+      toast.error('Sem internet. Você pode ler as conversas salvas; para criar algo novo, conecte-se.');
+      return;
+    }
     const doc = pendingDoc;
     const imageFile = payload.files?.find((f) => f.type.startsWith('image/'));
     if (!payload.text.trim() && !payload.action && !doc && !imageFile) return;
@@ -244,11 +310,18 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
     try {
       let image: string | undefined;
       let apiMsg: Msg = userMsg;
-      if (doc?.text) {
+      let documentIds: string[] | undefined;
+      let saveDocument: { name: string; text?: string; isPdf?: boolean } | undefined;
+      if (doc?.savedId) {
+        documentIds = [doc.savedId];
+        apiMsg = { role: 'user', content: `${baseText}\n\n(Use como base o documento guardado "${doc.name}".)` };
+      } else if (doc?.text) {
         apiMsg = { role: 'user', content: `${baseText}\n\nUse como base o conteúdo do documento "${doc.name}":\n"""\n${doc.text.slice(0, 40000)}\n"""` };
+        saveDocument = { name: doc.name, text: doc.text.slice(0, 60000) };
       } else if (doc?.dataUrl) {
         image = doc.dataUrl;
         apiMsg = { role: 'user', content: `${baseText}\n\n(Use como base o documento PDF anexado: ${doc.name})` };
+        saveDocument = { name: doc.name, isPdf: true };
       } else if (imageFile) {
         image = await readAsDataUrl(imageFile);
       }
@@ -260,7 +333,7 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: [...messages, apiMsg], action: payload.action, image }),
+        body: JSON.stringify({ messages: [...messages, apiMsg], action: payload.action, image, documentIds, saveDocument }),
       });
 
       if (!resp.ok || !resp.body) {
@@ -306,6 +379,9 @@ export const MatChatPanel = forwardRef<any, MatChatPanelProps>(({
           copy[copy.length - 1] = { role: 'assistant', content: 'Não consegui gerar uma resposta. Tente novamente.' };
           return copy;
         });
+      } else {
+        await persistTurn(userMsg, full);
+        if (saveDocument) toast.success(`"${saveDocument.name}" foi guardado na memória do Mat.`);
       }
     } catch (err) {
       console.error("Chat error:", err);
