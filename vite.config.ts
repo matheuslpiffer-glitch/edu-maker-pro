@@ -23,12 +23,22 @@ export default defineConfig(({ mode }) => ({
     mcpPlugin(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
+      injectRegister: null,
+      devOptions: { enabled: false },
+      filename: "sw.js",
+      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png", "mat-manifest.json"],
       manifest: false,
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        navigateFallbackDenylist: [/^\/~oauth/],
+        globPatterns: ["**/*.{js,css,ico,png,svg,woff2}"],
+        navigateFallback: null,
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request, url }) => request.mode === "navigate" && !url.pathname.startsWith("/~oauth"),
+            handler: "NetworkFirst",
+            options: { cacheName: "pages", networkTimeoutSeconds: 4 },
+          },
+        ],
       },
     }),
   ].filter(Boolean),
