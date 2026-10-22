@@ -459,8 +459,10 @@ export async function generateElitePDF(
       headStyles: { fillColor: [40, 150, 110], textColor: 255, fontStyle: 'bold' },
       columnStyles: { 0: { cellWidth: 8 }, 3: { cellWidth: 18 } },
       theme: 'grid',
+      didDrawPage: () => addWatermark(),
     });
     y = (doc as any).lastAutoTable.finalY + 6;
+    if (y > H - 25) { doc.addPage(); addWatermark(); y = 20; }
 
     // Theory in a light blue card
     checkPage(20);
