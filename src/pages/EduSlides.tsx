@@ -211,7 +211,7 @@ export default function EduSlides() {
     if (!el) return;
     setExporting(true);
     try {
-      const html2pdf = (await import('html2pdf.js')).default;
+      const html2pdf = (await import('@/lib/html2pdf-safe')).default;
       const opts: any = {
         margin: [15, 10, 15, 10],
         filename: `${topic || 'aula'}.pdf`,

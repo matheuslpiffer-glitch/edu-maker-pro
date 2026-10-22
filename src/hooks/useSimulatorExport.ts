@@ -63,7 +63,7 @@ export function useSimulatorExport({
       });
       await new Promise((r) => setTimeout(r, 400));
 
-      const html2pdf = (await import('html2pdf.js')).default;
+      const html2pdf = (await import('@/lib/html2pdf-safe')).default;
       await html2pdf().set({
         margin: toHtml2PdfMargin(pdfMargins),
         filename: `${title || 'simulado'}.pdf`,

@@ -524,7 +524,7 @@ Referências:
     const el = document.getElementById('triagem-report');
     if (!el) return;
     try {
-      const html2pdf = (await import('html2pdf.js')).default;
+      const html2pdf = (await import('@/lib/html2pdf-safe')).default;
       const cleanName = studentName.replace(/\s+/g, '_') || 'Aluno';
       await html2pdf().set({
         margin: [20, 15, 20, 15],
@@ -544,7 +544,7 @@ Referências:
       const el = document.getElementById('triagem-report');
       if (!el) return;
       toast({ title: '📎 Preparando arquivo...' });
-      const html2pdf = (await import('html2pdf.js')).default;
+      const html2pdf = (await import('@/lib/html2pdf-safe')).default;
       const cleanName = studentName.replace(/\s+/g, '_') || 'Aluno';
       const blob: Blob = await html2pdf().set({
         margin: [20, 15, 20, 15],
