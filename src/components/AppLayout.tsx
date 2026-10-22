@@ -1,3 +1,4 @@
+import brandLogo from "@/assets/pifferedutech-logo.png.asset.json";
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Eye, ArrowLeft } from 'lucide-react';
