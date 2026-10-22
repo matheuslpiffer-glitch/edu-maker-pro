@@ -224,9 +224,9 @@ async function fetchAeeWithRetry(payload: Record<string, unknown>, retries = 2, 
 }
 
 /* ── Per-question image generator component ── */
-function QuestionImageGenerator({ questionIndex, onImageGenerated }: { questionIndex: number; onImageGenerated: (url: string) => void }) {
+function QuestionImageGenerator({ questionIndex, onImageGenerated, initialPrompt = '' }: { questionIndex: number; onImageGenerated: (url: string) => void; initialPrompt?: string }) {
   const [open, setOpen] = useState(false);
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState(initialPrompt);
   const [imageUrl, setImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -1598,6 +1598,13 @@ export default function Inclusao() {
                   </div>
                 )}
 
+                {q.adaptationNote && (
+                  <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm text-foreground print:hidden">
+                    <p className="font-bold mb-1">📝 Nota ao professor</p>
+                    <p className="text-muted-foreground">{q.adaptationNote}</p>
+                  </div>
+                )}
+
                 {q.imageUrl && (
                   <img
                     src={q.imageUrl}
@@ -1633,6 +1640,7 @@ export default function Inclusao() {
                 {imageMode === 'com_imagem' && (
                   <QuestionImageGenerator
                     questionIndex={i}
+                    initialPrompt={q.imagePrompt || ''}
                     onImageGenerated={(url) => handleImageGenerated(i, url)}
                   />
                 )}
