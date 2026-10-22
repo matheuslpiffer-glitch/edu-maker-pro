@@ -97,6 +97,7 @@ export default function MatChat() {
       return;
     }
     
+    removeCachedSession(id);
     if (id === currentSessionId) {
       setCurrentSessionId(null);
       setResetKey(k => k + 1);
@@ -270,6 +271,7 @@ export default function MatChat() {
               <RotateCcw className="h-3.5 w-3.5" />
               Nova conversa
             </button>
+            </div>
           </div>
           
           {/* Context Selectors & AutoPlay Toggle */}
