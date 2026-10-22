@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getUserIdFromAuth, checkAndDecrementCredits } from "../_shared/credits.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { jsonrepair } from "npm:jsonrepair@3.13.1";
+import { requestStructuredJson, isTranscription, isCorrection, isIntervention } from "./structured-response.ts";
 
 function buildTranscriptionPrompt(): string {
   return `Você é um especialista mundial em PALEOGRAFIA DIGITAL e caligrafia escolar brasileira com 30 anos de experiência.
@@ -289,7 +288,7 @@ serve(async (req) => {
     // ========== INTERVENTION PLAN ONLY (Phase 3) ==========
     if (generatePlan && correctionData) {
       console.log("Phase 3: Generating intervention plan for level:", level);
-      const phase3 = await callGemini({
+      const { response: phase3, parsed: p3Parsed } = await requestStructuredJson(callGemini, {
           model: "gemini-2.5-flash",
           messages: [
             { role: "system", content: buildInterventionPrompt(level, subLevel) },
@@ -299,8 +298,8 @@ serve(async (req) => {
             },
           ],
           temperature: 0.4,
-          max_tokens: 2000,
-      });
+          max_tokens: 4096,
+      }, isIntervention, jsonrepair);
 
       if (!phase3.ok) {
         const s = phase3.status;
@@ -311,15 +310,7 @@ serve(async (req) => {
         return new Response(JSON.stringify({ error: "Erro ao gerar plano de intervenção." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      const p3Data = await phase3.json();
-      const p3Content = p3Data.choices?.[0]?.message?.content || "";
-      let p3Parsed;
-      try {
-        p3Parsed = JSON.parse(p3Content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim());
-      } catch {
-        console.error("Phase 3 parse error:", p3Content);
-        return new Response(JSON.stringify({ error: "Erro ao interpretar plano de intervenção." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
+    if (!p3Parsed) throw new Error("Resposta da IA incompleta.");
 
       return new Response(JSON.stringify(p3Parsed), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -339,45 +330,9 @@ serve(async (req) => {
 
     console.log("Image base64 length:", imageBase64.length, "chars (~", Math.round(imageBase64.length * 0.75 / 1024), "KB)");
 
-    // Helper to robustly parse JSON from AI responses (handles truncation)
-    function robustJsonParse(raw: string): any {
-      // Strip markdown fences
-      let cleaned = raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
-      // Find JSON object boundaries
-      const start = cleaned.indexOf("{");
-      const end = cleaned.lastIndexOf("}");
-      if (start === -1) throw new Error("No JSON found");
-      if (end === -1 || end <= start) {
-        // Truncated response — try to repair
-        cleaned = cleaned.substring(start);
-        // Close open strings, arrays, objects
-        cleaned = cleaned
-          .replace(/,\s*$/, "")
-          .replace(/[\x00-\x1F\x7F]/g, " ");
-        // Count unclosed braces/brackets and close them
-        let braces = 0, brackets = 0;
-        for (const ch of cleaned) {
-          if (ch === "{") braces++;
-          if (ch === "}") braces--;
-          if (ch === "[") brackets++;
-          if (ch === "]") brackets--;
-        }
-        // Close any open string
-        const quoteCount = (cleaned.match(/(?<!\\)"/g) || []).length;
-        if (quoteCount % 2 !== 0) cleaned += '"';
-        while (brackets > 0) { cleaned += "]"; brackets--; }
-        while (braces > 0) { cleaned += "}"; braces--; }
-      } else {
-        cleaned = cleaned.substring(start, end + 1);
-      }
-      // Remove trailing commas before } or ]
-      cleaned = cleaned.replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
-      return JSON.parse(cleaned);
-    }
-
     // ========== PHASE 1: Transcription with vision (use flash for speed) ==========
     console.log("Phase 1: Starting paleographic transcription for level:", level);
-    const phase1 = await callGemini({
+    const { response: phase1, parsed: p1Parsed } = await requestStructuredJson(callGemini, {
         model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: buildTranscriptionPrompt() },
@@ -390,8 +345,8 @@ serve(async (req) => {
           },
         ],
         temperature: 0.1,
-        max_tokens: 3000,
-    });
+        max_tokens: 8192,
+    }, isTranscription, jsonrepair);
 
     if (!phase1.ok) {
       const s = phase1.status;
@@ -402,16 +357,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Erro na transcrição. Tente novamente.", diagnostics: { stage: "phase1_ai", status: s } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const p1Data = await phase1.json();
-    const p1Content = p1Data.choices?.[0]?.message?.content || "";
-    console.log("Phase 1 raw response length:", p1Content.length);
-    let p1Parsed;
-    try {
-      p1Parsed = robustJsonParse(p1Content);
-    } catch (parseErr) {
-      console.error("Phase 1 parse error:", p1Content.substring(0, 500));
-      return new Response(JSON.stringify({ error: "Erro ao interpretar transcrição. Tente foto mais nítida." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (!p1Parsed) throw new Error("Resposta da IA incompleta.");
 
     if (p1Parsed.error === "IMAGEM_ILEGIVEL" || !p1Parsed.transcribed_text?.trim()) {
       return new Response(JSON.stringify({ error: "A foto está muito escura, borrada ou ilegível. Tente novamente com uma imagem mais clara e nítida." }), {
@@ -423,7 +369,7 @@ serve(async (req) => {
 
     // ========== PHASE 2: Level-adaptive correction (use flash for speed) ==========
     console.log("Phase 2: Starting correction with level:", level, "subLevel:", subLevel);
-    const phase2 = await callGemini({
+    const { response: phase2, parsed: p2Parsed } = await requestStructuredJson(callGemini, {
         model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: buildCorrectionPrompt(level, subLevel) },
@@ -433,8 +379,8 @@ serve(async (req) => {
           },
         ],
         temperature: 0.3,
-        max_tokens: 4000,
-    });
+        max_tokens: 8192,
+    }, isCorrection, jsonrepair);
 
     if (!phase2.ok) {
       const s = phase2.status;
@@ -445,16 +391,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Erro na correção. Tente novamente.", diagnostics: { stage: "phase2_ai", status: s } }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const p2Data = await phase2.json();
-    const p2Content = p2Data.choices?.[0]?.message?.content || "";
-    console.log("Phase 2 raw response length:", p2Content.length);
-    let p2Parsed;
-    try {
-      p2Parsed = robustJsonParse(p2Content);
-    } catch (parseErr) {
-      console.error("Phase 2 parse error:", p2Content.substring(0, 500));
-      return new Response(JSON.stringify({ error: "Erro ao interpretar correção. Tente novamente." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
+    if (!p2Parsed) throw new Error("Resposta da IA incompleta.");
 
     console.log("Phase 2 complete. Total score:", p2Parsed.total_score);
 
