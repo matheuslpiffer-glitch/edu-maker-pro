@@ -12,7 +12,7 @@ import { ArrowLeft, Camera, Loader2, Printer, RotateCw, Sparkles, AlertTriangle,
 import { useToast } from '@/hooks/use-toast';
 import { ExportLoadingOverlay } from '@/components/ExportLoadingOverlay';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
 import DocumentScanner from '@/components/DocumentScanner';
 import {
@@ -162,7 +162,7 @@ function ScoreBar({ item }: { item: ScoreItem }) {
   );
 }
 
-async function generateElitePDF(
+export async function generateElitePDF(
   result: EliteResult,
   plan: InterventionPlan | null,
   studentName: string,
@@ -274,7 +274,7 @@ async function generateElitePDF(
   // Student data on the right side of the card
   doc.setFontSize(8);
   doc.setTextColor(70, 70, 80);
-  doc.text(`Aluno: ${studentName || '________________________'}`, ML + 24, y + 23);
+  doc.text(doc.splitTextToSize(`Aluno: ${studentName || '________________________'}`, CW - 80)[0], ML + 24, y + 23);
   doc.text(`Nível: ${levelLabel}`, W - MR - 2, y + 10, { align: 'right' });
   doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, W - MR - 2, y + 16, { align: 'right' });
   doc.text(`Turma: ___________`, W - MR - 2, y + 23, { align: 'right' });
@@ -304,7 +304,7 @@ async function generateElitePDF(
 
   doc.setFontSize(10);
   doc.setTextColor(...DARK_BLUE);
-  doc.text(tableTitle, ML, y);
+  doc.text(doc.splitTextToSize(tableTitle, CW)[0], ML, y);
   y += 5;
 
   // Draw each score as an infographic bar
@@ -324,8 +324,8 @@ async function generateElitePDF(
     doc.setFontSize(8.5);
     doc.setTextColor(40, 40, 40);
     result.strengths.forEach(s => {
-      checkPage(8);
       const lines = doc.splitTextToSize(`• ${s}`, CW - 5);
+      checkPage(lines.length * 4 + 2);
       doc.text(lines, ML + 3, y);
       y += lines.length * 4 + 1;
     });
@@ -342,8 +342,8 @@ async function generateElitePDF(
     doc.setFontSize(8.5);
     doc.setTextColor(40, 40, 40);
     result.improvements.forEach(s => {
-      checkPage(8);
       const lines = doc.splitTextToSize(`• ${s}`, CW - 5);
+      checkPage(lines.length * 4 + 2);
       doc.text(lines, ML + 3, y);
       y += lines.length * 4 + 1;
     });
@@ -402,20 +402,28 @@ async function generateElitePDF(
   const txLines = doc.splitTextToSize(result.transcribed_text || '', CW - 10);
   const txBlockH = txLines.length * 4 + 8;
 
-  // Draw the gray card behind the text
-  checkPage(txBlockH + 4);
-  drawCard(ML, y - 2, CW, txBlockH, LIGHT_GRAY_BG, 3);
-  // Draw a subtle border
-  doc.setDrawColor(200, 200, 210);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(ML, y - 2, CW, txBlockH, 3, 3, 'S');
-
-  doc.setTextColor(40, 40, 40);
-  txLines.forEach((line: string) => {
-    doc.text(line, ML + 5, y + 2);
-    y += 4;
-  });
-  y += 8;
+  // Draw the gray card in page-sized chunks so long essays never pass the footer
+  const LINE_H = 4;
+  let idx = 0;
+  checkPage(Math.min(txBlockH, 30));
+  while (idx < txLines.length) {
+    const room = Math.max(1, Math.floor((H - 25 - y - 6) / LINE_H));
+    const chunk = txLines.slice(idx, idx + room);
+    const blockH = chunk.length * LINE_H + 6;
+    drawCard(ML, y - 2, CW, blockH, LIGHT_GRAY_BG, 3);
+    doc.setDrawColor(200, 200, 210);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(ML, y - 2, CW, blockH, 3, 3, 'S');
+    doc.setTextColor(40, 40, 40);
+    chunk.forEach((line: string) => {
+      doc.text(line, ML + 5, y + 2);
+      y += LINE_H;
+    });
+    idx += chunk.length;
+    y += 6;
+    if (idx < txLines.length) { doc.addPage(); addWatermark(); y = 20; }
+  }
+  y += 2;
 
   // ── Intervention Plan (mint green highlighted section) ──
   if (plan) {
@@ -433,7 +441,7 @@ async function generateElitePDF(
     // Gap
     doc.setFontSize(9);
     doc.setTextColor(180, 40, 40);
-    doc.text(`Maior Lacuna: ${plan.biggest_gap}`, ML, y);
+    doc.text(doc.splitTextToSize(`Maior Lacuna: ${plan.biggest_gap}`, CW)[0], ML, y);
     y += 5;
     doc.setFontSize(8.5);
     doc.setTextColor(60, 60, 60);
@@ -442,7 +450,7 @@ async function generateElitePDF(
     y += gapLines.length * 4 + 4;
 
     // Activities table
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y,
       head: [['#', 'Atividade', 'Descrição', 'Duração']],
       body: plan.activities.map((a, i) => [`${i + 1}`, a.title, a.description, a.duration]),
@@ -451,8 +459,10 @@ async function generateElitePDF(
       headStyles: { fillColor: [40, 150, 110], textColor: 255, fontStyle: 'bold' },
       columnStyles: { 0: { cellWidth: 8 }, 3: { cellWidth: 18 } },
       theme: 'grid',
+      didDrawPage: () => addWatermark(),
     });
     y = (doc as any).lastAutoTable.finalY + 6;
+    if (y > H - 25) { doc.addPage(); addWatermark(); y = 20; }
 
     // Theory in a light blue card
     checkPage(20);

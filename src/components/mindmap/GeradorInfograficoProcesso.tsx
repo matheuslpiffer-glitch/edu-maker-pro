@@ -130,7 +130,7 @@ export default function GeradorInfograficoProcesso({ defaultSubject = '', autoGe
     <div className="space-y-8 max-w-4xl mx-auto p-4 print:p-0 print:max-w-none">
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          @page { size: portrait; margin: 1.2cm; }
+          @page { size: A4 portrait; margin: 12mm; }
           body { background-color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
           .print-break-inside-avoid { break-inside: avoid; }
