@@ -4,6 +4,7 @@
  * imagens, código) e linhas/blocos não são cortados ao meio na quebra de página.
  */
 import html2pdfLib from 'html2pdf.js';
+import { stampBrandFooter } from './pdf-brand-footer';
 
 export const PDF_AVOID_SELECTORS = [
   'p', 'li', 'tr', 'img', 'svg', 'figure', 'pre', 'blockquote',
@@ -58,6 +59,17 @@ function patchWorker() {
   W.prototype.from = function (src: any, type?: string) {
     if (src instanceof HTMLElement) applyPdfSafety(src);
     return origFrom.call(this, src, type);
+  };
+  // html2pdf usa sua própria cópia do jsPDF: carimba o logo em cada página aqui.
+  const origToPdf = W.prototype.toPdf;
+  W.prototype.toPdf = function () {
+    return origToPdf.call(this).then(function (this: any) {
+      const pdf = this.prop?.pdf;
+      if (!pdf || pdf.__brandStamped) return;
+      pdf.__brandStamped = true;
+      const n = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= n; i++) { pdf.setPage(i); stampBrandFooter(pdf); }
+    });
   };
 }
 
